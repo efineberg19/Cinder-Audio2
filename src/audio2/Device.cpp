@@ -1,6 +1,9 @@
 #include "audio2/Device.h"
-#include "audio2/DeviceAudioUnit.h"
 #include "audio2/Debug.h"
+
+#if defined( CINDER_COCOA )
+#include "audio2/DeviceAudioUnit.h"
+#endif
 
 namespace audio2 {
 

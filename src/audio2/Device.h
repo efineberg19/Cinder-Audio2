@@ -10,6 +10,9 @@ typedef std::shared_ptr<class InputDevice> InputDeviceRef;
 class Device {
   public:
 
+	virtual void initialize() = 0;
+	virtual void uninitialize() = 0;
+
 	virtual void start() = 0;
 	virtual void stop() = 0;
 
