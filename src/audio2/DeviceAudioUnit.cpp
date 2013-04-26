@@ -2,13 +2,34 @@
 
 namespace audio2 {
 
-	struct DeviceAudioUnitImpl {
+// ----------------------------------------------------------------------------------------------------
+// MARK: - DeviceAudioUnitImpl
+// ----------------------------------------------------------------------------------------------------
 
-	};
+struct DeviceAudioUnitImpl {
 
-	OutputDeviceAudioUnit::~OutputDeviceAudioUnit()
-	{
-	}
+};
 
-	
+// ----------------------------------------------------------------------------------------------------
+// MARK: - OutputDeviceAudioUnit
+// ----------------------------------------------------------------------------------------------------
+
+OutputDeviceAudioUnit::~OutputDeviceAudioUnit()
+{
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - DeviceManagerAudioUnit
+// ----------------------------------------------------------------------------------------------------
+
+OutputDeviceRef DeviceManagerAudioUnit::getDefaultOutput()
+{
+	return OutputDeviceRef();
+}
+
+InputDeviceRef DeviceManagerAudioUnit::getDefaultInput()
+{
+	return InputDeviceRef();
+}
+
 } // namespace audio2

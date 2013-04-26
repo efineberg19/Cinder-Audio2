@@ -4,6 +4,9 @@
 
 namespace audio2 {
 
+typedef std::shared_ptr<class OutputDevice> OutputDeviceRef;
+typedef std::shared_ptr<class InputDevice> InputDeviceRef;
+
 class Device {
   public:
 
@@ -16,10 +19,20 @@ class Device {
 
 class OutputDevice : public Device {
   public:
+	static OutputDeviceRef getDefault();
 };
 
 class InputDevice : public Device {
   public:
+};
+
+class DeviceManager {
+  public:
+	virtual ~DeviceManager() {}
+	virtual OutputDeviceRef getDefaultOutput() = 0;
+	virtual InputDeviceRef getDefaultInput() = 0;
+
+	static DeviceManager* instance();
 };
 
 } // namespace audio2

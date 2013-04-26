@@ -1,11 +1,13 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
+#include "audio2/Device.h"
 #include "audio2/Graph.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+using namespace audio2;
 
 class BasicTestApp : public AppNative {
   public:
@@ -17,6 +19,9 @@ class BasicTestApp : public AppNative {
 
 void BasicTestApp::setup()
 {
+	OutputDeviceRef output = DeviceManager::instance()->getDefaultOutput();
+	OutputDeviceRef output2 = OutputDevice::getDefault();
+
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )
