@@ -2,6 +2,7 @@
 
 #include "audio2/Device.h"
 
+#include <AudioUnit/AudioUnit.h>
 #include <string>
 
 namespace audio2 {
@@ -19,11 +20,16 @@ class DeviceAudioUnit : public Device {
 	void stop() override;
 
   private:
-	DeviceAudioUnit( const std::string &key );
+	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key );
 	std::unique_ptr<DeviceAudioUnitImpl> mImpl;
 	std::string mKey;
 
-	friend class DeviceManagerCoreAudio; // ???: friend DeviceManagers here or can be avoided?
+	 // ???: friend DeviceManagers here or can be avoided?
+#if defined( CINDER_MAC )
+	friend class DeviceManagerCoreAudio;
+#elif defined( CINDER_COCOA_TOUCH )
+	friend class DeviceManagerAudioSession;
+#endif
 };
 
 } // namespace audio2

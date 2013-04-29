@@ -2,7 +2,6 @@
 
 #include "audio2/Device.h"
 
-//#include <CoreAudio/CoreAudioTypes.h>
 #include <CoreAudio/CoreAudio.h>
 #include <map>
 
@@ -10,6 +9,7 @@ namespace audio2 {
 
 	// ???: alt name: DeviceManagerCocoa
 	class DeviceManagerCoreAudio : public DeviceManager {
+
 		DeviceRef getDefaultOutput() override;
 		DeviceRef getDefaultInput() override;
 

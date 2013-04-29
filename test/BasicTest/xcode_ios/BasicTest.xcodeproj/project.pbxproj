@@ -17,7 +17,6 @@
 		114FBBF3172CBF7E002CD25C /* Graph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBEB172CBF7E002CD25C /* Graph.cpp */; };
 		114FBBF4172CBF7E002CD25C /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBED172CBF7E002CD25C /* Node.cpp */; };
 		11CB352C172EFA910082917F /* DeviceManagerAudioSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CB3528172EFA910082917F /* DeviceManagerAudioSession.cpp */; };
-		11CB352D172EFA910082917F /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CB352A172EFA910082917F /* DeviceManagerCoreAudio.cpp */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -274,7 +273,6 @@
 				114FBBF3172CBF7E002CD25C /* Graph.cpp in Sources */,
 				114FBBF4172CBF7E002CD25C /* Node.cpp in Sources */,
 				11CB352C172EFA910082917F /* DeviceManagerAudioSession.cpp in Sources */,
-				11CB352D172EFA910082917F /* DeviceManagerCoreAudio.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

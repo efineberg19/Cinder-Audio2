@@ -21,7 +21,7 @@ struct DeviceAudioUnitImpl {
 // MARK: - DeviceAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-DeviceAudioUnit::DeviceAudioUnit( const string &key )
+	DeviceAudioUnit::DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key )
 : mKey( key )
 {
 
