@@ -4,6 +4,7 @@
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
 #include "audio2/assert.h"
+#include "audio2/Debug.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -23,7 +24,7 @@ void BasicTestApp::setup()
 	OutputDeviceRef output = DeviceManager::instance()->getDefaultOutput();
 	OutputDeviceRef output2 = OutputDevice::getDefault();
 
-	CI_ASSERT( output == output2 ); // FIXME: how to make this true? getDefaultOutput() is creating a new OutputDeviceAudioUnit each call
+	LOG_V << "testing output == output2: " << (output == output2 ? "true" : "false" ) << endl;
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )

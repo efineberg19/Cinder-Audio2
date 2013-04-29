@@ -4,6 +4,7 @@
 
 namespace audio2 {
 
+typedef std::shared_ptr<class Device> DeviceRef;
 typedef std::shared_ptr<class OutputDevice> OutputDeviceRef;
 typedef std::shared_ptr<class InputDevice> InputDeviceRef;
 

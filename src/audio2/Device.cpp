@@ -2,7 +2,12 @@
 #include "audio2/Debug.h"
 
 #if defined( CINDER_COCOA )
-#include "audio2/DeviceAudioUnit.h"
+	#include "audio2/DeviceAudioUnit.h"
+	#if defined( CINDER_MAC )
+		#include "audio2/DeviceManagerCoreAudio.h"
+	#else
+		#include "audio2/DeviceManagerAudioSession.h"
+	#endif
 #endif
 
 namespace audio2 {
@@ -24,10 +29,12 @@ DeviceManager* DeviceManager::instance()
 {
 	static DeviceManager *sInstance = 0;
 	if( ! sInstance ) {
-#if defined( CINDER_COCOA )
-		sInstance = new DeviceManagerAudioUnit;
+#if defined( CINDER_MAC )
+		sInstance = new DeviceManagerCoreAudio();
+#elif defined( CINDER_COCOA_TOUCH )
+		sInstance = new DeviceManagerAudioSession();
 #else
-		throw "not implemented";
+	#error "not implemented"
 #endif
 	}
 	return sInstance;
