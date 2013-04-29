@@ -21,8 +21,8 @@ class BasicTestApp : public AppNative {
 
 void BasicTestApp::setup()
 {
-	OutputDeviceRef output = DeviceManager::instance()->getDefaultOutput();
-	OutputDeviceRef output2 = OutputDevice::getDefault();
+	DeviceRef output = DeviceManager::instance()->getDefaultOutput();
+	DeviceRef output2 = Device::getDefaultOutput();
 
 	LOG_V << "testing output == output2: " << (output == output2 ? "true" : "false" ) << endl;
 }

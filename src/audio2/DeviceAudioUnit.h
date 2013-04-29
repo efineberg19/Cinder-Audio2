@@ -8,9 +8,9 @@ namespace audio2 {
 
 struct DeviceAudioUnitImpl;
 
-class OutputDeviceAudioUnit : public OutputDevice {
+class DeviceAudioUnit : public Device {
   public:
-	virtual ~OutputDeviceAudioUnit();
+	virtual ~DeviceAudioUnit();
 
 	void initialize() override;
 	void uninitialize() override;
@@ -19,14 +19,11 @@ class OutputDeviceAudioUnit : public OutputDevice {
 	void stop() override;
 
   private:
-	OutputDeviceAudioUnit( const std::string &key );
+	DeviceAudioUnit( const std::string &key );
 	std::unique_ptr<DeviceAudioUnitImpl> mImpl;
 	std::string mKey;
 
 	friend class DeviceManagerCoreAudio; // ???: friend DeviceManagers here or can be avoided?
-};
-
-class InputDeviceAudioUnit : public InputDevice {
 };
 
 } // namespace audio2

@@ -20,7 +20,7 @@ namespace audio2 {
 // MARK: - Core Audio Helpers
 // ----------------------------------------------------------------------------------------------------
 
-	OutputDeviceRef DeviceManagerCoreAudio::getDefaultOutput()
+	DeviceRef DeviceManagerCoreAudio::getDefaultOutput()
 	{
 		::AudioDeviceID defaultOutputID;
 		UInt32 propertySize = sizeof( defaultOutputID );
@@ -32,13 +32,13 @@ namespace audio2 {
 		CI_ASSERT( status == noErr );
 
 		string key = DeviceManagerCoreAudio::keyForDeviceID( defaultOutputID );
-		return static_pointer_cast<OutputDevice>( getDevice( key ) );
+		return getDevice( key );
 	}
 
-	InputDeviceRef DeviceManagerCoreAudio::getDefaultInput()
+	DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	{
 		throw "not implemented";
-		return InputDeviceRef();
+		return DeviceRef();
 	}
 
 	DeviceRef DeviceManagerCoreAudio::getDevice( const std::string &key )
@@ -72,7 +72,7 @@ namespace audio2 {
 			for ( AudioDeviceID &deviceID : deviceIDs ) {
 				string key = keyForDeviceID( deviceID );
 
-				auto device = static_pointer_cast<Device>( OutputDeviceRef( new OutputDeviceAudioUnit( key ) ) );
+				auto device = static_pointer_cast<Device>( DeviceRef( new DeviceAudioUnit( key ) ) );
 				auto result = mDevices.insert( make_pair( key,  make_pair( device,  deviceID ) ) );
 				CI_ASSERT( result.second );
 			}

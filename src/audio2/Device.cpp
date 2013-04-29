@@ -16,7 +16,7 @@ namespace audio2 {
 // MARK: - OutputDevice
 // ----------------------------------------------------------------------------------------------------
 
-OutputDeviceRef OutputDevice::getDefault()
+DeviceRef Device::getDefaultOutput()
 {
 	return DeviceManager::instance()->getDefaultOutput();
 }

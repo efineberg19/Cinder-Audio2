@@ -18,35 +18,35 @@ struct DeviceAudioUnitImpl {
 };
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - OutputDeviceAudioUnit
+// MARK: - DeviceAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-OutputDeviceAudioUnit::OutputDeviceAudioUnit( const string &key )
+DeviceAudioUnit::DeviceAudioUnit( const string &key )
 : mKey( key )
 {
 
 }
 
-OutputDeviceAudioUnit::~OutputDeviceAudioUnit()
+DeviceAudioUnit::~DeviceAudioUnit()
 {
 }
 
-void OutputDeviceAudioUnit::initialize()
-{
-
-}
-
-void OutputDeviceAudioUnit::uninitialize()
+void DeviceAudioUnit::initialize()
 {
 
 }
 
-void OutputDeviceAudioUnit::start()
+void DeviceAudioUnit::uninitialize()
 {
 
 }
 
-void OutputDeviceAudioUnit::stop()
+void DeviceAudioUnit::start()
+{
+
+}
+
+void DeviceAudioUnit::stop()
 {
 
 }
