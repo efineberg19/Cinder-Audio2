@@ -25,6 +25,11 @@ void BasicTestApp::setup()
 	DeviceRef output2 = Device::getDefaultOutput();
 
 	LOG_V << "testing output == output2: " << (output == output2 ? "true" : "false" ) << endl;
+
+	OutputRef outputNode = SpeakerOutput::create();
+
+	// fail:
+//	OutputRef outputNode = Node<Output>::create( Device::getDefaultOutput() );
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )
