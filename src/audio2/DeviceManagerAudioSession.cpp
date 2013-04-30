@@ -7,27 +7,37 @@ namespace audio2 {
 
 	const string kRemoteIOKey = "iOS-RemoteIO";
 
-	// ----------------------------------------------------------------------------------------------------
-	// MARK: - DeviceManagerAudioSession
-	// ----------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
+// MARK: - DeviceManagerAudioSession
+// ----------------------------------------------------------------------------------------------------
 
-	DeviceRef DeviceManagerAudioSession::getDefaultOutput()
-	{
+DeviceRef DeviceManagerAudioSession::getDefaultOutput()
+{
+	return getRemoteIOUnit();
+}
+
+DeviceRef DeviceManagerAudioSession::getDefaultInput()
+{
+	return getRemoteIOUnit();
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Private
+// ----------------------------------------------------------------------------------------------------
+
+DeviceRef DeviceManagerAudioSession::getRemoteIOUnit()
+{
+	if( ! mRemoteIOUnit ) {
 		::AudioComponentDescription component{ 0 };
 		component.componentType = kAudioUnitType_Output;
 		component.componentSubType = kAudioUnitSubType_RemoteIO;
 		component.componentManufacturer = kAudioUnitManufacturer_Apple;
 
 		mRemoteIOUnit = DeviceRef( new DeviceAudioUnit( component, kRemoteIOKey ) );
-
-		return mRemoteIOUnit;
 	}
 
-	DeviceRef DeviceManagerAudioSession::getDefaultInput()
-	{
-		throw "not implemented";
-		return DeviceRef();
-	}
+	return mRemoteIOUnit;
+}
 
 	
 } // namespace audio2

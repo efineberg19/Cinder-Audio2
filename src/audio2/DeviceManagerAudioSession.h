@@ -12,6 +12,7 @@ class DeviceManagerAudioSession : public DeviceManager {
 	DeviceRef getDefaultInput() override;
   private:
 
+	DeviceRef getRemoteIOUnit();
 	DeviceRef mRemoteIOUnit;
 };
 
