@@ -17,10 +17,8 @@ namespace audio2 {
 
 	private:
 
-		static std::string keyForDeviceID( AudioDeviceID deviceID );
+		static std::string keyForDeviceID( ::AudioDeviceID deviceID );
 
-		// ???: vector<pair<DeviceRef, AudioDeviceID> > instead, or struct containing device, id, and key?
-//		typedef std::map<std::string, std::pair<DeviceRef, AudioDeviceID> > DeviceMap;
 		struct DeviceInfo {
 			std::string			key;
 			::AudioDeviceID		deviceID;
@@ -29,8 +27,8 @@ namespace audio2 {
 		typedef std::vector<DeviceInfo> DeviceContainerT;
 
 		DeviceRef getDevice( const std::string &key );
-
 		DeviceContainerT& getDevices();
+
 		DeviceContainerT mDevices;
 	};
 	

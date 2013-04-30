@@ -12,10 +12,10 @@ namespace audio2 {
 
 	// some private helpers, not sure yet how widely useful these are
 	AudioObjectPropertyAddress audioObjectProperty( AudioObjectPropertySelector propertySelector, AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
-	UInt32 audioObjectPropertyDataSize( AudioObjectID objectID, const AudioObjectPropertyAddress& address, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
-	void audioObjectPropertyData( AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
-	string audioObjectPropertyString( AudioObjectID objectID, AudioObjectPropertySelector propertySelector );
-	size_t deviceNumChannels( AudioDeviceID objectID, bool isInput );
+	UInt32 audioObjectPropertyDataSize( ::AudioObjectID objectID, const AudioObjectPropertyAddress& address, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
+	void audioObjectPropertyData( ::AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
+	string audioObjectPropertyString( ::AudioObjectID objectID, AudioObjectPropertySelector propertySelector );
+	size_t deviceNumChannels( ::AudioDeviceID objectID, bool isInput );
 	
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManagerCoreAudio
@@ -99,7 +99,7 @@ namespace audio2 {
 	// note: we cannot just rely on 'model UID', when it is there (which it isn't always), becasue it can be the same
 	// for two different 'devices', such as system input and output
 	// - current solution: key = 'NAME-[UID | MANUFACTURE]'
-	std::string DeviceManagerCoreAudio::keyForDeviceID( AudioDeviceID deviceID )
+	std::string DeviceManagerCoreAudio::keyForDeviceID( ::AudioDeviceID deviceID )
 	{
 		string name = audioObjectPropertyString( deviceID, kAudioObjectPropertyName );
 		string key = audioObjectPropertyString( deviceID, kAudioDevicePropertyModelUID );
@@ -123,7 +123,7 @@ namespace audio2 {
 		return result;
 	}
 
-	UInt32 audioObjectPropertyDataSize( AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 qualifierDataSize, const void *qualifierData )
+	UInt32 audioObjectPropertyDataSize( ::AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 qualifierDataSize, const void *qualifierData )
 	{
 		UInt32 result = 0;
 		OSStatus status = ::AudioObjectGetPropertyDataSize( objectID, &propertyAddress, qualifierDataSize, qualifierData, &result );
@@ -132,13 +132,13 @@ namespace audio2 {
 		return result;
 	}
 
-	void audioObjectPropertyData( AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize, const void* qualifierData )
+	void audioObjectPropertyData( ::AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize, const void* qualifierData )
 	{
 		OSStatus status = ::AudioObjectGetPropertyData( objectID, &propertyAddress, qualifierDataSize, qualifierData, &dataSize, data );
 		CI_ASSERT( status == noErr );
 	}
 
-	string audioObjectPropertyString( AudioObjectID objectID, ::AudioObjectPropertySelector propertySelector )
+	string audioObjectPropertyString( ::AudioObjectID objectID, ::AudioObjectPropertySelector propertySelector )
 	{
 		::AudioObjectPropertyAddress property = audioObjectProperty( propertySelector );
 		if( !::AudioObjectHasProperty( objectID, &property ) )
@@ -155,7 +155,7 @@ namespace audio2 {
 		return result;
 	}
 
-	size_t deviceNumChannels( AudioObjectID objectID, bool isInput )
+	size_t deviceNumChannels( ::AudioObjectID objectID, bool isInput )
 	{
 		::AudioObjectPropertyAddress streamConfigProperty = audioObjectProperty( kAudioDevicePropertyStreamConfiguration, isInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput );
 		UInt32 streamConfigPropertySize = audioObjectPropertyDataSize( objectID, streamConfigProperty );
