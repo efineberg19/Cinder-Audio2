@@ -2,5 +2,4 @@
 
 namespace audio2 {
 
-
 } // namespace audio2

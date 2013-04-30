@@ -14,11 +14,13 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		114FBA3A172A1CB9002CD25C /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA32172A1CB9002CD25C /* Device.cpp */; };
 		114FBA3B172A1CB9002CD25C /* Graph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA34172A1CB9002CD25C /* Graph.cpp */; };
-		114FBA3C172A1CB9002CD25C /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA36172A1CB9002CD25C /* Node.cpp */; };
+		114FBA3C172A1CB9002CD25C /* Engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA36172A1CB9002CD25C /* Engine.cpp */; };
 		114FBA42172A2543002CD25C /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA40172A2543002CD25C /* Util.cpp */; };
 		114FBA45172A2B49002CD25C /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA43172A2B49002CD25C /* DeviceAudioUnit.cpp */; };
 		11CB3533172EFAA70082917F /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CB3530172EFAA70082917F /* DeviceManagerCoreAudio.cpp */; };
 		148AFBDE172AE6C80066D8BE /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 148AFBDC172AE6C80066D8BE /* audio.cpp */; };
+		148AFBE2173060E10066D8BE /* EngineAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 148AFBE0173060E10066D8BE /* EngineAudioUnit.cpp */; };
+		148AFBE5173063000066D8BE /* GraphAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 148AFBE3173062FF0066D8BE /* GraphAudioUnit.cpp */; };
 		45E73D08F7D14B79939BB7DC /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 4C25C7997E6A487FA19C5DC0 /* CinderApp.icns */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
@@ -37,8 +39,8 @@
 		114FBA33172A1CB9002CD25C /* Device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = "<group>"; };
 		114FBA34172A1CB9002CD25C /* Graph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Graph.cpp; sourceTree = "<group>"; };
 		114FBA35172A1CB9002CD25C /* Graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Graph.h; sourceTree = "<group>"; };
-		114FBA36172A1CB9002CD25C /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
-		114FBA37172A1CB9002CD25C /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
+		114FBA36172A1CB9002CD25C /* Engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Engine.cpp; sourceTree = "<group>"; };
+		114FBA37172A1CB9002CD25C /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		114FBA3E172A2337002CD25C /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
 		114FBA40172A2543002CD25C /* Util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Util.cpp; sourceTree = "<group>"; };
 		114FBA41172A2543002CD25C /* Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Util.h; sourceTree = "<group>"; };
@@ -52,6 +54,10 @@
 		148AFBDC172AE6C80066D8BE /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		148AFBDD172AE6C80066D8BE /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		148AFBDF172AF1300066D8BE /* assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assert.h; sourceTree = "<group>"; };
+		148AFBE0173060E10066D8BE /* EngineAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EngineAudioUnit.cpp; sourceTree = "<group>"; };
+		148AFBE1173060E10066D8BE /* EngineAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EngineAudioUnit.h; sourceTree = "<group>"; };
+		148AFBE3173062FF0066D8BE /* GraphAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GraphAudioUnit.cpp; sourceTree = "<group>"; };
+		148AFBE4173062FF0066D8BE /* GraphAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphAudioUnit.h; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		3D080E4252C34004B9ED31F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -138,8 +144,12 @@
 				11CB3531172EFAA70082917F /* DeviceManagerCoreAudio.h */,
 				114FBA34172A1CB9002CD25C /* Graph.cpp */,
 				114FBA35172A1CB9002CD25C /* Graph.h */,
-				114FBA36172A1CB9002CD25C /* Node.cpp */,
-				114FBA37172A1CB9002CD25C /* Node.h */,
+				148AFBE3173062FF0066D8BE /* GraphAudioUnit.cpp */,
+				148AFBE4173062FF0066D8BE /* GraphAudioUnit.h */,
+				114FBA36172A1CB9002CD25C /* Engine.cpp */,
+				114FBA37172A1CB9002CD25C /* Engine.h */,
+				148AFBE0173060E10066D8BE /* EngineAudioUnit.cpp */,
+				148AFBE1173060E10066D8BE /* EngineAudioUnit.h */,
 				114FBA3E172A2337002CD25C /* Debug.h */,
 				148AFBDF172AF1300066D8BE /* assert.h */,
 			);
@@ -268,11 +278,13 @@
 				FE6541737CFA406192BDC3E9 /* BasicTestApp.cpp in Sources */,
 				114FBA3A172A1CB9002CD25C /* Device.cpp in Sources */,
 				114FBA3B172A1CB9002CD25C /* Graph.cpp in Sources */,
-				114FBA3C172A1CB9002CD25C /* Node.cpp in Sources */,
+				114FBA3C172A1CB9002CD25C /* Engine.cpp in Sources */,
 				114FBA42172A2543002CD25C /* Util.cpp in Sources */,
 				114FBA45172A2B49002CD25C /* DeviceAudioUnit.cpp in Sources */,
 				148AFBDE172AE6C80066D8BE /* audio.cpp in Sources */,
 				11CB3533172EFAA70082917F /* DeviceManagerCoreAudio.cpp in Sources */,
+				148AFBE2173060E10066D8BE /* EngineAudioUnit.cpp in Sources */,
+				148AFBE5173063000066D8BE /* GraphAudioUnit.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

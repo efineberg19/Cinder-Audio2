@@ -3,6 +3,7 @@
 
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
+#include "audio2/Engine.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
@@ -26,7 +27,7 @@ void BasicTestApp::setup()
 
 	LOG_V << "testing output == output2: " << (output == output2 ? "true" : "false" ) << endl;
 
-	OutputRef outputNode = SpeakerOutput::create();
+	OutputRef outputNode = Engine::instance()->createOutputSpeakers( output );
 
 	// fail:
 //	OutputRef outputNode = Node<Output>::create( Device::getDefaultOutput() );
