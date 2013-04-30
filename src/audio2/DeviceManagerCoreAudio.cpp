@@ -25,21 +25,18 @@ namespace audio2 {
 	{
 		::AudioDeviceID defaultOutputID;
 		UInt32 propertySize = sizeof( defaultOutputID );
-		::AudioObjectPropertyAddress propertyAddress; // TODO: replace with helper
-		propertyAddress.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
-		propertyAddress.mScope = kAudioObjectPropertyScopeGlobal;
-		propertyAddress.mElement = kAudioObjectPropertyElementMaster;
-		OSStatus status = ::AudioObjectGetPropertyData( kAudioObjectSystemObject, &propertyAddress, 0, NULL, &propertySize, &defaultOutputID );
-		CI_ASSERT( status == noErr );
-
-		string key = DeviceManagerCoreAudio::keyForDeviceID( defaultOutputID );
-		return getDevice( key );
+		::AudioObjectPropertyAddress propertyAddress = audioObjectProperty( kAudioHardwarePropertyDefaultOutputDevice );
+		audioObjectPropertyData( kAudioObjectSystemObject, propertyAddress, propertySize, &defaultOutputID );
+		return getDevice( DeviceManagerCoreAudio::keyForDeviceID( defaultOutputID ) );
 	}
 
 	DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	{
-		throw "not implemented";
-		return DeviceRef();
+		::AudioDeviceID defaultInputID;
+		UInt32 propertySize = sizeof( defaultInputID );
+		::AudioObjectPropertyAddress propertyAddress = audioObjectProperty( kAudioHardwarePropertyDefaultInputDevice );
+		audioObjectPropertyData( kAudioObjectSystemObject, propertyAddress, propertySize, &defaultInputID );
+		return getDevice( DeviceManagerCoreAudio::keyForDeviceID( defaultInputID ) );
 	}
 
 	void DeviceManagerCoreAudio::setActiveDevice( const std::string &key )
