@@ -3,7 +3,7 @@
 #include "audio2/Device.h"
 
 #include <CoreAudio/CoreAudio.h>
-#include <map>
+#include <vector>
 
 namespace audio2 {
 
@@ -13,20 +13,25 @@ namespace audio2 {
 		DeviceRef getDefaultOutput() override;
 		DeviceRef getDefaultInput() override;
 
-		// TODO NEXT: try instead using a vector<pair<DeviceRef, AudioDeviceID> > here - that will be easier to traverse
-		// or map<string, pair> ? - this way Device has an opaque handle to get out data, other than shared_from_this()
-//		typedef std::map<std::string, std::shared_ptr<DeviceInfo> > DeviceInfoMap;
-		typedef std::map<std::string, std::pair<DeviceRef, AudioDeviceID> > DeviceMap;
+		void setActiveDevice( const std::string &key ) override;
 
 	private:
 
 		static std::string keyForDeviceID( AudioDeviceID deviceID );
 
+		// ???: vector<pair<DeviceRef, AudioDeviceID> > instead, or struct containing device, id, and key?
+//		typedef std::map<std::string, std::pair<DeviceRef, AudioDeviceID> > DeviceMap;
+		struct DeviceInfo {
+			std::string			key;
+			::AudioDeviceID		deviceID;
+			DeviceRef			device;
+		};
+		typedef std::vector<DeviceInfo> DeviceContainerT;
+
 		DeviceRef getDevice( const std::string &key );
 
-		DeviceMap& getDevices();
-		DeviceMap mDevices;
-
+		DeviceContainerT& getDevices();
+		DeviceContainerT mDevices;
 	};
 	
 } // audio2

@@ -42,18 +42,39 @@ namespace audio2 {
 		return DeviceRef();
 	}
 
+	void DeviceManagerCoreAudio::setActiveDevice( const std::string &key )
+	{
+		AudioDeviceID deviceID = kAudioObjectUnknown;
+		shared_ptr<DeviceAudioUnit> deviceAU;
+		for( const auto& deviceInfo : getDevices() ) {
+			if( deviceInfo.key == key ) {
+				deviceAU = dynamic_pointer_cast<DeviceAudioUnit>( deviceInfo.device );
+				deviceID = deviceInfo.deviceID;
+				break;
+			}
+		}
+		CI_ASSERT( deviceAU );
+		CI_ASSERT( deviceAU->mComponentInstance );
+		
+		OSStatus status = AudioUnitSetProperty( deviceAU->mComponentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceID, sizeof( deviceID ) );
+		CI_ASSERT( status = noErr );
+	}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Private
+// ----------------------------------------------------------------------------------------------------
+
 	DeviceRef DeviceManagerCoreAudio::getDevice( const std::string &key )
 	{
-		DeviceMap& deviceMap = getDevices();
-		auto deviceIt = deviceMap.find( key );
-		if( deviceIt != deviceMap.end() ) {
-			return deviceIt->second.first;
+		for( const auto& deviceInfo : getDevices() ) {
+			if( deviceInfo.key == key )
+				return deviceInfo.device;
 		}
 		throw AudioDeviceExc( "Could not find device by AudioDeviceID" ); // TODO: move this into if, return goes here
 	}
 
 
-	DeviceManagerCoreAudio::DeviceMap& DeviceManagerCoreAudio::getDevices()
+	DeviceManagerCoreAudio::DeviceContainerT& DeviceManagerCoreAudio::getDevices()
 	{
 		if( mDevices.empty() ) {
 			vector<::AudioObjectID> deviceIDs;
@@ -72,8 +93,7 @@ namespace audio2 {
 			for ( AudioDeviceID &deviceID : deviceIDs ) {
 				string key = keyForDeviceID( deviceID );
 				auto device = DeviceRef( new DeviceAudioUnit( component, key ) );
-				auto result = mDevices.insert( make_pair( key,  make_pair( device,  deviceID ) ) );
-				CI_ASSERT( result.second );
+				mDevices.push_back( { key, deviceID, device } );
 			}
 		}
 		return mDevices;

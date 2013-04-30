@@ -3,11 +3,13 @@
 #include "audio2/Device.h"
 
 #include <AudioUnit/AudioUnit.h>
-#include <string>
 
 namespace audio2 {
 
-struct DeviceAudioUnitImpl;
+enum AudioUnitBus {
+	Output	= 0,
+	Input	= 1
+};
 
 class DeviceAudioUnit : public Device {
   public:
@@ -19,11 +21,22 @@ class DeviceAudioUnit : public Device {
 	void start() override;
 	void stop() override;
 
+	const std::string& getName() override;
+
   private:
 	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key );
-	std::unique_ptr<DeviceAudioUnitImpl> mImpl;
-	std::string mKey;
 
+//	struct DeviceAudioUnitImpl;
+//	std::unique_ptr<DeviceAudioUnitImpl> mImpl;
+
+	::AudioComponentDescription mComponentDescription;
+	::AudioComponentInstance	mComponentInstance;
+
+	std::string mKey, mName;
+
+	// TODO NEXT: in's and out's need to be connected before initialize is called
+	bool mInputConnected, mOutputConnected;
+	
 	 // ???: friend DeviceManagers here or can be avoided?
 #if defined( CINDER_MAC )
 	friend class DeviceManagerCoreAudio;
