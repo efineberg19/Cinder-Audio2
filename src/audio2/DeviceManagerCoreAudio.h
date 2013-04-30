@@ -13,6 +13,12 @@ namespace audio2 {
 		DeviceRef getDefaultOutput() override;
 		DeviceRef getDefaultInput() override;
 
+		const std::string& getName( const std::string &key ) override;
+		size_t getNumInputChannels( const std::string &key ) override;
+		size_t getNumOutputChannels( const std::string &key ) override;
+		size_t getSampleRate( const std::string &key ) override;
+		size_t getBlockSize( const std::string &key ) override;
+
 		void setActiveDevice( const std::string &key ) override;
 
 	private:

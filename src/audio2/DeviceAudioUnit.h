@@ -22,6 +22,10 @@ class DeviceAudioUnit : public Device {
 	void stop() override;
 
 	const std::string& getName() override;
+	size_t getNumInputChannels() override;
+	size_t getNumOutputChannels() override;
+	size_t getSampleRate() override;
+	size_t getBlockSize() override;
 
   private:
 	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key );

@@ -105,6 +105,30 @@ const std::string& DeviceAudioUnit::getName()
 	return mName;
 }
 
+size_t DeviceAudioUnit::getNumInputChannels()
+{
+	throw "not implemtned";
+	return 0;
+}
+
+size_t DeviceAudioUnit::getNumOutputChannels()
+{
+	throw "not implemtned";
+	return 0;
+}
+
+size_t DeviceAudioUnit::getSampleRate()
+{
+	throw "not implemtned";
+	return 0;
+}
+
+size_t DeviceAudioUnit::getBlockSize()
+{
+	throw "not implemtned";
+	return 0;
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceAudioUnitImpl
 // ----------------------------------------------------------------------------------------------------

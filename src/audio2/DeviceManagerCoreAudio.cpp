@@ -57,6 +57,33 @@ namespace audio2 {
 		CI_ASSERT( status = noErr );
 	}
 
+	const std::string& DeviceManagerCoreAudio::getName( const std::string &key )
+	{
+		// TODO NEXT: get deviceID 
+//		return audioObjectPropertyString( deviceID, kAudioObjectPropertyName );
+		throw "not implemented";
+	}
+
+	size_t DeviceManagerCoreAudio::getNumInputChannels( const string &key )
+	{
+		throw "not implemented";
+	}
+
+	size_t DeviceManagerCoreAudio::getNumOutputChannels( const string &key )
+	{
+		throw "not implemented";
+	}
+
+	size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
+	{
+		throw "not implemented";
+	}
+
+	size_t DeviceManagerCoreAudio::getBlockSize( const string &key )
+	{
+		throw "not implemented";
+	}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Private
 // ----------------------------------------------------------------------------------------------------
@@ -99,6 +126,7 @@ namespace audio2 {
 	// note: we cannot just rely on 'model UID', when it is there (which it isn't always), becasue it can be the same
 	// for two different 'devices', such as system input and output
 	// - current solution: key = 'NAME-[UID | MANUFACTURE]'
+	// TODO: use AudioObjectID
 	std::string DeviceManagerCoreAudio::keyForDeviceID( ::AudioDeviceID deviceID )
 	{
 		string name = audioObjectPropertyString( deviceID, kAudioObjectPropertyName );
