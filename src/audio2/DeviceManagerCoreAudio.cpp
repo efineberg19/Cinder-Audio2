@@ -13,8 +13,8 @@ namespace audio2 {
 	// some private helpers, not sure yet how widely useful these are
 	AudioObjectPropertyAddress audioObjectProperty( AudioObjectPropertySelector propertySelector, AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
 	UInt32 audioObjectPropertyDataSize( ::AudioObjectID objectID, const AudioObjectPropertyAddress& address, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
-	void audioObjectPropertyData( ::AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
 	string audioObjectPropertyString( ::AudioObjectID objectID, AudioObjectPropertySelector propertySelector );
+	void audioObjectPropertyData( ::AudioObjectID objectID, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
 	size_t deviceNumChannels( ::AudioDeviceID objectID, bool isInput );
 	
 // ----------------------------------------------------------------------------------------------------
@@ -54,34 +54,47 @@ namespace audio2 {
 		CI_ASSERT( deviceAU->mComponentInstance );
 		
 		OSStatus status = AudioUnitSetProperty( deviceAU->mComponentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceID, sizeof( deviceID ) );
-		CI_ASSERT( status = noErr );
+		CI_ASSERT( status == noErr );
 	}
 
-	const std::string& DeviceManagerCoreAudio::getName( const std::string &key )
+	std::string DeviceManagerCoreAudio::getName( const std::string &key )
 	{
-		// TODO NEXT: get deviceID 
-//		return audioObjectPropertyString( deviceID, kAudioObjectPropertyName );
-		throw "not implemented";
+		::AudioDeviceID deviceID = getDeviceID( key );
+		return audioObjectPropertyString( deviceID, kAudioObjectPropertyName );
 	}
 
 	size_t DeviceManagerCoreAudio::getNumInputChannels( const string &key )
 	{
-		throw "not implemented";
+		::AudioDeviceID deviceID = getDeviceID( key );
+		return deviceNumChannels( deviceID, true );
 	}
 
 	size_t DeviceManagerCoreAudio::getNumOutputChannels( const string &key )
 	{
-		throw "not implemented";
+		::AudioDeviceID deviceID = getDeviceID( key );
+		return deviceNumChannels( deviceID, false );
 	}
 
 	size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
 	{
-		throw "not implemented";
+		::AudioDeviceID deviceID = getDeviceID( key );
+		::AudioObjectPropertyAddress property = audioObjectProperty( kAudioDevicePropertyActualSampleRate );
+		Float64 result;
+		UInt32 resultSize = sizeof( result );
+
+		audioObjectPropertyData( deviceID, property, resultSize, &result );
+		return static_cast<size_t>( result );
 	}
 
 	size_t DeviceManagerCoreAudio::getBlockSize( const string &key )
 	{
-		throw "not implemented";
+		::AudioDeviceID deviceID = getDeviceID( key );
+		::AudioObjectPropertyAddress property = audioObjectProperty( kAudioDevicePropertyBufferFrameSize );
+		UInt32 result;
+		UInt32 resultSize = sizeof( result );
+
+		audioObjectPropertyData( deviceID, property, resultSize, &result );
+		return static_cast<size_t>( result );
 	}
 
 // ----------------------------------------------------------------------------------------------------
@@ -94,9 +107,18 @@ namespace audio2 {
 			if( deviceInfo.key == key )
 				return deviceInfo.device;
 		}
-		throw AudioDeviceExc( "Could not find device by AudioDeviceID" ); // TODO: move this into if, return goes here
+		throw AudioDeviceExc( string( "unknown key: " ) + key );
 	}
 
+	::AudioDeviceID DeviceManagerCoreAudio::getDeviceID( const std::string &key )
+	{
+		for( const auto& deviceInfo : getDevices() ) {
+			if( deviceInfo.key == key ) {
+				return deviceInfo.deviceID;
+			}
+		}
+		throw AudioDeviceExc( string( "unknown key: " ) + key );
+	}
 
 	DeviceManagerCoreAudio::DeviceContainerT& DeviceManagerCoreAudio::getDevices()
 	{

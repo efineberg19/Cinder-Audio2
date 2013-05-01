@@ -13,7 +13,7 @@ namespace audio2 {
 		DeviceRef getDefaultOutput() override;
 		DeviceRef getDefaultInput() override;
 
-		const std::string& getName( const std::string &key ) override;
+		std::string getName( const std::string &key ) override;
 		size_t getNumInputChannels( const std::string &key ) override;
 		size_t getNumOutputChannels( const std::string &key ) override;
 		size_t getSampleRate( const std::string &key ) override;
@@ -33,6 +33,7 @@ namespace audio2 {
 		typedef std::vector<DeviceInfo> DeviceContainerT;
 
 		DeviceRef getDevice( const std::string &key );
+		::AudioDeviceID getDeviceID( const std::string &key );
 		DeviceContainerT& getDevices();
 
 		DeviceContainerT mDevices;

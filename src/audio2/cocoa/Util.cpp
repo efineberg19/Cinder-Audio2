@@ -45,7 +45,7 @@ void findAndCreateAudioComponent( const AudioComponentDescription &componentDesc
 {
 	AudioComponent component = findAudioComponent( componentDescription );
 	OSStatus status = AudioComponentInstanceNew( component, componentInstance );
-	CI_ASSERT( status = noErr );
+	CI_ASSERT( status == noErr );
 }
 
 } } // namespace audio2::cocoa

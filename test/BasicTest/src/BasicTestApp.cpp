@@ -22,15 +22,20 @@ class BasicTestApp : public AppNative {
 
 void BasicTestApp::setup()
 {
-	DeviceRef output = DeviceManager::instance()->getDefaultOutput();
-	DeviceRef output2 = Device::getDefaultOutput();
 
+	DeviceRef output = Device::getDefaultOutput();
+
+	LOG_V << "output name: " << output->getName() << endl;
+	console() << "\t input channels: " << output->getNumInputChannels() << endl;
+	console() << "\t output channels: " << output->getNumOutputChannels() << endl;
+	console() << "\t samplerate: " << output->getSampleRate() << endl;
+	console() << "\t block size: " << output->getBlockSize() << endl;
+
+	DeviceRef output2 = DeviceManager::instance()->getDefaultOutput();
 	LOG_V << "testing output == output2: " << (output == output2 ? "true" : "false" ) << endl;
 
 	OutputRef outputNode = Engine::instance()->createOutputSpeakers( output );
 
-	// fail:
-//	OutputRef outputNode = Node<Output>::create( Device::getDefaultOutput() );
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )

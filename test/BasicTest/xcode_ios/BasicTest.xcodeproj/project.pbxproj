@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00748058165D41390024B57A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 00748057165D41390024B57A /* assets */; };
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
 		114FBBEF172CBF7E002CD25C /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBE1172CBF7E002CD25C /* audio.cpp */; };
@@ -15,8 +14,10 @@
 		114FBBF1172CBF7E002CD25C /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBE7172CBF7E002CD25C /* Device.cpp */; };
 		114FBBF2172CBF7E002CD25C /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBE9172CBF7E002CD25C /* DeviceAudioUnit.cpp */; };
 		114FBBF3172CBF7E002CD25C /* Graph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBEB172CBF7E002CD25C /* Graph.cpp */; };
-		114FBBF4172CBF7E002CD25C /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBED172CBF7E002CD25C /* Node.cpp */; };
 		11CB352C172EFA910082917F /* DeviceManagerAudioSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CB3528172EFA910082917F /* DeviceManagerAudioSession.cpp */; };
+		148AFBEA17317F9D0066D8BE /* Engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 148AFBE617317F9D0066D8BE /* Engine.cpp */; };
+		148AFBEB17317F9D0066D8BE /* EngineAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 148AFBE817317F9D0066D8BE /* EngineAudioUnit.cpp */; };
+		148AFBEE173188900066D8BE /* GraphAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 148AFBEC1731888F0066D8BE /* GraphAudioUnit.cpp */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -34,7 +35,6 @@
 
 /* Begin PBXFileReference section */
 		00692BCF14FF149000D0A05E /* BasicTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BasicTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		00748057165D41390024B57A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = "<group>"; };
 		0087D25412CD809F002CD69F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
@@ -50,12 +50,16 @@
 		114FBBEA172CBF7E002CD25C /* DeviceAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceAudioUnit.h; sourceTree = "<group>"; };
 		114FBBEB172CBF7E002CD25C /* Graph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Graph.cpp; sourceTree = "<group>"; };
 		114FBBEC172CBF7E002CD25C /* Graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Graph.h; sourceTree = "<group>"; };
-		114FBBED172CBF7E002CD25C /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
-		114FBBEE172CBF7E002CD25C /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		11CB3528172EFA910082917F /* DeviceManagerAudioSession.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerAudioSession.cpp; sourceTree = "<group>"; };
 		11CB3529172EFA910082917F /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
 		11CB352A172EFA910082917F /* DeviceManagerCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerCoreAudio.cpp; sourceTree = "<group>"; };
 		11CB352B172EFA910082917F /* DeviceManagerCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerCoreAudio.h; sourceTree = "<group>"; };
+		148AFBE617317F9D0066D8BE /* Engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Engine.cpp; sourceTree = "<group>"; };
+		148AFBE717317F9D0066D8BE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
+		148AFBE817317F9D0066D8BE /* EngineAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EngineAudioUnit.cpp; sourceTree = "<group>"; };
+		148AFBE917317F9D0066D8BE /* EngineAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EngineAudioUnit.h; sourceTree = "<group>"; };
+		148AFBEC1731888F0066D8BE /* GraphAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GraphAudioUnit.cpp; sourceTree = "<group>"; };
+		148AFBED1731888F0066D8BE /* GraphAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphAudioUnit.h; sourceTree = "<group>"; };
 		153AD02F49AC4B67B807C6F8 /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = CinderApp_ios.png; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -146,7 +150,6 @@
 		00692BD914FF149000D0FFFF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				00748057165D41390024B57A /* assets */,
 				153AD02F49AC4B67B807C6F8 /* CinderApp_ios.png */,
 				D46C2DD8864F4CA4B833A011 /* Default-568h@2x.png */,
 				69D20B36A6424BD191DE0E88 /* Info.plist */,
@@ -172,8 +175,12 @@
 				11CB352B172EFA910082917F /* DeviceManagerCoreAudio.h */,
 				114FBBEB172CBF7E002CD25C /* Graph.cpp */,
 				114FBBEC172CBF7E002CD25C /* Graph.h */,
-				114FBBED172CBF7E002CD25C /* Node.cpp */,
-				114FBBEE172CBF7E002CD25C /* Node.h */,
+				148AFBEC1731888F0066D8BE /* GraphAudioUnit.cpp */,
+				148AFBED1731888F0066D8BE /* GraphAudioUnit.h */,
+				148AFBE617317F9D0066D8BE /* Engine.cpp */,
+				148AFBE717317F9D0066D8BE /* Engine.h */,
+				148AFBE817317F9D0066D8BE /* EngineAudioUnit.cpp */,
+				148AFBE917317F9D0066D8BE /* EngineAudioUnit.h */,
 			);
 			name = audio2;
 			path = ../../../src/audio2;
@@ -230,6 +237,9 @@
 /* Begin PBXProject section */
 		00692BC614FF149000D0A05E /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
 			buildConfigurationList = 00692BC914FF149000D0A05E /* Build configuration list for PBXProject "BasicTest" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
@@ -252,7 +262,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00748058165D41390024B57A /* assets in Resources */,
 				5F86F71764654889AD3C880D /* CinderApp_ios.png in Resources */,
 				AC70AF9B87B7488DAE35DE94 /* Default-568h@2x.png in Resources */,
 			);
@@ -271,8 +280,10 @@
 				114FBBF1172CBF7E002CD25C /* Device.cpp in Sources */,
 				114FBBF2172CBF7E002CD25C /* DeviceAudioUnit.cpp in Sources */,
 				114FBBF3172CBF7E002CD25C /* Graph.cpp in Sources */,
-				114FBBF4172CBF7E002CD25C /* Node.cpp in Sources */,
 				11CB352C172EFA910082917F /* DeviceManagerAudioSession.cpp in Sources */,
+				148AFBEA17317F9D0066D8BE /* Engine.cpp in Sources */,
+				148AFBEB17317F9D0066D8BE /* EngineAudioUnit.cpp in Sources */,
+				148AFBEE173188900066D8BE /* GraphAudioUnit.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +298,10 @@
 				CINDER_PATH = "../../../../../cinder-dev";
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
@@ -301,6 +316,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
@@ -318,6 +334,10 @@
 				CINDER_PATH = "../../../../../cinder-dev";
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
@@ -325,6 +345,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;

@@ -1,4 +1,5 @@
 #include "audio2/Device.h"
+#include "audio2/audio.h"
 #include "audio2/Debug.h"
 
 #if defined( CINDER_COCOA )
@@ -19,6 +20,34 @@ namespace audio2 {
 DeviceRef Device::getDefaultOutput()
 {
 	return DeviceManager::instance()->getDefaultOutput();
+}
+
+const std::string& Device::getName()
+{
+	if( mName.empty() )
+		mName = DeviceManager::instance()->getName( mKey );
+
+	return mName;
+}
+
+size_t Device::getNumInputChannels()
+{
+	return DeviceManager::instance()->getNumInputChannels( mKey );
+}
+
+size_t Device::getNumOutputChannels()
+{
+	return DeviceManager::instance()->getNumOutputChannels( mKey );
+}
+
+size_t Device::getSampleRate()
+{
+	return DeviceManager::instance()->getSampleRate( mKey );
+}
+
+size_t Device::getBlockSize()
+{
+	return DeviceManager::instance()->getBlockSize( mKey );
 }
 
 // ----------------------------------------------------------------------------------------------------

@@ -18,16 +18,17 @@ class Device {
 	virtual void start() = 0;
 	virtual void stop() = 0;
 
-	virtual const std::string& getName() = 0;
-	virtual size_t getNumInputChannels() = 0;
-	virtual size_t getNumOutputChannels() = 0;
-	virtual size_t getSampleRate() = 0;
-	virtual size_t getBlockSize() = 0;
+	const std::string& getName();
+	size_t getNumInputChannels();
+	size_t getNumOutputChannels();
+	size_t getSampleRate();
+	size_t getBlockSize();
 
   protected:
-	Device() : mInitialized( false ), mRunning( false ) {}
+	Device( const std::string &key ) : mKey( key ), mInitialized( false ), mRunning( false ) {}
 
 	bool mInitialized, mRunning;
+	std::string mKey, mName;
 };
 
 class DeviceManager {
@@ -36,7 +37,7 @@ class DeviceManager {
 	virtual DeviceRef getDefaultOutput() = 0;
 	virtual DeviceRef getDefaultInput() = 0;
 
-	virtual const std::string& getName( const std::string &key ) = 0;
+	virtual std::string getName( const std::string &key ) = 0;
 	virtual size_t getNumInputChannels( const std::string &key ) = 0;
 	virtual size_t getNumOutputChannels( const std::string &key ) = 0;
 	virtual size_t getSampleRate( const std::string &key ) = 0;
@@ -45,6 +46,9 @@ class DeviceManager {
 	virtual void setActiveDevice( const std::string &key ) = 0;
 
 	static DeviceManager* instance();
+
+protected:
+	DeviceManager() = default;
 };
 
 } // namespace audio2

@@ -23,7 +23,7 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 DeviceAudioUnit::DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key )
-: Device(), mComponentDescription( component ), mComponentInstance( NULL ), mKey( key ), mInputConnected( false ), mOutputConnected( false )
+: Device( key ), mComponentDescription( component ), mComponentInstance( NULL ), mInputConnected( false ), mOutputConnected( false )
 {
 }
 
@@ -96,37 +96,6 @@ void DeviceAudioUnit::stop()
 	mRunning = false;
 	OSStatus status = AudioOutputUnitStop( mComponentInstance );
 	CI_ASSERT( status == noErr );
-}
-
-const std::string& DeviceAudioUnit::getName()
-{
-	mName =  string( "TODO" );
-
-	return mName;
-}
-
-size_t DeviceAudioUnit::getNumInputChannels()
-{
-	throw "not implemtned";
-	return 0;
-}
-
-size_t DeviceAudioUnit::getNumOutputChannels()
-{
-	throw "not implemtned";
-	return 0;
-}
-
-size_t DeviceAudioUnit::getSampleRate()
-{
-	throw "not implemtned";
-	return 0;
-}
-
-size_t DeviceAudioUnit::getBlockSize()
-{
-	throw "not implemtned";
-	return 0;
 }
 
 // ----------------------------------------------------------------------------------------------------
