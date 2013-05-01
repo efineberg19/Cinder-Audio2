@@ -48,4 +48,21 @@ void findAndCreateAudioComponent( const AudioComponentDescription &componentDesc
 	CI_ASSERT( status == noErr );
 }
 
+// paraphrasing comment in CoreAudioTypes.h: for non-interleaved, the ABSD describes the format of
+// one AudioBuffer that is contained with the AudioBufferList, each AudioBuffer is a mono signal.
+AudioStreamBasicDescription nonInterleavedFloatABSD( size_t numChannels, size_t sampleRate )
+{
+	const size_t kBytesPerSample = sizeof( float );
+	AudioStreamBasicDescription absd = {0};
+	absd.mFormatID           = kAudioFormatLinearPCM;
+	absd.mFormatFlags        = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsNonInterleaved | kAudioFormatFlagIsPacked,
+	absd.mBytesPerPacket     = kBytesPerSample;
+	absd.mFramesPerPacket    = 1;
+	absd.mBytesPerFrame      = kBytesPerSample;
+	absd.mChannelsPerFrame   = numChannels;
+	absd.mBitsPerChannel     = 8 * kBytesPerSample;
+	absd.mSampleRate         = sampleRate;
+	return absd;
+}
+
 } } // namespace audio2::cocoa

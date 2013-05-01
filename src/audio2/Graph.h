@@ -25,6 +25,9 @@ namespace audio2 {
 			bool mWantsDefaultFormatFromParent;
 		};
 
+		virtual void initialize()	{}
+		virtual void uninitialize()	{}
+
 	protected:
 		Node() : mInitialized( false )	{}
 		Node( Node const& )				= delete;
@@ -41,6 +44,9 @@ namespace audio2 {
 	public:
 		Output() : Node() {}
 		virtual ~Output() = default;
+
+		virtual void start() = 0;
+		virtual void stop() = 0;
 	};
 
 	class SpeakerOutput : public Output {

@@ -38,8 +38,6 @@ void DeviceAudioUnit::initialize()
 		return;
 	}
 
-	cocoa::findAndCreateAudioComponent( mComponentDescription, &mComponentInstance );
-
 	UInt32 enableInput = static_cast<UInt32>( mInputConnected );
 	AudioUnitSetProperty( mComponentInstance, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, AudioUnitBus::Input, &enableInput, sizeof( enableInput ) );
 	LOG_V << "input enabled: " << enableInput << endl;
@@ -96,6 +94,15 @@ void DeviceAudioUnit::stop()
 	mRunning = false;
 	OSStatus status = AudioOutputUnitStop( mComponentInstance );
 	CI_ASSERT( status == noErr );
+}
+
+const ::AudioComponentInstance& DeviceAudioUnit::getComponentInstance()
+{
+	if( ! mComponentInstance ) {
+		LOG_V << "creating component instance." << endl;
+		cocoa::findAndCreateAudioComponent( mComponentDescription, &mComponentInstance );
+	}
+	return mComponentInstance;
 }
 
 // ----------------------------------------------------------------------------------------------------

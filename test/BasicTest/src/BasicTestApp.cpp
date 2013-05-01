@@ -36,6 +36,10 @@ void BasicTestApp::setup()
 
 	OutputRef outputNode = Engine::instance()->createOutputSpeakers( output );
 
+	outputNode->initialize();
+	output->initialize();
+	
+	outputNode->start();
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )

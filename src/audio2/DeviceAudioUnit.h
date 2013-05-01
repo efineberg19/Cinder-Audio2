@@ -21,6 +21,13 @@ class DeviceAudioUnit : public Device {
 	void start() override;
 	void stop() override;
 
+	// TODO: I'm still deciding whether to hide this and attach all render callbacks within this class.
+	const ::AudioComponentInstance& getComponentInstance();
+	bool isInputConnected() const	{ return mInputConnected; }
+	bool isOutputConnected() const	{ return mOutputConnected; }
+	void setInputConnected()	{ mInputConnected = true; }
+	void setOutputConnected()	{ mOutputConnected = true; }
+
   private:
 	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key );
 

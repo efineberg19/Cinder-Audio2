@@ -21,4 +21,6 @@ AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t ch
 AudioComponent findAudioComponent( const AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const AudioComponentDescription &componentDescription, AudioComponentInstance *componentInstance );
 
+::AudioStreamBasicDescription nonInterleavedFloatABSD( size_t numChannels, size_t sampleRate );
+
 } } // namespace audio2::cocoa
