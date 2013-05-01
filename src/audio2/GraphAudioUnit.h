@@ -9,9 +9,9 @@ namespace audio2 {
 	class DeviceAudioUnit;
 
 	
-	class SpeakerOutputAudioUnit : public SpeakerOutput {
+	class OutputAudioUnit : public Output {
 	public:
-		SpeakerOutputAudioUnit( DeviceRef device );
+		OutputAudioUnit( DeviceRef device );
 
 		void initialize() override;
 		void uninitialize() override;

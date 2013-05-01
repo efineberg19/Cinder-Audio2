@@ -5,9 +5,9 @@ using namespace std;
 
 namespace audio2 {
 
-	OutputRef EngineAudioUnit::createOutputSpeakers( DeviceRef device )
+	ConsumerRef EngineAudioUnit::createOutput( DeviceRef device )
 	{
-		return OutputRef( new SpeakerOutputAudioUnit( device ) );
+		return ConsumerRef( new OutputAudioUnit( device ) );
 	}
 
 } // namespace audio2

@@ -6,7 +6,7 @@ namespace audio2 {
 
 	class EngineAudioUnit : public Engine {
 
-		virtual OutputRef createOutputSpeakers( DeviceRef device ) override;
+		virtual ConsumerRef createOutput( DeviceRef device ) override;
 
 	};
 	

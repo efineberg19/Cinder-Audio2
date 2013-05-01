@@ -8,8 +8,8 @@ using namespace std;
 
 namespace audio2 {
 
-	SpeakerOutputAudioUnit::SpeakerOutputAudioUnit( DeviceRef device )
-	: SpeakerOutput( device )
+	OutputAudioUnit::OutputAudioUnit( DeviceRef device )
+	: Output( device )
 	{
 		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 		CI_ASSERT( mDevice );
@@ -17,7 +17,7 @@ namespace audio2 {
 		LOG_V << "done." << endl;
 	}
 
-	void SpeakerOutputAudioUnit::initialize()
+	void OutputAudioUnit::initialize()
 	{
 		CI_ASSERT( ! mDevice->isOutputConnected() );
 		CI_ASSERT( mDevice->getComponentInstance() );
@@ -27,7 +27,7 @@ namespace audio2 {
 		mASBD = cocoa::nonInterleavedFloatABSD( mDevice->getNumInputChannels(), mDevice->getSampleRate() );
 
 		::AURenderCallbackStruct callbackStruct;
-		callbackStruct.inputProc = SpeakerOutputAudioUnit::renderCallback;
+		callbackStruct.inputProc = OutputAudioUnit::renderCallback;
 		callbackStruct.inputProcRefCon = this;
 
 		OSStatus status = ::AudioUnitSetProperty( mDevice->getComponentInstance(), kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof(callbackStruct) );
@@ -40,23 +40,23 @@ namespace audio2 {
 		LOG_V << "output connected." << endl;
 	}
 
-	void SpeakerOutputAudioUnit::uninitialize()
+	void OutputAudioUnit::uninitialize()
 	{
 	}
 
-	void SpeakerOutputAudioUnit::start()
+	void OutputAudioUnit::start()
 	{
 		mDevice->start();
 		LOG_V << "started: " << mDevice->getName();
 	}
 
-	void SpeakerOutputAudioUnit::stop()
+	void OutputAudioUnit::stop()
 	{
 		mDevice->stop();
 		LOG_V << "stopped: " << mDevice->getName();
 	}
 
-	OSStatus SpeakerOutputAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *data )
+	OSStatus OutputAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *data )
 	{
 		return noErr;
 	}

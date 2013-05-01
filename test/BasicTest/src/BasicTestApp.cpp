@@ -34,7 +34,7 @@ void BasicTestApp::setup()
 	DeviceRef output2 = DeviceManager::instance()->getDefaultOutput();
 	LOG_V << "testing output == output2: " << (output == output2 ? "true" : "false" ) << endl;
 
-	OutputRef outputNode = Engine::instance()->createOutputSpeakers( output );
+	auto outputNode = Engine::instance()->createOutput( output );
 
 	outputNode->initialize();
 	output->initialize();
