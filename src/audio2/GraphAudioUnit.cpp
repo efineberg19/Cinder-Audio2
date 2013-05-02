@@ -47,6 +47,8 @@ namespace audio2 {
 		
 		mDevice->setOutputConnected();
 		LOG_V << "output connected." << endl;
+
+		mDevice->initialize();
 	}
 
 	void OutputAudioUnit::uninitialize()

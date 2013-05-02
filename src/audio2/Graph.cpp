@@ -1,4 +1,5 @@
 #include "audio2/Graph.h"
+#include "audio2/assert.h"
 
 namespace audio2 {
 
@@ -14,6 +15,38 @@ namespace audio2 {
 			mSources.resize( 1 );
 		mSources[0] = source;
 		mSources[0]->setParent( shared_from_this() );
+	}
+
+	Graph::~Graph()
+	{
+		stop();
+	}
+
+	void Graph::initialize()
+	{
+		CI_ASSERT( mOutput );
+
+		// TODO: need to traverse graph and initialize here
+		
+		mOutput->initialize();
+	}
+
+	void Graph::start()
+	{
+		if( mRunning )
+			return;
+		CI_ASSERT( mOutput );
+		mRunning = true;
+		mOutput->start();
+
+	}
+
+	void Graph::stop()
+	{
+		if( ! mRunning )
+			return;
+		mRunning = false;
+		mOutput->stop();
 	}
 
 } // namespace audio2

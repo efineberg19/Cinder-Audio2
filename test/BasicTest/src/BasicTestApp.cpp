@@ -26,11 +26,11 @@ struct MyGen : public Producer {
 class BasicTestApp : public AppNative {
   public:
 	void setup();
-	void mouseDown( MouseEvent event );	
+	void keyDown( KeyEvent event );
 	void update();
 	void draw();
 
-	ConsumerRef mOutput;
+	Graph mGraph;
 };
 
 void BasicTestApp::setup()
@@ -56,19 +56,19 @@ void BasicTestApp::setup()
 
 	outputNode->connect( gen );
 
-	// ----- Graph stuff ------
-	outputNode->initialize();
-	output->initialize();
-	
-	outputNode->start();
-
-	mOutput = outputNode; // keep owndership
-	// ------------------------
-
+	mGraph.setOutput( outputNode );
+	mGraph.initialize();
 }
 
-void BasicTestApp::mouseDown( MouseEvent event )
+void BasicTestApp::keyDown( KeyEvent event )
 {
+	if( event.getCode() == KeyEvent::KEY_SPACE ) {
+		if( ! mGraph.isRunning() )
+			mGraph.start();
+		else
+			mGraph.stop();
+	}
+
 }
 
 void BasicTestApp::update()
@@ -77,8 +77,7 @@ void BasicTestApp::update()
 
 void BasicTestApp::draw()
 {
-	// clear out the window with black
-	gl::clear( Color( 0, 0, 0 ) ); 
+	gl::clear( Color::gray( mGraph.isRunning() ? 0.3 : 0.05 ) );
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )

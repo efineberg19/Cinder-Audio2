@@ -82,7 +82,20 @@ namespace audio2 {
 	};
 
 	class Graph {
+	public:
+		Graph() : mRunning( false ) {}
+		virtual ~Graph();
 
+		virtual void initialize();
+		virtual void setOutput( ConsumerRef output )	{ mOutput = output; }
+		virtual void start();
+		virtual void stop();
+
+		bool isRunning() const	{ return mRunning; }
+
+	protected:
+		ConsumerRef	mOutput;
+		bool		mRunning;
 	};
 
 } // namespace audio2
