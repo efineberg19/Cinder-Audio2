@@ -67,6 +67,9 @@ void DeviceAudioUnit::uninitialize()
 	if( mComponentInstance ) {
 		OSStatus status = AudioUnitUninitialize( mComponentInstance );
 		CI_ASSERT( status == noErr );
+		status = AudioComponentInstanceDispose( mComponentInstance );
+		CI_ASSERT( status == noErr );
+
 		mComponentInstance = NULL;
 	}
 	mInitialized = false;

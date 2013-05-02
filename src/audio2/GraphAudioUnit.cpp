@@ -53,6 +53,7 @@ namespace audio2 {
 
 	void OutputAudioUnit::uninitialize()
 	{
+		mDevice->uninitialize();
 	}
 
 	void OutputAudioUnit::start()
