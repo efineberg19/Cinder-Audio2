@@ -37,7 +37,6 @@ class DeviceAudioUnit : public Device {
 	::AudioComponentDescription mComponentDescription;
 	::AudioComponentInstance	mComponentInstance;
 
-	// TODO NEXT: in's and out's need to be connected before initialize is called
 	bool mInputConnected, mOutputConnected;
 	
 	 // ???: friend DeviceManagers here or can be avoided?

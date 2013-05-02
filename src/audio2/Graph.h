@@ -12,6 +12,9 @@ namespace audio2 {
 
 	typedef std::shared_ptr<class Consumer> ConsumerRef;
 
+	//! vector of channels
+	typedef std::vector<std::vector<float> > BufferT;
+
 	class Node : public std::enable_shared_from_this<Node> {
 	public:
 
@@ -28,6 +31,11 @@ namespace audio2 {
 		virtual void initialize()	{}
 		virtual void uninitialize()	{}
 
+		// ???: does making BufferT const help make it less expandable? Because it shouldb't be resize()'ed
+		virtual void render( BufferT *buffer );
+
+		void setParent( NodeRef parent )	{ mParent = parent; }
+		
 	protected:
 		Node() : mInitialized( false )	{}
 		Node( Node const& )				= delete;
@@ -40,13 +48,15 @@ namespace audio2 {
 		bool					mInitialized;
 	};
 
+	// TODO: these names don't really make sense here, it's just a feable attempt at avoiding naiming these Input / Output or Generator / ??
+	
 	class Producer : public Node {
 	public:
 		Producer() : Node() {}
 		virtual ~Producer() = default;
 
-		virtual void start() = 0;
-		virtual void stop() = 0;
+//		virtual void start() = 0;
+//		virtual void stop() = 0;
 	};
 
 	class Consumer : public Node {
@@ -56,6 +66,8 @@ namespace audio2 {
 
 		virtual void start() = 0;
 		virtual void stop() = 0;
+
+		virtual void connect( NodeRef source );
 	};
 
 	class Output : public Consumer {

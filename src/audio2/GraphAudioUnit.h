@@ -20,10 +20,11 @@ namespace audio2 {
 		void stop() override;
 
 	private:
-		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *data );
+		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 		std::shared_ptr<DeviceAudioUnit> mDevice;
 		::AudioStreamBasicDescription mASBD;
+		BufferT mBuffer;
 	};
 
 	class GraphAudioUnit : public Graph {

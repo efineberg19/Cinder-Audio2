@@ -33,7 +33,7 @@ DeviceManagerAudioSession::DeviceManagerAudioSession()
 : DeviceManager()
 {
 	// TODO: install interrupt listener
-	OSStatus status = AudioSessionInitialize( NULL, NULL, NULL, NULL );
+	OSStatus status = ::AudioSessionInitialize( NULL, NULL, NULL, NULL );
 	CI_ASSERT( status == noErr );
 }
 
