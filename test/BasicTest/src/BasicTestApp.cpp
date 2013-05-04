@@ -4,7 +4,7 @@
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
 #include "audio2/Engine.h"
-#include "audio2/Dsp.h"
+#include "audio2/UGen.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
@@ -17,9 +17,7 @@ struct MyGen : public Producer {
 //	NoiseGen mGen;
 	SineGen mGen;
 	virtual void render( BufferT *buffer ) override {
-		mGen.render( &buffer->at( 0 ) );
-		for( size_t i = 1; i < buffer->size(); i++ )
-			memcpy( buffer->at( i ).data(), buffer->at( 0 ).data(),  buffer->at( 0 ).size() * sizeof( float ) );
+		mGen.render( buffer );
 	}
 };
 

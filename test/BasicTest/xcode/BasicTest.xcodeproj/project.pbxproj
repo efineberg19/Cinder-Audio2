@@ -50,7 +50,7 @@
 		11CB352F172EFAA70082917F /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
 		11CB3530172EFAA70082917F /* DeviceManagerCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerCoreAudio.cpp; sourceTree = "<group>"; };
 		11CB3531172EFAA70082917F /* DeviceManagerCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerCoreAudio.h; sourceTree = "<group>"; };
-		11CB35341731F3850082917F /* Dsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dsp.h; sourceTree = "<group>"; };
+		11CB35341731F3850082917F /* UGen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UGen.h; sourceTree = "<group>"; };
 		11EFFBB01732183E009EF46B /* Atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
 		128572BBFD5C4118B6B34756 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		148AFBDC172AE6C80066D8BE /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
@@ -155,7 +155,7 @@
 				11EFFBB01732183E009EF46B /* Atomic.h */,
 				114FBA3E172A2337002CD25C /* Debug.h */,
 				148AFBDF172AF1300066D8BE /* assert.h */,
-				11CB35341731F3850082917F /* Dsp.h */,
+				11CB35341731F3850082917F /* UGen.h */,
 			);
 			name = audio2;
 			path = ../../../src/audio2;
