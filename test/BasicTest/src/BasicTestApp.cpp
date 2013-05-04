@@ -27,6 +27,7 @@ class BasicTestApp : public AppNative {
   public:
 	void setup();
 	void keyDown( KeyEvent event );
+	void touchesBegan( TouchEvent event ) override;
 	void update();
 	void draw();
 
@@ -50,9 +51,9 @@ void BasicTestApp::setup()
 	auto outputNode = Engine::instance()->createOutput( output );
 
 	auto gen = make_shared<MyGen>();
-	gen->mGen.setAmp( 0.2f );
+	gen->mGen.setAmp( 0.25f );
 	gen->mGen.setSampleRate( output->getSampleRate() );
-	gen->mGen.setFreq( 220.0f );
+	gen->mGen.setFreq( 440.0f );
 
 	outputNode->connect( gen );
 
@@ -62,13 +63,23 @@ void BasicTestApp::setup()
 
 void BasicTestApp::keyDown( KeyEvent event )
 {
+#if ! defined( CINDER_COCOA_TOUCH )
 	if( event.getCode() == KeyEvent::KEY_SPACE ) {
 		if( ! mGraph.isRunning() )
 			mGraph.start();
 		else
 			mGraph.stop();
 	}
+#endif // ! defined( CINDER_COCOA_TOUCH )
+}
 
+void BasicTestApp::touchesBegan( TouchEvent event )
+{
+	LOG_V << "bang" << endl;
+	if( ! mGraph.isRunning() )
+		mGraph.start();
+	else
+		mGraph.stop();
 }
 
 void BasicTestApp::update()

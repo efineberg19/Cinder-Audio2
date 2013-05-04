@@ -40,7 +40,7 @@ namespace audio2 {
 		callbackStruct.inputProcRefCon = this;
 
 		OSStatus status = ::AudioUnitSetProperty( mDevice->getComponentInstance(), kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof(callbackStruct) );
-		CI_ASSERT( status == noErr ); // FIXME: -50 here on iOS (sim only?).
+		CI_ASSERT( status == noErr );
 
 		status = ::AudioUnitSetProperty( mDevice->getComponentInstance(), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &mASBD, sizeof(mASBD) );
 		CI_ASSERT( status == noErr );

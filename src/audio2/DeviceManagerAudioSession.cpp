@@ -30,7 +30,7 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 DeviceManagerAudioSession::DeviceManagerAudioSession()
-: DeviceManager()
+: DeviceManager(), mSessionIsActive( false )
 {
 	// TODO: install interrupt listener
 	OSStatus status = ::AudioSessionInitialize( NULL, NULL, NULL, NULL );
@@ -49,7 +49,14 @@ DeviceRef DeviceManagerAudioSession::getDefaultInput()
 
 void DeviceManagerAudioSession::setActiveDevice( const std::string &key )
 {
-	// ???: need to call AudioSessionSetActive? current cinder cocoa touch impl does not, while libpd does
+	LOG_V << "bang" << endl;
+	activateSession();
+}
+
+bool DeviceManagerAudioSession::inputIsEnabled()
+{
+	UInt32 category = getSessionCategory();
+	return ( category == kAudioSessionCategory_PlayAndRecord || category == kAudioSessionCategory_RecordAudio );
 }
 
 std::string DeviceManagerAudioSession::getName( const std::string &key )
@@ -59,6 +66,14 @@ std::string DeviceManagerAudioSession::getName( const std::string &key )
 
 size_t DeviceManagerAudioSession::getNumInputChannels( const string &key )
 {
+//	if( ! mSessionIsActive )
+//		activate();
+
+	if( ! inputIsEnabled() ) {
+		LOG_V << "Warning: input is disabled due to session category, so no inputs." << endl;
+		return 0;
+	}
+	
 	UInt32 result;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareInputNumberChannels, result );
 	return static_cast<size_t>( result );
@@ -66,6 +81,9 @@ size_t DeviceManagerAudioSession::getNumInputChannels( const string &key )
 
 size_t DeviceManagerAudioSession::getNumOutputChannels( const string &key )
 {
+//	if( ! mSessionIsActive )
+//		activate();
+
 	UInt32 result;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareOutputNumberChannels, result );
 	return static_cast<size_t>( result );
@@ -103,5 +121,19 @@ DeviceRef DeviceManagerAudioSession::getRemoteIOUnit()
 	return mRemoteIOUnit;
 }
 
-	
+void DeviceManagerAudioSession::activateSession()
+{
+	OSStatus status = ::AudioSessionSetActive( true );
+	CI_ASSERT( status == noErr );
+
+	mSessionIsActive = true;
+}
+
+UInt32	DeviceManagerAudioSession::getSessionCategory()
+{
+	UInt32 result;
+	audioSessionProperty( kAudioSessionProperty_AudioCategory, result );
+	return result;
+}
+
 } // namespace audio2

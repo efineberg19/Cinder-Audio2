@@ -22,10 +22,18 @@ class DeviceManagerAudioSession : public DeviceManager {
 
 	void setActiveDevice( const std::string &key ) override;
 
+	bool inputIsEnabled();
+
   private:
 
-	DeviceRef getRemoteIOUnit();
+	DeviceRef	getRemoteIOUnit();
+	void		activateSession();
+	UInt32		getSessionCategory(); // ???: map to my own, type-safe enum? Currently I'm just using the raw values in AudioSession.h
+
+
 	DeviceRef mRemoteIOUnit;
+
+	bool mSessionIsActive;
 };
 
 } // audio2
