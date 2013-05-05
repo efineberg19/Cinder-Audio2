@@ -8,12 +8,17 @@
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
+#if defined( CINDER_COCOA )
+#include "audio2/GraphAudioUnit.h"
+#endif
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 using namespace audio2;
 
 struct MyGen : public Producer {
+	MyGen()	{ mTag = "MyGen"; }
 //	NoiseGen mGen;
 	SineGen mGen;
 	virtual void render( BufferT *buffer ) override {
@@ -35,27 +40,32 @@ class BasicTestApp : public AppNative {
 void BasicTestApp::setup()
 {
 
-	DeviceRef output = Device::getDefaultOutput();
+	DeviceRef device = Device::getDefaultOutput();
 
-	LOG_V << "output name: " << output->getName() << endl;
-	console() << "\t input channels: " << output->getNumInputChannels() << endl;
-	console() << "\t output channels: " << output->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << output->getSampleRate() << endl;
-	console() << "\t block size: " << output->getBlockSize() << endl;
+	LOG_V << "device name: " << device->getName() << endl;
+	console() << "\t input channels: " << device->getNumInputChannels() << endl;
+	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
+	console() << "\t samplerate: " << device->getSampleRate() << endl;
+	console() << "\t block size: " << device->getBlockSize() << endl;
 
 	DeviceRef output2 = DeviceManager::instance()->getDefaultOutput();
-	LOG_V << "testing output == output2: " << (output == output2 ? "true" : "false" ) << endl;
+	LOG_V << "testing output == output2: " << (device == output2 ? "true" : "false" ) << endl;
 
-	auto outputNode = Engine::instance()->createOutput( output );
+	auto output = Engine::instance()->createOutput( device );
 
 	auto gen = make_shared<MyGen>();
 	gen->mGen.setAmp( 0.25f );
-	gen->mGen.setSampleRate( output->getSampleRate() );
+	gen->mGen.setSampleRate( device->getSampleRate() );
 	gen->mGen.setFreq( 440.0f );
 
-	outputNode->connect( gen );
 
-	mGraph.setOutput( outputNode );
+	auto effect = make_shared<ProcessorAudioUnit>();
+	effect->connect( gen );
+	output->connect( effect );
+
+	effect->initialize(); // TODO: move to Graph::initialize()
+
+	mGraph.setOutput( output );
 	mGraph.initialize();
 }
 

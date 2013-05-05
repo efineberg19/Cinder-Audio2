@@ -19,13 +19,17 @@ namespace audio2 {
 	public:
 
 		struct Format {
-			Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false )
+			Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mIsNative( false )
 			{}
 
 			virtual bool isComplete() const	{ return ( mSampleRate && mNumChannels ); }
 
+			bool	isNative() const	{ return mIsNative; }
+			size_t	getSampleRate() const	{ return mSampleRate; }
+			size_t	getNumChannels() const	{ return mNumChannels; }
+
 			size_t mSampleRate, mNumChannels;
-			bool mWantsDefaultFormatFromParent;
+			bool mWantsDefaultFormatFromParent, mIsNative;
 		};
 
 		virtual void initialize()	{}
@@ -34,7 +38,12 @@ namespace audio2 {
 		// ???: does making BufferT const help make it less expandable? Because it shouldb't be resize()'ed
 		virtual void render( BufferT *buffer );
 
+		virtual void* getNative()	{ return NULL; }
+
+		const std::vector<NodeRef>& getSources()	{ return mSources; }
 		void setParent( NodeRef parent )	{ mParent = parent; }
+
+		Format& getFormat()	{ return mFormat; }
 		
 	protected:
 		Node() : mInitialized( false )	{}
@@ -46,6 +55,7 @@ namespace audio2 {
 		NodeWeakRef				mParent;
 		Format					mFormat;
 		bool					mInitialized;
+		std::string				mTag;
 	};
 
 	// TODO: these names don't really make sense here, it's just a feable attempt at avoiding naiming these Input / Output or Generator / ??
@@ -69,6 +79,15 @@ namespace audio2 {
 
 		virtual void connect( NodeRef source );
 	};
+
+	class Processor : public Node {
+	public:
+		Processor() : Node() {}
+		virtual ~Processor() = default;
+
+		virtual void connect( NodeRef source );
+	};
+
 
 	class Output : public Consumer {
 	public:
