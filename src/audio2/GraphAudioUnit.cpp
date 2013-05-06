@@ -60,6 +60,11 @@ namespace audio2 {
 		LOG_V << "stopped: " << mDevice->getName() << endl;
 	}
 
+	DeviceRef OutputAudioUnit::getDevice()
+	{
+		return std::static_pointer_cast<Device>( mDevice );
+	}
+
 	void* OutputAudioUnit::getNative()
 	{
 		return mDevice->getComponentInstance();

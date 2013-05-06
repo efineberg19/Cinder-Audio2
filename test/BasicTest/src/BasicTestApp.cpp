@@ -17,10 +17,12 @@ using namespace ci::app;
 using namespace std;
 using namespace audio2;
 
-struct MyGen : public Producer {
-	MyGen()	{ mTag = "MyGen"; }
-	NoiseGen mGen;
+template <typename UGenT>
+struct UGenNode : public Producer {
+	UGenNode()	{ mTag = "UGenNode"; }
+//	NoiseGen mGen;
 //	SineGen mGen;
+	UGenT mGen;
 	virtual void render( BufferT *buffer ) override {
 		mGen.render( buffer );
 	}
@@ -68,9 +70,11 @@ class BasicTestApp : public AppNative {
 	void update();
 	void draw();
 
+	void setupEffects();
+	void setupMixer();
+
 	GraphRef mGraph;
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
-
 
 	Button mPlayButton;
 };
@@ -92,29 +96,41 @@ void BasicTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t block size: " << device->getBlockSize() << endl;
 
-	DeviceRef output2 = DeviceManager::instance()->getDefaultOutput();
-	LOG_V << "testing output == output2: " << (device == output2 ? "true" : "false" ) << endl;
-
 	auto output = Engine::instance()->createOutput( device );
-
-	auto gen = make_shared<MyGen>();
-	gen->mGen.setAmp( 0.25f );
-//	gen->mGen.setSampleRate( device->getSampleRate() );
-//	gen->mGen.setFreq( 440.0f );
-
-
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_Distortion );
-
-	mEffect->connect( gen );
-	mEffect2->connect( mEffect );
-	output->connect( mEffect2 );
-
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
+
+	setupEffects();
 	mGraph->initialize();
 
 	gl::enableAlphaBlending();
+}
+
+void BasicTestApp::setupEffects()
+{
+	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->mGen.setAmp( 0.25f );
+
+	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+
+	mEffect->connect( noise );
+	mEffect2->connect( mEffect );
+	mGraph->getOutput()->connect( mEffect2 );
+}
+
+void BasicTestApp::setupMixer()
+{
+	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->mGen.setAmp( 0.25f );
+
+	auto sine = make_shared<UGenNode<SineGen> >();
+	sine->mGen.setAmp( 0.25f );
+	sine->mGen.setFreq( 440.0f );
+
+	auto device = dynamic_pointer_cast<Output>( mGraph->getOutput() )->getDevice();
+	sine->mGen.setSampleRate( device->getSampleRate() ); // TODO: this should be auto-configurable
+
 }
 
 void BasicTestApp::keyDown( KeyEvent event )
@@ -140,7 +156,7 @@ void BasicTestApp::mouseDrag( MouseEvent event )
 
 void BasicTestApp::touchesBegan( TouchEvent event )
 {
-	LOG_V << "bang" << endl;
+//	LOG_V << "bang" << endl;
 	Vec2f pos = event.getTouches().front().getPos();
 	if( mPlayButton.bounds.contains( pos ) ) {
 		LOG_V << "button tapped. " << endl;
@@ -155,17 +171,20 @@ void BasicTestApp::touchesBegan( TouchEvent event )
 void BasicTestApp::touchesMoved( TouchEvent event )
 {
 	Vec2f pos1 = event.getTouches().front().getPos();
-	float cutoff = (getWindowHeight() - pos1.y ) * 4.0f;
+	float cutoff = (getWindowHeight() - pos1.y ) * 3.0f;
 //	LOG_V << "cutoff: " << cutoff << endl;
 
 	mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
 
 	if( event.getTouches().size() > 1 ) {
 		Vec2f pos2 = event.getTouches()[1].getPos();
-		float distortionMix = ( getWindowHeight() - pos2.y ) / getWindowHeight();
-		LOG_V << "distortionMix: " << distortionMix << endl;
-		mEffect2->setParameter( kDistortionParam_FinalMix, distortionMix );
-		mEffect2->setParameter( kDistortionParam_PolynomialMix, distortionMix );
+//		float distortionMix = ( getWindowHeight() - pos2.y ) / getWindowHeight();
+//		LOG_V << "distortionMix: " << distortionMix << endl;
+//		mEffect2->setParameter( kDistortionParam_FinalMix, distortionMix );
+//		mEffect2->setParameter( kDistortionParam_PolynomialMix, distortionMix );
+
+		float centerFreq = (getWindowHeight() - pos2.y ) * 5.0f;
+		mEffect2->setParameter( kBandpassParam_CenterFrequency, centerFreq );
 	}
 }
 

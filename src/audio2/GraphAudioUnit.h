@@ -24,6 +24,8 @@ namespace audio2 {
 		void start() override;
 		void stop() override;
 
+		DeviceRef getDevice() override;
+
 		void* getNative() override;
 		size_t getBlockSize() const override;
 

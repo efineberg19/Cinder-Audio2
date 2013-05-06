@@ -83,6 +83,18 @@ namespace audio2 {
 		virtual size_t getBlockSize() const = 0;
 	};
 
+	class Output : public Consumer {
+	public:
+
+		// ???: device param here necessary?
+		Output( DeviceRef device ) : Consumer() {}
+		virtual ~Output() {}
+
+		virtual DeviceRef getDevice() = 0;
+
+	protected:
+	};
+
 	class Effect : public Node {
 	public:
 		Effect() : Node() {}
@@ -90,17 +102,13 @@ namespace audio2 {
 
 		virtual void connect( NodeRef source );
 	};
-
-
-	class Output : public Consumer {
+	
+	class Mixer : public Node {
 	public:
-//		static OutputRef create( DeviceRef device = Device::getDefaultOutput() );
+		Mixer() : Node() {}
+		virtual ~Mixer() = default;
 
-		// ???: device param here necessary?
-		Output( DeviceRef device ) : Consumer() {}
-		virtual ~Output() {}
-
-	protected:
+		virtual void connect( NodeRef source );
 	};
 
 	class Graph {
@@ -110,6 +118,7 @@ namespace audio2 {
 		virtual void initialize();
 		virtual void uninitialize();
 		virtual void setOutput( ConsumerRef output )	{ mOutput = output; }
+		virtual ConsumerRef getOutput() const	{ return mOutput; }
 		virtual void start();
 		virtual void stop();
 
