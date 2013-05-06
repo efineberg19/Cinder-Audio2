@@ -25,7 +25,9 @@ namespace audio2 {
 	void OutputAudioUnit::initialize()
 	{
 		CI_ASSERT( ! mDevice->isOutputConnected() );
-		CI_ASSERT( mDevice->getComponentInstance() );
+
+		::AudioUnit outputAudioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
+		CI_ASSERT( outputAudioUnit ); // TODO: extract this first with a typecase to AudioUnit
 
 		// TODO: set format params in graph, expose for customization
 //		CI_ASSERT( mFormat.isComplete() );
@@ -44,14 +46,14 @@ namespace audio2 {
 		callbackStruct.inputProc = OutputAudioUnit::renderCallback;
 		callbackStruct.inputProcRefCon = this;
 
-		OSStatus status = ::AudioUnitSetProperty( mDevice->getComponentInstance(), kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof(callbackStruct) );
+		OSStatus status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof(callbackStruct) );
 		CI_ASSERT( status == noErr );
 
-		status = ::AudioUnitSetProperty( mDevice->getComponentInstance(), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &mASBD, sizeof(mASBD) );
+		status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &mASBD, sizeof(mASBD) );
 		CI_ASSERT( status == noErr );
 		
 		mDevice->setOutputConnected();
-		LOG_V << "output connected." << endl;
+		LOG_V << "OutputAudioUnit connected: input scope -> ouput bus" << endl;
 
 		mDevice->initialize();
 	}
@@ -87,34 +89,13 @@ namespace audio2 {
 
 		self->renderNode( self->mSources[0], &buffer, flags, timeStamp, busNumber, numFrames, bufferList );
 		
-//		NodeRef node = self->mSources[0];
-//		while( node ) {
-//			if( node->getFormat().isNative() ) {
-//				::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
-//				OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, AudioUnitBus::Input, numFrames, bufferList );
-//				CI_ASSERT( status == noErr );
-//			} else {
-//				node->render( &buffer );
-//
-//				// ???: how can I avoid this when generic nodes are chained together?
-//				// TODO: I can probably just memcpy all of mBuffer right over, but taking the safe route for now
-//				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
-//					memcpy( bufferList->mBuffers[i].mData, buffer[i].data(), bufferList->mBuffers[i].mDataByteSize );
-//				}
-//			}
-//
-//			if( node->getSources().empty() )
-//				break;
-//			node = node->getSources().front();
-//		}
-
 		return noErr;
 	}
 
-	OSStatus OutputAudioUnit::renderNode( NodeRef node, BufferT *buffer, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *auBufferList )
+	void OutputAudioUnit::renderNode( NodeRef node, BufferT *buffer, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *auBufferList )
 	{
 		if( ! node )
-			return noErr; // ???: silence?
+			return;
 
 		// render children first
 		if( ! node->getSources().empty() )
@@ -133,8 +114,6 @@ namespace audio2 {
 				memcpy( auBufferList->mBuffers[i].mData, buffer->at( i ).data(), auBufferList->mBuffers[i].mDataByteSize );
 			}
 		}
-
-		return noErr;
 	}
 
 // ----------------------------------------------------------------------------------------------------
