@@ -35,7 +35,7 @@ struct Button {
 	void setEnabled( bool b ) {
 		if( b ) {
 			backgroundColor = Color( 0.0, 0.0, 0.7 );
-			title = "playing";
+			title = "running";
 		} else {
 			backgroundColor = Color( 0.3, 0.3, 0.3 );
 			title = "stopped";
@@ -69,7 +69,7 @@ class BasicTestApp : public AppNative {
 	void draw();
 
 	GraphRef mGraph;
-	shared_ptr<EffectAudioUnit> mEffect;
+	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 
 
 	Button mPlayButton;
@@ -103,15 +103,17 @@ void BasicTestApp::setup()
 //	gen->mGen.setFreq( 440.0f );
 
 
-	auto effect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	effect->connect( gen );
-	output->connect( effect );
+	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_Distortion );
+
+	mEffect->connect( gen );
+	mEffect2->connect( mEffect );
+	output->connect( mEffect2 );
 
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 	mGraph->initialize();
 
-	mEffect = effect;
 	gl::enableAlphaBlending();
 }
 
@@ -123,6 +125,7 @@ void BasicTestApp::keyDown( KeyEvent event )
 			mGraph->start();
 		else
 			mGraph->stop();
+		mPlayButton.setEnabled( mGraph->isRunning() );
 	}
 #endif // ! defined( CINDER_COCOA_TOUCH )
 }
@@ -151,10 +154,19 @@ void BasicTestApp::touchesBegan( TouchEvent event )
 
 void BasicTestApp::touchesMoved( TouchEvent event )
 {
-	float cutoff = (getWindowHeight() - event.getTouches().front().getY() ) * 4.0f;
+	Vec2f pos1 = event.getTouches().front().getPos();
+	float cutoff = (getWindowHeight() - pos1.y ) * 4.0f;
 //	LOG_V << "cutoff: " << cutoff << endl;
 
 	mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
+
+	if( event.getTouches().size() > 1 ) {
+		Vec2f pos2 = event.getTouches()[1].getPos();
+		float distortionMix = ( getWindowHeight() - pos2.y ) / getWindowHeight();
+		LOG_V << "distortionMix: " << distortionMix << endl;
+		mEffect2->setParameter( kDistortionParam_FinalMix, distortionMix );
+		mEffect2->setParameter( kDistortionParam_PolynomialMix, distortionMix );
+	}
 }
 
 void BasicTestApp::update()
