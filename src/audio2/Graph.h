@@ -41,7 +41,7 @@ namespace audio2 {
 
 		virtual void* getNative()	{ return NULL; }
 
-		const std::vector<NodeRef>& getSources()	{ return mSources; }
+		std::vector<NodeRef>& getSources()			{ return mSources; }
 		NodeRef getParent()							{ return mParent.lock(); }
 		void setParent( NodeRef parent )			{ mParent = parent; }
 
@@ -80,6 +80,7 @@ namespace audio2 {
 		virtual void stop() = 0;
 
 		virtual void connect( NodeRef source );
+		virtual size_t getBlockSize() const = 0;
 	};
 
 	// TODO: rename Effect

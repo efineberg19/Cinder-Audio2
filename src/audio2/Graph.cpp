@@ -34,25 +34,10 @@ namespace audio2 {
 
 	void Graph::initialize()
 	{
-		if( mInitialized )
-			return;
-		CI_ASSERT( mOutput );
-
-		// TODO: need to traverse graph and initialize here
-		
-		mOutput->initialize();
-		mInitialized = true;
 	}
 
 	void Graph::uninitialize()
 	{
-		if( ! mInitialized )
-			return;
-
-		stop();
-		if( mOutput )
-			mOutput->uninitialize();
-		mInitialized = false;
 	}
 
 	void Graph::start()

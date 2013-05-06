@@ -65,8 +65,6 @@ void BasicTestApp::setup()
 	effect->connect( gen );
 	output->connect( effect );
 
-	effect->initialize(); // TODO: move to Graph::initialize()
-
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 	mGraph->initialize();

@@ -16,10 +16,9 @@ namespace audio2 {
 	: Output( device )
 	{
 		mTag = "OutputAudioUnit";
+		mFormat.mIsNative = true;
 		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 		CI_ASSERT( mDevice );
-
-		LOG_V << "done." << endl;
 	}
 
 	void OutputAudioUnit::initialize()
@@ -35,29 +34,13 @@ namespace audio2 {
 		mFormat.mSampleRate = mDevice->getSampleRate();
 		mASBD = cocoa::nonInterleavedFloatABSD( mFormat.mNumChannels, mFormat.mSampleRate );
 
-		size_t blockSize = mDevice->getBlockSize();
-		mBuffer.resize( mFormat.mNumChannels );
-		for( auto& channel : mBuffer )
-			channel.resize( blockSize );
-
-		LOG_V << "resized buffer to " << mFormat.mNumChannels << " channels, " << blockSize << " samples per block" << endl;
-
 		OSStatus status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &mASBD, sizeof( mASBD ) );
 		CI_ASSERT( status == noErr );
 
-		mRenderContext = { this, &mBuffer };
-
-		::AURenderCallbackStruct callbackStruct;
-		callbackStruct.inputProc = OutputAudioUnit::renderCallback;
-		callbackStruct.inputProcRefCon = &mRenderContext;
-
-		status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof( callbackStruct ) );
-		CI_ASSERT( status == noErr );
-
 		mDevice->setOutputConnected();
-		LOG_V << "OutputAudioUnit connected: input scope -> ouput bus" << endl;
-
 		mDevice->initialize();
+
+		LOG_V << "initialize complete." << endl;
 	}
 
 	void OutputAudioUnit::uninitialize()
@@ -77,62 +60,14 @@ namespace audio2 {
 		LOG_V << "stopped: " << mDevice->getName() << endl;
 	}
 
-	OSStatus OutputAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+	void* OutputAudioUnit::getNative()
 	{
-		RenderContext *renderContext = static_cast<RenderContext *>( context );
-
-//		OutputAudioUnit *self = static_cast<OutputAudioUnit *>( context );
-
-		if( renderContext->node->getSources().empty() )
-			return noErr;
-
-		CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer->size() );
-		CI_ASSERT( numFrames == renderContext->buffer->at( 0 ).size() ); // assumes non-interleaved
-
-//		self->renderNode( self->mSources[0], &buffer, flags, timeStamp, busNumber, numFrames, bufferList );
-
-		NodeRef source = renderContext->node->getSources().front();
-		if( source->getFormat().isNative() ) {
-			::AudioUnit audioUnit = static_cast<::AudioUnit>( source->getNative() );
-			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, busNumber, numFrames, bufferList );
-			CI_ASSERT( status == noErr );
-		} else {
-			source->render( renderContext->buffer );
-
-			// ???: how can I avoid this when generic nodes are chained together?
-			// TODO: I can probably just memcpy all of mBuffer right over, but taking the safe route for now
-			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
-				memcpy( bufferList->mBuffers[i].mData, renderContext->buffer->at( i ).data(), bufferList->mBuffers[i].mDataByteSize );
-			}
-		}
-
-		return noErr;
+		return mDevice->getComponentInstance();
 	}
 
-	// TODO: use kAudioUnitProperty_LastRenderError from outside renderloop, or if that doesn't work well use an atomic<OSStatus> that one can check from UI loop
-	// FIXME: kAudioUnitErr_NoConnection for processor node - it appears the AudioUnitRender does the depth first travers itself, so this approach is doomed
-	void OutputAudioUnit::renderNode( NodeRef node, BufferT *buffer, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *auBufferList )
+	size_t OutputAudioUnit::getBlockSize() const
 	{
-		if( ! node )
-			return;
-
-		// render children first
-//		if( ! node->getSources().empty() )
-//			renderNode( node->getSources().front(), buffer, flags, timeStamp, busNumber, numFrames, auBufferList );
-
-//		if( node->getFormat().isNative() ) {
-//			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
-//			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, busNumber, numFrames, auBufferList );
-//			CI_ASSERT( status == noErr );
-//		} else {
-//			node->render( buffer );
-//
-//			// ???: how can I avoid this when generic nodes are chained together?
-//			// TODO: I can probably just memcpy all of mBuffer right over, but taking the safe route for now
-//			for( UInt32 i = 0; i < auBufferList->mNumberBuffers; i++ ) {
-//				memcpy( auBufferList->mBuffers[i].mData, buffer->at( i ).data(), auBufferList->mBuffers[i].mDataByteSize );
-//			}
-//		}
+		return mDevice->getBlockSize();
 	}
 
 // ----------------------------------------------------------------------------------------------------
@@ -169,21 +104,10 @@ namespace audio2 {
 		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
-		// HACK to get internal buffer
-		auto outputUnit = static_pointer_cast<OutputAudioUnit>( getParent() );
-		CI_ASSERT( outputUnit );
-		mRenderContext = { this, &outputUnit->getInternalBuffer() };
-
-		::AURenderCallbackStruct callbackStruct;
-		callbackStruct.inputProc = ProcessorAudioUnit::renderCallback;
-		callbackStruct.inputProcRefCon = &mRenderContext;
-
-		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof( callbackStruct ) );
-		CI_ASSERT( status == noErr );
-
-
 		status = ::AudioUnitInitialize( mAudioUnit );
 		CI_ASSERT( status == noErr );
+
+		LOG_V << "initialize complete. " << endl;
 	}
 
 	void ProcessorAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
@@ -192,31 +116,92 @@ namespace audio2 {
 		CI_ASSERT( status == noErr );
 	}
 
-	// TODO NEXT: test if this gets the effect working. For now if necessary, create a new BufferT and copy samples over
-	OSStatus ProcessorAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+// ----------------------------------------------------------------------------------------------------
+// MARK: - GraphAudioUnit
+// ----------------------------------------------------------------------------------------------------
+
+
+	void GraphAudioUnit::initialize()
 	{
-//		ProcessorAudioUnit *self = static_cast<ProcessorAudioUnit *>( context );
+		if( mInitialized )
+			return;
+		CI_ASSERT( mOutput );
+
+		initializeNode( mOutput );
+
+		size_t blockSize = mOutput->getBlockSize();
+		mRenderContext.buffer.resize( mOutput->getFormat().getNumChannels() );
+		for( auto& channel : mRenderContext.buffer )
+			channel.resize( blockSize );
+		mRenderContext.currentNode = mOutput.get();
+
+		mInitialized = true;
+		LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.size() << ", blocksize: " << blockSize << endl;
+	}
+
+	void GraphAudioUnit::initializeNode( NodeRef node )
+	{
+		Node::Format& format = node->getFormat();
+
+		for( NodeRef& sourceNode : node->getSources() )
+			initializeNode( sourceNode );
+
+		node->initialize();
+
+		if( format.isNative() ) {
+			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() ); // TODO: assert not nil
+
+			::AURenderCallbackStruct callbackStruct;
+			callbackStruct.inputProc = GraphAudioUnit::renderCallback;
+			callbackStruct.inputProcRefCon = &mRenderContext;
+
+			OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof( callbackStruct ) );
+			CI_ASSERT( status == noErr );
+		}
+	}
+
+	void GraphAudioUnit::uninitialize()
+	{
+		if( ! mInitialized )
+			return;
+
+		stop();
+		if( mOutput )
+			mOutput->uninitialize();
+		mInitialized = false;
+	}
+
+	OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+	{
 		RenderContext *renderContext = static_cast<RenderContext *>( context );
 
-		if( renderContext->node->getSources().empty() )
+		if( renderContext->currentNode->getSources().empty() )
 			return noErr;
 
-//		BufferT& buffer = self->mBuffer;
-//		CI_ASSERT( bufferList->mNumberBuffers == buffer.size() );
-//		CI_ASSERT( numFrames == buffer[0].size() ); // assumes non-interleaved
-//
-//		self->renderNode( self->mSources[0], &buffer, flags, timeStamp, busNumber, numFrames, bufferList );
+		CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.size() );
+		CI_ASSERT( numFrames == renderContext->buffer[0].size() ); // assumes non-interleaved
 
-		NodeRef source = renderContext->node->getSources().front();
-		source->render( renderContext->buffer );
+		NodeRef source = renderContext->currentNode->getSources().front();
+		if( source->getFormat().isNative() ) {
+			Node *thisNode = renderContext->currentNode;
+			renderContext->currentNode = source.get();
+			::AudioUnit audioUnit = static_cast<::AudioUnit>( source->getNative() );
+			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, busNumber, numFrames, bufferList );
+			CI_ASSERT( status == noErr );
 
-		// ???: how can I avoid this when generic nodes are chained together?
-		// TODO: I can probably just memcpy all of mBuffer right over, but taking the safe route for now
-		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
-			memcpy( bufferList->mBuffers[i].mData, renderContext->buffer->at( i ).data(), bufferList->mBuffers[i].mDataByteSize );
+			renderContext->currentNode = thisNode; // reset context node for next iteration
+		} else {
+			source->render( &renderContext->buffer );
+
+			// ???: how can I avoid this when generic nodes are chained together?
+			// TODO: I can probably just memcpy all of mBuffer right over, but taking the safe route for now
+			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
+				memcpy( bufferList->mBuffers[i].mData, renderContext->buffer[i].data(), bufferList->mBuffers[i].mDataByteSize );
+			}
 		}
-
+		
 		return noErr;
 	}
+
 
 } // namespace audio2
