@@ -19,8 +19,8 @@ using namespace audio2;
 
 struct MyGen : public Producer {
 	MyGen()	{ mTag = "MyGen"; }
-//	NoiseGen mGen;
-	SineGen mGen;
+	NoiseGen mGen;
+//	SineGen mGen;
 	virtual void render( BufferT *buffer ) override {
 		mGen.render( buffer );
 	}
@@ -31,10 +31,13 @@ class BasicTestApp : public AppNative {
 	void setup();
 	void keyDown( KeyEvent event );
 	void touchesBegan( TouchEvent event ) override;
+	void mouseDrag( MouseEvent event ) override;
 	void update();
 	void draw();
 
 	Graph mGraph;
+
+	shared_ptr<ProcessorAudioUnit> mEffect;
 };
 
 void BasicTestApp::setup()
@@ -55,11 +58,11 @@ void BasicTestApp::setup()
 
 	auto gen = make_shared<MyGen>();
 	gen->mGen.setAmp( 0.25f );
-	gen->mGen.setSampleRate( device->getSampleRate() );
-	gen->mGen.setFreq( 440.0f );
+//	gen->mGen.setSampleRate( device->getSampleRate() );
+//	gen->mGen.setFreq( 440.0f );
 
 
-	auto effect = make_shared<ProcessorAudioUnit>();
+	auto effect = make_shared<ProcessorAudioUnit>( kAudioUnitSubType_LowPassFilter );
 	effect->connect( gen );
 	output->connect( effect );
 
@@ -67,6 +70,8 @@ void BasicTestApp::setup()
 
 	mGraph.setOutput( output );
 	mGraph.initialize();
+
+	mEffect = effect;
 }
 
 void BasicTestApp::keyDown( KeyEvent event )
@@ -79,6 +84,14 @@ void BasicTestApp::keyDown( KeyEvent event )
 			mGraph.stop();
 	}
 #endif // ! defined( CINDER_COCOA_TOUCH )
+}
+
+void BasicTestApp::mouseDrag( MouseEvent event )
+{
+	float cutoff = (getWindowHeight() - event.getY() ) * 4.0f;
+//	LOG_V << "cutoff: " << cutoff << endl;
+
+	mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
 }
 
 void BasicTestApp::touchesBegan( TouchEvent event )

@@ -81,6 +81,7 @@ namespace audio2 {
 		virtual void connect( NodeRef source );
 	};
 
+	// TODO: rename Effect
 	class Processor : public Node {
 	public:
 		Processor() : Node() {}

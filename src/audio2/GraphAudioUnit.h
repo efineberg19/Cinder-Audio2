@@ -8,7 +8,11 @@ namespace audio2 {
 
 	class DeviceAudioUnit;
 
-	
+	struct RenderContext {
+		Node *node;
+		BufferT *buffer;
+	};
+
 	class OutputAudioUnit : public Output {
 	public:
 		OutputAudioUnit( DeviceRef device );
@@ -20,6 +24,8 @@ namespace audio2 {
 		void start() override;
 		void stop() override;
 
+		BufferT& getInternalBuffer() { return mBuffer; } // TEMP
+
 	private:
 		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 		void renderNode( NodeRef node, BufferT *buffer, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *auBufferList );
@@ -27,11 +33,13 @@ namespace audio2 {
 		std::shared_ptr<DeviceAudioUnit> mDevice;
 		::AudioStreamBasicDescription mASBD; // TODO: no reason to keep this around that I can think of
 		BufferT mBuffer;
+
+		RenderContext mRenderContext;
 	};
 
 	class ProcessorAudioUnit : public Processor {
 	public:
-		ProcessorAudioUnit();
+		ProcessorAudioUnit( UInt32 effectSubType );
 		virtual ~ProcessorAudioUnit() = default;
 
 		void initialize() override;
@@ -44,6 +52,11 @@ namespace audio2 {
 	protected:
 		UInt32		mEffectSubType;
 		::AudioUnit	mAudioUnit;
+
+	private:
+		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+
+		RenderContext mRenderContext;
 	};
 
 	class GraphAudioUnit : public Graph {
