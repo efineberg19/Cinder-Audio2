@@ -41,7 +41,8 @@ namespace audio2 {
 		virtual void* getNative()	{ return NULL; }
 
 		const std::vector<NodeRef>& getSources()	{ return mSources; }
-		void setParent( NodeRef parent )	{ mParent = parent; }
+		NodeRef getParent()							{ return mParent.lock(); }
+		void setParent( NodeRef parent )			{ mParent = parent; }
 
 		Format& getFormat()	{ return mFormat; }
 		
