@@ -36,7 +36,7 @@ class BasicTestApp : public AppNative {
 	void draw();
 
 	GraphRef mGraph;
-	shared_ptr<ProcessorAudioUnit> mEffect;
+	shared_ptr<EffectAudioUnit> mEffect;
 };
 
 void BasicTestApp::setup()
@@ -61,7 +61,7 @@ void BasicTestApp::setup()
 //	gen->mGen.setFreq( 440.0f );
 
 
-	auto effect = make_shared<ProcessorAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	auto effect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 	effect->connect( gen );
 	output->connect( effect );
 

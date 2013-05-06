@@ -19,7 +19,7 @@ namespace audio2 {
 		mSources[0]->setParent( shared_from_this() );
 	}
 
-	void Processor::connect( NodeRef source )
+	void Effect::connect( NodeRef source )
 	{
 		if( mSources.empty() )
 			mSources.resize( 1 );

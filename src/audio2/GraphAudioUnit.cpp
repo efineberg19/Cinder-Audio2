@@ -71,17 +71,17 @@ namespace audio2 {
 	}
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - ProcessorAudioUnit
+// MARK: - EffectAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-	ProcessorAudioUnit::ProcessorAudioUnit(  UInt32 effectSubType )
+	EffectAudioUnit::EffectAudioUnit(  UInt32 effectSubType )
 	: mEffectSubType( effectSubType )
 	{
-		mTag = "ProcessorAudioUnit";
+		mTag = "EffectAudioUnit";
 		mFormat.mIsNative = true;
 	}
 
-	void ProcessorAudioUnit::initialize()
+	void EffectAudioUnit::initialize()
 	{
 		AudioComponentDescription comp{ 0 };
 		comp.componentType = kAudioUnitType_Effect;
@@ -110,7 +110,7 @@ namespace audio2 {
 		LOG_V << "initialize complete. " << endl;
 	}
 
-	void ProcessorAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
+	void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 	{
 		OSStatus status = ::AudioUnitSetParameter( mAudioUnit, param, kAudioUnitScope_Global, 0, val, 0 );
 		CI_ASSERT( status == noErr );

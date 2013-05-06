@@ -83,11 +83,10 @@ namespace audio2 {
 		virtual size_t getBlockSize() const = 0;
 	};
 
-	// TODO: rename Effect
-	class Processor : public Node {
+	class Effect : public Node {
 	public:
-		Processor() : Node() {}
-		virtual ~Processor() = default;
+		Effect() : Node() {}
+		virtual ~Effect() = default;
 
 		virtual void connect( NodeRef source );
 	};

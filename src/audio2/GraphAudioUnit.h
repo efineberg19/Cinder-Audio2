@@ -34,14 +34,14 @@ namespace audio2 {
 		::AudioStreamBasicDescription mASBD; // TODO: no reason to keep this around that I can think of
 	};
 
-	class ProcessorAudioUnit : public Processor {
+	class EffectAudioUnit : public Effect {
 	public:
-		ProcessorAudioUnit( UInt32 effectSubType );
-		virtual ~ProcessorAudioUnit() = default;
+		EffectAudioUnit( UInt32 subType );
+		virtual ~EffectAudioUnit() = default;
 
 		void initialize() override;
 
-		// ???: is there a safer way to do this? Can I protect against someone making their own Processor subclass, overriding getNative and returning something other than type AudioUnit?
+		// ???: is there a safer way to do this? Can I protect against someone making their own Effect subclass, overriding getNative and returning something other than type AudioUnit?
 		void* getNative() override	{ return mAudioUnit; }
 
 		void setParameter( ::AudioUnitParameterID param, float val );
