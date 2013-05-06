@@ -5,6 +5,11 @@ using namespace std;
 
 namespace audio2 {
 
+	GraphRef EngineAudioUnit::createGraph()
+	{
+		return GraphRef( new GraphAudioUnit() );
+	}
+
 	ConsumerRef EngineAudioUnit::createOutput( DeviceRef device )
 	{
 		return ConsumerRef( new OutputAudioUnit( device ) );

@@ -9,6 +9,7 @@ namespace audio2 {
 	public:
 		virtual ~Engine() {}
 
+		virtual GraphRef	createGraph() = 0;
 		virtual ConsumerRef createOutput( DeviceRef device ) = 0;
 
 		static Engine* instance();

@@ -35,8 +35,7 @@ class BasicTestApp : public AppNative {
 	void update();
 	void draw();
 
-	Graph mGraph;
-
+	GraphRef mGraph;
 	shared_ptr<ProcessorAudioUnit> mEffect;
 };
 
@@ -68,8 +67,9 @@ void BasicTestApp::setup()
 
 	effect->initialize(); // TODO: move to Graph::initialize()
 
-	mGraph.setOutput( output );
-	mGraph.initialize();
+	mGraph = Engine::instance()->createGraph();
+	mGraph->setOutput( output );
+	mGraph->initialize();
 
 	mEffect = effect;
 }
@@ -78,10 +78,10 @@ void BasicTestApp::keyDown( KeyEvent event )
 {
 #if ! defined( CINDER_COCOA_TOUCH )
 	if( event.getCode() == KeyEvent::KEY_SPACE ) {
-		if( ! mGraph.isRunning() )
-			mGraph.start();
+		if( ! mGraph->isRunning() )
+			mGraph->start();
 		else
-			mGraph.stop();
+			mGraph->stop();
 	}
 #endif // ! defined( CINDER_COCOA_TOUCH )
 }
@@ -97,10 +97,10 @@ void BasicTestApp::mouseDrag( MouseEvent event )
 void BasicTestApp::touchesBegan( TouchEvent event )
 {
 	LOG_V << "bang" << endl;
-	if( ! mGraph.isRunning() )
-		mGraph.start();
+	if( ! mGraph->isRunning() )
+		mGraph->start();
 	else
-		mGraph.stop();
+		mGraph->stop();
 }
 
 void BasicTestApp::update()
@@ -109,7 +109,7 @@ void BasicTestApp::update()
 
 void BasicTestApp::draw()
 {
-	gl::clear( Color::gray( mGraph.isRunning() ? 0.3 : 0.05 ) );
+	gl::clear( Color::gray( mGraph->isRunning() ? 0.3 : 0.05 ) );
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )

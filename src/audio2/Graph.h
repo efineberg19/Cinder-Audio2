@@ -7,6 +7,7 @@
 
 namespace audio2 {
 
+	typedef std::shared_ptr<class Graph> GraphRef;
 	typedef std::shared_ptr<class Node> NodeRef;
 	typedef std::weak_ptr<class Node> NodeWeakRef;
 
@@ -104,7 +105,6 @@ namespace audio2 {
 
 	class Graph {
 	public:
-		Graph() : mInitialized( false ), mRunning( false ) {}
 		virtual ~Graph();
 
 		virtual void initialize();
@@ -116,6 +116,8 @@ namespace audio2 {
 		bool isRunning() const	{ return mRunning; }
 
 	protected:
+		Graph() : mInitialized( false ), mRunning( false ) {}
+
 		ConsumerRef	mOutput;
 		bool		mInitialized, mRunning;
 	};
