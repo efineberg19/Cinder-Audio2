@@ -26,21 +26,63 @@ struct MyGen : public Producer {
 	}
 };
 
+struct Button {
+	Button() {
+		setEnabled( false );
+		textColor = Color::white();
+	}
+
+	void setEnabled( bool b ) {
+		if( b ) {
+			backgroundColor = Color( 0.0, 0.0, 0.7 );
+			title = "playing";
+		} else {
+			backgroundColor = Color( 0.3, 0.3, 0.3 );
+			title = "stopped";
+		}
+	}
+
+	void draw() {
+		if( ! font ) {
+			font = Font( Font::getDefault().getName(), 24 );
+		}
+		gl::color( backgroundColor );
+		gl::drawSolidRoundedRect( bounds, 5 );
+		gl::drawStringCentered( title, bounds.getCenter(), textColor, font );
+	}
+
+	Rectf bounds;
+	Color backgroundColor, textColor;
+	string title;
+	Font font;
+};
+
 class BasicTestApp : public AppNative {
   public:
+	void prepareSettings( Settings *settings );
 	void setup();
 	void keyDown( KeyEvent event );
 	void touchesBegan( TouchEvent event ) override;
+	void touchesMoved( TouchEvent event ) override;
 	void mouseDrag( MouseEvent event ) override;
 	void update();
 	void draw();
 
 	GraphRef mGraph;
 	shared_ptr<EffectAudioUnit> mEffect;
+
+
+	Button mPlayButton;
 };
+
+void BasicTestApp::prepareSettings( Settings *settings )
+{
+	settings->enableMultiTouch();
+}
 
 void BasicTestApp::setup()
 {
+	mPlayButton.bounds = Rectf( 0, 0, 200, 80 );
 
 	DeviceRef device = Device::getDefaultOutput();
 
@@ -70,6 +112,7 @@ void BasicTestApp::setup()
 	mGraph->initialize();
 
 	mEffect = effect;
+	gl::enableAlphaBlending();
 }
 
 void BasicTestApp::keyDown( KeyEvent event )
@@ -95,10 +138,23 @@ void BasicTestApp::mouseDrag( MouseEvent event )
 void BasicTestApp::touchesBegan( TouchEvent event )
 {
 	LOG_V << "bang" << endl;
-	if( ! mGraph->isRunning() )
-		mGraph->start();
-	else
-		mGraph->stop();
+	Vec2f pos = event.getTouches().front().getPos();
+	if( mPlayButton.bounds.contains( pos ) ) {
+		LOG_V << "button tapped. " << endl;
+		if( ! mGraph->isRunning() )
+			mGraph->start();
+		else
+			mGraph->stop();
+		mPlayButton.setEnabled( mGraph->isRunning() );
+	}
+}
+
+void BasicTestApp::touchesMoved( TouchEvent event )
+{
+	float cutoff = (getWindowHeight() - event.getTouches().front().getY() ) * 4.0f;
+//	LOG_V << "cutoff: " << cutoff << endl;
+
+	mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
 }
 
 void BasicTestApp::update()
@@ -107,7 +163,9 @@ void BasicTestApp::update()
 
 void BasicTestApp::draw()
 {
-	gl::clear( Color::gray( mGraph->isRunning() ? 0.3 : 0.05 ) );
+	gl::clear();
+
+	mPlayButton.draw();
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )
