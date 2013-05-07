@@ -20,4 +20,9 @@ public:
 	AudioDeviceExc( const std::string &description ) : AudioExc( description )	{}
 };
 
+class AudioParamExc : public AudioExc {
+public:
+	AudioParamExc( const std::string &description ) : AudioExc( description )	{}
+};
+
 } // namespace audio2

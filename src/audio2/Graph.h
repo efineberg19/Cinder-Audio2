@@ -11,6 +11,7 @@ namespace audio2 {
 	typedef std::shared_ptr<class Node> NodeRef;
 	typedef std::weak_ptr<class Node> NodeWeakRef;
 
+	typedef std::shared_ptr<class Mixer> MixerRef;
 	typedef std::shared_ptr<class Consumer> ConsumerRef;
 
 	//! vector of channels
@@ -109,6 +110,16 @@ namespace audio2 {
 		virtual ~Mixer() = default;
 
 		virtual void connect( NodeRef source );
+		virtual void connect( NodeRef source, size_t bus );
+
+		virtual size_t getNumBusses() = 0;
+		virtual void setNumBusses( size_t count ) = 0;
+		virtual bool isBusEnabled( size_t bus ) = 0;
+		virtual void setBusEnabled( size_t bus, bool enabled = true ) = 0;
+		virtual void setBusVolume( size_t bus, float volume ) = 0;
+		virtual float getBusVolume( size_t bus ) = 0;
+		virtual void setBusPan( size_t bus, float pan ) = 0;
+		virtual float getBusPan( size_t bus ) = 0;
 	};
 
 	class Graph {

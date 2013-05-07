@@ -15,4 +15,9 @@ namespace audio2 {
 		return ConsumerRef( new OutputAudioUnit( device ) );
 	}
 
+	MixerRef EngineAudioUnit::createMixer()
+	{
+		return MixerRef( new MixerAudioUnit() );
+	}
+
 } // namespace audio2

@@ -33,6 +33,11 @@ namespace audio2 {
 		mSources.back()->setParent( shared_from_this() );
 	}
 
+	void Mixer::connect( NodeRef source, size_t bus )
+	{
+		// TODO: throw exception if bus count not enough, else set in sources. Blow away old node
+	}
+
 	Graph::~Graph()
 	{
 		uninitialize();

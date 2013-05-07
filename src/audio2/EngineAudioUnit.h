@@ -7,6 +7,7 @@ namespace audio2 {
 	class EngineAudioUnit : public Engine {
 
 		virtual GraphRef createGraph() override;
+		virtual MixerRef	createMixer() override;
 		virtual ConsumerRef createOutput( DeviceRef device ) override;
 
 	};

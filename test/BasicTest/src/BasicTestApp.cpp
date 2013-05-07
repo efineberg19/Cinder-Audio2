@@ -74,6 +74,7 @@ class BasicTestApp : public AppNative {
 	void setupMixer();
 
 	GraphRef mGraph;
+	MixerRef mMixer;
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 
 	Button mPlayButton;
@@ -104,6 +105,17 @@ void BasicTestApp::setup()
 	setupMixer();
 
 	mGraph->initialize();
+
+	if( mMixer ) {
+		LOG_V << "mixer stats:" << endl;
+		size_t numBusses = mMixer->getNumBusses();
+		console() << "\t num busses: " << numBusses << endl;
+		for( size_t i = 0; i < numBusses; i++ ) {
+			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
+			console() << ", volume: " << mMixer->getBusVolume( i );
+			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
+		}
+	}
 
 	gl::enableAlphaBlending();
 }
@@ -136,11 +148,11 @@ void BasicTestApp::setupMixer()
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 	mEffect->connect( noise );
 
-	auto mixer = make_shared<MixerAudioUnit>();
-	mixer->connect( mEffect );
-	mixer->connect( sine );
+	mMixer = make_shared<MixerAudioUnit>();
+	mMixer->connect( mEffect );
+	mMixer->connect( sine );
 
-	mGraph->getOutput()->connect( mixer );
+	mGraph->getOutput()->connect( mMixer );
 //	mGraph->getOutput()->connect( noise );
 }
 
@@ -184,25 +196,36 @@ void BasicTestApp::touchesBegan( TouchEvent event )
 
 void BasicTestApp::touchesMoved( TouchEvent event )
 {
-	if( ! mEffect )
-		return;
-	
 	Vec2f pos1 = event.getTouches().front().getPos();
-	float cutoff = (getWindowHeight() - pos1.y ) * 3.0f;
-//	LOG_V << "cutoff: " << cutoff << endl;
+	if( mEffect ) {
+		float cutoff = (getWindowHeight() - pos1.y ) * 3.0f;
+		mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
+	}
 
-	mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
+	if( mMixer ) {
+		float pan1 = ( (float)pos1.x / (float)getWindowWidth() ) * 2.0f - 1.0f;
+		mMixer->setBusPan( 0, pan1 );
+	}
 
-	if( mEffect2 && event.getTouches().size() > 1 ) {
+	if( event.getTouches().size() > 1 ) {
 		Vec2f pos2 = event.getTouches()[1].getPos();
-		
-//		float distortionMix = ( getWindowHeight() - pos2.y ) / getWindowHeight();
-//		LOG_V << "distortionMix: " << distortionMix << endl;
-//		mEffect2->setParameter( kDistortionParam_FinalMix, distortionMix );
-//		mEffect2->setParameter( kDistortionParam_PolynomialMix, distortionMix );
 
-		float centerFreq = (getWindowHeight() - pos2.y ) * 5.0f;
-		mEffect2->setParameter( kBandpassParam_CenterFrequency, centerFreq );
+		if( mEffect2 ) {
+
+			//		float distortionMix = ( getWindowHeight() - pos2.y ) / getWindowHeight();
+			//		LOG_V << "distortionMix: " << distortionMix << endl;
+			//		mEffect2->setParameter( kDistortionParam_FinalMix, distortionMix );
+			//		mEffect2->setParameter( kDistortionParam_PolynomialMix, distortionMix );
+
+			float centerFreq = (getWindowHeight() - pos2.y ) * 5.0f;
+			mEffect2->setParameter( kBandpassParam_CenterFrequency, centerFreq );
+		}
+
+		if( mMixer ) {
+			float pan2 = ( (float)pos2.x / (float)getWindowWidth() ) * 2.0f - 1.0f;
+			mMixer->setBusPan( 1, pan2 );
+		}
+
 	}
 }
 

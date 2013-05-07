@@ -1,5 +1,6 @@
 #include "audio2/GraphAudioUnit.h"
 #include "audio2/DeviceAudioUnit.h"
+#include "audio2/audio.h"
 #include "audio2/cocoa/Util.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
@@ -7,6 +8,25 @@
 using namespace std;
 
 namespace audio2 {
+
+	template <typename ResultT>
+	inline void audioUnitGetParam( ::AudioUnit audioUnit, ::AudioUnitParameterID property, ResultT &result, ::AudioUnitScope scope = kAudioUnitScope_Input, size_t bus = 0 )
+	{
+		::AudioUnitParameterValue param;
+		::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
+		OSStatus status = ::AudioUnitGetParameter( audioUnit, property, scope, busElement, &param );
+		CI_ASSERT( status == noErr );
+		result = static_cast<ResultT>( param );
+	}
+
+	template <typename ParamT>
+	inline void audioUnitSetParam( ::AudioUnit audioUnit, ::AudioUnitParameterID property, ParamT param, ::AudioUnitScope scope = kAudioUnitScope_Input, size_t bus = 0 )
+	{
+		::AudioUnitParameterValue value = static_cast<::AudioUnitParameterValue>( param );
+		::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
+		OSStatus status = ::AudioUnitSetParameter( audioUnit, property, scope, busElement, value, 0 );
+		CI_ASSERT( status == noErr );
+	}
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - OutputAudioUnit
@@ -140,24 +160,20 @@ namespace audio2 {
 
 		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-//		UInt32 busCount;
-//		UInt32 busCountSize = sizeof( busCount );
-//		OSStatus status = ::AudioUnitGetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, &busCountSize );
-//		CI_ASSERT( status == noErr );
-
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( 2, 44100 );
 
-		UInt32 busCount = mSources.size();
-		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof( busCount ) );
-
 		float outputVolume = 1.0f;
-		status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
+		OSStatus status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
 		CI_ASSERT( status == noErr );
 
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
-		for( UInt32 bus = 0; bus < busCount; bus++ ) {
+		CI_ASSERT( mSources.size() <= getNumBusses() );
+
+		for( UInt32 bus = 0; bus < mSources.size(); bus++ ) {
+			if( ! mSources[bus] )
+				continue;
 
 			status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &asbd, sizeof( asbd ) );
 			CI_ASSERT( status == noErr );
@@ -165,15 +181,87 @@ namespace audio2 {
 			float inputVolume = 1.0f;
 			status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, bus, inputVolume, 0 );
 			CI_ASSERT( status == noErr );
-
-//			status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, bus, 1.0f, 0 );
-//			CI_ASSERT( status == noErr );
 		}
 
 		status = ::AudioUnitInitialize( mAudioUnit );
 		CI_ASSERT( status == noErr );
 
-		LOG_V << "initialize complete. bus count: " << busCount << endl;
+		LOG_V << "initialize complete. " << endl;
+	}
+
+	size_t MixerAudioUnit::getNumBusses()
+	{
+		UInt32 busCount;
+		UInt32 busCountSize = sizeof( busCount );
+		OSStatus status = ::AudioUnitGetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, &busCountSize );
+		CI_ASSERT( status == noErr );
+
+		return static_cast<size_t>( busCount );
+	}
+
+	void MixerAudioUnit::setNumBusses( size_t count )
+	{
+		UInt32 busCount = static_cast<UInt32>( count );
+		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof( busCount ) );
+		CI_ASSERT( status == noErr );
+	}
+
+	bool MixerAudioUnit::isBusEnabled( size_t bus )
+	{
+		checkBusIsValid( bus );
+
+		::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
+		::AudioUnitParameterValue enabledValue;
+		OSStatus status = ::AudioUnitGetParameter( mAudioUnit, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, busElement, &enabledValue );
+		CI_ASSERT( status == noErr );
+
+		return static_cast<bool>( enabledValue );
+	}
+
+	void MixerAudioUnit::setBusEnabled( size_t bus, bool enabled )
+	{
+		checkBusIsValid( bus );
+
+		::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
+		::AudioUnitParameterValue enabledValue = static_cast<::AudioUnitParameterValue>( enabled );
+		OSStatus status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, busElement, enabledValue, 0 );
+		CI_ASSERT( status == noErr );
+	}
+
+	void MixerAudioUnit::setBusVolume( size_t bus, float volume )
+	{
+		checkBusIsValid( bus );
+		audioUnitSetParam( mAudioUnit, kMultiChannelMixerParam_Volume, volume, kAudioUnitScope_Input, bus );
+	}
+
+	float MixerAudioUnit::getBusVolume( size_t bus )
+	{
+		checkBusIsValid( bus );
+
+		float volume;
+		audioUnitGetParam( mAudioUnit, kMultiChannelMixerParam_Volume, volume, kAudioUnitScope_Input, bus );
+		return volume;
+	}
+
+	void MixerAudioUnit::setBusPan( size_t bus, float pan )
+	{
+		checkBusIsValid( bus );
+		audioUnitSetParam( mAudioUnit, kMultiChannelMixerParam_Pan, pan, kAudioUnitScope_Input, bus );
+	}
+
+	float MixerAudioUnit::getBusPan( size_t bus )
+	{
+		checkBusIsValid( bus );
+
+		float pan;
+		audioUnitGetParam( mAudioUnit, kMultiChannelMixerParam_Pan, pan, kAudioUnitScope_Input, bus );
+		return pan;
+	}
+
+	void MixerAudioUnit::checkBusIsValid( size_t bus )
+	{
+		if( bus >= getNumBusses() )
+			throw AudioParamExc( "Bus number out of range.");
 	}
 
 // ----------------------------------------------------------------------------------------------------

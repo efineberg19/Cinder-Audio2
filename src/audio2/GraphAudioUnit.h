@@ -70,7 +70,19 @@ namespace audio2 {
 
 		void initialize() override;
 		void* getNative() override	{ return mAudioUnit; }
+
+		size_t getNumBusses() override;
+		void setNumBusses( size_t count ) override;
+		bool isBusEnabled( size_t bus ) override;
+		void setBusEnabled( size_t bus, bool enabled = true ) override;
+		void setBusVolume( size_t bus, float volume ) override;
+		float getBusVolume( size_t bus ) override;
+		void setBusPan( size_t bus, float pan ) override;
+		float getBusPan( size_t bus ) override;
+
 	private:
+		void checkBusIsValid( size_t bus );
+		
 		::AudioUnit	mAudioUnit;
 	};
 
