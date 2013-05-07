@@ -140,25 +140,24 @@ namespace audio2 {
 
 		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-		UInt32 busCount;
-		UInt32 busCountSize = sizeof( busCount );
-		OSStatus status = ::AudioUnitGetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, &busCountSize );
-		CI_ASSERT( status == noErr );
+//		UInt32 busCount;
+//		UInt32 busCountSize = sizeof( busCount );
+//		OSStatus status = ::AudioUnitGetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, &busCountSize );
+//		CI_ASSERT( status == noErr );
 
-//		UInt32 busCount = mSources.size();
-//		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof( busCount ) );
+		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( 2, 44100 );
+
+		UInt32 busCount = mSources.size();
+		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof( busCount ) );
 
 		float outputVolume = 1.0f;
 		status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
 		CI_ASSERT( status == noErr );
 
-
-		Float64 sampleRate = 44100; // TODO: this should be from mFormat
-		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SampleRate, kAudioUnitScope_Output, 0, &sampleRate, sizeof( sampleRate ) );
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
 		for( UInt32 bus = 0; bus < busCount; bus++ ) {
-			::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( 2, 44100 );
 
 			status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &asbd, sizeof( asbd ) );
 			CI_ASSERT( status == noErr );
@@ -166,8 +165,10 @@ namespace audio2 {
 			float inputVolume = 1.0f;
 			status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, bus, inputVolume, 0 );
 			CI_ASSERT( status == noErr );
-		}
 
+//			status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, bus, 1.0f, 0 );
+//			CI_ASSERT( status == noErr );
+		}
 
 		status = ::AudioUnitInitialize( mAudioUnit );
 		CI_ASSERT( status == noErr );
@@ -233,7 +234,6 @@ namespace audio2 {
 		mInitialized = false;
 	}
 
-	// FIXME: Mixer's AudioUnitRender is silencing the output bufferList, adding flag too
 	OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 	{
 		RenderContext *renderContext = static_cast<RenderContext *>( context );

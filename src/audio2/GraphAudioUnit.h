@@ -45,7 +45,10 @@ namespace audio2 {
 
 		void initialize() override;
 
-		// ???: is there a safer way to do this? Can I protect against someone making their own Effect subclass, overriding getNative and returning something other than type AudioUnit?
+		// ???: is there a safer way to do this? Possibities:
+		// - inherit from abstract NodeAudioUnit (multiple-inheritance)
+		// - Node owns a NodeImpl* pointer that can be dynamically casted to NodeImplAudioUnit
+		// - These guys all inherit from NodeAudioUnit - then Node needs a much larger interface
 		void* getNative() override	{ return mAudioUnit; }
 
 		void setParameter( ::AudioUnitParameterID param, float val );

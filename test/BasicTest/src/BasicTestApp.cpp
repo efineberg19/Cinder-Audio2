@@ -20,12 +20,12 @@ using namespace audio2;
 template <typename UGenT>
 struct UGenNode : public Producer {
 	UGenNode()	{ mTag = "UGenNode"; }
-//	NoiseGen mGen;
-//	SineGen mGen;
-	UGenT mGen;
+
 	virtual void render( BufferT *buffer ) override {
 		mGen.render( buffer );
 	}
+
+	UGenT mGen;
 };
 
 struct Button {
@@ -133,12 +133,15 @@ void BasicTestApp::setupMixer()
 	auto device = dynamic_pointer_cast<Output>( mGraph->getOutput() )->getDevice();
 	sine->mGen.setSampleRate( device->getSampleRate() ); // TODO: this should be auto-configurable
 
+	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	mEffect->connect( noise );
 
 	auto mixer = make_shared<MixerAudioUnit>();
-	mixer->connect( noise );
+	mixer->connect( mEffect );
 	mixer->connect( sine );
 
 	mGraph->getOutput()->connect( mixer );
+//	mGraph->getOutput()->connect( noise );
 }
 
 void BasicTestApp::keyDown( KeyEvent event )
@@ -190,8 +193,9 @@ void BasicTestApp::touchesMoved( TouchEvent event )
 
 	mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
 
-	if( event.getTouches().size() > 1 ) {
+	if( mEffect2 && event.getTouches().size() > 1 ) {
 		Vec2f pos2 = event.getTouches()[1].getPos();
+		
 //		float distortionMix = ( getWindowHeight() - pos2.y ) / getWindowHeight();
 //		LOG_V << "distortionMix: " << distortionMix << endl;
 //		mEffect2->setParameter( kDistortionParam_FinalMix, distortionMix );
