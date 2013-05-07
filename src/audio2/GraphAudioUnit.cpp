@@ -26,7 +26,7 @@ namespace audio2 {
 		CI_ASSERT( ! mDevice->isOutputConnected() );
 
 		::AudioUnit outputAudioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
-		CI_ASSERT( outputAudioUnit ); // TODO: extract this first with a typecase to AudioUnit
+		CI_ASSERT( outputAudioUnit );
 
 		// TODO: set format params in graph, expose for customization
 //		CI_ASSERT( mFormat.isComplete() );
@@ -145,21 +145,28 @@ namespace audio2 {
 		OSStatus status = ::AudioUnitGetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, &busCountSize );
 		CI_ASSERT( status == noErr );
 
+//		UInt32 busCount = mSources.size();
+//		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof( busCount ) );
 
-		// FIXME NEXT: this still isn't working and I don't think setting volume is necessary.
-		// - most likely because I haven't hooked up the render callbacks for each input
-		// - apple programming guide notes: http://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/AudioUnitHostingGuide_iOS/UsingSpecificAudioUnits/UsingSpecificAudioUnits.html#//apple_ref/doc/uid/TP40009492-CH17-SW8
-		float inputVolume = 1.0f;
-		AudioUnitElement busNumber = 0;
-		status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, busNumber, inputVolume, 0 );
+		float outputVolume = 1.0f;
+		status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
 		CI_ASSERT( status == noErr );
 
-//		for( auto& source : mSources ) {
-//			::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.mNumChannels, mFormat.mSampleRate );
-//
-//			status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
-//			CI_ASSERT( status == noErr );
-//		}
+
+		Float64 sampleRate = 44100; // TODO: this should be from mFormat
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SampleRate, kAudioUnitScope_Output, 0, &sampleRate, sizeof( sampleRate ) );
+		CI_ASSERT( status == noErr );
+
+		for( UInt32 bus = 0; bus < busCount; bus++ ) {
+			::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( 2, 44100 );
+
+			status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &asbd, sizeof( asbd ) );
+			CI_ASSERT( status == noErr );
+
+			float inputVolume = 1.0f;
+			status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, bus, inputVolume, 0 );
+			CI_ASSERT( status == noErr );
+		}
 
 
 		status = ::AudioUnitInitialize( mAudioUnit );
@@ -201,14 +208,17 @@ namespace audio2 {
 		node->initialize();
 
 		if( format.isNative() ) {
-			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() ); // TODO: assert not nil
+			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
+			CI_ASSERT( audioUnit );
 
 			::AURenderCallbackStruct callbackStruct;
 			callbackStruct.inputProc = GraphAudioUnit::renderCallback;
 			callbackStruct.inputProcRefCon = &mRenderContext;
 
-			OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, AudioUnitBus::Output, &callbackStruct, sizeof( callbackStruct ) );
-			CI_ASSERT( status == noErr );
+			for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
+				OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
+				CI_ASSERT( status == noErr );
+			}
 		}
 	}
 
@@ -223,22 +233,21 @@ namespace audio2 {
 		mInitialized = false;
 	}
 
-	OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+	// FIXME: Mixer's AudioUnitRender is silencing the output bufferList, adding flag too
+	OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 	{
 		RenderContext *renderContext = static_cast<RenderContext *>( context );
 
-		if( renderContext->currentNode->getSources().empty() )
-			return noErr;
-
+		CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
 		CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.size() );
 		CI_ASSERT( numFrames == renderContext->buffer[0].size() ); // assumes non-interleaved
 
-		NodeRef source = renderContext->currentNode->getSources().front();
+		NodeRef source = renderContext->currentNode->getSources()[bus];
 		if( source->getFormat().isNative() ) {
 			Node *thisNode = renderContext->currentNode;
 			renderContext->currentNode = source.get();
 			::AudioUnit audioUnit = static_cast<::AudioUnit>( source->getNative() );
-			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, busNumber, numFrames, bufferList );
+			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, bus, numFrames, bufferList );
 			CI_ASSERT( status == noErr );
 
 			renderContext->currentNode = thisNode; // reset context node for next iteration
