@@ -100,7 +100,9 @@ void BasicTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 
-	setupEffects();
+//	setupEffects();
+	setupMixer();
+
 	mGraph->initialize();
 
 	gl::enableAlphaBlending();
@@ -131,6 +133,12 @@ void BasicTestApp::setupMixer()
 	auto device = dynamic_pointer_cast<Output>( mGraph->getOutput() )->getDevice();
 	sine->mGen.setSampleRate( device->getSampleRate() ); // TODO: this should be auto-configurable
 
+
+	auto mixer = make_shared<MixerAudioUnit>();
+	mixer->connect( noise );
+	mixer->connect( sine );
+
+	mGraph->getOutput()->connect( mixer );
 }
 
 void BasicTestApp::keyDown( KeyEvent event )
@@ -148,6 +156,9 @@ void BasicTestApp::keyDown( KeyEvent event )
 
 void BasicTestApp::mouseDrag( MouseEvent event )
 {
+	if( ! mEffect )
+		return;
+	
 	float cutoff = (getWindowHeight() - event.getY() ) * 4.0f;
 //	LOG_V << "cutoff: " << cutoff << endl;
 
@@ -170,6 +181,9 @@ void BasicTestApp::touchesBegan( TouchEvent event )
 
 void BasicTestApp::touchesMoved( TouchEvent event )
 {
+	if( ! mEffect )
+		return;
+	
 	Vec2f pos1 = event.getTouches().front().getPos();
 	float cutoff = (getWindowHeight() - pos1.y ) * 3.0f;
 //	LOG_V << "cutoff: " << cutoff << endl;

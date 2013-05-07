@@ -94,7 +94,7 @@ namespace audio2 {
 		comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 
 
-		cocoa::findAndCreateAudioComponent( comp,  &mAudioUnit );
+		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 		auto source = mSources.front();
 		CI_ASSERT( source );
@@ -119,6 +119,53 @@ namespace audio2 {
 	{
 		OSStatus status = ::AudioUnitSetParameter( mAudioUnit, param, kAudioUnitScope_Global, 0, val, 0 );
 		CI_ASSERT( status == noErr );
+	}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - MixerAudioUnit
+// ----------------------------------------------------------------------------------------------------
+
+	MixerAudioUnit::MixerAudioUnit()
+	{
+		mTag = "MixerAudioUnit";
+		mFormat.mIsNative = true;
+	}
+
+	void MixerAudioUnit::initialize()
+	{
+		AudioComponentDescription comp{ 0 };
+		comp.componentType = kAudioUnitType_Mixer;
+		comp.componentSubType = kAudioUnitSubType_MultiChannelMixer;
+		comp.componentManufacturer = kAudioUnitManufacturer_Apple;
+
+		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
+
+		UInt32 busCount;
+		UInt32 busCountSize = sizeof( busCount );
+		OSStatus status = ::AudioUnitGetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, &busCountSize );
+		CI_ASSERT( status == noErr );
+
+
+		// FIXME NEXT: this still isn't working and I don't think setting volume is necessary.
+		// - most likely because I haven't hooked up the render callbacks for each input
+		// - apple programming guide notes: http://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/AudioUnitHostingGuide_iOS/UsingSpecificAudioUnits/UsingSpecificAudioUnits.html#//apple_ref/doc/uid/TP40009492-CH17-SW8
+		float inputVolume = 1.0f;
+		AudioUnitElement busNumber = 0;
+		status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, busNumber, inputVolume, 0 );
+		CI_ASSERT( status == noErr );
+
+//		for( auto& source : mSources ) {
+//			::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.mNumChannels, mFormat.mSampleRate );
+//
+//			status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
+//			CI_ASSERT( status == noErr );
+//		}
+
+
+		status = ::AudioUnitInitialize( mAudioUnit );
+		CI_ASSERT( status == noErr );
+
+		LOG_V << "initialize complete. bus count: " << busCount << endl;
 	}
 
 // ----------------------------------------------------------------------------------------------------

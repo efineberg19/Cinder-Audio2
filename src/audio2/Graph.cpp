@@ -5,7 +5,7 @@ namespace audio2 {
 
 	void Node::render( BufferT *buffer )
 	{
-		// handling in Output::render
+		// handling in Graph::renderCallback
 		
 //		if( ! mSources.empty() )
 //			mSources[0]->render( buffer );
@@ -25,6 +25,12 @@ namespace audio2 {
 			mSources.resize( 1 );
 		mSources[0] = source;
 		mSources[0]->setParent( shared_from_this() );
+	}
+
+	void Mixer::connect( NodeRef source )
+	{
+		mSources.push_back( source );
+		mSources.back()->setParent( shared_from_this() );
 	}
 
 	Graph::~Graph()
@@ -47,7 +53,6 @@ namespace audio2 {
 		CI_ASSERT( mOutput );
 		mRunning = true;
 		mOutput->start();
-
 	}
 
 	void Graph::stop()

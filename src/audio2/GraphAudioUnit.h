@@ -4,6 +4,8 @@
 
 #include <AudioUnit/AudioUnit.h>
 
+// TODO: dispose units in uninitialize
+
 namespace audio2 {
 
 	class DeviceAudioUnit;
@@ -48,7 +50,7 @@ namespace audio2 {
 
 		void setParameter( ::AudioUnitParameterID param, float val );
 
-	protected:
+	private:
 		UInt32		mEffectSubType;
 		::AudioUnit	mAudioUnit;
 
@@ -56,6 +58,17 @@ namespace audio2 {
 		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 		RenderContext mRenderContext;
+	};
+
+	class MixerAudioUnit : public Mixer {
+	public:
+		MixerAudioUnit();
+		virtual ~MixerAudioUnit() = default;
+
+		void initialize() override;
+		void* getNative() override	{ return mAudioUnit; }
+	private:
+		::AudioUnit	mAudioUnit;
 	};
 
 	class GraphAudioUnit : public Graph {
