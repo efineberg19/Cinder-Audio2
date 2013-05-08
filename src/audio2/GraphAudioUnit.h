@@ -4,8 +4,6 @@
 
 #include <AudioUnit/AudioUnit.h>
 
-// TODO: dispose units in uninitialize
-
 namespace audio2 {
 
 	class DeviceAudioUnit;
@@ -40,9 +38,10 @@ namespace audio2 {
 	class EffectAudioUnit : public Effect {
 	public:
 		EffectAudioUnit( UInt32 subType );
-		virtual ~EffectAudioUnit() = default;
+		virtual ~EffectAudioUnit();
 
 		void initialize() override;
+		void uninitialize() override;
 
 		// ???: is there a safer way to do this? Possibities:
 		// - inherit from abstract NodeAudioUnit (multiple-inheritance)
@@ -65,9 +64,10 @@ namespace audio2 {
 	class MixerAudioUnit : public Mixer {
 	public:
 		MixerAudioUnit();
-		virtual ~MixerAudioUnit() = default;
+		virtual ~MixerAudioUnit();
 
 		void initialize() override;
+		void uninitialize() override;
 		void* getNative() override	{ return mAudioUnit; }
 
 		size_t getNumBusses() override;
@@ -94,7 +94,8 @@ namespace audio2 {
 	private:
 		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
-		void initializeNode( NodeRef node );
+		void initNode( NodeRef node );
+		void uninitNode( NodeRef node );
 
 		RenderContext mRenderContext;
 	};

@@ -105,6 +105,12 @@ namespace audio2 {
 		mIsNative = true;
 	}
 
+	EffectAudioUnit::~EffectAudioUnit()
+	{
+		OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
+		CI_ASSERT( status == noErr );
+	}
+
 	void EffectAudioUnit::initialize()
 	{
 		AudioComponentDescription comp{ 0 };
@@ -130,6 +136,12 @@ namespace audio2 {
 		LOG_V << "initialize complete. " << endl;
 	}
 
+	void EffectAudioUnit::uninitialize()
+	{
+		OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
+		CI_ASSERT( status );
+	}
+
 	void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 	{
 		OSStatus status = ::AudioUnitSetParameter( mAudioUnit, param, kAudioUnitScope_Global, 0, val, 0 );
@@ -147,10 +159,16 @@ namespace audio2 {
 		mFormat.setWantsDefaultFormatFromParent();
 	}
 
+	MixerAudioUnit::~MixerAudioUnit()
+	{
+		OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
+		CI_ASSERT( status == noErr );
+	}
+
 	void MixerAudioUnit::initialize()
 	{
 #if defined( CINDER_COCOA_TOUCH )
-		if( mFormat.getNumChannels() ? 2 )
+		if( mFormat.getNumChannels() > 2 )
 			throw AudioParamExc( "iOS mult-channel mixer is limited to two output channels" );
 #endif
 
@@ -188,6 +206,12 @@ namespace audio2 {
 		CI_ASSERT( status == noErr );
 
 		LOG_V << "initialize complete. " << endl;
+	}
+
+	void MixerAudioUnit::uninitialize()
+	{
+		OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
+		CI_ASSERT( status );
 	}
 
 	size_t MixerAudioUnit::getNumBusses()
@@ -276,7 +300,7 @@ namespace audio2 {
 			return;
 		CI_ASSERT( mOutput );
 
-		initializeNode( mOutput );
+		initNode( mOutput );
 
 		size_t blockSize = mOutput->getBlockSize();
 		mRenderContext.buffer.resize( mOutput->getFormat().getNumChannels() );
@@ -288,7 +312,7 @@ namespace audio2 {
 		LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.size() << ", blocksize: " << blockSize << endl;
 	}
 
-	void GraphAudioUnit::initializeNode( NodeRef node )
+	void GraphAudioUnit::initNode( NodeRef node )
 	{
 		Node::Format& format = node->getFormat();
 
@@ -307,7 +331,7 @@ namespace audio2 {
 		}
 
 		for( NodeRef& sourceNode : node->getSources() )
-			initializeNode( sourceNode );
+			initNode( sourceNode );
 
 		if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() ) {
 			if( ! format.getSampleRate() )
@@ -340,9 +364,18 @@ namespace audio2 {
 			return;
 
 		stop();
-		if( mOutput )
-			mOutput->uninitialize();
+		uninitNode( mOutput );
 		mInitialized = false;
+	}
+
+	void GraphAudioUnit::uninitNode( NodeRef node )
+	{
+		if( ! node )
+			return;
+		for( auto &source : node->getSources() )
+			uninitNode( source );
+
+		node->uninitialize();
 	}
 
 	OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
