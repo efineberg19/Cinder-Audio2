@@ -60,6 +60,11 @@ struct HSlider {
 		textColor = Color::white();
 	}
 
+	void set( float val ) {
+		valueScaled = val;
+		value = ( valueScaled - min ) / ( max - min );
+	}
+
 	bool hitTest( const Vec2i &pos ) {
 		bool b = bounds.contains( pos );
 		if( b ) {
