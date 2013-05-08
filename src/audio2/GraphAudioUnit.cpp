@@ -5,6 +5,8 @@
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
+#include "cinder/Utilities.h"
+
 using namespace std;
 
 namespace audio2 {
@@ -115,7 +117,7 @@ namespace audio2 {
 
 	void EffectAudioUnit::initialize()
 	{
-		AudioComponentDescription comp{ 0 };
+		::AudioComponentDescription comp{ 0 };
 		comp.componentType = kAudioUnitType_Effect;
 		comp.componentSubType = mEffectSubType;
 		comp.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -177,7 +179,7 @@ namespace audio2 {
 			throw AudioParamExc( "iOS mult-channel mixer is limited to two output channels" );
 #endif
 
-		AudioComponentDescription comp{ 0 };
+		::AudioComponentDescription comp{ 0 };
 		comp.componentType = kAudioUnitType_Mixer;
 		comp.componentSubType = kAudioUnitSubType_MultiChannelMixer;
 		comp.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -185,12 +187,11 @@ namespace audio2 {
 		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
-
-		float outputVolume = 1.0f;
-		OSStatus status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
+		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
-		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
+		float outputVolume = 1.0f;
+		status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
 		CI_ASSERT( status == noErr );
 
 		CI_ASSERT( mSources.size() <= getNumBusses() );
@@ -298,6 +299,64 @@ namespace audio2 {
 	}
 
 // ----------------------------------------------------------------------------------------------------
+// MARK: - ConverterAudioUnit
+// ----------------------------------------------------------------------------------------------------
+
+	ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest  )
+	{
+		mTag = "ConverterAudioUnit";
+		mIsNative = true;
+		mFormat = dest->getFormat();
+		mSourceFormat = source->getFormat();
+		mSources.resize( 1 );
+	}
+
+	ConverterAudioUnit::~ConverterAudioUnit()
+	{
+		if( mAudioUnit ) {
+			OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
+			CI_ASSERT( status == noErr );
+		}
+	}
+
+	void ConverterAudioUnit::initialize()
+	{
+		AudioComponentDescription comp{ 0 };
+		comp.componentType = kAudioUnitType_FormatConverter;
+		comp.componentSubType = kAudioUnitSubType_AUConverter;
+		comp.componentManufacturer = kAudioUnitManufacturer_Apple;
+
+		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
+
+		::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceFormat.getNumChannels(), mSourceFormat.getSampleRate() );
+		::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+
+		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outputAsbd, sizeof( outputAsbd ) );
+		CI_ASSERT( status == noErr );
+
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &inputAsbd, sizeof( inputAsbd ) );
+		CI_ASSERT( status == noErr );
+
+		status = ::AudioUnitInitialize( mAudioUnit );
+		CI_ASSERT( status == noErr );
+
+		LOG_V << "initialize complete. " << endl;
+
+		mRenderContext.currentNode = this;
+		mRenderContext.buffer.resize( mSourceFormat.getNumChannels() );
+		size_t blockSize = 558; // TODO: how to calculate this? 512  * 48000 / 44100 = 557.2789...
+		for( auto& channel : mRenderContext.buffer )
+			channel.resize( blockSize );
+
+	}
+
+	void ConverterAudioUnit::uninitialize()
+	{
+		OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
+		CI_ASSERT( status );
+	}
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - GraphAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
@@ -328,6 +387,7 @@ namespace audio2 {
 	{
 		Node::Format& format = node->getFormat();
 
+		// set default params from parent if requested
 		if( ! format.isComplete() && format.wantsDefaultFormatFromParent() ) {
 			NodeRef parent = node->getParent();
 			while( parent ) {
@@ -342,31 +402,56 @@ namespace audio2 {
 			CI_ASSERT( format.isComplete() );
 		}
 
+		// recurse through sources
 		for( NodeRef& sourceNode : node->getSources() )
 			initNode( sourceNode );
 
+		// set default params from source
 		if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() ) {
 			if( ! format.getSampleRate() )
 				format.setSampleRate( node->getSourceFormat().getSampleRate() );
 			if( ! format.getNumChannels() )
 				format.setNumChannels( node->getSourceFormat().getNumChannels() );
 		}
+
 		CI_ASSERT( format.isComplete() );
+
+		// now that connecting formats are compatible
+		for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
+			NodeRef& sourceNode = node->getSources()[bus];
+			if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() ) {
+#if 0
+				auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
+				converter->getSources()[0] = sourceNode;
+				node->getSources()[bus] = converter;
+				converter->setParent( node->getSources()[bus] );
+				converter->initialize();
+				connectRenderCallback( converter, &converter->mRenderContext );
+#else
+				throw AudioFormatExc( "non-matching samplerates" );
+#endif
+			}
+		}
 
 		node->initialize();
 
-		if( node->isNative() ) {
-			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
-			CI_ASSERT( audioUnit );
+		if( node->isNative() )
+			connectRenderCallback( node );
+	}
 
-			::AURenderCallbackStruct callbackStruct;
-			callbackStruct.inputProc = GraphAudioUnit::renderCallback;
-			callbackStruct.inputProcRefCon = &mRenderContext;
+	void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context )
+	{
+		::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
+		CI_ASSERT( audioUnit );
 
-			for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
-				OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
-				CI_ASSERT( status == noErr );
-			}
+		::AURenderCallbackStruct callbackStruct;
+		callbackStruct.inputProc = GraphAudioUnit::renderCallback;
+		callbackStruct.inputProcRefCon = ( context ? context : &mRenderContext );
+
+		for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
+			OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
+			LOG_V << "connected render callback to: " << node->getSources()[bus]->getTag() << endl;
+			CI_ASSERT( status == noErr );
 		}
 	}
 
@@ -396,14 +481,16 @@ namespace audio2 {
 
 		CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
 		CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.size() );
-		CI_ASSERT( numFrames == renderContext->buffer[0].size() ); // assumes non-interleaved
+
+		// FIXME: a converter may cause this to need to be resized.
+		CI_ASSERT( numFrames <= renderContext->buffer[0].size() ); // assumes non-interleaved
 
 		NodeRef source = renderContext->currentNode->getSources()[bus];
 		if( source->isNative() ) {
 			Node *thisNode = renderContext->currentNode;
 			renderContext->currentNode = source.get();
 			::AudioUnit audioUnit = static_cast<::AudioUnit>( source->getNative() );
-			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, bus, numFrames, bufferList );
+			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, 0, numFrames, bufferList );
 			CI_ASSERT( status == noErr );
 
 			renderContext->currentNode = thisNode; // reset context node for next iteration

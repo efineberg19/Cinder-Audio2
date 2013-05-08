@@ -20,6 +20,11 @@ public:
 	AudioDeviceExc( const std::string &description ) : AudioExc( description )	{}
 };
 
+class AudioFormatExc : public AudioExc {
+public:
+	AudioFormatExc( const std::string &description ) : AudioExc( description )	{}
+};
+
 class AudioParamExc : public AudioExc {
 public:
 	AudioParamExc( const std::string &description ) : AudioExc( description )	{}

@@ -85,6 +85,23 @@ namespace audio2 {
 		::AudioUnit	mAudioUnit;
 	};
 
+	class ConverterAudioUnit : public Node {
+	public:
+		ConverterAudioUnit( NodeRef source, NodeRef dest );
+		virtual ~ConverterAudioUnit();
+
+		void initialize() override;
+		void uninitialize() override;
+		void* getNative() override	{ return mAudioUnit; }
+
+	private:
+		::AudioUnit	mAudioUnit;
+		Node::Format mSourceFormat;
+		RenderContext mRenderContext;
+
+		friend class GraphAudioUnit;
+	};
+
 	class GraphAudioUnit : public Graph {
 	public:
 		virtual ~GraphAudioUnit();
@@ -97,6 +114,7 @@ namespace audio2 {
 
 		void initNode( NodeRef node );
 		void uninitNode( NodeRef node );
+		void connectRenderCallback( NodeRef node, RenderContext *context = nullptr );
 
 		RenderContext mRenderContext;
 	};

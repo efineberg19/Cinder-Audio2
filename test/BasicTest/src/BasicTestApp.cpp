@@ -48,6 +48,7 @@ class BasicTestApp : public AppNative {
 	void setupEffects();
 	void setupMixer();
 	void toggleGraph();
+	void printGraph();
 
 	void setupUI();
 	void processEvent( Vec2i pos );
@@ -84,16 +85,17 @@ void BasicTestApp::setup()
 
 	mGraph->initialize();
 
-	if( mMixer ) {
-		LOG_V << "mixer stats:" << endl;
-		size_t numBusses = mMixer->getNumBusses();
-		console() << "\t num busses: " << numBusses << endl;
-		for( size_t i = 0; i < numBusses; i++ ) {
-			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
-			console() << ", volume: " << mMixer->getBusVolume( i );
-			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
-		}
-	}
+	printGraph();
+//	if( mMixer ) {
+//		LOG_V << "mixer stats:" << endl;
+//		size_t numBusses = mMixer->getNumBusses();
+//		console() << "\t num busses: " << numBusses << endl;
+//		for( size_t i = 0; i < numBusses; i++ ) {
+//			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
+//			console() << ", volume: " << mMixer->getBusVolume( i );
+//			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
+//		}
+//	}
 
 	setupUI();
 
@@ -140,13 +142,11 @@ void BasicTestApp::setupMixer()
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->mGen.setAmp( 0.25f );
 
-	// TODO NEXT: make this sine wave sound like middle C even though it's SR is 48k
-	// should require one kAudioUnitSubType_AUConverter
 	auto sine = make_shared<UGenNode<SineGen> >();
 	sine->mGen.setAmp( 0.25f );
 	sine->mGen.setFreq( 440.0f );
-	sine->mGen.setSampleRate( 48000 ); // TODO: this should be auto-configurable from below
-	sine->getFormat().setSampleRate( 48000 );
+	sine->mGen.setSampleRate( 44100 ); // TODO: this should be auto-configurable
+//	sine->getFormat().setSampleRate( 48000 );
 
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 //	mEffect->getFormat().setSampleRate( 22050 );
@@ -167,6 +167,22 @@ void BasicTestApp::toggleGraph()
 	else
 		mGraph->stop();
 }
+
+void BasicTestApp::printGraph()
+{
+	function<void( NodeRef, size_t )> printNode = [&]( NodeRef node, size_t depth ) -> void {
+		for( size_t i = 0; i < depth; i++ )
+			console() << "-- ";
+		console() << node->getTag() << "\t[ sr: " << node->getFormat().getSampleRate() << ", ch: " << node->getFormat().getNumChannels() << ", native: " << (node->isNative() ? "yes" : "no" ) << " ]" << endl;
+		for( auto &source : node->getSources() )
+			printNode( source, depth + 1 );
+	};
+
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph:" << endl;
+	printNode( mGraph->getOutput(), 0 );
+}
+
 
 void BasicTestApp::setupUI()
 {

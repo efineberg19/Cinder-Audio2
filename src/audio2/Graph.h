@@ -56,6 +56,8 @@ namespace audio2 {
 		//! Default implementation returns the format for the first source
 		virtual const Format& getSourceFormat();
 
+		const std::string& getTag()	const	{ return mTag; }
+
 	protected:
 		Node() : mInitialized( false ), mIsNative( false )	{}
 		Node( Node const& )				= delete;
