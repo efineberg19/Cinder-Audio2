@@ -35,7 +35,6 @@ namespace audio2 {
 		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 		std::shared_ptr<DeviceAudioUnit> mDevice;
-		::AudioStreamBasicDescription mASBD; // TODO: no reason to keep this around that I can think of
 	};
 
 	class EffectAudioUnit : public Effect {
