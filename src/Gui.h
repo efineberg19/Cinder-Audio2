@@ -79,7 +79,7 @@ struct HSlider {
 		std::string str = title + ": " + valFormatted.str();
 		if( ! font )
 			font = Font( Font::getDefault().getName(), FONT_SIZE );
-		gl::drawStringCentered( str, bounds.getCenter(), textColor, font );
+		gl::drawString( str, Vec2f( bounds.x1 + 10.0f, bounds.getCenter().y ), textColor, font );
 
 		gl::color( valueColor );
 		gl::drawStrokedRect( bounds );
