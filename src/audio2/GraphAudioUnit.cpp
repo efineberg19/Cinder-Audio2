@@ -99,7 +99,7 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 	EffectAudioUnit::EffectAudioUnit(  UInt32 effectSubType )
-	: mEffectSubType( effectSubType )
+	: mEffectSubType( effectSubType ), mAudioUnit( nullptr )
 	{
 		mTag = "EffectAudioUnit";
 		mIsNative = true;
@@ -107,8 +107,10 @@ namespace audio2 {
 
 	EffectAudioUnit::~EffectAudioUnit()
 	{
-		OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
-		CI_ASSERT( status == noErr );
+		if( mAudioUnit ) {
+			OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
+			CI_ASSERT( status == noErr );
+		}
 	}
 
 	void EffectAudioUnit::initialize()
@@ -153,6 +155,7 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 	MixerAudioUnit::MixerAudioUnit()
+	: mAudioUnit( nullptr )
 	{
 		mTag = "MixerAudioUnit";
 		mIsNative = true;
@@ -161,8 +164,10 @@ namespace audio2 {
 
 	MixerAudioUnit::~MixerAudioUnit()
 	{
-		OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
-		CI_ASSERT( status == noErr );
+		if( mAudioUnit ) {
+			OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
+			CI_ASSERT( status == noErr );
+		}
 	}
 
 	void MixerAudioUnit::initialize()
@@ -293,6 +298,10 @@ namespace audio2 {
 // MARK: - GraphAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
+	GraphAudioUnit::~GraphAudioUnit()
+	{
+		
+	}
 
 	void GraphAudioUnit::initialize()
 	{

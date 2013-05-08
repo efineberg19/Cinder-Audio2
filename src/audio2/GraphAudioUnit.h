@@ -87,6 +87,7 @@ namespace audio2 {
 
 	class GraphAudioUnit : public Graph {
 	public:
+		virtual ~GraphAudioUnit();
 
 		void initialize() override;
 		void uninitialize() override;
