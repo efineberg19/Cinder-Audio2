@@ -199,7 +199,10 @@ namespace audio2 {
 			if( ! mSources[bus] )
 				continue;
 
-			status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &asbd, sizeof( asbd ) );
+			Node::Format& sourceFormat = mSources[bus]->getFormat();
+			::AudioStreamBasicDescription busAsbd = cocoa::nonInterleavedFloatABSD( sourceFormat.getNumChannels(), sourceFormat.getSampleRate() );
+
+			status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &busAsbd, sizeof( busAsbd ) );
 			CI_ASSERT( status == noErr );
 
 			float inputVolume = 1.0f;
