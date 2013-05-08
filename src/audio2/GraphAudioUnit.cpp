@@ -36,9 +36,12 @@ namespace audio2 {
 	: Output( device )
 	{
 		mTag = "OutputAudioUnit";
-		mFormat.mIsNative = true;
+		mIsNative = true;
 		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 		CI_ASSERT( mDevice );
+
+		mFormat.setSampleRate( mDevice->getSampleRate() );
+		mFormat.setNumChannels( 2 );
 	}
 
 	void OutputAudioUnit::initialize()
@@ -48,11 +51,7 @@ namespace audio2 {
 		::AudioUnit outputAudioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
 		CI_ASSERT( outputAudioUnit );
 
-		// TODO: set format params in graph, expose for customization
-//		CI_ASSERT( mFormat.isComplete() );
-		mFormat.mNumChannels = mDevice->getNumOutputChannels();
-		mFormat.mSampleRate = mDevice->getSampleRate();
-		mASBD = cocoa::nonInterleavedFloatABSD( mFormat.mNumChannels, mFormat.mSampleRate );
+		mASBD = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
 		OSStatus status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &mASBD, sizeof( mASBD ) );
 		CI_ASSERT( status == noErr );
@@ -103,7 +102,7 @@ namespace audio2 {
 	: mEffectSubType( effectSubType )
 	{
 		mTag = "EffectAudioUnit";
-		mFormat.mIsNative = true;
+		mIsNative = true;
 	}
 
 	void EffectAudioUnit::initialize()
@@ -120,11 +119,7 @@ namespace audio2 {
 		CI_ASSERT( source );
 
 		// TODO: some suggest AudioUnitGetProperty ( kAudioUnitProperty_StreamFormat ),  then set it's samplerate
-//		mFormat.mNumChannels = source->getFormat().getNumChannels();
-//		mFormat.mSampleRate = source->getFormat().getSampleRate();
-		mFormat.mNumChannels = 2;
-		mFormat.mSampleRate = 44100;
-		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.mNumChannels, mFormat.mSampleRate );
+		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
 		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
@@ -148,11 +143,17 @@ namespace audio2 {
 	MixerAudioUnit::MixerAudioUnit()
 	{
 		mTag = "MixerAudioUnit";
-		mFormat.mIsNative = true;
+		mIsNative = true;
+		mFormat.setWantsDefaultFormatFromParent();
 	}
 
 	void MixerAudioUnit::initialize()
 	{
+#if defined( CINDER_COCOA_TOUCH )
+		if( mFormat.getNumChannels() ? 2 )
+			throw AudioParamExc( "iOS mult-channel mixer is limited to two output channels" );
+#endif
+
 		AudioComponentDescription comp{ 0 };
 		comp.componentType = kAudioUnitType_Mixer;
 		comp.componentSubType = kAudioUnitSubType_MultiChannelMixer;
@@ -160,7 +161,7 @@ namespace audio2 {
 
 		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( 2, 44100 );
+		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
 		float outputVolume = 1.0f;
 		OSStatus status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
@@ -291,12 +292,34 @@ namespace audio2 {
 	{
 		Node::Format& format = node->getFormat();
 
+		if( ! format.isComplete() && format.wantsDefaultFormatFromParent() ) {
+			NodeRef parent = node->getParent();
+			while( parent ) {
+				if( ! format.getSampleRate() )
+					format.setSampleRate( parent->getFormat().getSampleRate() );
+				if( ! format.getNumChannels() )
+					format.setNumChannels( parent->getFormat().getNumChannels() );
+				if( format.isComplete() )
+					break;
+				parent = parent->getParent();
+			}
+			CI_ASSERT( format.isComplete() );
+		}
+
 		for( NodeRef& sourceNode : node->getSources() )
 			initializeNode( sourceNode );
 
+		if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() ) {
+			if( ! format.getSampleRate() )
+				format.setSampleRate( node->getSourceFormat().getSampleRate() );
+			if( ! format.getNumChannels() )
+				format.setNumChannels( node->getSourceFormat().getNumChannels() );
+		}
+		CI_ASSERT( format.isComplete() );
+
 		node->initialize();
 
-		if( format.isNative() ) {
+		if( node->isNative() ) {
 			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
 			CI_ASSERT( audioUnit );
 
@@ -331,7 +354,7 @@ namespace audio2 {
 		CI_ASSERT( numFrames == renderContext->buffer[0].size() ); // assumes non-interleaved
 
 		NodeRef source = renderContext->currentNode->getSources()[bus];
-		if( source->getFormat().isNative() ) {
+		if( source->isNative() ) {
 			Node *thisNode = renderContext->currentNode;
 			renderContext->currentNode = source.get();
 			::AudioUnit audioUnit = static_cast<::AudioUnit>( source->getNative() );

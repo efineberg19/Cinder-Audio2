@@ -21,7 +21,10 @@ using namespace audio2;
 
 template <typename UGenT>
 struct UGenNode : public Producer {
-	UGenNode()	{ mTag = "UGenNode"; }
+	UGenNode()	{
+		mTag = "UGenNode";
+ 		mFormat.setWantsDefaultFormatFromParent();
+	}
 
 	virtual void render( BufferT *buffer ) override {
 		mGen.render( buffer );

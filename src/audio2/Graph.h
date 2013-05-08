@@ -21,17 +21,21 @@ namespace audio2 {
 	public:
 
 		struct Format {
-			Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mIsNative( false )
+			Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false )
 			{}
 
 			virtual bool isComplete() const	{ return ( mSampleRate && mNumChannels ); }
 
-			bool	isNative() const	{ return mIsNative; }
 			size_t	getSampleRate() const	{ return mSampleRate; }
+			void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
 			size_t	getNumChannels() const	{ return mNumChannels; }
+			void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; }
+			bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
+			void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
 
+		private:
 			size_t mSampleRate, mNumChannels;
-			bool mWantsDefaultFormatFromParent, mIsNative;
+			bool mWantsDefaultFormatFromParent;
 		};
 
 		virtual void initialize()	{}
@@ -40,6 +44,7 @@ namespace audio2 {
 		// ???: does making BufferT const help make it less expandable? Because it shouldb't be resize()'ed
 		virtual void render( BufferT *buffer );
 
+		bool	isNative() const	{ return mIsNative; }
 		virtual void* getNative()	{ return NULL; }
 
 		std::vector<NodeRef>& getSources()			{ return mSources; }
@@ -47,9 +52,12 @@ namespace audio2 {
 		void setParent( NodeRef parent )			{ mParent = parent; }
 
 		Format& getFormat()	{ return mFormat; }
-		
+
+		//! Default implementation returns the format for the first source
+		virtual const Format& getSourceFormat();
+
 	protected:
-		Node() : mInitialized( false )	{}
+		Node() : mInitialized( false ), mIsNative( false )	{}
 		Node( Node const& )				= delete;
 		Node& operator=( Node const& )	= delete;
 		virtual ~Node()					= default;
@@ -57,7 +65,7 @@ namespace audio2 {
 		std::vector<NodeRef>	mSources;
 		NodeWeakRef				mParent;
 		Format					mFormat;
-		bool					mInitialized;
+		bool					mInitialized, mIsNative;
 		std::string				mTag;
 	};
 

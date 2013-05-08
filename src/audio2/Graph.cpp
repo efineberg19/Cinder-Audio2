@@ -11,6 +11,12 @@ namespace audio2 {
 //			mSources[0]->render( buffer );
 	}
 
+	const Node::Format& Node::getSourceFormat()
+	{
+		CI_ASSERT( ! mSources.empty() );
+		return mSources[0]->mFormat;
+	}
+
 	void Consumer::connect( NodeRef source )
 	{
 		if( mSources.empty() )
