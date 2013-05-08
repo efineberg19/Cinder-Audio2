@@ -96,19 +96,43 @@ void BasicTestApp::setup()
 	}
 
 	setupUI();
+
+	if( mEffect ) {
+		mEffect->setParameter( kLowPassParam_CutoffFrequency, 500 );
+		mLowpassCutoffSlider.set( 500 );
+	}
 }
 
 void BasicTestApp::setupEffects()
 {
-	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->mGen.setAmp( 0.25f );
+//	auto noise = make_shared<UGenNode<NoiseGen> >();
+//	noise->mGen.setAmp( 0.25f );
+//
+//	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+//	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+//
+//	mEffect->getFormat().setSampleRate( 22050 );
+//	
+//	mEffect->connect( noise );
+//	mEffect2->connect( mEffect );
+//	mGraph->getOutput()->connect( mEffect2 );
+
+
+	// =====================================
+	// testing sine @ 44k -> effect @ 22k... sounds right but probably because effect is samplerate independant
+
+	auto sine = make_shared<UGenNode<SineGen> >();
+	sine->mGen.setAmp( 0.25f );
+	sine->mGen.setFreq( 440.0f );
+	sine->mGen.setSampleRate( 44100 );
+
+	sine->getFormat().setSampleRate( 44100 );
 
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+	mEffect->getFormat().setSampleRate( 22050 );
 
-	mEffect->connect( noise );
-	mEffect2->connect( mEffect );
-	mGraph->getOutput()->connect( mEffect2 );
+	mEffect->connect( sine );
+	mGraph->getOutput()->connect( mEffect );
 }
 
 void BasicTestApp::setupMixer()
@@ -116,14 +140,17 @@ void BasicTestApp::setupMixer()
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->mGen.setAmp( 0.25f );
 
+	// TODO NEXT: make this sine wave sound like middle C even though it's SR is 48k
+	// should require one kAudioUnitSubType_AUConverter
 	auto sine = make_shared<UGenNode<SineGen> >();
 	sine->mGen.setAmp( 0.25f );
 	sine->mGen.setFreq( 440.0f );
-
-	auto device = dynamic_pointer_cast<Output>( mGraph->getOutput() )->getDevice();
-	sine->mGen.setSampleRate( device->getSampleRate() ); // TODO: this should be auto-configurable
+	sine->mGen.setSampleRate( 48000 ); // TODO: this should be auto-configurable from below
+	sine->getFormat().setSampleRate( 48000 );
 
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+//	mEffect->getFormat().setSampleRate( 22050 );
+
 	mEffect->connect( noise );
 
 	mMixer = make_shared<MixerAudioUnit>();
