@@ -12,6 +12,8 @@
 #include "audio2/GraphAudioUnit.h"
 #endif
 
+#include "Gui.h"
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -28,37 +30,6 @@ struct UGenNode : public Producer {
 	UGenT mGen;
 };
 
-struct Button {
-	Button() {
-		setEnabled( false );
-		textColor = Color::white();
-	}
-
-	void setEnabled( bool b ) {
-		if( b ) {
-			backgroundColor = Color( 0.0, 0.0, 0.7 );
-			title = "running";
-		} else {
-			backgroundColor = Color( 0.3, 0.3, 0.3 );
-			title = "stopped";
-		}
-	}
-
-	void draw() {
-		if( ! font ) {
-			font = Font( Font::getDefault().getName(), 24 );
-		}
-		gl::color( backgroundColor );
-		gl::drawSolidRoundedRect( bounds, 5 );
-		gl::drawStringCentered( title, bounds.getCenter(), textColor, font );
-	}
-
-	Rectf bounds;
-	Color backgroundColor, textColor;
-	string title;
-	Font font;
-};
-
 class BasicTestApp : public AppNative {
   public:
 	void prepareSettings( Settings *settings );
@@ -66,29 +37,33 @@ class BasicTestApp : public AppNative {
 	void keyDown( KeyEvent event );
 	void touchesBegan( TouchEvent event ) override;
 	void touchesMoved( TouchEvent event ) override;
+	void mouseDown( MouseEvent event ) override;
 	void mouseDrag( MouseEvent event ) override;
 	void update();
 	void draw();
 
 	void setupEffects();
 	void setupMixer();
+	void toggleGraph();
+
+	void setupUI();
+	void processEvent( Vec2i pos );
 
 	GraphRef mGraph;
 	MixerRef mMixer;
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 
 	Button mPlayButton;
+	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider;
 };
 
 void BasicTestApp::prepareSettings( Settings *settings )
 {
-	settings->enableMultiTouch();
+//	settings->enableMultiTouch();
 }
 
 void BasicTestApp::setup()
 {
-	mPlayButton.bounds = Rectf( 0, 0, 200, 80 );
-
 	DeviceRef device = Device::getDefaultOutput();
 
 	LOG_V << "device name: " << device->getName() << endl;
@@ -117,7 +92,7 @@ void BasicTestApp::setup()
 		}
 	}
 
-	gl::enableAlphaBlending();
+	setupUI();
 }
 
 void BasicTestApp::setupEffects()
@@ -153,79 +128,82 @@ void BasicTestApp::setupMixer()
 	mMixer->connect( sine );
 
 	mGraph->getOutput()->connect( mMixer );
-//	mGraph->getOutput()->connect( noise );
+}
+
+void BasicTestApp::toggleGraph()
+{
+	if( ! mGraph->isRunning() )
+		mGraph->start();
+	else
+		mGraph->stop();
+}
+
+void BasicTestApp::setupUI()
+{
+	mPlayButton = Button( true, "stopped", "playing" );
+	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+
+
+	Rectf sliderRect( getWindowCenter().x - 220, 200, getWindowCenter().x + 220, 250 );
+	mNoisePanSlider.bounds = sliderRect;
+	mNoisePanSlider.title = "Pan (Noise)";
+	mNoisePanSlider.min = -1.0f;
+	mNoisePanSlider.max = 1.0f;
+
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mFreqPanSlider.bounds = sliderRect;
+	mFreqPanSlider.title = "Pan (Freq)";
+	mFreqPanSlider.min = -1.0f;
+	mFreqPanSlider.max = 1.0f;
+
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mLowpassCutoffSlider.bounds = sliderRect;
+	mLowpassCutoffSlider.title = "Lowpass Cutoff (Noise)";
+	mLowpassCutoffSlider.max = 1500.0f;
+
+	gl::enableAlphaBlending();
 }
 
 void BasicTestApp::keyDown( KeyEvent event )
 {
-#if ! defined( CINDER_COCOA_TOUCH )
-	if( event.getCode() == KeyEvent::KEY_SPACE ) {
-		if( ! mGraph->isRunning() )
-			mGraph->start();
-		else
-			mGraph->stop();
-		mPlayButton.setEnabled( mGraph->isRunning() );
+}
+
+void BasicTestApp::processEvent( Vec2i pos )
+{
+	if( mMixer ) {
+		if( mNoisePanSlider.hitTest( pos ) )
+			mMixer->setBusPan( 0, mNoisePanSlider.valueScaled );
+		if( mFreqPanSlider.hitTest( pos ) )
+			mMixer->setBusPan( 1, mFreqPanSlider.valueScaled );
 	}
-#endif // ! defined( CINDER_COCOA_TOUCH )
+
+	if( mEffect ) {
+		if( mLowpassCutoffSlider.hitTest( pos ) )
+			mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
+	}
+}
+
+void BasicTestApp::mouseDown( MouseEvent event )
+{
+	if( mPlayButton.hitTest( event.getPos() ) )
+		toggleGraph();
 }
 
 void BasicTestApp::mouseDrag( MouseEvent event )
 {
-	if( ! mEffect )
-		return;
-	
-	float cutoff = (getWindowHeight() - event.getY() ) * 4.0f;
-//	LOG_V << "cutoff: " << cutoff << endl;
-
-	mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
+	processEvent( event.getPos() );
 }
 
 void BasicTestApp::touchesBegan( TouchEvent event )
 {
-//	LOG_V << "bang" << endl;
-	Vec2f pos = event.getTouches().front().getPos();
-	if( mPlayButton.bounds.contains( pos ) ) {
-		LOG_V << "button tapped. " << endl;
-		if( ! mGraph->isRunning() )
-			mGraph->start();
-		else
-			mGraph->stop();
-		mPlayButton.setEnabled( mGraph->isRunning() );
-	}
+	if( mPlayButton.hitTest( event.getTouches().front().getPos() ) )
+		toggleGraph();
 }
 
 void BasicTestApp::touchesMoved( TouchEvent event )
 {
-	Vec2f pos1 = event.getTouches().front().getPos();
-	if( mEffect ) {
-		float cutoff = (getWindowHeight() - pos1.y ) * 3.0f;
-		mEffect->setParameter( kLowPassParam_CutoffFrequency, cutoff );
-	}
-
-	if( mMixer ) {
-		float pan1 = ( (float)pos1.x / (float)getWindowWidth() ) * 2.0f - 1.0f;
-		mMixer->setBusPan( 0, pan1 );
-	}
-
-	if( event.getTouches().size() > 1 ) {
-		Vec2f pos2 = event.getTouches()[1].getPos();
-
-		if( mEffect2 ) {
-
-			//		float distortionMix = ( getWindowHeight() - pos2.y ) / getWindowHeight();
-			//		LOG_V << "distortionMix: " << distortionMix << endl;
-			//		mEffect2->setParameter( kDistortionParam_FinalMix, distortionMix );
-			//		mEffect2->setParameter( kDistortionParam_PolynomialMix, distortionMix );
-
-			float centerFreq = (getWindowHeight() - pos2.y ) * 5.0f;
-			mEffect2->setParameter( kBandpassParam_CenterFrequency, centerFreq );
-		}
-
-		if( mMixer ) {
-			float pan2 = ( (float)pos2.x / (float)getWindowWidth() ) * 2.0f - 1.0f;
-			mMixer->setBusPan( 1, pan2 );
-		}
-
+	for( const TouchEvent::Touch &touch : getActiveTouches() ) {
+		processEvent( touch.getPos() );
 	}
 }
 
@@ -238,6 +216,9 @@ void BasicTestApp::draw()
 	gl::clear();
 
 	mPlayButton.draw();
+	mNoisePanSlider.draw();
+	mFreqPanSlider.draw();
+	mLowpassCutoffSlider.draw();
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )
