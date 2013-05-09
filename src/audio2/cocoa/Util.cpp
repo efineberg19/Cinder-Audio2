@@ -24,7 +24,7 @@ void printASBD( const ::AudioStreamBasicDescription &asbd ) {
 AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t channelSize )
 {
 
-	AudioBufferList *bufferList = static_cast<AudioBufferList *>( calloc( 1, sizeof(AudioBufferList) + sizeof(AudioBuffer) * (numChannels - 1) ) );
+	::AudioBufferList *bufferList = static_cast<::AudioBufferList *>( calloc( 1, sizeof( ::AudioBufferList ) + sizeof( ::AudioBuffer ) * (numChannels - 1) ) );
 	bufferList->mNumberBuffers = numChannels;
 	for( size_t i = 0; i < numChannels; i++ ) {
 		bufferList->mBuffers[i].mNumberChannels = 1;
@@ -34,35 +34,35 @@ AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t ch
 	return AudioBufferListRef( bufferList );
 }
 
-AudioComponent findAudioComponent( const AudioComponentDescription &componentDescription )
+::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription )
 {
-	AudioComponent component = AudioComponentFindNext( NULL, &componentDescription );
+	::AudioComponent component = ::AudioComponentFindNext( NULL, &componentDescription );
 	CI_ASSERT( component );
 	return component;
 }
 
-void findAndCreateAudioComponent( const AudioComponentDescription &componentDescription, AudioComponentInstance *componentInstance )
+void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance )
 {
-	AudioComponent component = findAudioComponent( componentDescription );
-	OSStatus status = AudioComponentInstanceNew( component, componentInstance );
+	::AudioComponent component = findAudioComponent( componentDescription );
+	OSStatus status = ::AudioComponentInstanceNew( component, componentInstance );
 	CI_ASSERT( status == noErr );
 }
 
 // paraphrasing comment in CoreAudioTypes.h: for non-interleaved, the ABSD describes the format of
 // one AudioBuffer that is contained with the AudioBufferList, each AudioBuffer is a mono signal.
-AudioStreamBasicDescription nonInterleavedFloatABSD( size_t numChannels, size_t sampleRate )
+::AudioStreamBasicDescription nonInterleavedFloatABSD( size_t numChannels, size_t sampleRate )
 {
 	const size_t kBytesPerSample = sizeof( float );
-	AudioStreamBasicDescription absd = {0};
-	absd.mFormatID           = kAudioFormatLinearPCM;
-	absd.mFormatFlags        = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsNonInterleaved | kAudioFormatFlagIsPacked,
-	absd.mBytesPerPacket     = kBytesPerSample;
-	absd.mFramesPerPacket    = 1;
-	absd.mBytesPerFrame      = kBytesPerSample;
-	absd.mChannelsPerFrame   = numChannels;
-	absd.mBitsPerChannel     = 8 * kBytesPerSample;
-	absd.mSampleRate         = sampleRate;
-	return absd;
+	::AudioStreamBasicDescription asbd = {0};
+	asbd.mFormatID           = kAudioFormatLinearPCM;
+	asbd.mFormatFlags        = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsNonInterleaved | kAudioFormatFlagIsPacked,
+	asbd.mBytesPerPacket     = kBytesPerSample;
+	asbd.mFramesPerPacket    = 1;
+	asbd.mBytesPerFrame      = kBytesPerSample;
+	asbd.mChannelsPerFrame   = numChannels;
+	asbd.mBitsPerChannel     = 8 * kBytesPerSample;
+	asbd.mSampleRate         = sampleRate;
+	return asbd;
 }
 
 } } // namespace audio2::cocoa
