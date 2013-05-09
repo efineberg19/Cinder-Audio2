@@ -11,6 +11,10 @@ using namespace std;
 
 namespace audio2 {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Audio Unit Helper Functions
+// ----------------------------------------------------------------------------------------------------
+
 	template <typename ResultT>
 	inline void audioUnitGetParam( ::AudioUnit audioUnit, ::AudioUnitParameterID property, ResultT &result, ::AudioUnitScope scope = kAudioUnitScope_Input, size_t bus = 0 )
 	{
@@ -28,6 +32,31 @@ namespace audio2 {
 		::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
 		OSStatus status = ::AudioUnitSetParameter( audioUnit, property, scope, busElement, value, 0 );
 		CI_ASSERT( status == noErr );
+	}
+
+	inline ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
+		::AudioStreamBasicDescription result;
+		UInt32 resultSize = sizeof( result );
+		OSStatus status = AudioUnitGetProperty( audioUnit, kAudioUnitProperty_StreamFormat, scope, bus, &result,  &resultSize );
+		CI_ASSERT( status == noErr );
+		return result;
+	}
+
+	inline vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, ::AudioUnitElement bus = 0 ) {
+		vector<::AUChannelInfo> result;
+		UInt32 resultSize;
+		OSStatus status = ::AudioUnitGetPropertyInfo( audioUnit, kAudioUnitProperty_SupportedNumChannels, kAudioUnitScope_Global, 0, &resultSize, NULL );
+		if( status == kAudioUnitErr_InvalidProperty ) {
+			// "if this property is NOT implemented an FX unit is expected to deal with same channel valance in and out" - CAPublicUtility / CAAudioUnit.cpp
+			return result;
+		} else
+			CI_ASSERT( status == noErr );
+
+		result.resize( resultSize / sizeof( ::AUChannelInfo ) );
+		status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_SupportedNumChannels, kAudioUnitScope_Global, 0, result.data(), &resultSize );
+		CI_ASSERT( status == noErr );
+
+		return result;
 	}
 
 // ----------------------------------------------------------------------------------------------------
@@ -128,10 +157,30 @@ namespace audio2 {
 		auto source = mSources.front();
 		CI_ASSERT( source );
 
-		// TODO: some suggest AudioUnitGetProperty ( kAudioUnitProperty_StreamFormat ),  then set it's samplerate
+//		::AudioStreamBasicDescription inputASBD = getAudioUnitASBD( mAudioUnit, kAudioUnitScope_Input );
+//		LOG_V << "inputASBD: " << endl;
+//		cocoa::printASBD( inputASBD );
+//
+//		::AudioStreamBasicDescription outputASBD = getAudioUnitASBD( mAudioUnit, kAudioUnitScope_Output );
+//		LOG_V << "outputASBD: " << endl;
+//		cocoa::printASBD( outputASBD );
+
+		// TODO ALSO: query kAudioUnitProperty_SupportedNumChannels and see what it returns for each unit
+		// - returns an array of AUChannelInfo's
+
+		vector<::AUChannelInfo> channelInfo = getAudioUnitChannelInfo( mAudioUnit );
+		if( ! channelInfo.empty() ) {
+			LOG_V << "AUChannelInfo: " << endl;
+			for( auto& ch : channelInfo )
+				ci::app::console() << "\t ins: " << ch.inChannels << ", outs: " << ch.outChannels << endl;
+		}
+
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
-		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
+		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
+		CI_ASSERT( status == noErr );
+
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
 		status = ::AudioUnitInitialize( mAudioUnit );
@@ -331,6 +380,12 @@ namespace audio2 {
 		::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceFormat.getNumChannels(), mSourceFormat.getSampleRate() );
 		::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
+		LOG_V << "input ASBD:" << endl;
+		cocoa::printASBD( inputAsbd );
+		LOG_V << "output ASBD:" << endl;
+		cocoa::printASBD( outputAsbd );
+
+
 		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outputAsbd, sizeof( outputAsbd ) );
 		CI_ASSERT( status == noErr );
 
@@ -344,7 +399,8 @@ namespace audio2 {
 
 		mRenderContext.currentNode = this;
 		mRenderContext.buffer.resize( mSourceFormat.getNumChannels() );
-		size_t blockSize = 558; // TODO: how to calculate this? 512  * 48000 / 44100 = 557.2789...
+//		size_t blockSize = 558; // TODO: how to calculate this? 512  * 48000 / 44100 = 557.2789...
+		size_t blockSize = 512;
 		for( auto& channel : mRenderContext.buffer )
 			channel.resize( blockSize );
 
@@ -416,20 +472,31 @@ namespace audio2 {
 
 		CI_ASSERT( format.isComplete() );
 
-		// now that connecting formats are compatible
+		// esnure connecting formats are compatible
+		// TODO: check ConverterAudioUnit works with generic units, or (probably better) make a generic Converter that handles this
 		for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
 			NodeRef& sourceNode = node->getSources()[bus];
-			if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() ) {
+			bool needsConverter = false;
+			if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
 #if 0
+				needsConverter = true;
+#else
+				throw AudioFormatExc( "non-matching samplerates not supported" );
+#endif
+			if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
+				LOG_V << "CHANNEL MISMATCH: TODO: educate converter about channels" << endl;
+				needsConverter = true;
+			}
+			if( needsConverter ) {
 				auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
 				converter->getSources()[0] = sourceNode;
 				node->getSources()[bus] = converter;
 				converter->setParent( node->getSources()[bus] );
 				converter->initialize();
 				connectRenderCallback( converter, &converter->mRenderContext );
-#else
-				throw AudioFormatExc( "non-matching samplerates" );
-#endif
+
+				// FIXME: this won't work for sourceNode's children's children - they are already connected with Graph's RenderContext
+				connectRenderCallback( sourceNode->getSources()[0], &converter->mRenderContext );
 			}
 		}
 

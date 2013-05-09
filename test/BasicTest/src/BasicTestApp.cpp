@@ -80,8 +80,8 @@ void BasicTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 
-//	setupEffects();
-	setupMixer();
+	setupEffects();
+//	setupMixer();
 
 	mGraph->initialize();
 
@@ -123,17 +123,25 @@ void BasicTestApp::setupEffects()
 	// =====================================
 	// testing sine @ 44k -> effect @ 22k... sounds right but probably because effect is samplerate independant
 
-	auto sine = make_shared<UGenNode<SineGen> >();
-	sine->mGen.setAmp( 0.25f );
-	sine->mGen.setFreq( 440.0f );
-	sine->mGen.setSampleRate( 44100 );
+//	auto sine = make_shared<UGenNode<SineGen> >();
+//	sine->mGen.setAmp( 0.25f );
+//	sine->mGen.setFreq( 440.0f );
+//	sine->mGen.setSampleRate( 44100 );
+//
+//	sine->getFormat().setSampleRate( 44100 );
+//	sine->getFormat().setNumChannels( 1 ); // force mono
 
-	sine->getFormat().setSampleRate( 44100 );
+	// =====================================
+	// testing mono gen -> effect (implicitly mono) -> stereo output
+	
+	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->mGen.setAmp( 0.25f );
+	noise->getFormat().setNumChannels( 1 ); // force mono
 
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect->getFormat().setSampleRate( 22050 );
+//	mEffect->getFormat().setSampleRate( 22050 );
 
-	mEffect->connect( sine );
+	mEffect->connect( noise );
 	mGraph->getOutput()->connect( mEffect );
 }
 
