@@ -106,6 +106,7 @@ void BasicTestApp::setup()
 
 	if( mEffect2 ) {
 		mEffect2->setParameter( kBandpassParam_CenterFrequency, 1000 );
+		mEffect2->setParameter( kBandpassParam_Bandwidth, 1200 );
 		mBandPassCenterSlider.set( 1000 );
 	}
 
@@ -145,7 +146,7 @@ void BasicTestApp::setupEffects()
 	noise->getFormat().setNumChannels( 1 ); // force mono
 
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter ); // try kAudioUnitSubType_LowShelfFilter
+	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
@@ -206,8 +207,8 @@ void BasicTestApp::setupUI()
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 
-
-	Rectf sliderRect( getWindowCenter().x - 220, 200, getWindowCenter().x + 220, 250 );
+	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
+	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
 	mNoisePanSlider.bounds = sliderRect;
 	mNoisePanSlider.title = "Pan (Noise)";
 	mNoisePanSlider.min = -1.0f;
@@ -255,7 +256,6 @@ void BasicTestApp::processEvent( Vec2i pos )
 		if( mBandPassCenterSlider.hitTest( pos ) )
 			mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
 	}
-
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )
