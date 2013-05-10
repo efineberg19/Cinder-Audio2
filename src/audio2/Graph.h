@@ -79,9 +79,14 @@ namespace audio2 {
 	public:
 		Producer() : Node() {}
 		virtual ~Producer() = default;
+	};
 
-//		virtual void start() = 0;
-//		virtual void stop() = 0;
+	class Input : public Producer {
+	public:
+		Input( DeviceRef device ) : Producer() {}
+		virtual ~Input() {}
+
+		virtual DeviceRef getDevice() = 0;
 	};
 
 	class Consumer : public Node {

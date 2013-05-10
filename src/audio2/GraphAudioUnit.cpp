@@ -126,6 +126,72 @@ namespace audio2 {
 	}
 
 // ----------------------------------------------------------------------------------------------------
+// MARK: - InputAudioUnit
+// ----------------------------------------------------------------------------------------------------
+
+	InputAudioUnit::InputAudioUnit( DeviceRef device )
+	: Input( device )
+	{
+		mTag = "InputAudioUnit";
+		mIsNative = true;
+		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
+		CI_ASSERT( mDevice );
+
+		mFormat.setSampleRate( mDevice->getSampleRate() );
+		mFormat.setNumChannels( 2 );
+	}
+
+	void InputAudioUnit::initialize()
+	{
+		CI_ASSERT( false && "TODO" );
+//		CI_ASSERT( ! mDevice->isOutputConnected() );
+//
+//		::AudioUnit outputAudioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
+//		CI_ASSERT( outputAudioUnit );
+//
+//		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+//
+//		OSStatus status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
+//		CI_ASSERT( status == noErr );
+//
+//		mDevice->setOutputConnected();
+//		mDevice->initialize();
+//
+//		LOG_V << "initialize complete." << endl;
+	}
+
+	void InputAudioUnit::uninitialize()
+	{
+		mDevice->uninitialize();
+	}
+
+	void InputAudioUnit::start()
+	{
+		CI_ASSERT( false && "TODO" );
+
+//		mDevice->start();
+//		LOG_V << "started: " << mDevice->getName() << endl;
+	}
+
+	void InputAudioUnit::stop()
+	{
+		CI_ASSERT( false && "TODO" );
+
+//		mDevice->stop();
+//		LOG_V << "stopped: " << mDevice->getName() << endl;
+	}
+
+	DeviceRef InputAudioUnit::getDevice()
+	{
+		return std::static_pointer_cast<Device>( mDevice );
+	}
+
+	void* InputAudioUnit::getNative()
+	{
+		return mDevice->getComponentInstance();
+	}
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - EffectAudioUnit
 // ----------------------------------------------------------------------------------------------------
 

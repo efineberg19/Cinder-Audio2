@@ -30,8 +30,25 @@ namespace audio2 {
 		size_t getBlockSize() const override;
 
 	private:
-		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+		std::shared_ptr<DeviceAudioUnit> mDevice;
+	};
 
+	class InputAudioUnit : public Input {
+	public:
+		InputAudioUnit( DeviceRef device );
+		virtual ~InputAudioUnit() = default;
+
+		void initialize() override;
+		void uninitialize() override;
+
+		void start() override;
+		void stop() override;
+
+		DeviceRef getDevice() override;
+
+		void* getNative() override;
+
+	private:
 		std::shared_ptr<DeviceAudioUnit> mDevice;
 	};
 
