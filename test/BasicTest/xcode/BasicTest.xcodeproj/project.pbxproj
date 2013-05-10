@@ -54,6 +54,7 @@
 		11CB35341731F3850082917F /* UGen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UGen.h; sourceTree = "<group>"; };
 		11EFFBB01732183E009EF46B /* Atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
 		128572BBFD5C4118B6B34756 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
+		14485524173D51C500C27AD5 /* RingBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
 		148AFBDC172AE6C80066D8BE /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		148AFBDD172AE6C80066D8BE /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		148AFBDF172AF1300066D8BE /* assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assert.h; sourceTree = "<group>"; };
@@ -136,8 +137,11 @@
 			isa = PBXGroup;
 			children = (
 				114FBA3F172A2543002CD25C /* cocoa */,
+				148AFBDF172AF1300066D8BE /* assert.h */,
+				11EFFBB01732183E009EF46B /* Atomic.h */,
 				148AFBDC172AE6C80066D8BE /* audio.cpp */,
 				148AFBDD172AE6C80066D8BE /* audio.h */,
+				114FBA3E172A2337002CD25C /* Debug.h */,
 				114FBA32172A1CB9002CD25C /* Device.cpp */,
 				114FBA33172A1CB9002CD25C /* Device.h */,
 				114FBA43172A2B49002CD25C /* DeviceAudioUnit.cpp */,
@@ -146,17 +150,15 @@
 				11CB352F172EFAA70082917F /* DeviceManagerAudioSession.h */,
 				11CB3530172EFAA70082917F /* DeviceManagerCoreAudio.cpp */,
 				11CB3531172EFAA70082917F /* DeviceManagerCoreAudio.h */,
-				114FBA34172A1CB9002CD25C /* Graph.cpp */,
-				114FBA35172A1CB9002CD25C /* Graph.h */,
-				148AFBE3173062FF0066D8BE /* GraphAudioUnit.cpp */,
-				148AFBE4173062FF0066D8BE /* GraphAudioUnit.h */,
 				114FBA36172A1CB9002CD25C /* Engine.cpp */,
 				114FBA37172A1CB9002CD25C /* Engine.h */,
 				148AFBE0173060E10066D8BE /* EngineAudioUnit.cpp */,
 				148AFBE1173060E10066D8BE /* EngineAudioUnit.h */,
-				11EFFBB01732183E009EF46B /* Atomic.h */,
-				114FBA3E172A2337002CD25C /* Debug.h */,
-				148AFBDF172AF1300066D8BE /* assert.h */,
+				114FBA34172A1CB9002CD25C /* Graph.cpp */,
+				114FBA35172A1CB9002CD25C /* Graph.h */,
+				148AFBE3173062FF0066D8BE /* GraphAudioUnit.cpp */,
+				148AFBE4173062FF0066D8BE /* GraphAudioUnit.h */,
+				14485524173D51C500C27AD5 /* RingBuffer.h */,
 				11CB35341731F3850082917F /* UGen.h */,
 			);
 			name = audio2;
