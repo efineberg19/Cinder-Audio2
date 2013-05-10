@@ -476,34 +476,30 @@ namespace audio2 {
 				node->getSources()[bus] = converter;
 				converter->setParent( node->getSources()[bus] );
 				converter->initialize();
-				connectRenderCallback( converter, &converter->mRenderContext );
-
-				// FIXME: this won't work for sourceNode's children's children - they are already connected with Graph's RenderContext
-				connectRenderCallback( sourceNode->getSources()[0], &converter->mRenderContext );
+				connectRenderCallback( converter, &converter->mRenderContext, true ); // TODO: make sure this doesn't blow away other converters
 			}
 		}
 
 		node->initialize();
 
-		if( node->isNative() ) {
-
-			// DEBUG: print channel info
-			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
-			vector<::AUChannelInfo> channelInfo = getAudioUnitChannelInfo( audioUnit );
-			if( ! channelInfo.empty() ) {
-				LOG_V << "AUChannelInfo: " << endl;
-				for( auto& ch : channelInfo )
-					ci::app::console() << "\t ins: " << ch.inChannels << ", outs: " << ch.outChannels << endl;
-			}
-
-			connectRenderCallback( node );
-		}
+		connectRenderCallback( node );
 	}
 
-	void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context )
+	void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive )
 	{
+		if( ! node->isNative() )
+			return;
+
 		::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
 		CI_ASSERT( audioUnit );
+
+		// DEBUG: print channel info, although it has always been empty for me so far
+		vector<::AUChannelInfo> channelInfo = getAudioUnitChannelInfo( audioUnit );
+		if( ! channelInfo.empty() ) {
+			LOG_V << "AUChannelInfo: " << endl;
+			for( auto& ch : channelInfo )
+				ci::app::console() << "\t ins: " << ch.inChannels << ", outs: " << ch.outChannels << endl;
+		}
 
 		::AURenderCallbackStruct callbackStruct;
 		callbackStruct.inputProc = GraphAudioUnit::renderCallback;
@@ -513,6 +509,9 @@ namespace audio2 {
 			OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
 			LOG_V << "connected render callback to: " << node->getSources()[bus]->getTag() << endl;
 			CI_ASSERT( status == noErr );
+
+			if( recursive )
+				connectRenderCallback( node->getSources()[bus], context, true );
 		}
 	}
 

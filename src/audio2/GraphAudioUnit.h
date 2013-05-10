@@ -114,7 +114,7 @@ namespace audio2 {
 
 		void initNode( NodeRef node );
 		void uninitNode( NodeRef node );
-		void connectRenderCallback( NodeRef node, RenderContext *context = nullptr );
+		void connectRenderCallback( NodeRef node, RenderContext *context = nullptr, bool recursive = false );
 
 		RenderContext mRenderContext;
 	};

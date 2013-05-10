@@ -58,7 +58,7 @@ class BasicTestApp : public AppNative {
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 
 	Button mPlayButton;
-	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider;
+	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mBandPassCenterSlider;
 };
 
 void BasicTestApp::prepareSettings( Settings *settings )
@@ -103,6 +103,12 @@ void BasicTestApp::setup()
 		mEffect->setParameter( kLowPassParam_CutoffFrequency, 500 );
 		mLowpassCutoffSlider.set( 500 );
 	}
+
+	if( mEffect2 ) {
+		mEffect2->setParameter( kBandpassParam_CenterFrequency, 1000 );
+		mBandPassCenterSlider.set( 1000 );
+	}
+
 }
 
 void BasicTestApp::setupEffects()
@@ -139,10 +145,11 @@ void BasicTestApp::setupEffects()
 	noise->getFormat().setNumChannels( 1 ); // force mono
 
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-//	mEffect->getFormat().setSampleRate( 22050 );
+	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter ); // try kAudioUnitSubType_LowShelfFilter
 
 	mEffect->connect( noise );
-	mGraph->getOutput()->connect( mEffect );
+	mEffect2->connect( mEffect );
+	mGraph->getOutput()->connect( mEffect2 );
 }
 
 void BasicTestApp::setupMixer()
@@ -215,6 +222,12 @@ void BasicTestApp::setupUI()
 	mLowpassCutoffSlider.title = "Lowpass Cutoff (Noise)";
 	mLowpassCutoffSlider.max = 1500.0f;
 
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mBandPassCenterSlider.bounds = sliderRect;
+	mBandPassCenterSlider.title = "Bandpass Center (Noise)";
+	mBandPassCenterSlider.min = 500.0f;
+	mBandPassCenterSlider.max = 2500.0f;
+
 	gl::enableAlphaBlending();
 }
 
@@ -235,6 +248,12 @@ void BasicTestApp::processEvent( Vec2i pos )
 		if( mLowpassCutoffSlider.hitTest( pos ) )
 			mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
 	}
+
+	if( mEffect2 ) {
+		if( mBandPassCenterSlider.hitTest( pos ) )
+			mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
+	}
+
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )
@@ -273,6 +292,7 @@ void BasicTestApp::draw()
 	mNoisePanSlider.draw();
 	mFreqPanSlider.draw();
 	mLowpassCutoffSlider.draw();
+	mBandPassCenterSlider.draw();
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )
