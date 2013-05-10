@@ -1,0 +1,121 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Blocks">
+      <UniqueIdentifier>{B360B05B-5B77-4742-8B24-9805A937AAEC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\Audio2">
+      <UniqueIdentifier>{E131095D-5DB0-4880-A4DE-8831EDC0CE4E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\Audio2\src">
+      <UniqueIdentifier>{326A76DC-1656-4159-8364-255C912F6AB7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\Audio2\src\audio2">
+      <UniqueIdentifier>{60C9FF86-B4E4-4092-B5E1-7D5E08A5ECE6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\InputTestApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\InputTestApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\include\Resources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\Gui.h">
+      <Filter>Blocks\Audio2\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\assert.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Atomic.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Debug.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Device.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\DeviceAudioUnit.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\DeviceManagerAudioSession.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\DeviceManagerCoreAudio.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Engine.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\EngineAudioUnit.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Graph.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\GraphAudioUnit.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\RingBuffer.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\UGen.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Device.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\DeviceAudioUnit.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\DeviceManagerAudioSession.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\DeviceManagerCoreAudio.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Engine.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\EngineAudioUnit.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Graph.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\GraphAudioUnit.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\Resources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
