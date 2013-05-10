@@ -150,36 +150,14 @@ namespace audio2 {
 		comp.componentType = kAudioUnitType_Effect;
 		comp.componentSubType = mEffectSubType;
 		comp.componentManufacturer = kAudioUnitManufacturer_Apple;
-
-
 		cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 		auto source = mSources.front();
 		CI_ASSERT( source );
 
-//		::AudioStreamBasicDescription inputASBD = getAudioUnitASBD( mAudioUnit, kAudioUnitScope_Input );
-//		LOG_V << "inputASBD: " << endl;
-//		cocoa::printASBD( inputASBD );
-//
-//		::AudioStreamBasicDescription outputASBD = getAudioUnitASBD( mAudioUnit, kAudioUnitScope_Output );
-//		LOG_V << "outputASBD: " << endl;
-//		cocoa::printASBD( outputASBD );
-
-		// TODO ALSO: query kAudioUnitProperty_SupportedNumChannels and see what it returns for each unit
-		// - returns an array of AUChannelInfo's
-
-		vector<::AUChannelInfo> channelInfo = getAudioUnitChannelInfo( mAudioUnit );
-		if( ! channelInfo.empty() ) {
-			LOG_V << "AUChannelInfo: " << endl;
-			for( auto& ch : channelInfo )
-				ci::app::console() << "\t ins: " << ch.inChannels << ", outs: " << ch.outChannels << endl;
-		}
-
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
-
 		OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
-
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
@@ -351,13 +329,18 @@ namespace audio2 {
 // MARK: - ConverterAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-	ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest  )
+	ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest, size_t outputBlockSize )
 	{
 		mTag = "ConverterAudioUnit";
 		mIsNative = true;
 		mFormat = dest->getFormat();
 		mSourceFormat = source->getFormat();
 		mSources.resize( 1 );
+
+		mRenderContext.currentNode = this;
+		mRenderContext.buffer.resize( mSourceFormat.getNumChannels() );
+		for( auto& channel : mRenderContext.buffer )
+			channel.resize( outputBlockSize );
 	}
 
 	ConverterAudioUnit::~ConverterAudioUnit()
@@ -392,18 +375,17 @@ namespace audio2 {
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &inputAsbd, sizeof( inputAsbd ) );
 		CI_ASSERT( status == noErr );
 
+		if( mSourceFormat.getNumChannels() == 1 && mFormat.getNumChannels() == 2 ) {
+			// map mono source to stereo out
+			UInt32 channelMap[2] = { 0, 0 };
+			status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &channelMap, sizeof( channelMap ) );
+			CI_ASSERT( status == noErr );
+		}
+
 		status = ::AudioUnitInitialize( mAudioUnit );
 		CI_ASSERT( status == noErr );
 
 		LOG_V << "initialize complete. " << endl;
-
-		mRenderContext.currentNode = this;
-		mRenderContext.buffer.resize( mSourceFormat.getNumChannels() );
-//		size_t blockSize = 558; // TODO: how to calculate this? 512  * 48000 / 44100 = 557.2789...
-		size_t blockSize = 512;
-		for( auto& channel : mRenderContext.buffer )
-			channel.resize( blockSize );
-
 	}
 
 	void ConverterAudioUnit::uninitialize()
@@ -484,11 +466,12 @@ namespace audio2 {
 				throw AudioFormatExc( "non-matching samplerates not supported" );
 #endif
 			if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
-				LOG_V << "CHANNEL MISMATCH: TODO: educate converter about channels" << endl;
+				LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
+				// TODO: if node is an OutputAudioUnit, can do the channel mapping directly on it and avoid the converter
 				needsConverter = true;
 			}
 			if( needsConverter ) {
-				auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
+				auto converter = make_shared<ConverterAudioUnit>( sourceNode, node, mOutput->getBlockSize() );
 				converter->getSources()[0] = sourceNode;
 				node->getSources()[bus] = converter;
 				converter->setParent( node->getSources()[bus] );
@@ -502,8 +485,19 @@ namespace audio2 {
 
 		node->initialize();
 
-		if( node->isNative() )
+		if( node->isNative() ) {
+
+			// DEBUG: print channel info
+			::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
+			vector<::AUChannelInfo> channelInfo = getAudioUnitChannelInfo( audioUnit );
+			if( ! channelInfo.empty() ) {
+				LOG_V << "AUChannelInfo: " << endl;
+				for( auto& ch : channelInfo )
+					ci::app::console() << "\t ins: " << ch.inChannels << ", outs: " << ch.outChannels << endl;
+			}
+
 			connectRenderCallback( node );
+		}
 	}
 
 	void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context )

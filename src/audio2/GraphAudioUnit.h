@@ -87,7 +87,7 @@ namespace audio2 {
 
 	class ConverterAudioUnit : public Node {
 	public:
-		ConverterAudioUnit( NodeRef source, NodeRef dest );
+		ConverterAudioUnit( NodeRef source, NodeRef dest, size_t outputBlockSize );
 		virtual ~ConverterAudioUnit();
 
 		void initialize() override;
