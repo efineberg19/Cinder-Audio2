@@ -78,7 +78,7 @@ void DeviceAudioUnit::uninitialize()
 void DeviceAudioUnit::start()
 {
 	if( ! mInitialized || mRunning ) {
-		LOG_E << "(returning) mInitialized: " << mInitialized << ", mRunning: " << endl;
+		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mRunning: " << mRunning << dec << endl;
 		return;
 	}
 
@@ -90,7 +90,7 @@ void DeviceAudioUnit::start()
 void DeviceAudioUnit::stop()
 {
 	if( ! mInitialized || ! mRunning ) {
-		LOG_E << "(returning) mInitialized: " << mInitialized << ", mRunning: " << endl;
+		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mRunning: " << mRunning << dec << endl;
 		return;
 	}
 

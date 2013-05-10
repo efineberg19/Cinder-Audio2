@@ -40,9 +40,11 @@ namespace audio2 {
 
 		virtual void initialize()	{}
 		virtual void uninitialize()	{}
+		virtual void start()		{}
+		virtual void stop()			{}
 
 		// ???: does making BufferT const help make it less expandable? Because it shouldb't be resize()'ed
-		virtual void render( BufferT *buffer );
+		virtual void render( BufferT *buffer )	{}
 
 		bool	isNative() const	{ return mIsNative; }
 		virtual void* getNative()	{ return NULL; }
@@ -87,8 +89,8 @@ namespace audio2 {
 		Consumer() : Node() {}
 		virtual ~Consumer() = default;
 
-		virtual void start() = 0;
-		virtual void stop() = 0;
+//		virtual void start() = 0;
+//		virtual void stop() = 0;
 
 		virtual void connect( NodeRef source );
 		virtual size_t getBlockSize() const = 0;
@@ -147,6 +149,10 @@ namespace audio2 {
 
 	protected:
 		Graph() : mInitialized( false ), mRunning( false ) {}
+
+		virtual void start( NodeRef node );
+		virtual void stop( NodeRef node );
+
 
 		ConsumerRef	mOutput;
 		bool		mInitialized, mRunning;

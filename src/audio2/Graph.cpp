@@ -3,14 +3,6 @@
 
 namespace audio2 {
 
-	void Node::render( BufferT *buffer )
-	{
-		// handling in Graph::renderCallback
-		
-//		if( ! mSources.empty() )
-//			mSources[0]->render( buffer );
-	}
-
 	const Node::Format& Node::getSourceFormat()
 	{
 		CI_ASSERT( ! mSources.empty() );
@@ -63,7 +55,7 @@ namespace audio2 {
 			return;
 		CI_ASSERT( mOutput );
 		mRunning = true;
-		mOutput->start();
+		start( mOutput );
 	}
 
 	void Graph::stop()
@@ -71,7 +63,23 @@ namespace audio2 {
 		if( ! mRunning )
 			return;
 		mRunning = false;
-		mOutput->stop();
+		stop( mOutput );
+	}
+
+	void Graph::start( NodeRef node )
+	{
+		for( auto& source : node->getSources() )
+			start( source );
+
+		node->start();
+	}
+
+	void Graph::stop( NodeRef node )
+	{
+		for( auto& source : node->getSources() )
+			stop( source );
+
+		node->stop();
 	}
 
 } // namespace audio2
