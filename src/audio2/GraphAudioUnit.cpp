@@ -467,7 +467,7 @@ namespace audio2 {
 #endif
 			if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
 				LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
-				// TODO: if node is an OutputAudioUnit, can do the channel mapping directly on it and avoid the converter
+				// TODO: if node is an OutputAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
 				needsConverter = true;
 			}
 			if( needsConverter ) {

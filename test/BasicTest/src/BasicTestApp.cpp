@@ -147,6 +147,8 @@ void BasicTestApp::setupEffects()
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter ); // try kAudioUnitSubType_LowShelfFilter
 
+	mEffect->getFormat().setNumChannels( 2 ); // force stereo
+
 	mEffect->connect( noise );
 	mEffect2->connect( mEffect );
 	mGraph->getOutput()->connect( mEffect2 );
