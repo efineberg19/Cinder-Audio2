@@ -13,26 +13,25 @@ public:
 
 	//! pushes to buffer, overwriting oldest samples
 	void write( const float *samples, size_t count ) {
-		if( count > mSize ) {
+		if( count > mSize )
 			count = mSize;
-		}
+
 		size_t numPushed = mLockFreeQueue.push( samples, count );
 		if( count > numPushed ) {
 			size_t numLeft = count - numPushed;
-			// TODO: there's gotta be a more efficient way to just move the write head foward, rather than sequencially popping off trash
+			
+			// ???: is there a more efficient way to overwrite?
 			float old;
-			for( int i = 0; i < numLeft; i++ ) {
+			for( int i = 0; i < numLeft; i++ )
 				mLockFreeQueue.pop( old );
-			}
 			numPushed = mLockFreeQueue.push( &samples[numPushed], numLeft );
 			assert( numPushed == numLeft );
 		}
 	}
 
 	size_t read( float *samples, size_t count ) {
-		if( count > mSize ) {
+		if( count > mSize )
 			count = mSize;
-		}
 		return mLockFreeQueue.pop( samples, count );
 	}
 
