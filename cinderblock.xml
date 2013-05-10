@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cinder>
+<block
+	name="Audio2"
+	id="org.libcinder.audio2"
+	author="Richard Eakin"
+	license="BSD"
+	summary="development block for Cinder audio rewrite"
+	git="git://github.com/reakinator/Cinder-Audio2.git"
+	version="0.1"
+	libraryUrl="www.libcinder.org"
+	>
+
+	<headerPattern>src/*.h</headerPattern>
+	<sourcePattern>src/*.cpp</sourcePattern>
+	<headerPattern>src/audio2/*.h</headerPattern>
+	<sourcePattern>src/audio2/*.cpp</sourcePattern>
+
+	<platform os="macosx">
+		<headerPattern>src/audio2/cocoa/*.h</headerPattern>
+		<sourcePattern>src/audio2/cocoa/*.cpp</sourcePattern>
+	</platform>
+
+</block>
+</cinder>
