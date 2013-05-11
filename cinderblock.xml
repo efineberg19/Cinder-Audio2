@@ -11,6 +11,8 @@
 	libraryUrl="www.libcinder.org"
 	>
 
+	<includePath>src</includePath>
+
 	<headerPattern>src/*.h</headerPattern>
 	<sourcePattern>src/*.cpp</sourcePattern>
 	<headerPattern>src/audio2/*.h</headerPattern>
