@@ -2,6 +2,7 @@
 #include "cinder/gl/gl.h"
 
 #include "audio2/Engine.h"
+#include "audio2/UGen.h"
 #include "audio2/Debug.h"
 
 #include "Gui.h"
@@ -16,6 +17,31 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 using namespace audio2;
+
+struct RingMod : public Effect {
+	RingMod()
+	: mSineGen( 44100, 440.0f, 1.0f )
+	{
+		mTag = "RingMod";
+ 		mFormat.setWantsDefaultFormatFromParent();
+	}
+
+	virtual void render( BufferT *buffer ) override {
+		size_t numSamples = buffer->at( 0 ).size();
+		if( mSineBuffer.size() < numSamples )
+			mSineBuffer.resize( numSamples );
+		mSineGen.render( &mSineBuffer );
+
+		for ( size_t c = 0; c < buffer->size(); c++ ) {
+			vector<float> &channel = buffer->at( c );
+			for( size_t i = 0; i < channel.size(); i++ )
+				channel[i] *= mSineBuffer[i];
+		}
+	}
+
+	SineGen mSineGen;
+	vector<float> mSineBuffer;
+};
 
 class InputTestApp : public AppNative {
   public:
@@ -49,8 +75,11 @@ void InputTestApp::setup()
 	ProducerRef input = Engine::instance()->createInput( inputDevice );
 	ConsumerRef output = Engine::instance()->createOutput( outputDevice );
 
+	auto ringMod = make_shared<RingMod>();
 
-	output->connect( input );
+	ringMod->connect( input );
+	output->connect( ringMod );
+
 	mGraph->setOutput( output );
 	mGraph->initialize();
 

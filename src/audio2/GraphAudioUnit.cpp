@@ -170,7 +170,7 @@ namespace audio2 {
 		} else {
 			LOG_V << "Path B. initiate ringbuffer" << endl;
 
-			mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getBlockSize() ) );
+			mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getBlockSize() * mFormat.getNumChannels() ) );
 			mBufferList = cocoa::createNonInterleavedBufferList( mFormat.getNumChannels(), mDevice->getBlockSize() * sizeof(float) );
 
 			::AURenderCallbackStruct callbackStruct;
@@ -225,45 +225,30 @@ namespace audio2 {
 	//	to its own buffers. In this case the audio unit is required to keep those
 	//	buffers valid for the duration of the calling thread's I/O cycle
 
+	// TODO: RingBuffer::read/write should be able to handle vectors
 	void InputAudioUnit::render( BufferT *buffer )
 	{
-		size_t numFrames = buffer->at( 0 ).size();
-		if( mRingBuffer ) {
-//			float *outBuffer = static_cast<float *>( ioData->mBuffers[0].mData );
-			size_t count = mRingBuffer->read( buffer->at( 0 ).data(), numFrames	); // TODO: RingBuffer::read/write should be able to handle vectors
-			if( count != numFrames )
-				LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << endl;
-		} else {
-			CI_ASSERT( 0 && "not implemented" );
-//			AudioUnitRenderActionFlags actionFlags = 0;
-//			AudioTimeStamp timeStamp;
-//			OSStatus status = AudioUnitRender( mDevice->getComponentInstance(), &actionFlags, &timeStamp, AudioUnitBus::Input, numFrames, mBufferList.get() );
-//			CI_ASSERT( status == noErr );
-		}
+		CI_ASSERT( mRingBuffer );
 
-#if 1
-		// DEBUG: RingMod output
-		static float sPhase = 0.0f;
-		static float sPhaseIncr = ( 440.0f / 44100.0f ) * 2.0f * (float)M_PI;
-		vector<float> &leftChannel = buffer->at( 0 );
-		vector<float> &rightChannel = buffer->at( 1 );
-		for( int i = 0; i < numFrames; i++ ) {
-			leftChannel[i] *= std::sin( sPhase );
-			rightChannel[i] *= std::cos( sPhase );
-			sPhase += sPhaseIncr;
+		size_t numFrames = buffer->at( 0 ).size();
+		for( size_t c = 0; c < buffer->size(); c++ ) {
+			size_t count = mRingBuffer->read( (*buffer)[c].data(), numFrames );
+			if( count != numFrames )
+				LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (c = " << c << ")" << endl;
 		}
-#endif
 	}
 
 	OSStatus InputAudioUnit::inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 	{
 		InputAudioUnit *inputNode = static_cast<InputAudioUnit *>( context );
-		OSStatus status = ::AudioUnitRender( inputNode->mDevice->getComponentInstance(), flags, timeStamp, AudioUnitBus::Input, numFrames, inputNode->mBufferList.get() );
+		::AudioBufferList *nodeBufferList = inputNode->mBufferList.get();
+		OSStatus status = ::AudioUnitRender( inputNode->mDevice->getComponentInstance(), flags, timeStamp, AudioUnitBus::Input, numFrames, nodeBufferList );
 		assert( status == noErr );
 
-		float *outBuffer = static_cast<float *>( inputNode->mBufferList->mBuffers[0].mData );
-		// TODO: buffer all channels
-		inputNode->mRingBuffer->write( outBuffer, numFrames );
+		for( size_t c = 0; c < nodeBufferList->mNumberBuffers; c++ ) {
+			float *channel = static_cast<float *>( nodeBufferList->mBuffers[c].mData );
+			inputNode->mRingBuffer->write( channel, numFrames );
+		}
 		return status;
 	}
 
@@ -684,7 +669,7 @@ namespace audio2 {
 		CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
 		CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.size() );
 
-		// FIXME: a converter may cause this to need to be resized.
+		// note: if samplerate conversion is allowed, this size may need to vary
 		CI_ASSERT( numFrames <= renderContext->buffer[0].size() ); // assumes non-interleaved
 
 		NodeRef source = renderContext->currentNode->getSources()[bus];
@@ -695,12 +680,20 @@ namespace audio2 {
 			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, 0, numFrames, bufferList );
 			CI_ASSERT( status == noErr );
 
-			renderContext->currentNode = thisNode; // reset context node for next iteration
+			renderContext->currentNode = thisNode;
 		} else {
+			for( size_t i = 0; i < source->getSources().size(); i++ ) {
+				Node *thisNode = renderContext->currentNode;
+				renderContext->currentNode = source.get();
+
+				renderCallback( renderContext, flags, timeStamp, 0, numFrames, bufferList );
+
+				renderContext->currentNode = thisNode;
+			}
+
 			source->render( &renderContext->buffer );
 
 			// ???: how can I avoid this when generic nodes are chained together?
-			// TODO: I can probably just memcpy all of mBuffer right over, but taking the safe route for now
 			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
 				memcpy( bufferList->mBuffers[i].mData, renderContext->buffer[i].data(), bufferList->mBuffers[i].mDataByteSize );
 			}
