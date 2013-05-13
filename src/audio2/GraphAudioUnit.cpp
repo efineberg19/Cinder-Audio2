@@ -133,7 +133,10 @@ namespace audio2 {
 	: Input( device )
 	{
 		mTag = "InputAudioUnit";
-		mIsNative = true;
+
+		// while this is an AudioUnit node, it handles render callbacks differently. Setting this to
+		// false tells GraphAudioUnit to request for samples via the generic render() method
+		mIsNative = false;
 		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 		CI_ASSERT( mDevice );
 
@@ -210,12 +213,47 @@ namespace audio2 {
 		return std::static_pointer_cast<Device>( mDevice );
 	}
 
-	void* InputAudioUnit::getNative()
-	{
-		return mDevice->getComponentInstance();
-	}
+//	void* InputAudioUnit::getNative()
+//	{
+//		return mDevice->getComponentInstance();
+//	}
 
-	// TODO NEXT: samples are in mRingBuffer, but they need to be delivered to the connected output in either a custom AURenderCallback or via the virtual render() method
+	// TODO: add custom static renderCallback that fills the passed in buffer list - all it's really doing differently is rendering from a different bus.
+
+	// TODO: try passing in null for mBufferList->mData, as per this doc:
+	//	(2) If the mData pointers are null, then the audio unit can provide pointers
+	//	to its own buffers. In this case the audio unit is required to keep those
+	//	buffers valid for the duration of the calling thread's I/O cycle
+
+	void InputAudioUnit::render( BufferT *buffer )
+	{
+		size_t numFrames = buffer->at( 0 ).size();
+		if( mRingBuffer ) {
+//			float *outBuffer = static_cast<float *>( ioData->mBuffers[0].mData );
+			size_t count = mRingBuffer->read( buffer->at( 0 ).data(), numFrames	); // TODO: RingBuffer::read/write should be able to handle vectors
+			if( count != numFrames )
+				LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << endl;
+		} else {
+			CI_ASSERT( 0 && "not implemented" );
+//			AudioUnitRenderActionFlags actionFlags = 0;
+//			AudioTimeStamp timeStamp;
+//			OSStatus status = AudioUnitRender( mDevice->getComponentInstance(), &actionFlags, &timeStamp, AudioUnitBus::Input, numFrames, mBufferList.get() );
+//			CI_ASSERT( status == noErr );
+		}
+
+#if 1
+		// DEBUG: RingMod output
+		static float sPhase = 0.0f;
+		static float sPhaseIncr = ( 440.0f / 44100.0f ) * 2.0f * (float)M_PI;
+		vector<float> &leftChannel = buffer->at( 0 );
+		vector<float> &rightChannel = buffer->at( 1 );
+		for( int i = 0; i < numFrames; i++ ) {
+			leftChannel[i] *= std::sin( sPhase );
+			rightChannel[i] *= std::cos( sPhase );
+			sPhase += sPhaseIncr;
+		}
+#endif
+	}
 
 	OSStatus InputAudioUnit::inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 	{

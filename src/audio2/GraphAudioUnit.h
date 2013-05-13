@@ -47,7 +47,8 @@ namespace audio2 {
 
 		DeviceRef getDevice() override;
 
-		void* getNative() override;
+//		void* getNative() override;
+		void render( BufferT *buffer ) override;
 
 	private:
 		static OSStatus inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );

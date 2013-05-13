@@ -4,6 +4,8 @@
 #include "audio2/Engine.h"
 #include "audio2/Debug.h"
 
+#include "Gui.h"
+
 // TODO: test InputAudioUnit -> output
 //	- different devices
 //	- same device
@@ -18,13 +20,21 @@ using namespace audio2;
 class InputTestApp : public AppNative {
   public:
 	void setup();
-	void mouseDown( MouseEvent event );	
+	void touchesBegan( TouchEvent event ) override;
+	void touchesMoved( TouchEvent event ) override;
+	void mouseDown( MouseEvent event ) override;
+	void mouseDrag( MouseEvent event ) override;
 	void update();
 	void draw();
 
 	void logDevices( DeviceRef input, DeviceRef output );
+	void setupUI();
+	void toggleGraph();
+
 
 	GraphRef mGraph;
+
+	Button mPlayButton;
 };
 
 void InputTestApp::setup()
@@ -43,6 +53,8 @@ void InputTestApp::setup()
 	output->connect( input );
 	mGraph->setOutput( output );
 	mGraph->initialize();
+
+	setupUI();
 }
 
 void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
@@ -60,12 +72,44 @@ void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
 	LOG_V << "input == output: " << boolalpha << (i == o) << dec << endl;
 }
 
+void InputTestApp::setupUI()
+{
+	mPlayButton = Button( true, "stopped", "playing" );
+	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+
+	gl::enableAlphaBlending();
+}
+
+void InputTestApp::toggleGraph()
+{
+	if( ! mGraph->isRunning() )
+		mGraph->start();
+	else
+		mGraph->stop();
+}
+
 void InputTestApp::mouseDown( MouseEvent event )
 {
-	if( mGraph->isRunning() )
-		mGraph->stop();
-	else
-		mGraph->start();
+	if( mPlayButton.hitTest( event.getPos() ) )
+		toggleGraph();
+}
+
+void InputTestApp::mouseDrag( MouseEvent event )
+{
+//	processEvent( event.getPos() );
+}
+
+void InputTestApp::touchesBegan( TouchEvent event )
+{
+	if( mPlayButton.hitTest( event.getTouches().front().getPos() ) )
+		toggleGraph();
+}
+
+void InputTestApp::touchesMoved( TouchEvent event )
+{
+//	for( const TouchEvent::Touch &touch : getActiveTouches() ) {
+//		processEvent( touch.getPos() );
+//	}
 }
 
 void InputTestApp::update()
@@ -74,8 +118,9 @@ void InputTestApp::update()
 
 void InputTestApp::draw()
 {
-	// clear out the window with black
-	gl::clear( Color( 0, 0, 0 ) ); 
+	gl::clear();
+
+	mPlayButton.draw();
 }
 
 CINDER_APP_NATIVE( InputTestApp, RendererGl )
