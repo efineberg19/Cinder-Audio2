@@ -12,6 +12,7 @@ namespace audio2 {
 		virtual GraphRef	createGraph() = 0;
 		virtual MixerRef	createMixer() = 0;
 		virtual ConsumerRef createOutput( DeviceRef device ) = 0;
+		virtual ProducerRef createInput( DeviceRef device ) = 0;
 
 		static Engine* instance();
 	};

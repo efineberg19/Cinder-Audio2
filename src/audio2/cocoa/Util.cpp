@@ -1,8 +1,6 @@
 #include "audio2/cocoa/Util.h"
 #include "audio2/assert.h"
 
-#include <AudioToolbox/AudioToolbox.h>
-
 namespace audio2 { namespace cocoa {
 
 void printASBD( const ::AudioStreamBasicDescription &asbd ) {
@@ -21,14 +19,14 @@ void printASBD( const ::AudioStreamBasicDescription &asbd ) {
 	printf( "  Bits per Channel:    %10d\n",    (unsigned int)asbd.mBitsPerChannel );
 }
 
-AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t channelSize )
+AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t blockSize )
 {
 
 	::AudioBufferList *bufferList = static_cast<::AudioBufferList *>( calloc( 1, sizeof( ::AudioBufferList ) + sizeof( ::AudioBuffer ) * (numChannels - 1) ) );
 	bufferList->mNumberBuffers = numChannels;
 	for( size_t i = 0; i < numChannels; i++ ) {
 		bufferList->mBuffers[i].mNumberChannels = 1;
-		bufferList->mBuffers[i].mDataByteSize = channelSize;
+		bufferList->mBuffers[i].mDataByteSize = blockSize;
 	}
 
 	return AudioBufferListRef( bufferList );

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "audio2/Device.h"
-
 #include <AudioUnit/AudioUnit.h>
 
 namespace audio2 {

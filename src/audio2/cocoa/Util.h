@@ -15,8 +15,8 @@ struct AudioBufferListDeleter {
 
 typedef std::unique_ptr<::AudioBufferList, AudioBufferListDeleter> AudioBufferListRef;
 
-// TODO: channelSize should be samplesPerChannel (assume they are float). Should also consider adopting the CAPublicUitility way of doing this (I think it does it on the stack)
-AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t channelSize );
+// TODO: consider adopting the CAPublicUitility way of doing this (I think it does it on the stack)
+AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t blockSize );
 
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance );

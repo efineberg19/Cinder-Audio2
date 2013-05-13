@@ -10,6 +10,7 @@ typedef std::shared_ptr<class Device> DeviceRef;
 class Device {
   public:
 	static DeviceRef getDefaultOutput();
+	static DeviceRef getDefaultInput();
 	virtual ~Device() {}
 
 	virtual void initialize() = 0;

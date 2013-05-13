@@ -79,12 +79,12 @@ namespace audio2 {
 	{
 		CI_ASSERT( ! mDevice->isOutputConnected() );
 
-		::AudioUnit outputAudioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
-		CI_ASSERT( outputAudioUnit );
+		::AudioUnit audioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
+		CI_ASSERT( audioUnit );
 
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
-		OSStatus status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
+		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
 		mDevice->setOutputConnected();
@@ -141,23 +141,46 @@ namespace audio2 {
 		mFormat.setNumChannels( 2 );
 	}
 
+	InputAudioUnit::~InputAudioUnit()
+	{
+		
+	}
+
+
 	void InputAudioUnit::initialize()
 	{
-		CI_ASSERT( false && "TODO" );
-//		CI_ASSERT( ! mDevice->isOutputConnected() );
-//
-//		::AudioUnit outputAudioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
-//		CI_ASSERT( outputAudioUnit );
-//
-//		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
-//
-//		OSStatus status = ::AudioUnitSetProperty( outputAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
-//		CI_ASSERT( status == noErr );
-//
-//		mDevice->setOutputConnected();
-//		mDevice->initialize();
-//
-//		LOG_V << "initialize complete." << endl;
+		CI_ASSERT( ! mDevice->isInputConnected() );
+
+		::AudioUnit audioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
+		CI_ASSERT( audioUnit );
+
+		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+
+		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
+		CI_ASSERT( status == noErr );
+
+		mDevice->setInputConnected();
+
+		if( mDevice->isOutputConnected() ) {
+			LOG_V << "Path A. The High Road." << endl;
+			return; // output node is expected to initialize device, since it is pulling all the way to here.
+		} else {
+			LOG_V << "Path B. initiate ringbuffer" << endl;
+
+			mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getBlockSize() ) );
+			mBufferList = cocoa::createNonInterleavedBufferList( mFormat.getNumChannels(), mDevice->getBlockSize() * sizeof(float) );
+
+			::AURenderCallbackStruct callbackStruct;
+			callbackStruct.inputProc = InputAudioUnit::inputCallback;
+			callbackStruct.inputProcRefCon = this;
+			status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, AudioUnitBus::Output, &callbackStruct, sizeof(callbackStruct) );
+			CI_ASSERT( status == noErr );
+
+			mDevice->initialize();
+		}
+
+
+		LOG_V << "initialize complete." << endl;
 	}
 
 	void InputAudioUnit::uninitialize()
@@ -167,18 +190,19 @@ namespace audio2 {
 
 	void InputAudioUnit::start()
 	{
-		CI_ASSERT( false && "TODO" );
 
-//		mDevice->start();
-//		LOG_V << "started: " << mDevice->getName() << endl;
+		if( ! mDevice->isOutputConnected() ) {
+			mDevice->start();
+			LOG_V << "started: " << mDevice->getName() << endl;
+		}
 	}
 
 	void InputAudioUnit::stop()
 	{
-		CI_ASSERT( false && "TODO" );
-
-//		mDevice->stop();
-//		LOG_V << "stopped: " << mDevice->getName() << endl;
+		if( ! mDevice->isOutputConnected() ) {
+			mDevice->stop();
+			LOG_V << "stopped: " << mDevice->getName() << endl;
+		}
 	}
 
 	DeviceRef InputAudioUnit::getDevice()
@@ -189,6 +213,20 @@ namespace audio2 {
 	void* InputAudioUnit::getNative()
 	{
 		return mDevice->getComponentInstance();
+	}
+
+	// TODO NEXT: samples are in mRingBuffer, but they need to be delivered to the connected output in either a custom AURenderCallback or via the virtual render() method
+
+	OSStatus InputAudioUnit::inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+	{
+		InputAudioUnit *inputNode = static_cast<InputAudioUnit *>( context );
+		OSStatus status = ::AudioUnitRender( inputNode->mDevice->getComponentInstance(), flags, timeStamp, AudioUnitBus::Input, numFrames, inputNode->mBufferList.get() );
+		assert( status == noErr );
+
+		float *outBuffer = static_cast<float *>( inputNode->mBufferList->mBuffers[0].mData );
+		// TODO: buffer all channels
+		inputNode->mRingBuffer->write( outBuffer, numFrames );
+		return status;
 	}
 
 // ----------------------------------------------------------------------------------------------------

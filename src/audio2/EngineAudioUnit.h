@@ -9,6 +9,7 @@ namespace audio2 {
 		virtual GraphRef createGraph() override;
 		virtual MixerRef	createMixer() override;
 		virtual ConsumerRef createOutput( DeviceRef device ) override;
+		virtual ProducerRef createInput( DeviceRef device ) override;
 
 	};
 	

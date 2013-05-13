@@ -22,6 +22,11 @@ DeviceRef Device::getDefaultOutput()
 	return DeviceManager::instance()->getDefaultOutput();
 }
 
+DeviceRef Device::getDefaultInput()
+{
+	return DeviceManager::instance()->getDefaultInput();
+}
+
 const std::string& Device::getName()
 {
 	if( mName.empty() )

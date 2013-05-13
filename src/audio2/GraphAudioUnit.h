@@ -1,7 +1,8 @@
 #pragma once
 
 #include "audio2/Graph.h"
-
+#include "audio2/RingBuffer.h"
+#include "audio2/cocoa/Util.h"
 #include <AudioUnit/AudioUnit.h>
 
 namespace audio2 {
@@ -36,7 +37,7 @@ namespace audio2 {
 	class InputAudioUnit : public Input {
 	public:
 		InputAudioUnit( DeviceRef device );
-		virtual ~InputAudioUnit() = default;
+		virtual ~InputAudioUnit();
 
 		void initialize() override;
 		void uninitialize() override;
@@ -49,7 +50,11 @@ namespace audio2 {
 		void* getNative() override;
 
 	private:
+		static OSStatus inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
+
 		std::shared_ptr<DeviceAudioUnit> mDevice;
+		std::unique_ptr<RingBuffer> mRingBuffer;
+		cocoa::AudioBufferListRef mBufferList;
 	};
 
 	class EffectAudioUnit : public Effect {
@@ -71,11 +76,6 @@ namespace audio2 {
 	private:
 		UInt32		mEffectSubType;
 		::AudioUnit	mAudioUnit;
-
-	private:
-		static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
-
-		RenderContext mRenderContext;
 	};
 
 	class MixerAudioUnit : public Mixer {

@@ -13,6 +13,7 @@ namespace audio2 {
 
 	typedef std::shared_ptr<class Mixer> MixerRef;
 	typedef std::shared_ptr<class Consumer> ConsumerRef;
+	typedef std::shared_ptr<class Producer> ProducerRef;
 
 	//! vector of channels
 	typedef std::vector<std::vector<float> > BufferT;
@@ -78,7 +79,7 @@ namespace audio2 {
 	class Producer : public Node {
 	public:
 		Producer() : Node() {}
-		virtual ~Producer() = default;
+		virtual ~Producer() {}
 	};
 
 	class Input : public Producer {

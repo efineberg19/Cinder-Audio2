@@ -15,6 +15,11 @@ namespace audio2 {
 		return ConsumerRef( new OutputAudioUnit( device ) );
 	}
 
+	ProducerRef EngineAudioUnit::createInput( DeviceRef device )
+	{
+		return ProducerRef( new InputAudioUnit( device ) );
+	}
+
 	MixerRef EngineAudioUnit::createMixer()
 	{
 		return MixerRef( new MixerAudioUnit() );
