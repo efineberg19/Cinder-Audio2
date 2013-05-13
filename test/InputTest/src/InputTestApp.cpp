@@ -8,7 +8,7 @@
 #include "Gui.h"
 
 // TODO: test InputAudioUnit -> output
-//	- different devices
+//	- different devices (DONE)
 //	- same device
 // TODO: test InputAudioUnit -> tap -> output
 // TODO: test InputAudioUnit -> generic process -> output

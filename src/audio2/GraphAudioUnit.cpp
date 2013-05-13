@@ -218,21 +218,20 @@ namespace audio2 {
 //		return mDevice->getComponentInstance();
 //	}
 
-	// TODO: add custom static renderCallback that fills the passed in buffer list - all it's really doing differently is rendering from a different bus.
+	// TODO NEXT: add custom static renderCallback that fills the passed in buffer list - all it's really doing differently is rendering from a different bus.
 
 	// TODO: try passing in null for mBufferList->mData, as per this doc:
 	//	(2) If the mData pointers are null, then the audio unit can provide pointers
 	//	to its own buffers. In this case the audio unit is required to keep those
 	//	buffers valid for the duration of the calling thread's I/O cycle
 
-	// TODO: RingBuffer::read/write should be able to handle vectors
 	void InputAudioUnit::render( BufferT *buffer )
 	{
 		CI_ASSERT( mRingBuffer );
 
 		size_t numFrames = buffer->at( 0 ).size();
 		for( size_t c = 0; c < buffer->size(); c++ ) {
-			size_t count = mRingBuffer->read( (*buffer)[c].data(), numFrames );
+			size_t count = mRingBuffer->read( &(*buffer)[c] );
 			if( count != numFrames )
 				LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (c = " << c << ")" << endl;
 		}

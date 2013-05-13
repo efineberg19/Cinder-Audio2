@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/lockfree/spsc_queue.hpp>
+#include <vector>
 
 class RingBuffer {
 public:
@@ -11,7 +12,12 @@ public:
 	RingBuffer( size_t size ) : mLockFreeQueue( size + 1 ), mSize( size ) {}
 	~RingBuffer() {}
 
-	//! pushes to buffer, overwriting oldest samples
+	//! pushes vector \t samples to internal buffer, overwriting oldest samples
+	void write( const std::vector<float> &samples )	{ write( samples.data(), samples.size() ); }
+	//! fills vector \t samples and removes them from internal buffer. returns the amount actually copied.
+	size_t read( std::vector<float> *samples )	{ return read( samples->data(), samples->size() ); }
+
+	//! pushes \t count \t samples to buffer, overwriting oldest samples
 	void write( const float *samples, size_t count ) {
 		if( count > mSize )
 			count = mSize;
@@ -29,6 +35,7 @@ public:
 		}
 	}
 
+	//! fills array \t samples and removes them from internal buffer. returns the amount actually copied.
 	size_t read( float *samples, size_t count ) {
 		if( count > mSize )
 			count = mSize;
