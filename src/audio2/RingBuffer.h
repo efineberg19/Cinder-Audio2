@@ -1,7 +1,10 @@
 #pragma once
 
+#include "audio2/assert.h"
 #include <boost/lockfree/spsc_queue.hpp>
 #include <vector>
+
+namespace audio2 {
 
 class RingBuffer {
 public:
@@ -11,6 +14,8 @@ public:
 	// reported here: https://svn.boost.org/trac/boost/ticket/8560
 	RingBuffer( size_t size ) : mLockFreeQueue( size + 1 ), mSize( size ) {}
 	~RingBuffer() {}
+
+	size_t getSize() const	{ return mSize; }
 
 	//! pushes vector \t samples to internal buffer, overwriting oldest samples
 	void write( const std::vector<float> &samples )	{ write( samples.data(), samples.size() ); }
@@ -31,7 +36,7 @@ public:
 			for( int i = 0; i < numLeft; i++ )
 				mLockFreeQueue.pop( old );
 			numPushed = mLockFreeQueue.push( &samples[numPushed], numLeft );
-			assert( numPushed == numLeft );
+			CI_ASSERT( numPushed == numLeft );
 		}
 	}
 
@@ -46,3 +51,5 @@ private:
 	boost::lockfree::spsc_queue<float> mLockFreeQueue;
 	size_t mSize;
 };
+
+}

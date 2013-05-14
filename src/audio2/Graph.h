@@ -14,12 +14,14 @@ namespace audio2 {
 	typedef std::shared_ptr<class Mixer> MixerRef;
 	typedef std::shared_ptr<class Consumer> ConsumerRef;
 	typedef std::shared_ptr<class Producer> ProducerRef;
+	typedef std::shared_ptr<class BufferTap> BufferTapRef;
 
-	//! vector of channels
-	typedef std::vector<std::vector<float> > BufferT;
+	typedef std::vector<float>		ChannelT;
+	typedef std::vector<ChannelT>	BufferT;
 
 	class Node : public std::enable_shared_from_this<Node> {
 	public:
+		virtual ~Node();
 
 		struct Format {
 			Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false )
@@ -65,7 +67,6 @@ namespace audio2 {
 		Node() : mInitialized( false ), mIsNative( false )	{}
 		Node( Node const& )				= delete;
 		Node& operator=( Node const& )	= delete;
-		virtual ~Node()					= default;
 
 		std::vector<NodeRef>	mSources;
 		NodeWeakRef				mParent;
@@ -121,7 +122,27 @@ namespace audio2 {
 
 		virtual void connect( NodeRef source );
 	};
-	
+
+	class RingBuffer;
+
+	struct BufferTap : public Node {
+		BufferTap( size_t bufferSize = 1024 );
+		virtual ~BufferTap();
+
+		const ChannelT& getChannel( size_t channel = 0 );
+		const BufferT& getBuffer();
+
+		virtual void initialize() override;
+		virtual void render( BufferT *buffer ) override;
+
+		virtual void connect( NodeRef source );
+
+	private:
+		std::vector<std::unique_ptr<RingBuffer> > mRingBuffers;
+		BufferT mCopiedBuffer;
+		size_t mBufferSize;
+	};
+
 	class Mixer : public Node {
 	public:
 		Mixer() : Node() {}

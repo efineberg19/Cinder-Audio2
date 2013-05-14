@@ -60,6 +60,7 @@ class InputTestApp : public AppNative {
 
 
 	GraphRef mGraph;
+	BufferTapRef mTap;
 
 	Button mPlayButton;
 };
@@ -76,9 +77,24 @@ void InputTestApp::setup()
 	ProducerRef input = Engine::instance()->createInput( inputDevice );
 	ConsumerRef output = Engine::instance()->createOutput( outputDevice );
 
+	// TODO: make it possible for tap size to be auto-configured to input size
+	// - methinks it requires all nodes to be able to keep a blocksize
+	mTap = make_shared<BufferTap>( inputDevice->getBlockSize() );
+
 	auto ringMod = make_shared<RingMod>();
 
-	ringMod->connect( input );
+	// input -> ringMod -> output
+//	auto ringMod = make_shared<RingMod>();
+//	ringMod->connect( input );
+//	output->connect( ringMod );
+
+	// intput -> tap -> output
+//	mTap->connect( input );
+//	output->connect( mTap );
+
+	// input -> tap -> ringMod -> output
+	mTap->connect( input );
+	ringMod->connect( mTap );
 	output->connect( ringMod );
 
 	mGraph->setOutput( output );
@@ -149,6 +165,28 @@ void InputTestApp::update()
 void InputTestApp::draw()
 {
 	gl::clear();
+
+	if( mTap ) {
+		const audio2::BufferT &buffer = mTap->getBuffer();
+
+		float padding = 20.0f;
+		float waveHeight = ((float)getWindowHeight() - padding * 3 ) / (float)buffer.size();
+
+		float yOffset = padding;
+		float xScale = (float)getWindowWidth() / (float)buffer[0].size();
+		for( size_t ch = 0; ch < buffer.size(); ch++ ) {
+			PolyLine2f waveform;
+			const audio2::ChannelT &channel = buffer[ch];
+			for( size_t i = 0; i < channel.size(); i++ ) {
+				float x = i * xScale;
+				float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
+				waveform.push_back( Vec2f( x, y ) );
+			}
+			gl::color( 0, 0.9, 0 );
+			gl::draw( waveform );
+			yOffset += waveHeight + padding;
+		}
+	}
 
 	mPlayButton.draw();
 }
