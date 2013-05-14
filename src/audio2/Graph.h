@@ -49,9 +49,6 @@ namespace audio2 {
 		// ???: does making BufferT const help make it less expandable? Because it shouldb't be resize()'ed
 		virtual void render( BufferT *buffer )	{}
 
-		bool	isNative() const	{ return mIsNative; }
-		virtual void* getNative()	{ return NULL; }
-
 		std::vector<NodeRef>& getSources()			{ return mSources; }
 		NodeRef getParent()							{ return mParent.lock(); }
 		void setParent( NodeRef parent )			{ mParent = parent; }
@@ -64,14 +61,14 @@ namespace audio2 {
 		const std::string& getTag()	const	{ return mTag; }
 
 	protected:
-		Node() : mInitialized( false ), mIsNative( false )	{}
+		Node() : mInitialized( false )	{}
 		Node( Node const& )				= delete;
 		Node& operator=( Node const& )	= delete;
 
 		std::vector<NodeRef>	mSources;
 		NodeWeakRef				mParent;
 		Format					mFormat;
-		bool					mInitialized, mIsNative;
+		bool					mInitialized;
 		std::string				mTag;
 	};
 
@@ -95,9 +92,6 @@ namespace audio2 {
 	public:
 		Consumer() : Node() {}
 		virtual ~Consumer() = default;
-
-//		virtual void start() = 0;
-//		virtual void stop() = 0;
 
 		virtual void connect( NodeRef source );
 		virtual size_t getBlockSize() const = 0;

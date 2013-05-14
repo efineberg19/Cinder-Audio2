@@ -14,7 +14,21 @@ namespace audio2 {
 		BufferT buffer;
 	};
 
-	class OutputAudioUnit : public Output {
+	class AudioUnitNode {
+	public:
+		AudioUnitNode() : mAudioUnit( nullptr ), mRenderBus( 0 ), mShouldUseGraphRenderCallback( true )	{}
+		virtual ~AudioUnitNode();
+		virtual ::AudioUnit getAudioUnit() const	{ return mAudioUnit; }
+		::AudioUnitScope getRenderBus() const	{ return mRenderBus; }
+
+		bool shouldUseGraphRenderCallback() const	{ return mShouldUseGraphRenderCallback; }
+	protected:
+		::AudioUnit			mAudioUnit;
+		::AudioUnitScope	mRenderBus;
+		bool				mShouldUseGraphRenderCallback;
+	};
+
+	class OutputAudioUnit : public Output, public AudioUnitNode {
 	public:
 		OutputAudioUnit( DeviceRef device );
 		virtual ~OutputAudioUnit() = default;
@@ -25,16 +39,16 @@ namespace audio2 {
 		void start() override;
 		void stop() override;
 
+		::AudioUnit getAudioUnit() const override;
 		DeviceRef getDevice() override;
 
-		void* getNative() override;
 		size_t getBlockSize() const override;
 
 	private:
 		std::shared_ptr<DeviceAudioUnit> mDevice;
 	};
 
-	class InputAudioUnit : public Input {
+	class InputAudioUnit : public Input, public AudioUnitNode {
 	public:
 		InputAudioUnit( DeviceRef device );
 		virtual ~InputAudioUnit();
@@ -45,6 +59,7 @@ namespace audio2 {
 		void start() override;
 		void stop() override;
 
+		::AudioUnit getAudioUnit() const override;
 		DeviceRef getDevice() override;
 
 //		void* getNative() override;
@@ -58,7 +73,7 @@ namespace audio2 {
 		cocoa::AudioBufferListRef mBufferList;
 	};
 
-	class EffectAudioUnit : public Effect {
+	class EffectAudioUnit : public Effect, public AudioUnitNode {
 	public:
 		EffectAudioUnit( UInt32 subType );
 		virtual ~EffectAudioUnit();
@@ -67,26 +82,24 @@ namespace audio2 {
 		void uninitialize() override;
 
 		// ???: is there a safer way to do this? Possibities:
-		// - inherit from abstract NodeAudioUnit (multiple-inheritance)
+		// - inherit from abstract AudioUnitNode (multiple-inheritance)
 		// - Node owns a NodeImpl* pointer that can be dynamically casted to NodeImplAudioUnit
-		// - These guys all inherit from NodeAudioUnit - then Node needs a much larger interface
-		void* getNative() override	{ return mAudioUnit; }
+		// - These guys all inherit from AudioUnitNode - then Node needs a much larger interface
+//		void* getNative() override	{ return mAudioUnit; }
 
 		void setParameter( ::AudioUnitParameterID param, float val );
 
 	private:
 		UInt32		mEffectSubType;
-		::AudioUnit	mAudioUnit;
 	};
 
-	class MixerAudioUnit : public Mixer {
+	class MixerAudioUnit : public Mixer, public AudioUnitNode {
 	public:
 		MixerAudioUnit();
 		virtual ~MixerAudioUnit();
 
 		void initialize() override;
 		void uninitialize() override;
-		void* getNative() override	{ return mAudioUnit; }
 
 		size_t getNumBusses() override;
 		void setNumBusses( size_t count ) override;
@@ -100,20 +113,17 @@ namespace audio2 {
 	private:
 		void checkBusIsValid( size_t bus );
 		
-		::AudioUnit	mAudioUnit;
 	};
 
-	class ConverterAudioUnit : public Node {
+	class ConverterAudioUnit : public Node, public AudioUnitNode {
 	public:
 		ConverterAudioUnit( NodeRef source, NodeRef dest, size_t outputBlockSize );
 		virtual ~ConverterAudioUnit();
 
 		void initialize() override;
 		void uninitialize() override;
-		void* getNative() override	{ return mAudioUnit; }
 
 	private:
-		::AudioUnit	mAudioUnit;
 		Node::Format mSourceFormat;
 		RenderContext mRenderContext;
 

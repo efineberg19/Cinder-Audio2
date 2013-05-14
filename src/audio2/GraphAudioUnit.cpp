@@ -60,6 +60,18 @@ namespace audio2 {
 	}
 
 // ----------------------------------------------------------------------------------------------------
+// MARK: - AudioUnitNode
+// ----------------------------------------------------------------------------------------------------
+
+	AudioUnitNode::~AudioUnitNode()
+	{
+		if( mAudioUnit ) {
+			OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
+			CI_ASSERT( status == noErr );
+		}
+	}
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - OutputAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
@@ -67,7 +79,6 @@ namespace audio2 {
 	: Output( device )
 	{
 		mTag = "OutputAudioUnit";
-		mIsNative = true;
 		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 		CI_ASSERT( mDevice );
 
@@ -81,7 +92,7 @@ namespace audio2 {
 	void OutputAudioUnit::initialize()
 	{
 
-		::AudioUnit audioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
+		::AudioUnit audioUnit = getAudioUnit();
 		CI_ASSERT( audioUnit );
 
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
@@ -116,7 +127,7 @@ namespace audio2 {
 		return std::static_pointer_cast<Device>( mDevice );
 	}
 
-	void* OutputAudioUnit::getNative()
+	::AudioUnit OutputAudioUnit::getAudioUnit() const
 	{
 		return mDevice->getComponentInstance();
 	}
@@ -137,6 +148,7 @@ namespace audio2 {
 	: Input( device )
 	{
 		mTag = "InputAudioUnit";
+		mRenderBus = AudioUnitBus::Input;
 
 		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 		CI_ASSERT( mDevice );
@@ -146,10 +158,6 @@ namespace audio2 {
 
 		CI_ASSERT( ! mDevice->isInputConnected() );
 		mDevice->setInputConnected();
-
-		// while this is an AudioUnit node, it handles render callbacks differently. Setting this to
-		// false tells GraphAudioUnit to request for samples via the generic render() method
-		mIsNative = false;
 	}
 
 	InputAudioUnit::~InputAudioUnit()
@@ -160,7 +168,7 @@ namespace audio2 {
 	void InputAudioUnit::initialize()
 	{
 
-		::AudioUnit audioUnit = static_cast<::AudioUnit>( mDevice->getComponentInstance() );
+		::AudioUnit audioUnit = getAudioUnit();
 		CI_ASSERT( audioUnit );
 
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
@@ -169,12 +177,12 @@ namespace audio2 {
 		CI_ASSERT( status == noErr );
 
 		if( mDevice->isOutputConnected() ) {
-			mIsNative = true; // use the standard render callback from graph
 			LOG_V << "Path A. The High Road." << endl;
 			// output node is expected to initialize device, since it is pulling all the way to here.
 		}
 		else {
 			LOG_V << "Path B. initiate ringbuffer" << endl;
+			mShouldUseGraphRenderCallback = false;
 
 			mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getBlockSize() * mFormat.getNumChannels() ) );
 			mBufferList = cocoa::createNonInterleavedBufferList( mFormat.getNumChannels(), mDevice->getBlockSize() * sizeof( float ) );
@@ -218,10 +226,10 @@ namespace audio2 {
 		return std::static_pointer_cast<Device>( mDevice );
 	}
 
-//	void* InputAudioUnit::getNative()
-//	{
-//		return mDevice->getComponentInstance();
-//	}
+	::AudioUnit InputAudioUnit::getAudioUnit() const
+	{
+		return mDevice->getComponentInstance();
+	}
 
 	// TODO: try passing in null for mBufferList->mData, as per this doc:
 	//	(2) If the mData pointers are null, then the audio unit can provide pointers
@@ -246,7 +254,7 @@ namespace audio2 {
 		CI_ASSERT( inputNode->mRingBuffer );
 		
 		::AudioBufferList *nodeBufferList = inputNode->mBufferList.get();
-		OSStatus status = ::AudioUnitRender( inputNode->mDevice->getComponentInstance(), flags, timeStamp, AudioUnitBus::Input, numFrames, nodeBufferList );
+		OSStatus status = ::AudioUnitRender( inputNode->getAudioUnit(), flags, timeStamp, AudioUnitBus::Input, numFrames, nodeBufferList );
 		CI_ASSERT( status == noErr );
 
 		for( size_t c = 0; c < nodeBufferList->mNumberBuffers; c++ ) {
@@ -261,18 +269,13 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 	EffectAudioUnit::EffectAudioUnit(  UInt32 effectSubType )
-	: mEffectSubType( effectSubType ), mAudioUnit( nullptr )
+	: mEffectSubType( effectSubType )
 	{
 		mTag = "EffectAudioUnit";
-		mIsNative = true;
 	}
 
 	EffectAudioUnit::~EffectAudioUnit()
 	{
-		if( mAudioUnit ) {
-			OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
-			CI_ASSERT( status == noErr );
-		}
 	}
 
 	void EffectAudioUnit::initialize()
@@ -315,19 +318,13 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 	MixerAudioUnit::MixerAudioUnit()
-	: mAudioUnit( nullptr )
 	{
 		mTag = "MixerAudioUnit";
-		mIsNative = true;
 		mFormat.setWantsDefaultFormatFromParent();
 	}
 
 	MixerAudioUnit::~MixerAudioUnit()
-	{
-		if( mAudioUnit ) {
-			OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
-			CI_ASSERT( status == noErr );
-		}
+	{		
 	}
 
 	void MixerAudioUnit::initialize()
@@ -463,7 +460,6 @@ namespace audio2 {
 	ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest, size_t outputBlockSize )
 	{
 		mTag = "ConverterAudioUnit";
-		mIsNative = true;
 		mFormat = dest->getFormat();
 		mSourceFormat = source->getFormat();
 		mSources.resize( 1 );
@@ -476,10 +472,6 @@ namespace audio2 {
 
 	ConverterAudioUnit::~ConverterAudioUnit()
 	{
-		if( mAudioUnit ) {
-			OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
-			CI_ASSERT( status == noErr );
-		}
 	}
 
 	void ConverterAudioUnit::initialize()
@@ -619,10 +611,11 @@ namespace audio2 {
 	// TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic render()
 	void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive )
 	{
-		if( ! node->isNative() )
+		AudioUnitNode *nodeAU = dynamic_cast<AudioUnitNode *>( node.get() );
+		if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
 			return;
 
-		::AudioUnit audioUnit = static_cast<::AudioUnit>( node->getNative() );
+		::AudioUnit audioUnit = nodeAU->getAudioUnit();
 		CI_ASSERT( audioUnit );
 
 		// DEBUG: print channel info, although it has always been empty for me so far
@@ -679,23 +672,14 @@ namespace audio2 {
 
 		NodeRef source = renderContext->currentNode->getSources()[bus];
 
-		// temporary hack, TODO: need a better data type to query how this should be rendered with simultaneopus I/O
-		// - cannot connect via connectRenderCallback - it is already connected on output bus
-		// - need to know the bus channel
-		shared_ptr<InputAudioUnit> inputAU = dynamic_pointer_cast<InputAudioUnit>( source );
-		if( inputAU && inputAU->isNative() ) {
-			::AudioUnit audioUnit = dynamic_pointer_cast<DeviceAudioUnit>( inputAU->getDevice() )->getComponentInstance();
-			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, 1, numFrames, bufferList );
-			CI_ASSERT( status == noErr );
-			return status ;
-		}
+		AudioUnitNode *sourceAU = dynamic_cast<AudioUnitNode *>( source.get() );
 
-
-		if( source->isNative() ) {
+		if( sourceAU && sourceAU->shouldUseGraphRenderCallback() ) {
 			Node *thisNode = renderContext->currentNode;
 			renderContext->currentNode = source.get();
-			::AudioUnit audioUnit = static_cast<::AudioUnit>( source->getNative() );
-			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, 0, numFrames, bufferList );
+			::AudioUnit audioUnit = sourceAU->getAudioUnit();
+			::AudioUnitScope renderBus = sourceAU->getRenderBus();
+			OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, renderBus, numFrames, bufferList );
 			CI_ASSERT( status == noErr );
 
 			renderContext->currentNode = thisNode;

@@ -191,7 +191,7 @@ void BasicTestApp::printGraph()
 	function<void( NodeRef, size_t )> printNode = [&]( NodeRef node, size_t depth ) -> void {
 		for( size_t i = 0; i < depth; i++ )
 			console() << "-- ";
-		console() << node->getTag() << "\t[ sr: " << node->getFormat().getSampleRate() << ", ch: " << node->getFormat().getNumChannels() << ", native: " << (node->isNative() ? "yes" : "no" ) << " ]" << endl;
+		console() << node->getTag() << "\t[ sr: " << node->getFormat().getSampleRate() << ", ch: " << node->getFormat().getNumChannels() << " ]" << endl;
 		for( auto &source : node->getSources() )
 			printNode( source, depth + 1 );
 	};
