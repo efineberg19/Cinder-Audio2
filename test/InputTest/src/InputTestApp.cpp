@@ -12,6 +12,7 @@
 //	- same device
 // TODO: test InputAudioUnit -> tap -> output
 // TODO: test InputAudioUnit -> generic process -> output
+// TODO: test multiple formats for input
 
 using namespace ci;
 using namespace ci::app;
