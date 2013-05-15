@@ -660,6 +660,7 @@ namespace audio2 {
 		node->uninitialize();
 	}
 
+	// TODO: try to avoid multiple copies when generic nodes are chained together
 	OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 	{
 		RenderContext *renderContext = static_cast<RenderContext *>( context );
@@ -674,6 +675,7 @@ namespace audio2 {
 
 		AudioUnitNode *sourceAU = dynamic_cast<AudioUnitNode *>( source.get() );
 
+		// check if this needs native rendering
 		if( sourceAU && sourceAU->shouldUseGraphRenderCallback() ) {
 			Node *thisNode = renderContext->currentNode;
 			renderContext->currentNode = source.get();
@@ -683,8 +685,12 @@ namespace audio2 {
 			CI_ASSERT( status == noErr );
 
 			renderContext->currentNode = thisNode;
-		} else {
+		}
+		else {
+			// render all children through this callback, since there is a possiblity they can fall into the native category
+			bool didRenderChildren = false;
 			for( size_t i = 0; i < source->getSources().size(); i++ ) {
+				didRenderChildren = true;
 				Node *thisNode = renderContext->currentNode;
 				renderContext->currentNode = source.get();
 
@@ -693,9 +699,16 @@ namespace audio2 {
 				renderContext->currentNode = thisNode;
 			}
 
+			if( didRenderChildren ) {
+				// copy samples from AudioBufferList to the generic buffer before generic render
+				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
+					memcpy( renderContext->buffer[i].data(), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
+				}
+			}
+			
 			source->render( &renderContext->buffer );
 
-			// ???: how can I avoid this when generic nodes are chained together?
+			// now copy samples back to the output buffer
 			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
 				memcpy( bufferList->mBuffers[i].mData, renderContext->buffer[i].data(), bufferList->mBuffers[i].mDataByteSize );
 			}

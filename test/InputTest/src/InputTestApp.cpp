@@ -2,6 +2,7 @@
 #include "cinder/gl/gl.h"
 
 #include "audio2/Engine.h"
+#include "audio2/audio.h"
 #include "audio2/UGen.h"
 #include "audio2/Debug.h"
 
@@ -79,24 +80,35 @@ void InputTestApp::setup()
 	// - methinks it requires all nodes to be able to keep a blocksize
 	mTap = make_shared<BufferTap>( inputDevice->getBlockSize() );
 
-	auto ringMod = make_shared<RingMod>();
+	// -------------------------------------------------
+	// pass-through
+//	output->connect( input );
 
+	// -------------------------------------------------
 	// input -> ringMod -> output
 //	auto ringMod = make_shared<RingMod>();
 //	ringMod->connect( input );
 //	output->connect( ringMod );
 
+	// -------------------------------------------------
 	// intput -> tap -> output
 //	mTap->connect( input );
 //	output->connect( mTap );
 
+	// -------------------------------------------------
 	// input -> tap -> ringMod -> output
+	auto ringMod = make_shared<RingMod>();
 	mTap->connect( input );
 	ringMod->connect( mTap );
 	output->connect( ringMod );
 
+
 	mGraph->setOutput( output );
 	mGraph->initialize();
+
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration:" << endl;
+	printGraph( mGraph );
 
 	setupUI();
 }

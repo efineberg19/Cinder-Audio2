@@ -50,6 +50,7 @@ namespace audio2 {
 	BufferTap::BufferTap( size_t bufferSize )
 	: Node(), mBufferSize( bufferSize )
 	{
+		mTag = "BufferTap";
 	}
 
 	BufferTap::~BufferTap()
