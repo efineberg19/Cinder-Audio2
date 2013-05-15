@@ -577,8 +577,6 @@ namespace audio2 {
 
 		CI_ASSERT( format.isComplete() );
 
-		// esnure connecting formats are compatible
-		// TODO: check ConverterAudioUnit works with generic units, or (probably better) make a generic Converter that handles this
 		for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
 			NodeRef& sourceNode = node->getSources()[bus];
 			bool needsConverter = false;
