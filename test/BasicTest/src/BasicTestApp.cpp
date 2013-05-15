@@ -5,6 +5,7 @@
 #include "audio2/Graph.h"
 #include "audio2/Engine.h"
 #include "audio2/UGen.h"
+#include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
@@ -48,7 +49,6 @@ class BasicTestApp : public AppNative {
 	void setupEffects();
 	void setupMixer();
 	void toggleGraph();
-	void printGraph();
 
 	void setupUI();
 	void processEvent( Vec2i pos );
@@ -85,7 +85,10 @@ void BasicTestApp::setup()
 
 	mGraph->initialize();
 
-	printGraph();
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration:" << endl;
+	printGraph( mGraph );
+	
 //	if( mMixer ) {
 //		LOG_V << "mixer stats:" << endl;
 //		size_t numBusses = mMixer->getNumBusses();
@@ -185,22 +188,6 @@ void BasicTestApp::toggleGraph()
 	else
 		mGraph->stop();
 }
-
-void BasicTestApp::printGraph()
-{
-	function<void( NodeRef, size_t )> printNode = [&]( NodeRef node, size_t depth ) -> void {
-		for( size_t i = 0; i < depth; i++ )
-			console() << "-- ";
-		console() << node->getTag() << "\t[ sr: " << node->getFormat().getSampleRate() << ", ch: " << node->getFormat().getNumChannels() << " ]" << endl;
-		for( auto &source : node->getSources() )
-			printNode( source, depth + 1 );
-	};
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph:" << endl;
-	printNode( mGraph->getOutput(), 0 );
-}
-
 
 void BasicTestApp::setupUI()
 {

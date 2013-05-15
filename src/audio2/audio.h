@@ -1,11 +1,14 @@
 #pragma once
 
+#include "audio2/Graph.h"
+
 #include "cinder/Cinder.h"
 #include "cinder/Exception.h"
 #include <string>
 
 namespace audio2 {
 
+void printGraph( GraphRef graph );
 
 class AudioExc : public ci::Exception {
 public:
