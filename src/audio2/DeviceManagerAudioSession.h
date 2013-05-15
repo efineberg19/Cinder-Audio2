@@ -5,6 +5,7 @@
 
 namespace audio2 {
 
+class DeviceAudioUnit;
 // ???: alt name: DeviceManagerCocoaTouch
 class DeviceManagerAudioSession : public DeviceManager {
   public:
@@ -26,12 +27,12 @@ class DeviceManagerAudioSession : public DeviceManager {
 
   private:
 
-	DeviceRef	getRemoteIOUnit(); // TODO: consider returning shared_ptr<DeviceAudioUnit>
-	void		activateSession();
-	UInt32		getSessionCategory(); // TODO: consider useing the strings provided by AVAudioSession
+	std::shared_ptr<DeviceAudioUnit>	getRemoteIOUnit();
+	void								activateSession();
+	UInt32								getSessionCategory(); // TODO: consider useing the strings provided by AVAudioSession
 
 
-	DeviceRef mRemoteIOUnit;
+	std::shared_ptr<DeviceAudioUnit> mRemoteIOUnit;
 
 	bool mSessionIsActive;
 };
