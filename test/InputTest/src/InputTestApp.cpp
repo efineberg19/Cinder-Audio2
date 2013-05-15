@@ -8,9 +8,6 @@
 
 #include "Gui.h"
 
-// TODO: test InputAudioUnit -> output
-//	- different devices (DONE)
-//	- same device
 // TODO: test multiple formats for input
 
 using namespace ci;

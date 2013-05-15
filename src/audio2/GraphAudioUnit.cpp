@@ -231,11 +231,6 @@ namespace audio2 {
 		return mDevice->getComponentInstance();
 	}
 
-	// TODO: try passing in null for mBufferList->mData, as per this doc:
-	//	(2) If the mData pointers are null, then the audio unit can provide pointers
-	//	to its own buffers. In this case the audio unit is required to keep those
-	//	buffers valid for the duration of the calling thread's I/O cycle
-
 	void InputAudioUnit::render( BufferT *buffer )
 	{
 		CI_ASSERT( mRingBuffer );

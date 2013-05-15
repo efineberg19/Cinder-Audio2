@@ -21,7 +21,6 @@ void printASBD( const ::AudioStreamBasicDescription &asbd ) {
 
 AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t blockSize )
 {
-
 	::AudioBufferList *bufferList = static_cast<::AudioBufferList *>( calloc( 1, sizeof( ::AudioBufferList ) + sizeof( ::AudioBuffer ) * (numChannels - 1) ) );
 	bufferList->mNumberBuffers = numChannels;
 	for( size_t i = 0; i < numChannels; i++ ) {
