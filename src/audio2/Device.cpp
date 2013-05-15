@@ -9,6 +9,8 @@
 	#else
 		#include "audio2/DeviceManagerAudioSession.h"
 	#endif
+#elif defined( CINDER_MSW )
+	#include "audio2/DeviceManagerMsw.h"
 #endif
 
 namespace audio2 {
@@ -67,8 +69,8 @@ DeviceManager* DeviceManager::instance()
 		sInstance = new DeviceManagerCoreAudio();
 #elif defined( CINDER_COCOA_TOUCH )
 		sInstance = new DeviceManagerAudioSession();
-#else
-	#error "not implemented"
+#elif defined( CINDER_MSW )
+	sInstance = new DeviceManagerMsw();
 #endif
 	}
 	return sInstance;

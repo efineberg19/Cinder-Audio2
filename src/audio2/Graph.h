@@ -20,7 +20,7 @@ typedef std::vector<float>		ChannelT;
 typedef std::vector<ChannelT>	BufferT;
 
 class Node : public std::enable_shared_from_this<Node> {
-public:
+  public:
 	virtual ~Node();
 
 	struct Format {
@@ -36,7 +36,7 @@ public:
 		bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
 		void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
 
-	private:
+  private:
 		size_t mSampleRate, mNumChannels;
 		bool mWantsDefaultFormatFromParent;
 	};
@@ -60,28 +60,30 @@ public:
 
 	const std::string& getTag()	const	{ return mTag; }
 
-protected:
+  protected:
 	Node() : mInitialized( false )	{}
-	Node( Node const& )				= delete;
-	Node& operator=( Node const& )	= delete;
 
 	std::vector<NodeRef>	mSources;
 	NodeWeakRef				mParent;
 	Format					mFormat;
 	bool					mInitialized;
 	std::string				mTag;
+
+  private:
+	  Node( Node const& );
+	  Node& operator=( Node const& );
 };
 
 // TODO: these names don't really make sense here, it's just a feable attempt at avoiding naiming these Input / Output or Generator / ??
 
 class Producer : public Node {
-public:
+  public:
 	Producer() : Node() {}
 	virtual ~Producer() {}
 };
 
 class Input : public Producer {
-public:
+  public:
 	Input( DeviceRef device ) : Producer() {}
 	virtual ~Input() {}
 
@@ -89,16 +91,16 @@ public:
 };
 
 class Consumer : public Node {
-public:
+  public:
 	Consumer() : Node() {}
-	virtual ~Consumer() = default;
+	virtual ~Consumer() {}
 
 	virtual void connect( NodeRef source );
 	virtual size_t getBlockSize() const = 0;
 };
 
 class Output : public Consumer {
-public:
+  public:
 
 	// ???: device param here necessary?
 	Output( DeviceRef device ) : Consumer() {}
@@ -106,20 +108,21 @@ public:
 
 	virtual DeviceRef getDevice() = 0;
 
-protected:
+  protected:
 };
 
 class Effect : public Node {
-public:
+  public:
 	Effect() : Node() {}
-	virtual ~Effect() = default;
+	virtual ~Effect() {}
 
 	virtual void connect( NodeRef source );
 };
 
 class RingBuffer;
 
-struct BufferTap : public Node {
+class BufferTap : public Node {
+  public:
 	BufferTap( size_t bufferSize = 1024 );
 	virtual ~BufferTap();
 
@@ -131,16 +134,16 @@ struct BufferTap : public Node {
 
 	virtual void connect( NodeRef source );
 
-private:
+  private:
 	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers;
 	BufferT mCopiedBuffer;
 	size_t mBufferSize;
 };
 
 class Mixer : public Node {
-public:
+  public:
 	Mixer() : Node() {}
-	virtual ~Mixer() = default;
+	virtual ~Mixer() {}
 
 	virtual void connect( NodeRef source );
 	virtual void connect( NodeRef source, size_t bus );
@@ -156,7 +159,7 @@ public:
 };
 
 class Graph {
-public:
+  public:
 	virtual ~Graph();
 
 	virtual void initialize();
@@ -168,7 +171,7 @@ public:
 
 	bool isRunning() const	{ return mRunning; }
 
-protected:
+  protected:
 	Graph() : mInitialized( false ), mRunning( false ) {}
 
 	virtual void start( NodeRef node );

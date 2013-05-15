@@ -36,7 +36,7 @@ class RingBuffer {
 			
 			// ???: is there a more efficient way to overwrite?
 			float old;
-			for( int i = 0; i < numLeft; i++ )
+			for( size_t i = 0; i < numLeft; i++ )
 				mLockFreeQueue.pop( old );
 			numPushed = mLockFreeQueue.push( &samples[numPushed], numLeft );
 			CI_ASSERT( numPushed == numLeft );

@@ -49,7 +49,7 @@ class DeviceManager {
 	static DeviceManager* instance();
 
 protected:
-	DeviceManager() = default;
+	DeviceManager()	{}
 };
 
 } // namespace audio2

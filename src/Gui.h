@@ -18,9 +18,9 @@ struct Button {
 
 	void setEnabled( bool b ) {
 		if( b ) {
-			backgroundColor = Color( 0.0, 0.0, 0.7 );
+			backgroundColor = Color( 0.0f, 0.0f, 0.7f );
 		} else {
-			backgroundColor = Color( 0.3, 0.3, 0.3 );
+			backgroundColor = Color( 0.3f, 0.3f, 0.3f );
 		}
 		enabled = b;
 	}

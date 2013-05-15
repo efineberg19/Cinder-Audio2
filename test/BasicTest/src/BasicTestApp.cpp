@@ -24,7 +24,7 @@ template <typename UGenT>
 struct UGenNode : public Producer {
 	UGenNode()	{
 		mTag = "UGenNode";
- 		mFormat.setWantsDefaultFormatFromParent();
+		mFormat.setWantsDefaultFormatFromParent();
 	}
 
 	virtual void render( BufferT *buffer ) override {
@@ -35,7 +35,7 @@ struct UGenNode : public Producer {
 };
 
 class BasicTestApp : public AppNative {
-  public:
+public:
 	void prepareSettings( Settings *settings );
 	void setup();
 	void keyDown( KeyEvent event );
@@ -46,7 +46,7 @@ class BasicTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void setupEffects();
+	void setupBasic();
 	void setupMixer();
 	void toggleGraph();
 
@@ -55,7 +55,6 @@ class BasicTestApp : public AppNative {
 
 	GraphRef mGraph;
 	MixerRef mMixer;
-	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mBandPassCenterSlider;
@@ -63,7 +62,6 @@ class BasicTestApp : public AppNative {
 
 void BasicTestApp::prepareSettings( Settings *settings )
 {
-//	settings->enableMultiTouch();
 }
 
 void BasicTestApp::setup()
@@ -80,7 +78,7 @@ void BasicTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 
-	setupEffects();
+	setupBasic();
 //	setupMixer();
 
 	mGraph->initialize();
@@ -88,74 +86,27 @@ void BasicTestApp::setup()
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration:" << endl;
 	printGraph( mGraph );
-	
-//	if( mMixer ) {
-//		LOG_V << "mixer stats:" << endl;
-//		size_t numBusses = mMixer->getNumBusses();
-//		console() << "\t num busses: " << numBusses << endl;
-//		for( size_t i = 0; i < numBusses; i++ ) {
-//			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
-//			console() << ", volume: " << mMixer->getBusVolume( i );
-//			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
-//		}
-//	}
+
+	//	if( mMixer ) {
+	//		LOG_V << "mixer stats:" << endl;
+	//		size_t numBusses = mMixer->getNumBusses();
+	//		console() << "\t num busses: " << numBusses << endl;
+	//		for( size_t i = 0; i < numBusses; i++ ) {
+	//			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
+	//			console() << ", volume: " << mMixer->getBusVolume( i );
+	//			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
+	//		}
+	//	}
 
 	setupUI();
-
-	if( mEffect ) {
-		mEffect->setParameter( kLowPassParam_CutoffFrequency, 500 );
-		mLowpassCutoffSlider.set( 500 );
-	}
-
-	if( mEffect2 ) {
-		mEffect2->setParameter( kBandpassParam_CenterFrequency, 1000 );
-		mEffect2->setParameter( kBandpassParam_Bandwidth, 1200 );
-		mBandPassCenterSlider.set( 1000 );
-	}
-
 }
 
-void BasicTestApp::setupEffects()
+void BasicTestApp::setupBasic()
 {
-//	auto noise = make_shared<UGenNode<NoiseGen> >();
-//	noise->mGen.setAmp( 0.25f );
-//
-//	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-//	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
-//
-//	mEffect->getFormat().setSampleRate( 22050 );
-//	
-//	mEffect->connect( noise );
-//	mEffect2->connect( mEffect );
-//	mGraph->getOutput()->connect( mEffect2 );
-
-
-	// =====================================
-	// testing sine @ 44k -> effect @ 22k... sounds right but probably because effect is samplerate independant
-
-//	auto sine = make_shared<UGenNode<SineGen> >();
-//	sine->mGen.setAmp( 0.25f );
-//	sine->mGen.setFreq( 440.0f );
-//	sine->mGen.setSampleRate( 44100 );
-//
-//	sine->getFormat().setSampleRate( 44100 );
-//	sine->getFormat().setNumChannels( 1 ); // force mono
-
-	// =====================================
-	// testing mono gen -> effect (implicitly mono) -> stereo output
-	
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->mGen.setAmp( 0.25f );
-	noise->getFormat().setNumChannels( 1 ); // force mono
 
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
-
-	mEffect->getFormat().setNumChannels( 2 ); // force stereo
-
-	mEffect->connect( noise );
-	mEffect2->connect( mEffect );
-	mGraph->getOutput()->connect( mEffect2 );
+	mGraph->getOutput()->connect( noise );
 }
 
 void BasicTestApp::setupMixer()
@@ -167,15 +118,9 @@ void BasicTestApp::setupMixer()
 	sine->mGen.setAmp( 0.25f );
 	sine->mGen.setFreq( 440.0f );
 	sine->mGen.setSampleRate( 44100 ); // TODO: this should be auto-configurable
-//	sine->getFormat().setSampleRate( 48000 );
+	//	sine->getFormat().setSampleRate( 48000 );
 
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-//	mEffect->getFormat().setSampleRate( 22050 );
-
-	mEffect->connect( noise );
-
-	mMixer = make_shared<MixerAudioUnit>();
-	mMixer->connect( mEffect );
+	mMixer = Engine::instance()->createMixer();
 	mMixer->connect( sine );
 
 	mGraph->getOutput()->connect( mMixer );
@@ -207,16 +152,16 @@ void BasicTestApp::setupUI()
 	mFreqPanSlider.min = -1.0f;
 	mFreqPanSlider.max = 1.0f;
 
-	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mLowpassCutoffSlider.bounds = sliderRect;
-	mLowpassCutoffSlider.title = "Lowpass Cutoff (Noise)";
-	mLowpassCutoffSlider.max = 1500.0f;
+	//sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	//mLowpassCutoffSlider.bounds = sliderRect;
+	//mLowpassCutoffSlider.title = "Lowpass Cutoff (Noise)";
+	//mLowpassCutoffSlider.max = 1500.0f;
 
-	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mBandPassCenterSlider.bounds = sliderRect;
-	mBandPassCenterSlider.title = "Bandpass Center (Noise)";
-	mBandPassCenterSlider.min = 500.0f;
-	mBandPassCenterSlider.max = 2500.0f;
+	//sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	//mBandPassCenterSlider.bounds = sliderRect;
+	//mBandPassCenterSlider.title = "Bandpass Center (Noise)";
+	//mBandPassCenterSlider.min = 500.0f;
+	//mBandPassCenterSlider.max = 2500.0f;
 
 	gl::enableAlphaBlending();
 }
@@ -234,15 +179,15 @@ void BasicTestApp::processEvent( Vec2i pos )
 			mMixer->setBusPan( 1, mFreqPanSlider.valueScaled );
 	}
 
-	if( mEffect ) {
-		if( mLowpassCutoffSlider.hitTest( pos ) )
-			mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
-	}
+	//if( mEffect ) {
+	//	if( mLowpassCutoffSlider.hitTest( pos ) )
+	//		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
+	//}
 
-	if( mEffect2 ) {
-		if( mBandPassCenterSlider.hitTest( pos ) )
-			mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
-	}
+	//if( mEffect2 ) {
+	//	if( mBandPassCenterSlider.hitTest( pos ) )
+	//		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
+	//}
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )

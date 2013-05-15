@@ -55,7 +55,7 @@ struct SineGen : public UGen {
   private:
 	void computePhaseIncr()	{
 		if( mSampleRate )
-			mPhaseIncr = ( mFreq / (float)mSampleRate ) * 2.0f * M_PI;
+			mPhaseIncr = ( mFreq / (float)mSampleRate ) * 2.0f * (float)M_PI;
 	}
 	std::atomic<float> mFreq, mAmp;
 	size_t mSampleRate;
