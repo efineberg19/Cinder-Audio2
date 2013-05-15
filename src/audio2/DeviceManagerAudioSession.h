@@ -6,7 +6,7 @@
 namespace audio2 {
 
 class DeviceAudioUnit;
-// ???: alt name: DeviceManagerCocoaTouch
+
 class DeviceManagerAudioSession : public DeviceManager {
   public:
 	DeviceManagerAudioSession();

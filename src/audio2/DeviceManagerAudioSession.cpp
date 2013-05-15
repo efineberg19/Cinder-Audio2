@@ -11,15 +11,15 @@ using namespace std;
 
 namespace audio2 {
 
-	const string kRemoteIOKey = "iOS-RemoteIO";
+const string kRemoteIOKey = "iOS-RemoteIO";
 
-	template <typename ResultT>
-	inline void audioSessionProperty( ::AudioSessionPropertyID property, ResultT &result )
-	{
-		UInt32 resultSize = sizeof( result );
-		OSStatus status = ::AudioSessionGetProperty( property, &resultSize, &result );
-		CI_ASSERT( status == noErr );
-	}
+template <typename ResultT>
+inline void audioSessionProperty( ::AudioSessionPropertyID property, ResultT &result )
+{
+	UInt32 resultSize = sizeof( result );
+	OSStatus status = ::AudioSessionGetProperty( property, &resultSize, &result );
+	CI_ASSERT( status == noErr );
+}
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManagerAudioSession

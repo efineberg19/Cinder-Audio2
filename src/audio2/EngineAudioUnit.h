@@ -4,13 +4,13 @@
 
 namespace audio2 {
 
-	class EngineAudioUnit : public Engine {
+class EngineAudioUnit : public Engine {
+  public:
+	virtual GraphRef createGraph() override;
+	virtual MixerRef	createMixer() override;
+	virtual ConsumerRef createOutput( DeviceRef device ) override;
+	virtual ProducerRef createInput( DeviceRef device ) override;
 
-		virtual GraphRef createGraph() override;
-		virtual MixerRef	createMixer() override;
-		virtual ConsumerRef createOutput( DeviceRef device ) override;
-		virtual ProducerRef createInput( DeviceRef device ) override;
+};
 
-	};
-	
 } // namespace audio2

@@ -10,18 +10,16 @@
 
 namespace audio2 {
 
-	Engine* Engine::instance()
-	{
-		static Engine *sInstance = 0;
-		if( ! sInstance ) {
+Engine* Engine::instance()
+{
+	static Engine *sInstance = 0;
+	if( ! sInstance ) {
 #if defined( CINDER_COCOA )
-			sInstance = new EngineAudioUnit();
+		sInstance = new EngineAudioUnit();
 #else
 #endif
-		}
-		return sInstance;
 	}
-
-
+	return sInstance;
+}
 
 } // namespace audio2

@@ -10,7 +10,7 @@
 namespace audio2 {
 
 class RingBuffer {
-public:
+  public:
 	RingBuffer() : mLockFreeQueue( 0 ) {}
 
 	// note: give lockfree one extra sample, which it uses internally to track the positions of head and tail
@@ -50,7 +50,7 @@ public:
 		return mLockFreeQueue.pop( samples, count );
 	}
 
-private:
+  private:
 	boost::lockfree::spsc_queue<float> mLockFreeQueue;
 	size_t mSize;
 };

@@ -74,6 +74,4 @@ DeviceManager* DeviceManager::instance()
 	return sInstance;
 }
 
-
-
 } // namespace audio2
