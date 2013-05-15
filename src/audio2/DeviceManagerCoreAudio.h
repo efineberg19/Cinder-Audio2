@@ -12,6 +12,8 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	DeviceRef getDefaultOutput() override;
 	DeviceRef getDefaultInput() override;
 
+	DeviceRef getDevice( const std::string &key );
+
 	std::string getName( const std::string &key ) override;
 	size_t getNumInputChannels( const std::string &key ) override;
 	size_t getNumOutputChannels( const std::string &key ) override;
@@ -31,7 +33,6 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	};
 	typedef std::vector<DeviceInfo> DeviceContainerT;
 
-	DeviceRef getDevice( const std::string &key );
 	::AudioDeviceID getDeviceID( const std::string &key );
 	DeviceContainerT& getDevices();
 

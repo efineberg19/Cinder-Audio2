@@ -39,7 +39,7 @@ DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	return getDevice( DeviceManagerCoreAudio::keyForDeviceID( defaultInputID ) );
 }
 
-void DeviceManagerCoreAudio::setActiveDevice( const std::string &key )
+void DeviceManagerCoreAudio::setActiveDevice( const string &key )
 {
 	AudioDeviceID deviceID = kAudioObjectUnknown;
 	shared_ptr<DeviceAudioUnit> deviceAU;
@@ -56,7 +56,7 @@ void DeviceManagerCoreAudio::setActiveDevice( const std::string &key )
 	CI_ASSERT( status == noErr );
 }
 
-std::string DeviceManagerCoreAudio::getName( const std::string &key )
+std::string DeviceManagerCoreAudio::getName( const string &key )
 {
 	::AudioDeviceID deviceID = getDeviceID( key );
 	return audioObjectPropertyString( deviceID, kAudioObjectPropertyName );
