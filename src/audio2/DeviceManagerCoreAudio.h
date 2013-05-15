@@ -23,7 +23,7 @@ namespace audio2 {
 
 	private:
 
-		static std::string keyForDeviceID( ::AudioDeviceID deviceID );
+		static std::string keyForDeviceID( ::AudioObjectID deviceID );
 
 		struct DeviceInfo {
 			std::string			key;

@@ -50,9 +50,21 @@ DeviceRef DeviceManagerAudioSession::getDefaultInput()
 void DeviceManagerAudioSession::setActiveDevice( const std::string &key )
 {
 	LOG_V << "bang" << endl;
+
 	activateSession();
+
+	auto device = dynamic_pointer_cast<DeviceAudioUnit>( getRemoteIOUnit() );
+	if( device->isInputConnected() ) {
+
+		LOG_V << "setting category to kAudioSessionCategory_PlayAndRecord" << endl;
+		UInt32 category = kAudioSessionCategory_PlayAndRecord;
+		OSStatus status = ::AudioSessionSetProperty( kAudioSessionProperty_AudioCategory, sizeof( category ), &category );
+		CI_ASSERT( status == noErr );
+	}
 }
 
+// TODO: check input available property as well
+// TODO: this reports 0 channels with default category. To overcome this, can switch to playAndRecord, check, and then return to previous
 bool DeviceManagerAudioSession::inputIsEnabled()
 {
 	UInt32 category = getSessionCategory();
@@ -66,11 +78,8 @@ std::string DeviceManagerAudioSession::getName( const std::string &key )
 
 size_t DeviceManagerAudioSession::getNumInputChannels( const string &key )
 {
-//	if( ! mSessionIsActive )
-//		activate();
-
 	if( ! inputIsEnabled() ) {
-		LOG_V << "Warning: input is disabled due to session category, so no inputs." << endl;
+//		LOG_V << "Warning: input is disabled due to session category, so no inputs." << endl;
 		return 0;
 	}
 	
@@ -81,9 +90,6 @@ size_t DeviceManagerAudioSession::getNumInputChannels( const string &key )
 
 size_t DeviceManagerAudioSession::getNumOutputChannels( const string &key )
 {
-//	if( ! mSessionIsActive )
-//		activate();
-
 	UInt32 result;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareOutputNumberChannels, result );
 	return static_cast<size_t>( result );

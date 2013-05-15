@@ -148,8 +148,7 @@ namespace audio2 {
 	// note: we cannot just rely on 'model UID', when it is there (which it isn't always), becasue it can be the same
 	// for two different 'devices', such as system input and output
 	// - current solution: key = 'NAME-[UID | MANUFACTURE]'
-	// TODO: use AudioObjectID
-	std::string DeviceManagerCoreAudio::keyForDeviceID( ::AudioDeviceID deviceID )
+	std::string DeviceManagerCoreAudio::keyForDeviceID( ::AudioObjectID deviceID )
 	{
 		string name = audioObjectPropertyString( deviceID, kAudioObjectPropertyName );
 		string key = audioObjectPropertyString( deviceID, kAudioDevicePropertyModelUID );

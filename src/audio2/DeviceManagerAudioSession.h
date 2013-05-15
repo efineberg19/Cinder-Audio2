@@ -26,9 +26,9 @@ class DeviceManagerAudioSession : public DeviceManager {
 
   private:
 
-	DeviceRef	getRemoteIOUnit();
+	DeviceRef	getRemoteIOUnit(); // TODO: consider returning shared_ptr<DeviceAudioUnit>
 	void		activateSession();
-	UInt32		getSessionCategory(); // ???: map to my own, type-safe enum? Currently I'm just using the raw values in AudioSession.h
+	UInt32		getSessionCategory(); // TODO: consider useing the strings provided by AVAudioSession
 
 
 	DeviceRef mRemoteIOUnit;
