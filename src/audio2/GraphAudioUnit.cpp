@@ -97,7 +97,7 @@ namespace audio2 {
 
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
-		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
+		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
 		mDevice->initialize();
@@ -142,13 +142,15 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 	// FIXME: in a multi-graph situation, Path A is only pliable if device is used for both I/O in _this_ graph
-	//		- this is only checking if I and O are both in use
+	//	- this is only checking if I and O are both in use
+	//	- only way I can think of to solve this is to keep a weak reference to Graph in both I and O units,
+	//	  check graph->output->device in initialize to see if it's the same
 
 	InputAudioUnit::InputAudioUnit( DeviceRef device )
 	: Input( device )
 	{
 		mTag = "InputAudioUnit";
-		mRenderBus = AudioUnitBus::Input;
+		mRenderBus = DeviceAudioUnit::Bus::Input;
 
 		mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 		CI_ASSERT( mDevice );
@@ -162,18 +164,16 @@ namespace audio2 {
 
 	InputAudioUnit::~InputAudioUnit()
 	{
-		
 	}
 
 	void InputAudioUnit::initialize()
 	{
-
 		::AudioUnit audioUnit = getAudioUnit();
 		CI_ASSERT( audioUnit );
 
 		::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
-		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, AudioUnitBus::Output, &asbd, sizeof( asbd ) );
+		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::Input, &asbd, sizeof( asbd ) );
 		CI_ASSERT( status == noErr );
 
 		if( mDevice->isOutputConnected() ) {
@@ -190,7 +190,7 @@ namespace audio2 {
 			::AURenderCallbackStruct callbackStruct;
 			callbackStruct.inputProc = InputAudioUnit::inputCallback;
 			callbackStruct.inputProcRefCon = this;
-			status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, AudioUnitBus::Output, &callbackStruct, sizeof( callbackStruct ) );
+			status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::Input, &callbackStruct, sizeof( callbackStruct ) );
 			CI_ASSERT( status == noErr );
 
 			mDevice->initialize();
@@ -254,7 +254,7 @@ namespace audio2 {
 		CI_ASSERT( inputNode->mRingBuffer );
 		
 		::AudioBufferList *nodeBufferList = inputNode->mBufferList.get();
-		OSStatus status = ::AudioUnitRender( inputNode->getAudioUnit(), flags, timeStamp, AudioUnitBus::Input, numFrames, nodeBufferList );
+		OSStatus status = ::AudioUnitRender( inputNode->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::Input, numFrames, nodeBufferList );
 		CI_ASSERT( status == noErr );
 
 		for( size_t c = 0; c < nodeBufferList->mNumberBuffers; c++ ) {

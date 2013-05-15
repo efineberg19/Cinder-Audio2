@@ -5,14 +5,10 @@
 
 namespace audio2 {
 
-// TODO: this is only true for device units
-enum AudioUnitBus {
-	Output	= 0,
-	Input	= 1
-};
-
 class DeviceAudioUnit : public Device {
   public:
+	enum Bus { Output = 0, Input = 1 };
+
 	virtual ~DeviceAudioUnit();
 
 	void initialize() override;

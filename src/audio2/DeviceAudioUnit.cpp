@@ -39,11 +39,11 @@ void DeviceAudioUnit::initialize()
 	}
 
 	UInt32 enableInput = static_cast<UInt32>( mInputConnected );
-	AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, AudioUnitBus::Input, &enableInput, sizeof( enableInput ) );
+	AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, Bus::Input, &enableInput, sizeof( enableInput ) );
 	LOG_V << "input enabled: " << enableInput << endl;
 
 	UInt32 enableOutput = static_cast<UInt32>( mOutputConnected );
-	AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, AudioUnitBus::Output, &enableOutput, sizeof( enableOutput ) );
+	AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, Bus::Output, &enableOutput, sizeof( enableOutput ) );
 	LOG_V << "output enabled: " << enableOutput << endl;
 
 	DeviceManager::instance()->setActiveDevice( mKey );
