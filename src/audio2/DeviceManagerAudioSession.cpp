@@ -9,10 +9,6 @@
 
 using namespace std;
 
-// TODO: AudioSession API supports routes, such as kAudioSessionOutputRoute_AirPlay
-// - these could surely be exposed
-// - map them to separate devices?
-
 namespace audio2 {
 
 	const string kRemoteIOKey = "iOS-RemoteIO";

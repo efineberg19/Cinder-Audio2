@@ -51,9 +51,8 @@ namespace audio2 {
 			}
 		}
 		CI_ASSERT( deviceAU );
-		CI_ASSERT( deviceAU->mComponentInstance );
-		
-		OSStatus status = AudioUnitSetProperty( deviceAU->mComponentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceID, sizeof( deviceID ) );
+
+		OSStatus status = AudioUnitSetProperty( deviceAU->getComponentInstance(), kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceID, sizeof( deviceID ) );
 		CI_ASSERT( status == noErr );
 	}
 
