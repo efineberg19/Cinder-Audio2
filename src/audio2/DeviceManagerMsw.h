@@ -26,9 +26,15 @@ class DeviceManagerMsw : public DeviceManager {
 
 	  struct DeviceInfo {
 		  std::string			key;
-		  //::AudioDeviceID		deviceID;
+
+		  std::string name;
+		  std::wstring uid;
+		  enum Usage { Input, Output } usage;
+
 		  DeviceRef			device;
 	  };
+
+
 	  typedef std::vector<DeviceInfo> DeviceContainerT;
 	  DeviceContainerT& getDevices();
 

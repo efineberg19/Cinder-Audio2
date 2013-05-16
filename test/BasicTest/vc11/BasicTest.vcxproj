@@ -122,6 +122,7 @@
     <ClInclude Include="..\..\..\src\audio2\DeviceOutputXAudio.h" />
     <ClInclude Include="..\..\..\src\audio2\EngineXAudio.h" />
     <ClInclude Include="..\..\..\src\audio2\GraphXAudio.h" />
+    <ClInclude Include="..\..\..\src\audio2\msw\xaudio.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\Gui.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\assert.h" />

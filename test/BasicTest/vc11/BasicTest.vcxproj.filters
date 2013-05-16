@@ -25,6 +25,9 @@
     <Filter Include="Blocks\Audio2\src\audio2">
       <UniqueIdentifier>{58962118-DFAB-4A13-8DBE-70E934E46490}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Blocks\Audio2\src\audio2\msw">
+      <UniqueIdentifier>{e49a11b9-fc67-49cb-a0c2-5c9627bdcf40}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\BasicTestApp.cpp">
@@ -106,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio2\DeviceManagerMsw.h">
       <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\msw\xaudio.h">
+      <Filter>Blocks\Audio2\src\audio2\msw</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
