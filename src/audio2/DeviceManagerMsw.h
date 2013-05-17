@@ -22,14 +22,14 @@ class DeviceManagerMsw : public DeviceManager {
 
 	  // TODO: this is suitable for the base class and public API
 	  // - but need to consider both how to get device by unique key and human-readable name
+	  // - also need to navigate msw liking wstring and mac string
 	  DeviceRef getDevice( const std::string &key );
 
 	  struct DeviceInfo {
-		  std::string			key;
-
+		  std::string key;
 		  std::string name;
-		  std::wstring uid;
-		  enum Usage { Input, Output } usage;
+		  enum Usage { Input, Output } usage; // TODO: add field for I/O
+		  std::wstring			deviceId;
 
 		  DeviceRef			device;
 	  };
