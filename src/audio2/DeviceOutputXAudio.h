@@ -16,12 +16,14 @@ class DeviceOutputXAudio : public Device {
 	void start() override;
 	void stop() override;
 
+	::IXAudio2* getXAudio() const	{ return mXAudio; }
+
   private:
 	DeviceOutputXAudio( const std::string &key );
 
 	// TODO: use auto pointers
-	IXAudio2 *mXAudio;
-	IXAudio2MasteringVoice *mMasteringVoice;
+	::IXAudio2 *mXAudio;
+	::IXAudio2MasteringVoice *mMasteringVoice;
 
 	friend class DeviceManagerMsw;
 };

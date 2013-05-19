@@ -1,7 +1,7 @@
 #pragma once
 
 #include "audio2/Graph.h"
-//#include "audio2/RingBuffer.h"
+#include "audio2/msw/xaudio.h"
 
 namespace audio2 {
 
@@ -15,7 +15,10 @@ class XAudioNode {
   public:
 	XAudioNode() {}
 	virtual ~XAudioNode();
+
+	void setXAudio( ::IXAudio2 *xaudio )	{ mXaudio = xaudio; }
   protected:
+	  ::IXAudio2 *mXaudio;
 };
 
 class DeviceOutputXAudio;
@@ -37,6 +40,28 @@ class OutputXAudio : public Output, public XAudioNode {
 
   private:
 	std::shared_ptr<DeviceOutputXAudio> mDevice;
+};
+
+struct VoiceCallbackImpl;
+
+class SourceXAudio : public Producer, public XAudioNode {
+  public:
+	SourceXAudio();
+	~SourceXAudio();
+
+	void initialize() override;
+	void uninitialize() override;
+
+	void start() override;
+	void stop() override;
+
+  private:
+	  void submitNextBuffer();
+
+	  ::IXAudio2SourceVoice						*mSourceVoice;
+	  std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
+	  BufferT									mBuffer;
+	  std::unique_ptr<VoiceCallbackImpl>		mVoiceCallback;
 };
 
 //class InputXAudio : public Input, public XAudioNode {

@@ -10,6 +10,28 @@ using namespace std;
 
 namespace audio2 {
 
+	struct VoiceCallbackImpl : public IXAudio2VoiceCallback {
+
+		VoiceCallbackImpl( IXAudio2SourceVoice *sourceVoice, function<void()> callback  ) : mSourceVoice( sourceVoice ), mRenderCallback( callback ) {}
+
+		void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
+			XAUDIO2_VOICE_STATE state;
+			mSourceVoice->GetState( &state );
+			if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
+				mRenderCallback();
+		}
+
+		void STDMETHODCALLTYPE OnStreamEnd() {}
+		void STDMETHODCALLTYPE OnVoiceProcessingPassEnd() {}
+		void STDMETHODCALLTYPE OnVoiceProcessingPassStart( UINT32 SamplesRequired ) {}
+		void STDMETHODCALLTYPE OnBufferStart( void *pBufferContext ) {}
+		void STDMETHODCALLTYPE OnLoopEnd( void *pBufferContext ) {}
+		void STDMETHODCALLTYPE OnVoiceError( void *pBufferContext, HRESULT Error )	{ CI_ASSERT( false ); }
+
+		::IXAudio2SourceVoice	*mSourceVoice;
+		function<void()>		mRenderCallback;
+	};
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - XAudioNode
 // ----------------------------------------------------------------------------------------------------
@@ -30,24 +52,12 @@ OutputXAudio::OutputXAudio( DeviceRef device )
 	CI_ASSERT( mDevice );
 
 	mFormat.setSampleRate( mDevice->getSampleRate() );
-	mFormat.setNumChannels( 2 );
-
+	mFormat.setNumChannels( mDevice->getNumOutputChannels() );
 }
 
 void OutputXAudio::initialize()
 {
-	// TODO NEXT
-	//::AudioUnit audioUnit = getAudioUnit();
-	//CI_ASSERT( audioUnit );
-
-	//::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
-
-	//OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
-	//CI_ASSERT( status == noErr );
-
-	//mDevice->initialize();
-
-	//LOG_V << "initialize complete." << endl;
+	mDevice->initialize();
 }
 
 void OutputXAudio::uninitialize()
@@ -74,7 +84,81 @@ DeviceRef OutputXAudio::getDevice()
 
 size_t OutputXAudio::getBlockSize() const
 {
+	// TOOD: this is not yet retrievable from device, if it is necessary, provide value some other way
 	return mDevice->getBlockSize();
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - InputXAudio
+// ----------------------------------------------------------------------------------------------------
+
+// TODO: blocksize needs to be exposed.
+SourceXAudio::SourceXAudio()
+{
+	mBuffer.resize(  mFormat.getNumChannels() );
+	for( auto& channel : mBuffer )
+		channel.resize( 512 );
+
+	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( mSourceVoice, bind( &SourceXAudio::submitNextBuffer, this ) ) );
+}
+
+SourceXAudio::~SourceXAudio()
+{
+
+}
+
+void SourceXAudio::initialize()
+{
+	::WAVEFORMATEXTENSIBLE wfx;
+	memset(&wfx, 0, sizeof( ::WAVEFORMATEXTENSIBLE ) );
+
+	wfx.Format.wFormatTag           = WAVE_FORMAT_EXTENSIBLE ;
+	wfx.Format.nSamplesPerSec       = mFormat.getSampleRate();
+	wfx.Format.nChannels            = mFormat.getNumChannels();
+	wfx.Format.wBitsPerSample       = 32;
+	wfx.Format.nBlockAlign          = wfx.Format.nChannels * wfx.Format.wBitsPerSample / 8;
+	wfx.Format.nAvgBytesPerSec      = wfx.Format.nSamplesPerSec * wfx.Format.nBlockAlign;
+	wfx.Format.cbSize               = sizeof( ::WAVEFORMATEXTENSIBLE ) - sizeof( ::WAVEFORMATEX );
+	wfx.Samples.wValidBitsPerSample = wfx.Format.wBitsPerSample;
+	wfx.SubFormat                   = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+	wfx.dwChannelMask				= 0; // this could be a very complicated bit mask of channel order, but 0 means 'first channel is left, second channel is right, etc'
+
+	HRESULT hr = mXaudio->CreateSourceVoice( &mSourceVoice, (::WAVEFORMATEX*)&wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
+	CI_ASSERT( hr == S_OK );
+	LOG_V << "created source voice." << endl;
+}
+
+void SourceXAudio::uninitialize()
+{
+}
+
+// TODO: source voice must be made during initialize() pass, so there is a chance start/stop can be called
+// before. Decide on throwing, silently failing, or a something better.
+void SourceXAudio::start()
+{
+	CI_ASSERT( mSourceVoice );
+	mSourceVoice->Start();
+	LOG_V << "started." << endl;
+}
+
+void SourceXAudio::stop()
+{
+	CI_ASSERT( mSourceVoice );
+	mSourceVoice->Stop();
+	LOG_V << "stopped." << endl;
+}
+
+void SourceXAudio::submitNextBuffer()
+{
+	CI_ASSERT( mSourceVoice );
+
+	mSources[0]->render( &mBuffer );
+
+	::XAUDIO2_BUFFER xaudio2Buffer = { 0 };
+	xaudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBuffer.data() );
+	xaudio2Buffer.AudioBytes = mBuffer.size() * sizeof( float );
+	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &xaudio2Buffer );
+	CI_ASSERT( hr == S_OK );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -504,9 +588,11 @@ void GraphXAudio::initNode( NodeRef node )
 	}
 
 	// recurse through sources
-	for( NodeRef& sourceNode : node->getSources() )
+	for( NodeRef& sourceNode : node->getSources() ) {
+		// TODO TOMORROW: if source is generic, add implicit SourceXAudio
+		// FIXME: account for natives later in the chain
 		initNode( sourceNode );
-
+	}
 	// set default params from source
 	if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() ) {
 		if( ! format.getSampleRate() )
@@ -540,6 +626,12 @@ void GraphXAudio::initNode( NodeRef node )
 			//converter->initialize();
 			//connectRenderCallback( converter, &converter->mRenderContext, true ); // TODO: make sure this doesn't blow away other converters
 		}
+	}
+
+	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
+	if( nodeXAudio ) {
+		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
+		nodeXAudio->setXAudio( outputXAudio->getXAudio() );
 	}
 
 	node->initialize();
