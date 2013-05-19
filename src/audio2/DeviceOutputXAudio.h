@@ -1,13 +1,14 @@
 #pragma once
 
 #include "audio2/Device.h"
+#include "audio2/msw/xaudio.h"
 
 namespace audio2 {
 
-class DeviceOuputXAudio : public Device {
+class DeviceOutputXAudio : public Device {
   public:
 
-	virtual ~DeviceOuputXAudio();
+	virtual ~DeviceOutputXAudio();
 
 	void initialize() override;
 	void uninitialize() override;
@@ -16,8 +17,13 @@ class DeviceOuputXAudio : public Device {
 	void stop() override;
 
   private:
-	DeviceOuputXAudio( const std::string &key );
+	DeviceOutputXAudio( const std::string &key );
 
+	// TODO: use auto pointers
+	IXAudio2 *mXAudio;
+	IXAudio2MasteringVoice *mMasteringVoice;
+
+	friend class DeviceManagerMsw;
 };
 
 } // namespace audio2

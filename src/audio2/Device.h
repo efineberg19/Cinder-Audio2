@@ -44,6 +44,8 @@ class DeviceManager {
 	virtual size_t getSampleRate( const std::string &key ) = 0;
 	virtual size_t getBlockSize( const std::string &key ) = 0;
 
+	// TODO: the functionality in this method feels awkward, consider doing it in device
+	// - for iOS audio session activating, can just do that in DeviceManager's constructor
 	virtual void setActiveDevice( const std::string &key ) = 0;
 
 	static DeviceManager* instance();

@@ -1,5 +1,6 @@
 #include "audio2/EngineXAudio.h"
 #include "audio2/GraphXAudio.h"
+#include "audio2/assert.h"
 
 using namespace std;
 

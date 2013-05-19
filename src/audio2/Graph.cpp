@@ -1,3 +1,11 @@
+
+#include "cinder/Cinder.h"
+#if defined( CINDER_MSW )
+	// boost.lockfree performs some safe but unchecked calls to std::copy, that produces a nasty warning and this disabled it.
+	// Unfortunately, it must be set from an implementation file.
+	#pragma warning(disable:4996)
+#endif
+
 #include "audio2/Graph.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/assert.h"

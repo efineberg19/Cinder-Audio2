@@ -68,8 +68,6 @@ void BasicTestApp::setup()
 {
 	DeviceRef device = Device::getDefaultOutput();
 
-	return;
-
 	LOG_V << "device name: " << device->getName() << endl;
 	console() << "\t input channels: " << device->getNumInputChannels() << endl;
 	console() << "\t output channels: " << device->getNumOutputChannels() << endl;

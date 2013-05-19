@@ -1,5 +1,7 @@
 #pragma once
 
+#include <xaudio2.h>
+
 // TODO: this check really needs to check deployment target too, not just toolset
 #if defined( _USING_V110_SDK71_ )
 	#define CINDER_XAUDIO_2_7

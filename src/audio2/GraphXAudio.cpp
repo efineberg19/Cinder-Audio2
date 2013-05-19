@@ -26,7 +26,7 @@ OutputXAudio::OutputXAudio( DeviceRef device )
 : Output( device )
 {
 	mTag = "OutputAudioUnit";
-	mDevice = dynamic_pointer_cast<DeviceOuputXAudio>( device );
+	mDevice = dynamic_pointer_cast<DeviceOutputXAudio>( device );
 	CI_ASSERT( mDevice );
 
 	mFormat.setSampleRate( mDevice->getSampleRate() );

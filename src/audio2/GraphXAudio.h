@@ -1,7 +1,7 @@
 #pragma once
 
 #include "audio2/Graph.h"
-#include "audio2/RingBuffer.h"
+//#include "audio2/RingBuffer.h"
 
 namespace audio2 {
 
@@ -18,7 +18,7 @@ class XAudioNode {
   protected:
 };
 
-class DeviceOuputXAudio;
+class DeviceOutputXAudio;
 
 class OutputXAudio : public Output, public XAudioNode {
   public:
@@ -36,7 +36,7 @@ class OutputXAudio : public Output, public XAudioNode {
 	size_t getBlockSize() const override;
 
   private:
-	std::shared_ptr<DeviceOuputXAudio> mDevice;
+	std::shared_ptr<DeviceOutputXAudio> mDevice;
 };
 
 //class InputXAudio : public Input, public XAudioNode {
