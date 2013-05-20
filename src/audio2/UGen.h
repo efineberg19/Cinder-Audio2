@@ -1,6 +1,7 @@
 #pragma once
 
 #include "audio2/Atomic.h"
+#include "audio2/assert.h"
 #include "cinder/Rand.h"
 
 #include <cmath>
@@ -61,5 +62,37 @@ struct SineGen : public UGen {
 	size_t mSampleRate;
 	float mPhase, mPhaseIncr;
 };
+
+inline void interleaveStereoBuffer( BufferT *buffer, ChannelT *interleaved )
+{
+	CI_ASSERT( buffer->size() == 2 );
+
+	ChannelT &left = (*buffer)[0];
+	ChannelT &right = (*buffer)[1];
+	float *mixed = interleaved->data();
+
+	size_t blockSize = left.size();
+	size_t i, j;
+	for( i = 0, j = 0; i < blockSize; i++, j += 2 ) {
+		mixed[j] = left[i];
+		mixed[j + 1] = right[i];
+	}
+}
+
+inline void deinterleaveStereoBuffer( ChannelT *interleaved, BufferT *buffer )
+{
+	CI_ASSERT( buffer->size() == 2 );
+
+	ChannelT &left = (*buffer)[0];
+	ChannelT &right = (*buffer)[1];
+	float *mixed = interleaved->data();
+
+	size_t blockSize = left.size();
+	size_t i, j;
+	for( i = 0, j = 0; i < blockSize; i++, j += 2 ) {
+		left[i] = mixed[j];
+		right[i] = mixed[j + 1];
+	}
+}
 
 } // namespace audio2
