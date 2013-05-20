@@ -12,7 +12,9 @@ namespace audio2 {
 
 	struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 
-		VoiceCallbackImpl( ::IXAudio2SourceVoice *sourceVoice, function<void()> callback  ) : mSourceVoice( sourceVoice ), mRenderCallback( callback ) {}
+		VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
+
+		void setSourceVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
 
 		void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
 			::XAUDIO2_VOICE_STATE state;
@@ -57,7 +59,8 @@ OutputXAudio::OutputXAudio( DeviceRef device )
 
 void OutputXAudio::initialize()
 {
-	mDevice->initialize();
+	// Device initialize is handled by the graph because it needs to ensure there is a valid IXAudio instance and mastering voice before anything else is initialized
+	//mDevice->initialize();
 }
 
 void OutputXAudio::uninitialize()
@@ -95,11 +98,8 @@ size_t OutputXAudio::getBlockSize() const
 // TODO: blocksize needs to be exposed.
 SourceXAudio::SourceXAudio()
 {
-	mBuffer.resize(  mFormat.getNumChannels() );
-	for( auto& channel : mBuffer )
-		channel.resize( 512 );
-
-	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( mSourceVoice, bind( &SourceXAudio::submitNextBuffer, this ) ) );
+	mSources.resize( 1 );
+	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &SourceXAudio::submitNextBuffer, this ) ) );
 }
 
 SourceXAudio::~SourceXAudio()
@@ -109,6 +109,10 @@ SourceXAudio::~SourceXAudio()
 
 void SourceXAudio::initialize()
 {
+	mBuffer.resize(  mFormat.getNumChannels() );
+	for( auto& channel : mBuffer )
+		channel.resize( 512 );
+
 	::WAVEFORMATEXTENSIBLE wfx;
 	memset(&wfx, 0, sizeof( ::WAVEFORMATEXTENSIBLE ) );
 
@@ -125,7 +129,9 @@ void SourceXAudio::initialize()
 
 	HRESULT hr = mXaudio->CreateSourceVoice( &mSourceVoice, (::WAVEFORMATEX*)&wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
-	LOG_V << "created source voice." << endl;
+	mVoiceCallback->setSourceVoice( mSourceVoice );
+
+	LOG_V << "complete." << endl;
 }
 
 void SourceXAudio::uninitialize()
@@ -138,6 +144,8 @@ void SourceXAudio::start()
 {
 	CI_ASSERT( mSourceVoice );
 	mSourceVoice->Start();
+	submitNextBuffer();
+
 	LOG_V << "started." << endl;
 }
 
@@ -556,6 +564,9 @@ void GraphXAudio::initialize()
 		return;
 	CI_ASSERT( mOutput );
 
+	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
+	outputXAudio->initialize();
+
 	initNode( mOutput );
 
 	//size_t blockSize = mOutput->getBlockSize();
@@ -570,6 +581,8 @@ void GraphXAudio::initialize()
 
 void GraphXAudio::initNode( NodeRef node )
 {
+	setXAudio( node );
+
 	Node::Format& format = node->getFormat();
 
 	// set default params from parent if requested
@@ -588,11 +601,25 @@ void GraphXAudio::initNode( NodeRef node )
 	}
 
 	// recurse through sources
-	for( NodeRef& sourceNode : node->getSources() ) {
-		// TODO TOMORROW: if source is generic, add implicit SourceXAudio
-		// FIXME: account for natives later in the chain
-		initNode( sourceNode );
+	for( size_t i = 0; i < node->getSources().size(); i++ ) {
+		NodeRef source = node->getSources()[i];
+
+		initNode( source );
+
+		// if source is generic, add implicit SourceXAudio
+		// TODO: check all edge cases (such as generic effect later in the chain)
+		if( ! dynamic_cast<XAudioNode *>( source.get() ) ) {
+			NodeRef sourceVoice = make_shared<SourceXAudio>();
+			node->getSources()[i] = sourceVoice;
+			sourceVoice->getSources()[0] = source;
+			sourceVoice->getFormat().setNumChannels( source->getFormat().getNumChannels() );
+			sourceVoice->getFormat().setSampleRate( source->getFormat().getSampleRate() );
+			setXAudio( sourceVoice );
+			sourceVoice->initialize();
+		}
+
 	}
+
 	// set default params from source
 	if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() ) {
 		if( ! format.getSampleRate() )
@@ -628,12 +655,6 @@ void GraphXAudio::initNode( NodeRef node )
 		}
 	}
 
-	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
-	if( nodeXAudio ) {
-		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
-		nodeXAudio->setXAudio( outputXAudio->getXAudio() );
-	}
-
 	node->initialize();
 
 }
@@ -656,6 +677,15 @@ void GraphXAudio::uninitNode( NodeRef node )
 		uninitNode( source );
 
 	node->uninitialize();
+}
+
+void GraphXAudio::setXAudio( NodeRef node )
+{
+	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
+	if( nodeXAudio ) {
+		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
+		nodeXAudio->setXAudio( outputXAudio->getXAudio() );
+	}
 }
 
 } // namespace audio2

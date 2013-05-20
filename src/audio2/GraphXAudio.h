@@ -44,7 +44,7 @@ class OutputXAudio : public Output, public XAudioNode {
 
 struct VoiceCallbackImpl;
 
-class SourceXAudio : public Producer, public XAudioNode {
+class SourceXAudio : public Node, public XAudioNode {
   public:
 	SourceXAudio();
 	~SourceXAudio();
@@ -147,9 +147,7 @@ class GraphXAudio : public Graph {
 
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );
-	//void connectRenderCallback( NodeRef node, RenderContext *context = nullptr, bool recursive = false );
-
-	//RenderContext mRenderContext;
+	void setXAudio( NodeRef node );
 };
 
 } // namespace audio2
