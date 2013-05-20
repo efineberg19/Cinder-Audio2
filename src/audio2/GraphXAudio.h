@@ -61,6 +61,7 @@ class SourceXAudio : public Node, public XAudioNode {
 	  ::IXAudio2SourceVoice						*mSourceVoice;
 	  std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
 	  BufferT									mBuffer;
+	  ChannelT									mBufferDeInterleaved;
 	  std::unique_ptr<VoiceCallbackImpl>		mVoiceCallback;
 };
 

@@ -3,6 +3,7 @@
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
+#include "audio2/UGen.h" // buffer interleaving currently lives in here. TODO: if that is to remain, consider renaming file back to dsp.h/cpp
 
 #include "cinder/Utilities.h"
 
@@ -113,6 +114,8 @@ void SourceXAudio::initialize()
 	for( auto& channel : mBuffer )
 		channel.resize( 512 );
 
+	mBufferDeInterleaved.resize( mBuffer.size() * mBuffer[0].size() );
+
 	::WAVEFORMATEXTENSIBLE wfx;
 	memset(&wfx, 0, sizeof( ::WAVEFORMATEXTENSIBLE ) );
 
@@ -162,9 +165,13 @@ void SourceXAudio::submitNextBuffer()
 
 	mSources[0]->render( &mBuffer );
 
+	// xaudio requires de-interleaved samples
+	interleaveStereoBuffer( &mBuffer, &mBufferDeInterleaved );
+
+	// TODO: this could be a member on SourceXAudio, does not need to be changing each block
 	::XAUDIO2_BUFFER xaudio2Buffer = { 0 };
-	xaudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBuffer.data() );
-	xaudio2Buffer.AudioBytes = mBuffer.size() * sizeof( float );
+	xaudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferDeInterleaved.data() );
+	xaudio2Buffer.AudioBytes = mBufferDeInterleaved.size() * sizeof( float );
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &xaudio2Buffer );
 	CI_ASSERT( hr == S_OK );
 }
