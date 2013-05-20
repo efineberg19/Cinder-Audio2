@@ -97,18 +97,18 @@ size_t OutputXAudio::getBlockSize() const
 // ----------------------------------------------------------------------------------------------------
 
 // TODO: blocksize needs to be exposed.
-SourceXAudio::SourceXAudio()
+SourceVoiceXAudio::SourceVoiceXAudio()
 {
 	mSources.resize( 1 );
-	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &SourceXAudio::submitNextBuffer, this ) ) );
+	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &SourceVoiceXAudio::submitNextBuffer, this ) ) );
 }
 
-SourceXAudio::~SourceXAudio()
+SourceVoiceXAudio::~SourceVoiceXAudio()
 {
 
 }
 
-void SourceXAudio::initialize()
+void SourceVoiceXAudio::initialize()
 {
 	mBuffer.resize(  mFormat.getNumChannels() );
 	for( auto& channel : mBuffer )
@@ -137,13 +137,13 @@ void SourceXAudio::initialize()
 	LOG_V << "complete." << endl;
 }
 
-void SourceXAudio::uninitialize()
+void SourceVoiceXAudio::uninitialize()
 {
 }
 
 // TODO: source voice must be made during initialize() pass, so there is a chance start/stop can be called
 // before. Decide on throwing, silently failing, or a something better.
-void SourceXAudio::start()
+void SourceVoiceXAudio::start()
 {
 	CI_ASSERT( mSourceVoice );
 	mSourceVoice->Start();
@@ -152,14 +152,14 @@ void SourceXAudio::start()
 	LOG_V << "started." << endl;
 }
 
-void SourceXAudio::stop()
+void SourceVoiceXAudio::stop()
 {
 	CI_ASSERT( mSourceVoice );
 	mSourceVoice->Stop();
 	LOG_V << "stopped." << endl;
 }
 
-void SourceXAudio::submitNextBuffer()
+void SourceVoiceXAudio::submitNextBuffer()
 {
 	CI_ASSERT( mSourceVoice );
 
@@ -616,7 +616,7 @@ void GraphXAudio::initNode( NodeRef node )
 		// if source is generic, add implicit SourceXAudio
 		// TODO: check all edge cases (such as generic effect later in the chain)
 		if( ! dynamic_cast<XAudioNode *>( source.get() ) ) {
-			NodeRef sourceVoice = make_shared<SourceXAudio>();
+			NodeRef sourceVoice = make_shared<SourceVoiceXAudio>();
 			node->getSources()[i] = sourceVoice;
 			sourceVoice->getSources()[0] = source;
 			sourceVoice->getFormat().setNumChannels( source->getFormat().getNumChannels() );

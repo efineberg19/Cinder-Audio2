@@ -44,10 +44,10 @@ class OutputXAudio : public Output, public XAudioNode {
 
 struct VoiceCallbackImpl;
 
-class SourceXAudio : public Node, public XAudioNode {
+class SourceVoiceXAudio : public Node, public XAudioNode {
   public:
-	SourceXAudio();
-	~SourceXAudio();
+	SourceVoiceXAudio();
+	~SourceVoiceXAudio();
 
 	void initialize() override;
 	void uninitialize() override;
