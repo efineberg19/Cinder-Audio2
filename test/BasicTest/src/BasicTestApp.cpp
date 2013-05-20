@@ -18,6 +18,7 @@
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+
 using namespace audio2;
 
 template <typename UGenT>
@@ -66,6 +67,7 @@ void BasicTestApp::prepareSettings( Settings *settings )
 
 void BasicTestApp::setup()
 {
+
 	DeviceRef device = Device::getDefaultOutput();
 
 	LOG_V << "device name: " << device->getName() << endl;
@@ -103,10 +105,15 @@ void BasicTestApp::setup()
 
 void BasicTestApp::setupBasic()
 {
-	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->mGen.setAmp( 0.25f );
+	//auto genNode = make_shared<UGenNode<NoiseGen> >();
+	//genNode->mGen.setAmp( 0.2f );
 
-	mGraph->getOutput()->connect( noise );
+	auto genNode = make_shared<UGenNode<SineGen> >();
+	genNode->mGen.setAmp( 0.2f );
+	genNode->mGen.setFreq( 440.0f );
+	genNode->mGen.setSampleRate( mGraph->getOutput()->getFormat().getSampleRate() );
+
+	mGraph->getOutput()->connect( genNode );
 }
 
 void BasicTestApp::setupMixer()
