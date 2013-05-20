@@ -10,12 +10,12 @@ using namespace std;
 
 namespace audio2 {
 
-	struct VoiceCallbackImpl : public IXAudio2VoiceCallback {
+	struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 
-		VoiceCallbackImpl( IXAudio2SourceVoice *sourceVoice, function<void()> callback  ) : mSourceVoice( sourceVoice ), mRenderCallback( callback ) {}
+		VoiceCallbackImpl( ::IXAudio2SourceVoice *sourceVoice, function<void()> callback  ) : mSourceVoice( sourceVoice ), mRenderCallback( callback ) {}
 
 		void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
-			XAUDIO2_VOICE_STATE state;
+			::XAUDIO2_VOICE_STATE state;
 			mSourceVoice->GetState( &state );
 			if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
 				mRenderCallback();
