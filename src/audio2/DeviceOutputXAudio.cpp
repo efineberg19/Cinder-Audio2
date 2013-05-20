@@ -61,9 +61,7 @@ void DeviceOutputXAudio::initialize()
 
 	::XAUDIO2_VOICE_DETAILS voiceDetails;
 	mMasteringVoice->GetVoiceDetails( &voiceDetails );
-	//mNumChannels = voiceDetails.InputChannels;
-	//mSampleRate = voiceDetails.InputSampleRate;
-
+	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
 #else
 	// TODO: pick device with index
 	HRESULT hr = device->mXAudio->CreateMasteringVoice( &device->mMasteringVoice );
@@ -84,7 +82,7 @@ void DeviceOutputXAudio::initialize()
 
 #endif
 
-	LOG_V << "init complete" << endl;
+	//LOG_V << "init complete" << endl;
 }
 
 void DeviceOutputXAudio::uninitialize()
@@ -94,15 +92,15 @@ void DeviceOutputXAudio::uninitialize()
 
 void DeviceOutputXAudio::start()
 {
-	LOG_V "starting" << endl;
 	HRESULT hr = mXAudio->StartEngine();
 	CI_ASSERT( hr ==S_OK );
+	LOG_V "started" << endl;
 }
 
 void DeviceOutputXAudio::stop()
 {
-	LOG_V "stopping" << endl;
 	mXAudio->StopEngine();
+	LOG_V "stopped" << endl;
 }
 
 } // namespace audio2
