@@ -59,6 +59,7 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 	  void submitNextBuffer();
 
 	  ::IXAudio2SourceVoice						*mSourceVoice;
+	  ::XAUDIO2_BUFFER							mXAudio2Buffer;
 	  std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
 	  BufferT									mBuffer;
 	  ChannelT									mBufferDeInterleaved;

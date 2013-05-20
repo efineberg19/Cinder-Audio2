@@ -116,6 +116,10 @@ void SourceVoiceXAudio::initialize()
 
 	mBufferDeInterleaved.resize( mBuffer.size() * mBuffer[0].size() );
 
+	memset( &mXAudio2Buffer, 0, sizeof( mXAudio2Buffer ) );
+	mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferDeInterleaved.data() );
+	mXAudio2Buffer.AudioBytes = mBufferDeInterleaved.size() * sizeof( float );
+
 	::WAVEFORMATEXTENSIBLE wfx;
 	memset(&wfx, 0, sizeof( ::WAVEFORMATEXTENSIBLE ) );
 
@@ -168,11 +172,7 @@ void SourceVoiceXAudio::submitNextBuffer()
 	// xaudio requires de-interleaved samples
 	interleaveStereoBuffer( &mBuffer, &mBufferDeInterleaved );
 
-	// TODO: this could be a member on SourceXAudio, does not need to be changing each block
-	::XAUDIO2_BUFFER xaudio2Buffer = { 0 };
-	xaudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferDeInterleaved.data() );
-	xaudio2Buffer.AudioBytes = mBufferDeInterleaved.size() * sizeof( float );
-	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &xaudio2Buffer );
+	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
 	CI_ASSERT( hr == S_OK );
 }
 
