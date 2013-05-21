@@ -25,9 +25,7 @@ ProducerRef EngineXAudio::createInput( DeviceRef device )
 
 MixerRef EngineXAudio::createMixer()
 {
-	CI_ASSERT( 0 && "not yet implemtned" );
-	//return MixerRef( new MixerXAudio() );
-	return MixerRef();
+	return MixerRef( new MixerXAudio() );
 }
 
 } // namespace audio2

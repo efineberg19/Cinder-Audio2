@@ -11,14 +11,26 @@ namespace audio2 {
 //	BufferT buffer;
 //};
 
+class SourceVoiceXAudio;
+
 class XAudioNode {
   public:
 	XAudioNode() {}
 	virtual ~XAudioNode();
 
-	void setXAudio( ::IXAudio2 *xaudio )	{ mXaudio = xaudio; }
+	void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
+
+	// Subclasses override these methods to return their xaudio voice if they have one,
+	// otherwise the default implementation recurses through sources to find the goods.
+	// Node must be passed in here to traverse it's children and I want to avoid the complexities of dual inheriting from Node.
+	// (this is a +1 for using a pimpl approach instead of dual inheritance)
+	virtual ::IXAudio2Voice* getXAudioVoice( NodeRef node );
+
+	//! find this node's SourceVoiceXAudio ( possibly node )
+	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
+
   protected:
-	  ::IXAudio2 *mXaudio;
+	  ::IXAudio2 *mXAudio;
 };
 
 class DeviceOutputXAudio;
@@ -55,15 +67,20 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 	void start() override;
 	void stop() override;
 
-  private:
-	  void submitNextBuffer();
+	::IXAudio2Voice*		getXAudioVoice( NodeRef node ) override			{ return static_cast<::IXAudio2Voice *>( mSourceVoice ); }
+  
+	bool isRunning() const	{ return mIsRunning; }
 
-	  ::IXAudio2SourceVoice						*mSourceVoice;
-	  ::XAUDIO2_BUFFER							mXAudio2Buffer;
-	  std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-	  BufferT									mBuffer;
-	  ChannelT									mBufferDeInterleaved;
-	  std::unique_ptr<VoiceCallbackImpl>		mVoiceCallback;
+  private:
+	void submitNextBuffer();
+
+	::IXAudio2SourceVoice						*mSourceVoice;
+	::XAUDIO2_BUFFER							mXAudio2Buffer;
+	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
+	BufferT										mBuffer;
+	ChannelT									mBufferDeInterleaved;
+	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
+	bool										mIsRunning;
 };
 
 //class InputXAudio : public Input, public XAudioNode {
@@ -103,26 +120,31 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 //  private:
 //};
 
-//class MixerXAudio : public Mixer, public XAudioNode {
-//public:
-//	MixerXAudio();
-//	virtual ~MixerXAudio();
-//
-//	void initialize() override;
-//	void uninitialize() override;
-//
-//	size_t getNumBusses() override;
-//	void setNumBusses( size_t count ) override;
-//	bool isBusEnabled( size_t bus ) override;
-//	void setBusEnabled( size_t bus, bool enabled = true ) override;
-//	void setBusVolume( size_t bus, float volume ) override;
-//	float getBusVolume( size_t bus ) override;
-//	void setBusPan( size_t bus, float pan ) override;
-//	float getBusPan( size_t bus ) override;
-//
-//  private:
-//	void checkBusIsValid( size_t bus );
-//};
+class MixerXAudio : public Mixer, public XAudioNode {
+public:
+	MixerXAudio();
+	virtual ~MixerXAudio();
+
+	void initialize() override;
+	void uninitialize() override;
+
+	size_t getNumBusses() override;
+	void setNumBusses( size_t count ) override;
+	void setMaxNumBusses( size_t count ) override;
+	bool isBusEnabled( size_t bus ) override;
+	void setBusEnabled( size_t bus, bool enabled = true ) override;
+	void setBusVolume( size_t bus, float volume ) override;
+	float getBusVolume( size_t bus ) override;
+	void setBusPan( size_t bus, float pan ) override;
+	float getBusPan( size_t bus ) override;
+
+	::IXAudio2Voice* getXAudioVoice( NodeRef node ) override	{ return static_cast<IXAudio2Voice *>( mSubmixVoice ); }
+
+  private:
+	void checkBusIsValid( size_t bus );
+
+	::IXAudio2SubmixVoice *mSubmixVoice;
+};
 
 //class ConverterXAudio : public Node, public XAudioNode {
 //  public:

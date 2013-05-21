@@ -142,20 +142,26 @@ class BufferTap : public Node {
 
 class Mixer : public Node {
   public:
-	Mixer() : Node() {}
+	Mixer() : Node(), mMaxNumBusses( 20 ) {}
 	virtual ~Mixer() {}
 
 	virtual void connect( NodeRef source );
 	virtual void connect( NodeRef source, size_t bus );
 
+	//! returns the number of connected busses.
 	virtual size_t getNumBusses() = 0;
-	virtual void setNumBusses( size_t count ) = 0;
+	virtual void setNumBusses( size_t count ) = 0;	// ???: does this make sense now? should above be getNumActiveBusses?
+	virtual size_t getMaxNumBusses()	{ return mMaxNumBusses; }
+	virtual void setMaxNumBusses( size_t count ) = 0;
 	virtual bool isBusEnabled( size_t bus ) = 0;
 	virtual void setBusEnabled( size_t bus, bool enabled = true ) = 0;
 	virtual void setBusVolume( size_t bus, float volume ) = 0;
 	virtual float getBusVolume( size_t bus ) = 0;
 	virtual void setBusPan( size_t bus, float pan ) = 0;
 	virtual float getBusPan( size_t bus ) = 0;
+
+protected:
+	size_t mMaxNumBusses;
 };
 
 class Graph {

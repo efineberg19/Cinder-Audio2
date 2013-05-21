@@ -84,8 +84,8 @@ void BasicTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 
-	setupBasic();
-//	setupMixer();
+	//setupBasic();
+	setupMixer();
 
 	mGraph->initialize();
 
@@ -93,16 +93,16 @@ void BasicTestApp::setup()
 	console() << "Graph configuration:" << endl;
 	printGraph( mGraph );
 
-	//	if( mMixer ) {
-	//		LOG_V << "mixer stats:" << endl;
-	//		size_t numBusses = mMixer->getNumBusses();
-	//		console() << "\t num busses: " << numBusses << endl;
-	//		for( size_t i = 0; i < numBusses; i++ ) {
-	//			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
-	//			console() << ", volume: " << mMixer->getBusVolume( i );
-	//			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
-	//		}
-	//	}
+	if( mMixer ) {
+		LOG_V << "mixer stats:" << endl;
+		size_t numBusses = mMixer->getNumBusses();
+		console() << "\t num busses: " << numBusses << endl;
+		for( size_t i = 0; i < numBusses; i++ ) {
+			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
+			console() << ", volume: " << mMixer->getBusVolume( i );
+			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
+		}
+	}
 
 	setupUI();
 }
@@ -129,6 +129,7 @@ void BasicTestApp::setupMixer()
 	sine->mGen.setFreq( 440.0f );
 
 	mMixer = Engine::instance()->createMixer();
+	mMixer->connect( noise );
 	mMixer->connect( sine );
 
 	mGraph->getOutput()->connect( mMixer );

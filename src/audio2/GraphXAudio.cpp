@@ -17,6 +17,7 @@ namespace audio2 {
 
 		void setSourceVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
 
+		// TODO: apparently passing in XAUDIO2_VOICE_NOSAMPLESPLAYED to GetState is 4x faster
 		void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
 			::XAUDIO2_VOICE_STATE state;
 			mSourceVoice->GetState( &state );
@@ -41,6 +42,55 @@ namespace audio2 {
 
 XAudioNode::~XAudioNode()
 {
+}
+
+::IXAudio2Voice* XAudioNode::getXAudioVoice( NodeRef node )
+{
+	CI_ASSERT( node && ! node->getSources().empty() );
+	
+	NodeRef source = node->getSources().front();
+	while( source ) {
+		XAudioNode *sourceXAudio = dynamic_cast<XAudioNode *>( source.get() );
+		if( sourceXAudio )
+			return sourceXAudio->getXAudioVoice( source );
+		else {
+			CI_ASSERT( ! source->getSources().empty() );
+			node = source->getSources().front();
+		}
+	}
+	return nullptr;
+}
+
+//::IXAudio2SourceVoice* XAudioNode::getXAudioSourceVoice( NodeRef node )
+//{
+//	CI_ASSERT( node && ! node->getSources().empty() );
+//
+//	NodeRef source = node->getSources().front();
+//	while( source ) {
+//		XAudioNode *sourceXAudio = dynamic_cast<XAudioNode *>( node.get() );
+//		if( sourceXAudio )
+//			return sourceXAudio->getXAudioSourceVoice( source );
+//		else {
+//			CI_ASSERT( ! source->getSources().empty() );
+//			node = source->getSources().front();
+//		}
+//	}
+//	return nullptr;
+//}
+
+shared_ptr<SourceVoiceXAudio> XAudioNode::getSourceVoice( NodeRef node )
+{
+	CI_ASSERT( node );
+	while( node ) {
+		auto sourceVoice = dynamic_pointer_cast<SourceVoiceXAudio>( node );
+		if( sourceVoice )
+			return sourceVoice;
+		else {
+			CI_ASSERT( ! node->getSources().empty() );
+			node = node->getSources().front();
+		}
+	}
+	return nullptr;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -99,6 +149,7 @@ size_t OutputXAudio::getBlockSize() const
 // TODO: blocksize needs to be exposed.
 SourceVoiceXAudio::SourceVoiceXAudio()
 {
+	mTag = "SourceVoiceXAudio";
 	mSources.resize( 1 );
 	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &SourceVoiceXAudio::submitNextBuffer, this ) ) );
 }
@@ -134,7 +185,7 @@ void SourceVoiceXAudio::initialize()
 	wfx.SubFormat                   = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 	wfx.dwChannelMask				= 0; // this could be a very complicated bit mask of channel order, but 0 means 'first channel is left, second channel is right, etc'
 
-	HRESULT hr = mXaudio->CreateSourceVoice( &mSourceVoice, (::WAVEFORMATEX*)&wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
+	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, (::WAVEFORMATEX*)&wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
 	mVoiceCallback->setSourceVoice( mSourceVoice );
 
@@ -150,6 +201,7 @@ void SourceVoiceXAudio::uninitialize()
 void SourceVoiceXAudio::start()
 {
 	CI_ASSERT( mSourceVoice );
+	mIsRunning = true;
 	mSourceVoice->Start();
 	submitNextBuffer();
 
@@ -159,6 +211,7 @@ void SourceVoiceXAudio::start()
 void SourceVoiceXAudio::stop()
 {
 	CI_ASSERT( mSourceVoice );
+	mIsRunning = false;
 	mSourceVoice->Stop();
 	LOG_V << "stopped." << endl;
 }
@@ -351,7 +404,7 @@ void EffectXAudio::setParameter( ::AudioUnitParameterID param, float val )
 // MARK: - MixerXAudio
 // ----------------------------------------------------------------------------------------------------
 
-/*
+
 MixerXAudio::MixerXAudio()
 {
 	mTag = "MixerXAudio";
@@ -364,131 +417,118 @@ MixerXAudio::~MixerXAudio()
 
 void MixerXAudio::initialize()
 {
-#if defined( CINDER_COCOA_TOUCH )
-	if( mFormat.getNumChannels() > 2 )
-		throw AudioParamExc( "iOS mult-channel mixer is limited to two output channels" );
-#endif
+	HRESULT hr = mXAudio->CreateSubmixVoice( &mSubmixVoice, mFormat.getNumChannels(), mFormat.getSampleRate());
 
-	::AudioComponentDescription comp{ 0 };
-	comp.componentType = kAudioUnitType_Mixer;
-	comp.componentSubType = kAudioUnitSubType_MultiChannelMixer;
-	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
+	::XAUDIO2_SEND_DESCRIPTOR sendDesc = { 0, mSubmixVoice };
+	::XAUDIO2_VOICE_SENDS sendList = { 1, &sendDesc };
 
-	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
-
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
-	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
-	CI_ASSERT( status == noErr );
-
-	float outputVolume = 1.0f;
-	status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
-	CI_ASSERT( status == noErr );
-
-	CI_ASSERT( mSources.size() <= getNumBusses() );
-
-	for( UInt32 bus = 0; bus < mSources.size(); bus++ ) {
-		if( ! mSources[bus] )
+	// find source voices and set this node's submix voice to be their output
+	// graph should have already inserted a native source voice on this end of the mixer if needed.
+	// TODO:: test with generic effects
+	for( NodeRef node : mSources ) {
+		if( ! node )
 			continue;
-
-		Node::Format& sourceFormat = mSources[bus]->getFormat();
-		::AudioStreamBasicDescription busAsbd = cocoa::nonInterleavedFloatABSD( sourceFormat.getNumChannels(), sourceFormat.getSampleRate() );
-
-		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &busAsbd, sizeof( busAsbd ) );
-		CI_ASSERT( status == noErr );
-
-		float inputVolume = 1.0f;
-		status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, bus, inputVolume, 0 );
-		CI_ASSERT( status == noErr );
+		XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
+		::IXAudio2Voice *sourceVoice = nodeXAudio->getXAudioVoice( node );
+		sourceVoice->SetOutputVoices( &sendList );
 	}
-
-	status = ::AudioUnitInitialize( mAudioUnit );
-	CI_ASSERT( status == noErr );
-
 	LOG_V << "initialize complete. " << endl;
 }
 
 void MixerXAudio::uninitialize()
 {
-	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
-	CI_ASSERT( status );
+	if( mSubmixVoice ) {
+		LOG_V << "about to destroy submix voice: " << hex << mSubmixVoice << dec << endl;
+		mSubmixVoice->DestroyVoice();
+	}
 }
 
 size_t MixerXAudio::getNumBusses()
 {
-	UInt32 busCount;
-	UInt32 busCountSize = sizeof( busCount );
-	OSStatus status = ::AudioUnitGetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, &busCountSize );
-	CI_ASSERT( status == noErr );
-
-	return static_cast<size_t>( busCount );
+	size_t result = 0;
+	for( NodeRef node : mSources ) {
+		if( node )
+			result++;
+	}
+	return result;
 }
 
 void MixerXAudio::setNumBusses( size_t count )
 {
-	UInt32 busCount = static_cast<UInt32>( count );
-	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof( busCount ) );
-	CI_ASSERT( status == noErr );
+	// TODO: set what to do here, if anything. probably should be removed.
+}
+
+void MixerXAudio::setMaxNumBusses( size_t count )
+{
+	size_t numActive = getNumBusses();
+	if( count < numActive )
+		throw AudioExc( string( "don't know how to resize max num busses to " ) + ci::toString( count ) + "when there are " + ci::toString( numActive ) + "active busses." );
+
+	mMaxNumBusses = count;
 }
 
 bool MixerXAudio::isBusEnabled( size_t bus )
 {
 	checkBusIsValid( bus );
 
-	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
-	::AudioUnitParameterValue enabledValue;
-	OSStatus status = ::AudioUnitGetParameter( mAudioUnit, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, busElement, &enabledValue );
-	CI_ASSERT( status == noErr );
+	NodeRef node = mSources[bus];
+	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() ); // TODO: account for generic effect that is after a native effect
+	auto sourceVoice = nodeXAudio->getSourceVoice( node );
 
-	return static_cast<bool>( enabledValue );
+	return sourceVoice->isRunning();
 }
 
 void MixerXAudio::setBusEnabled( size_t bus, bool enabled )
 {
 	checkBusIsValid( bus );
 
-	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
-	::AudioUnitParameterValue enabledValue = static_cast<::AudioUnitParameterValue>( enabled );
-	OSStatus status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, busElement, enabledValue, 0 );
-	CI_ASSERT( status == noErr );
+	NodeRef node = mSources[bus];
+	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() ); // TODO: account for generic effect that is after a native effect
+	auto sourceVoice = nodeXAudio->getSourceVoice( node );
+
+	if( enabled )
+		sourceVoice->stop();
+	else
+		sourceVoice->start();
 }
 
+// TODO: IXAudio2Voice::GetVolume and SetVolume
 void MixerXAudio::setBusVolume( size_t bus, float volume )
 {
 	checkBusIsValid( bus );
-	audioUnitSetParam( mAudioUnit, kMultiChannelMixerParam_Volume, volume, kAudioUnitScope_Input, bus );
+	
 }
 
 float MixerXAudio::getBusVolume( size_t bus )
 {
 	checkBusIsValid( bus );
 
-	float volume;
-	audioUnitGetParam( mAudioUnit, kMultiChannelMixerParam_Volume, volume, kAudioUnitScope_Input, bus );
-	return volume;
+	return 0.0f;
 }
 
+// TODO: panning explained here: http://msdn.microsoft.com/en-us/library/windows/desktop/hh405043(v=vs.85).aspx
 void MixerXAudio::setBusPan( size_t bus, float pan )
 {
 	checkBusIsValid( bus );
-	audioUnitSetParam( mAudioUnit, kMultiChannelMixerParam_Pan, pan, kAudioUnitScope_Input, bus );
+	LOG_E << "not implemented" << endl;
 }
 
 float MixerXAudio::getBusPan( size_t bus )
 {
 	checkBusIsValid( bus );
 
-	float pan;
-	audioUnitGetParam( mAudioUnit, kMultiChannelMixerParam_Pan, pan, kAudioUnitScope_Input, bus );
-	return pan;
+	LOG_E << "not implemented" << endl;
+	return 0.0f;
 }
 
 void MixerXAudio::checkBusIsValid( size_t bus )
 {
-	if( bus >= getNumBusses() )
-		throw AudioParamExc( "Bus number out of range.");
+	if( bus >= getMaxNumBusses() )
+		throw AudioParamExc( "Bus index out of range: " + bus );
+	if( ! mSources[bus] )
+		throw AudioParamExc( "There is no node at bus index: " + bus );
 }
 
-*/
 // ----------------------------------------------------------------------------------------------------
 // MARK: - ConverterXAudio
 // ----------------------------------------------------------------------------------------------------
@@ -648,7 +688,7 @@ void GraphXAudio::initNode( NodeRef node )
 #endif
 		if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
 			LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
-			// TODO: if node is an OutputAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
+			// TODO: if node is an Output, or Mixer, they can do the channel mapping and avoid the converter
 			needsConverter = true;
 		}
 		if( needsConverter ) {
@@ -663,7 +703,6 @@ void GraphXAudio::initNode( NodeRef node )
 	}
 
 	node->initialize();
-
 }
 
 void GraphXAudio::uninitialize()
