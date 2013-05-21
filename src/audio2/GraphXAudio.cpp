@@ -512,7 +512,6 @@ float MixerXAudio::getBusVolume( size_t bus )
 
 	float volume;
 	voice->GetVolume( &volume );
-	
 	return volume;
 }
 
@@ -520,6 +519,27 @@ float MixerXAudio::getBusVolume( size_t bus )
 void MixerXAudio::setBusPan( size_t bus, float pan )
 {
 	checkBusIsValid( bus );
+
+	size_t numChannels = mFormat.getNumChannels(); 
+	if( numChannels == 1 )
+		return; // mono is no-op
+	if( numChannels > 2 )
+		throw AudioParamExc( string( "Don't know how to pan " ) + ci::toString( numChannels ) + " channels" );
+
+	float left = 0.5f - pan / 2.0f;
+	float right = 0.5f + pan / 2.0f; 
+
+	vector<float> outputMatrix( 4 );
+	outputMatrix[0] = left;
+	outputMatrix[1] = left;
+	outputMatrix[2] = right;
+	outputMatrix[3] = right;
+
+	NodeRef node = mSources[bus];
+	auto nodeXAudio = getVoice( node );
+	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
+	HRESULT hr = voice->SetOutputMatrix( nullptr, node->getFormat().getNumChannels(), numChannels, outputMatrix.data() );
+	CI_ASSERT( hr == S_OK );
 }
 
 float MixerXAudio::getBusPan( size_t bus )
