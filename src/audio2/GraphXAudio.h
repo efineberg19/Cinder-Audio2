@@ -26,7 +26,9 @@ class XAudioNode {
 	// (this is a +1 for using a pimpl approach instead of dual inheritance)
 	virtual ::IXAudio2Voice* getXAudioVoice( NodeRef node );
 
-	//! find this node's SourceVoiceXAudio ( possibly node )
+	//! find the first XAudioNode in \t node's source tree (possibly node)
+	std::shared_ptr<XAudioNode> getVoice( NodeRef node );
+	//! find this node's SourceVoiceXAudio (possibly node)
 	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
 
   protected:

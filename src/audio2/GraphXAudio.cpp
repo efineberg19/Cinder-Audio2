@@ -61,22 +61,20 @@ XAudioNode::~XAudioNode()
 	return nullptr;
 }
 
-//::IXAudio2SourceVoice* XAudioNode::getXAudioSourceVoice( NodeRef node )
-//{
-//	CI_ASSERT( node && ! node->getSources().empty() );
-//
-//	NodeRef source = node->getSources().front();
-//	while( source ) {
-//		XAudioNode *sourceXAudio = dynamic_cast<XAudioNode *>( node.get() );
-//		if( sourceXAudio )
-//			return sourceXAudio->getXAudioSourceVoice( source );
-//		else {
-//			CI_ASSERT( ! source->getSources().empty() );
-//			node = source->getSources().front();
-//		}
-//	}
-//	return nullptr;
-//}
+shared_ptr<XAudioNode> XAudioNode::getVoice( NodeRef node )
+{
+	CI_ASSERT( node );
+	while( node ) {
+		auto voice = dynamic_pointer_cast<XAudioNode>( node ); // ???: does this work with multiple inheritance?
+		if( voice )
+			return voice;
+		else {
+			CI_ASSERT( ! node->getSources().empty() );
+			node = node->getSources().front();
+		}
+	}
+	return nullptr;
+}
 
 shared_ptr<SourceVoiceXAudio> XAudioNode::getSourceVoice( NodeRef node )
 {
@@ -472,7 +470,7 @@ bool MixerXAudio::isBusEnabled( size_t bus )
 	checkBusIsValid( bus );
 
 	NodeRef node = mSources[bus];
-	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() ); // TODO: account for generic effect that is after a native effect
+	auto nodeXAudio = getVoice( node );
 	auto sourceVoice = nodeXAudio->getSourceVoice( node );
 
 	return sourceVoice->isRunning();
@@ -483,7 +481,7 @@ void MixerXAudio::setBusEnabled( size_t bus, bool enabled )
 	checkBusIsValid( bus );
 
 	NodeRef node = mSources[bus];
-	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() ); // TODO: account for generic effect that is after a native effect
+	auto nodeXAudio = getVoice( node );
 	auto sourceVoice = nodeXAudio->getSourceVoice( node );
 
 	if( enabled )
@@ -510,14 +508,12 @@ float MixerXAudio::getBusVolume( size_t bus )
 void MixerXAudio::setBusPan( size_t bus, float pan )
 {
 	checkBusIsValid( bus );
-	LOG_E << "not implemented" << endl;
 }
 
 float MixerXAudio::getBusPan( size_t bus )
 {
 	checkBusIsValid( bus );
 
-	LOG_E << "not implemented" << endl;
 	return 0.0f;
 }
 

@@ -98,7 +98,7 @@ void BasicTestApp::setup()
 		size_t numBusses = mMixer->getNumBusses();
 		console() << "\t num busses: " << numBusses << endl;
 		for( size_t i = 0; i < numBusses; i++ ) {
-			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
+			console() << "\t [" << i << "] enabled: " << boolalpha << mMixer->isBusEnabled( i ) << dec;
 			console() << ", volume: " << mMixer->getBusVolume( i );
 			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
 		}
