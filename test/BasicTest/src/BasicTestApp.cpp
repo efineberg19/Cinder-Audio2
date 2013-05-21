@@ -28,6 +28,10 @@ struct UGenNode : public Producer {
 		mFormat.setWantsDefaultFormatFromParent();
 	}
 
+	virtual void initialize() override {
+		mGen.setSampleRate( mFormat.getSampleRate() );
+	}
+
 	virtual void render( BufferT *buffer ) override {
 		mGen.render( buffer );
 	}
@@ -111,7 +115,6 @@ void BasicTestApp::setupBasic()
 	auto genNode = make_shared<UGenNode<SineGen> >();
 	genNode->mGen.setAmp( 0.2f );
 	genNode->mGen.setFreq( 440.0f );
-	genNode->mGen.setSampleRate( mGraph->getOutput()->getFormat().getSampleRate() );
 
 	mGraph->getOutput()->connect( genNode );
 }
@@ -124,8 +127,6 @@ void BasicTestApp::setupMixer()
 	auto sine = make_shared<UGenNode<SineGen> >();
 	sine->mGen.setAmp( 0.25f );
 	sine->mGen.setFreq( 440.0f );
-	sine->mGen.setSampleRate( 44100 ); // TODO: this should be auto-configurable
-	//	sine->getFormat().setSampleRate( 48000 );
 
 	mMixer = Engine::instance()->createMixer();
 	mMixer->connect( sine );
