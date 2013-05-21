@@ -24,16 +24,16 @@ class DeviceManagerCoreAudio : public DeviceManager {
 
   private:
 
-	static std::string keyForDeviceID( ::AudioObjectID deviceID );
+	static std::string keyForDeviceId( ::AudioObjectID deviceId );
 
 	struct DeviceInfo {
 		std::string			key;
-		::AudioDeviceID		deviceID;
+		::AudioDeviceID		deviceId;
 		DeviceRef			device;
 	};
 	typedef std::vector<DeviceInfo> DeviceContainerT;
 
-	::AudioDeviceID getDeviceID( const std::string &key );
+	::AudioDeviceID getDeviceId( const std::string &key );
 	DeviceContainerT& getDevices();
 
 	DeviceContainerT mDevices;
