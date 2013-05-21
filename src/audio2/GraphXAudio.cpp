@@ -490,18 +490,30 @@ void MixerXAudio::setBusEnabled( size_t bus, bool enabled )
 		sourceVoice->start();
 }
 
-// TODO: IXAudio2Voice::GetVolume and SetVolume
 void MixerXAudio::setBusVolume( size_t bus, float volume )
 {
 	checkBusIsValid( bus );
 	
+	NodeRef node = mSources[bus];
+	auto nodeXAudio = getVoice( node );
+	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
+
+	HRESULT hr = voice->SetVolume( volume );
+	CI_ASSERT( hr == S_OK );
 }
 
 float MixerXAudio::getBusVolume( size_t bus )
 {
 	checkBusIsValid( bus );
 
-	return 0.0f;
+	NodeRef node = mSources[bus];
+	auto nodeXAudio = getVoice( node );
+	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
+
+	float volume;
+	voice->GetVolume( &volume );
+	
+	return volume;
 }
 
 // TODO: panning explained here: http://msdn.microsoft.com/en-us/library/windows/desktop/hh405043(v=vs.85).aspx

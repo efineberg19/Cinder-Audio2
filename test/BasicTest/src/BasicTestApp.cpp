@@ -62,7 +62,9 @@ public:
 	MixerRef mMixer;
 
 	Button mPlayButton;
-	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mBandPassCenterSlider;
+	HSlider mNoisePanSlider, mFreqPanSlider, mNoiseVolumeSlider, mFreqVolumeSlider; // TODO: rename Freq to Sine
+
+	enum Bus { Noise, Sine };
 };
 
 void BasicTestApp::prepareSettings( Settings *settings )
@@ -161,16 +163,22 @@ void BasicTestApp::setupUI()
 	mFreqPanSlider.min = -1.0f;
 	mFreqPanSlider.max = 1.0f;
 
-	//sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	//mLowpassCutoffSlider.bounds = sliderRect;
-	//mLowpassCutoffSlider.title = "Lowpass Cutoff (Noise)";
-	//mLowpassCutoffSlider.max = 1500.0f;
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mNoiseVolumeSlider.bounds = sliderRect;
+	mNoiseVolumeSlider.title = "Volume (Noise)";
+	mNoiseVolumeSlider.max = 1.0f;
 
-	//sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	//mBandPassCenterSlider.bounds = sliderRect;
-	//mBandPassCenterSlider.title = "Bandpass Center (Noise)";
-	//mBandPassCenterSlider.min = 500.0f;
-	//mBandPassCenterSlider.max = 2500.0f;
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mFreqVolumeSlider.bounds = sliderRect;
+	mFreqVolumeSlider.title = "Volume (Freq)";
+	mFreqVolumeSlider.max = 1.0f;
+
+	if( mMixer ) {
+		mNoisePanSlider.set( mMixer->getBusPan( Bus::Noise ) );
+		mFreqPanSlider.set( mMixer->getBusPan( Bus::Sine ) );
+		mNoiseVolumeSlider.set( mMixer->getBusVolume( Bus::Noise ) );
+		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::Sine ) );
+	}
 
 	gl::enableAlphaBlending();
 }
@@ -183,20 +191,14 @@ void BasicTestApp::processEvent( Vec2i pos )
 {
 	if( mMixer ) {
 		if( mNoisePanSlider.hitTest( pos ) )
-			mMixer->setBusPan( 0, mNoisePanSlider.valueScaled );
+			mMixer->setBusPan( Bus::Noise, mNoisePanSlider.valueScaled );
 		if( mFreqPanSlider.hitTest( pos ) )
-			mMixer->setBusPan( 1, mFreqPanSlider.valueScaled );
+			mMixer->setBusPan( Bus::Sine, mFreqPanSlider.valueScaled );
+		if( mNoiseVolumeSlider.hitTest( pos ) )
+			mMixer->setBusVolume( Bus::Noise, mNoiseVolumeSlider.valueScaled );
+		if( mFreqVolumeSlider.hitTest( pos ) )
+			mMixer->setBusVolume( Bus::Sine, mFreqVolumeSlider.valueScaled );
 	}
-
-	//if( mEffect ) {
-	//	if( mLowpassCutoffSlider.hitTest( pos ) )
-	//		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
-	//}
-
-	//if( mEffect2 ) {
-	//	if( mBandPassCenterSlider.hitTest( pos ) )
-	//		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
-	//}
 }
 
 void BasicTestApp::mouseDown( MouseEvent event )
@@ -234,8 +236,8 @@ void BasicTestApp::draw()
 	mPlayButton.draw();
 	mNoisePanSlider.draw();
 	mFreqPanSlider.draw();
-	mLowpassCutoffSlider.draw();
-	mBandPassCenterSlider.draw();
+	mNoiseVolumeSlider.draw();
+	mFreqVolumeSlider.draw();
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )
