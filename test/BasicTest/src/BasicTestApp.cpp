@@ -96,6 +96,13 @@ void BasicTestApp::setup()
 	printGraph( mGraph );
 
 	if( mMixer ) {
+
+		// reduce default bus volumes
+		// FIXME: setting params fails before Graph::initialize(), so there isn't an audio unit yet.
+		//		- can I overcome this by lazy-loading the AudioUnit, just create when first asked for?
+		mMixer->setBusVolume( Bus::Noise, 0.65f );
+		mMixer->setBusVolume( Bus::Sine, 0.65f );
+
 		LOG_V << "mixer stats:" << endl;
 		size_t numBusses = mMixer->getNumBusses();
 		console() << "\t num busses: " << numBusses << endl;
