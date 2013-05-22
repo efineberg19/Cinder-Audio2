@@ -110,18 +110,16 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 //	cocoa::AudioBufferListRef mBufferList;
 //};
 
-//class EffectXAudio : public Effect, public XAudioNode {
-//public:
-//	EffectXAudio();
-//	virtual ~EffectXAudio();
-//
-//	void initialize() override;
-//	void uninitialize() override;
-//
-//	//void setParameter( ::AudioUnitParameterID param, float val );
-//
-//  private:
-//};
+class EffectXAudio : public Effect, public XAudioNode {
+public:
+	EffectXAudio();
+	virtual ~EffectXAudio();
+
+	void initialize() override;
+	void uninitialize() override;
+
+  private:
+};
 
 class MixerXAudio : public Mixer, public XAudioNode {
 public:

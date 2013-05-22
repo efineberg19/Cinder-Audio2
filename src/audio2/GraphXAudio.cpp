@@ -351,9 +351,8 @@ OSStatus InputXAudio::inputCallback( void *context, ::AudioUnitRenderActionFlags
 // MARK: - EffectXAudio
 // ----------------------------------------------------------------------------------------------------
 
-/*
-EffectXAudio::EffectXAudio(  UInt32 effectSubType )
-: mEffectSubType( effectSubType )
+
+EffectXAudio::EffectXAudio()
 {
 	mTag = "EffectXAudio";
 }
@@ -364,44 +363,16 @@ EffectXAudio::~EffectXAudio()
 
 void EffectXAudio::initialize()
 {
-	::AudioComponentDescription comp{ 0 };
-	comp.componentType = kAudioUnitType_Effect;
-	comp.componentSubType = mEffectSubType;
-	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
-	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
-
-	auto source = mSources.front();
-	CI_ASSERT( source );
-
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
-	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
-	CI_ASSERT( status == noErr );
-	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
-	CI_ASSERT( status == noErr );
-
-	status = ::AudioUnitInitialize( mAudioUnit );
-	CI_ASSERT( status == noErr );
-
 	LOG_V << "initialize complete. " << endl;
 }
 
 void EffectXAudio::uninitialize()
 {
-	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
-	CI_ASSERT( status );
 }
 
-void EffectXAudio::setParameter( ::AudioUnitParameterID param, float val )
-{
-	OSStatus status = ::AudioUnitSetParameter( mAudioUnit, param, kAudioUnitScope_Global, 0, val, 0 );
-	CI_ASSERT( status == noErr );
-}
-
-*/
 // ----------------------------------------------------------------------------------------------------
 // MARK: - MixerXAudio
 // ----------------------------------------------------------------------------------------------------
-
 
 MixerXAudio::MixerXAudio()
 {

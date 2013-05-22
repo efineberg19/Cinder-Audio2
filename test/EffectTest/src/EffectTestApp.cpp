@@ -11,6 +11,10 @@
 
 #if defined( CINDER_COCOA )
 #include "audio2/GraphAudioUnit.h"
+#define EffectNative EffectAudioUnit
+#elif defined( CINDER_MSW )
+#include "audio2/GraphXAudio.h"
+#define EffectNative EffectXAudio
 #endif
 
 #include "Gui.h"
@@ -47,15 +51,13 @@ class EffectTestApp : public AppNative {
 	void draw();
 
 	void setupEffects();
-	void setupMixer();
 	void toggleGraph();
 
 	void setupUI();
 	void processEvent( Vec2i pos );
 
 	GraphRef mGraph;
-	MixerRef mMixer;
-	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
+	shared_ptr<EffectNative> mEffect, mEffect2;
 
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mBandPassCenterSlider;
@@ -81,7 +83,6 @@ void EffectTestApp::setup()
 	mGraph->setOutput( output );
 
 	setupEffects();
-//	setupMixer();
 
 	mGraph->initialize();
 
@@ -89,19 +90,9 @@ void EffectTestApp::setup()
 	console() << "Graph configuration:" << endl;
 	printGraph( mGraph );
 	
-//	if( mMixer ) {
-//		LOG_V << "mixer stats:" << endl;
-//		size_t numBusses = mMixer->getNumBusses();
-//		console() << "\t num busses: " << numBusses << endl;
-//		for( size_t i = 0; i < numBusses; i++ ) {
-//			console() << "\t [" << i << "] enabled: " << mMixer->isBusEnabled( i );
-//			console() << ", volume: " << mMixer->getBusVolume( i );
-//			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
-//		}
-//	}
-
 	setupUI();
 
+#if defined( CINDER_COCOA )
 	if( mEffect ) {
 		mEffect->setParameter( kLowPassParam_CutoffFrequency, 500 );
 		mLowpassCutoffSlider.set( 500 );
@@ -112,7 +103,7 @@ void EffectTestApp::setup()
 		mEffect2->setParameter( kBandpassParam_Bandwidth, 1200 );
 		mBandPassCenterSlider.set( 1000 );
 	}
-
+#endif
 }
 
 void EffectTestApp::setupEffects()
@@ -148,37 +139,14 @@ void EffectTestApp::setupEffects()
 	noise->mGen.setAmp( 0.25f );
 	noise->getFormat().setNumChannels( 1 ); // force mono
 
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+	//mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	//mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
 	mEffect->connect( noise );
 	mEffect2->connect( mEffect );
 	mGraph->getOutput()->connect( mEffect2 );
-}
-
-void EffectTestApp::setupMixer()
-{
-	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->mGen.setAmp( 0.25f );
-
-	auto sine = make_shared<UGenNode<SineGen> >();
-	sine->mGen.setAmp( 0.25f );
-	sine->mGen.setFreq( 440.0f );
-	sine->mGen.setSampleRate( 44100 ); // TODO: this should be auto-configurable
-//	sine->getFormat().setSampleRate( 48000 );
-
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-//	mEffect->getFormat().setSampleRate( 22050 );
-
-	mEffect->connect( noise );
-
-	mMixer = make_shared<MixerAudioUnit>();
-	mMixer->connect( mEffect );
-	mMixer->connect( sine );
-
-	mGraph->getOutput()->connect( mMixer );
 }
 
 void EffectTestApp::toggleGraph()
@@ -227,22 +195,15 @@ void EffectTestApp::keyDown( KeyEvent event )
 
 void EffectTestApp::processEvent( Vec2i pos )
 {
-	if( mMixer ) {
-		if( mNoisePanSlider.hitTest( pos ) )
-			mMixer->setBusPan( 0, mNoisePanSlider.valueScaled );
-		if( mFreqPanSlider.hitTest( pos ) )
-			mMixer->setBusPan( 1, mFreqPanSlider.valueScaled );
-	}
+	//if( mEffect ) {
+	//	if( mLowpassCutoffSlider.hitTest( pos ) )
+	//		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
+	//}
 
-	if( mEffect ) {
-		if( mLowpassCutoffSlider.hitTest( pos ) )
-			mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
-	}
-
-	if( mEffect2 ) {
-		if( mBandPassCenterSlider.hitTest( pos ) )
-			mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
-	}
+	//if( mEffect2 ) {
+	//	if( mBandPassCenterSlider.hitTest( pos ) )
+	//		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
+	//}
 }
 
 void EffectTestApp::mouseDown( MouseEvent event )
