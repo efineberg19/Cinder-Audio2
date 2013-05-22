@@ -352,9 +352,19 @@ OSStatus InputXAudio::inputCallback( void *context, ::AudioUnitRenderActionFlags
 // ----------------------------------------------------------------------------------------------------
 
 
-EffectXAudio::EffectXAudio()
+EffectXAudio::EffectXAudio( XapoType type )
+: mType( type )
 {
 	mTag = "EffectXAudio";
+
+	::IUnknown *xapo;
+	switch( type ) {
+		case XapoType::FXECHO:				::CreateFX( __uuidof( ::FXECHO ), &xapo ); break;
+		case XapoType::FXEQ:				::CreateFX( __uuidof( ::FXEQ ), &xapo ); break;
+		case XapoType::FXMasteringLimiter:	::CreateFX( __uuidof( ::FXMasteringLimiter ), &xapo ); break;
+		case XapoType::FXReverb:			::CreateFX( __uuidof( ::FXReverb ), &xapo ); break;
+	}
+	mXapo = msw::makeComUnique( xapo );
 }
 
 EffectXAudio::~EffectXAudio()
@@ -363,7 +373,22 @@ EffectXAudio::~EffectXAudio()
 
 void EffectXAudio::initialize()
 {
-	LOG_V << "initialize complete. " << endl;
+	::XAUDIO2_EFFECT_DESCRIPTOR effectDesc;
+	//effectDesc.InitialState = mEnabled = true; // TODO: consider adding enabled param to Effect base class
+	effectDesc.InitialState = true;
+	effectDesc.pEffect = mXapo.get();
+	effectDesc.OutputChannels = mFormat.getNumChannels();
+
+	::IXAudio2Voice *voice = getXAudioVoice( mSources[0] );
+
+	// TODO NEXT: need a method like NodeXAudio::addEffect
+	// - it should push_back this effectDesc into it's own container and manage it
+	// - that method finds the appropriate IXAudio2Voice to attach to
+
+	//generator->mVoice->addEffect( effectDesc, &mParams, sizeof( mParams ) );
+
+
+	LOG_V << "successfully added self to effects chain." << endl;
 }
 
 void EffectXAudio::uninitialize()

@@ -2,6 +2,7 @@
 
 #include "audio2/Graph.h"
 #include "audio2/msw/xaudio.h"
+#include "audio2/msw/util.h"
 
 namespace audio2 {
 
@@ -112,13 +113,17 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 
 class EffectXAudio : public Effect, public XAudioNode {
 public:
-	EffectXAudio();
+	enum XapoType { FXECHO, FXEQ, FXMasteringLimiter, FXReverb };
+
+	EffectXAudio( XapoType type );
 	virtual ~EffectXAudio();
 
 	void initialize() override;
 	void uninitialize() override;
 
   private:
+	std::unique_ptr<::IUnknown, msw::ComReleaser> mXapo;
+	XapoType mType;
 };
 
 class MixerXAudio : public Mixer, public XAudioNode {
