@@ -385,6 +385,11 @@ size_t MixerAudioUnit::getNumBusses()
 
 void MixerAudioUnit::setNumBusses( size_t count )
 {
+	// TODO: this method should probably be removed
+}
+
+void MixerAudioUnit::setMaxNumBusses( size_t count )
+{
 	UInt32 busCount = static_cast<UInt32>( count );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &busCount, sizeof( busCount ) );
 	CI_ASSERT( status == noErr );

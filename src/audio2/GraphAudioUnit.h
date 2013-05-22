@@ -102,6 +102,8 @@ public:
 
 	size_t getNumBusses() override;
 	void setNumBusses( size_t count ) override;
+	void setMaxNumBusses( size_t count );
+
 	bool isBusEnabled( size_t bus ) override;
 	void setBusEnabled( size_t bus, bool enabled = true ) override;
 	void setBusVolume( size_t bus, float volume ) override;
