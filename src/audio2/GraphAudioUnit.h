@@ -80,12 +80,6 @@ public:
 	void initialize() override;
 	void uninitialize() override;
 
-	// ???: is there a safer way to do this? Possibities:
-	// - inherit from abstract AudioUnitNode (multiple-inheritance)
-	// - Node owns a NodeImpl* pointer that can be dynamically casted to NodeImplAudioUnit
-	// - These guys all inherit from AudioUnitNode - then Node needs a much larger interface
-//		void* getNative() override	{ return mAudioUnit; }
-
 	void setParameter( ::AudioUnitParameterID param, float val );
 
   private:
