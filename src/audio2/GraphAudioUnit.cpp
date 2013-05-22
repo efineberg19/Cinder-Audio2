@@ -344,7 +344,9 @@ void MixerAudioUnit::initialize()
 	status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
 	CI_ASSERT( status == noErr );
 
-	CI_ASSERT( mSources.size() <= getNumBusses() );
+	if( mSources.size() > getNumBusses() ) {
+		setMaxNumBusses( mSources.size() );
+	}
 
 	for( UInt32 bus = 0; bus < mSources.size(); bus++ ) {
 		if( ! mSources[bus] )
@@ -546,6 +548,8 @@ void GraphAudioUnit::initialize()
 
 void GraphAudioUnit::initNode( NodeRef node )
 {
+	if( ! node )
+		return;
 	Node::Format& format = node->getFormat();
 
 	// set default params from parent if requested
@@ -579,6 +583,9 @@ void GraphAudioUnit::initNode( NodeRef node )
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
 		NodeRef& sourceNode = node->getSources()[bus];
+		if( ! sourceNode )
+			continue;
+
 		bool needsConverter = false;
 		if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
 #if 0
@@ -629,12 +636,15 @@ void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context
 	callbackStruct.inputProcRefCon = ( context ? context : &mRenderContext );
 
 	for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
+		NodeRef source = node->getSources()[bus];
+		if( ! source )
+			continue;
 		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
-		LOG_V << "connected render callback to: " << node->getSources()[bus]->getTag() << endl;
+		LOG_V << "connected render callback to: " << source->getTag() << endl;
 		CI_ASSERT( status == noErr );
 
 		if( recursive )
-			connectRenderCallback( node->getSources()[bus], context, true );
+			connectRenderCallback( source, context, true );
 	}
 }
 

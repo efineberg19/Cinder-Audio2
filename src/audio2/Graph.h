@@ -142,7 +142,7 @@ class BufferTap : public Node {
 
 class Mixer : public Node {
   public:
-	Mixer() : Node(), mMaxNumBusses( 20 ) {}
+	Mixer() : Node(), mMaxNumBusses( 20 ) { mSources.resize( mMaxNumBusses ); }
 	virtual ~Mixer() {}
 
 	virtual void connect( NodeRef source );

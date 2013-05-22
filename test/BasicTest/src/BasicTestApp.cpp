@@ -131,8 +131,14 @@ void BasicTestApp::setupMixer()
 	sine->mGen.setFreq( 440.0f );
 
 	mMixer = Engine::instance()->createMixer();
-	mMixer->connect( noise );
-	mMixer->connect( sine );
+
+	// connect by appending
+//	mMixer->connect( noise );
+//	mMixer->connect( sine );
+
+	// or connect by index
+	mMixer->connect( noise, Bus::Noise );
+	mMixer->connect( sine, Bus::Sine );
 
 	mGraph->getOutput()->connect( mMixer );
 }

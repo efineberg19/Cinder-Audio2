@@ -10,6 +10,8 @@ namespace audio2 {
 void printGraph( GraphRef graph )
 {
 	function<void( NodeRef, size_t )> printNode = [&]( NodeRef node, size_t depth ) -> void {
+		if( ! node )
+			return;
 		for( size_t i = 0; i < depth; i++ )
 			app::console() << "-- ";
 		app::console() << node->getTag() << "\t[ sr: " << node->getFormat().getSampleRate() << ", ch: " << node->getFormat().getNumChannels() << " ]" << endl;
