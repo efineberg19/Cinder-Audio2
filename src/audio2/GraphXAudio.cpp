@@ -61,7 +61,7 @@ XAudioNode::~XAudioNode()
 	return nullptr;
 }
 
-shared_ptr<XAudioNode> XAudioNode::getVoice( NodeRef node )
+shared_ptr<XAudioNode> XAudioNode::getXAudioNode( NodeRef node )
 {
 	CI_ASSERT( node );
 	while( node ) {
@@ -470,7 +470,7 @@ bool MixerXAudio::isBusEnabled( size_t bus )
 	checkBusIsValid( bus );
 
 	NodeRef node = mSources[bus];
-	auto nodeXAudio = getVoice( node );
+	auto nodeXAudio = getXAudioNode( node );
 	auto sourceVoice = nodeXAudio->getSourceVoice( node );
 
 	return sourceVoice->isRunning();
@@ -481,7 +481,7 @@ void MixerXAudio::setBusEnabled( size_t bus, bool enabled )
 	checkBusIsValid( bus );
 
 	NodeRef node = mSources[bus];
-	auto nodeXAudio = getVoice( node );
+	auto nodeXAudio = getXAudioNode( node );
 	auto sourceVoice = nodeXAudio->getSourceVoice( node );
 
 	if( enabled )
@@ -495,7 +495,7 @@ void MixerXAudio::setBusVolume( size_t bus, float volume )
 	checkBusIsValid( bus );
 	
 	NodeRef node = mSources[bus];
-	auto nodeXAudio = getVoice( node );
+	auto nodeXAudio = getXAudioNode( node );
 	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
 
 	HRESULT hr = voice->SetVolume( volume );
@@ -507,7 +507,7 @@ float MixerXAudio::getBusVolume( size_t bus )
 	checkBusIsValid( bus );
 
 	NodeRef node = mSources[bus];
-	auto nodeXAudio = getVoice( node );
+	auto nodeXAudio = getXAudioNode( node );
 	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
 
 	float volume;
@@ -515,7 +515,8 @@ float MixerXAudio::getBusVolume( size_t bus )
 	return volume;
 }
 
-// TODO: panning explained here: http://msdn.microsoft.com/en-us/library/windows/desktop/hh405043(v=vs.85).aspx
+// panning explained here: http://msdn.microsoft.com/en-us/library/windows/desktop/hh405043(v=vs.85).aspx
+// TODO: panning should be done logarithmically, this is linear
 void MixerXAudio::setBusPan( size_t bus, float pan )
 {
 	checkBusIsValid( bus );
@@ -536,7 +537,7 @@ void MixerXAudio::setBusPan( size_t bus, float pan )
 	outputMatrix[3] = right;
 
 	NodeRef node = mSources[bus];
-	auto nodeXAudio = getVoice( node );
+	auto nodeXAudio = getXAudioNode( node );
 	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
 	HRESULT hr = voice->SetOutputMatrix( nullptr, node->getFormat().getNumChannels(), numChannels, outputMatrix.data() );
 	CI_ASSERT( hr == S_OK );

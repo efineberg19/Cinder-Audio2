@@ -20,6 +20,7 @@ class XAudioNode {
 
 	void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
 
+	// ???: these methods don't rely on this XAudioNode instance - make them freestanding?
 	// Subclasses override these methods to return their xaudio voice if they have one,
 	// otherwise the default implementation recurses through sources to find the goods.
 	// Node must be passed in here to traverse it's children and I want to avoid the complexities of dual inheriting from Node.
@@ -27,7 +28,7 @@ class XAudioNode {
 	virtual ::IXAudio2Voice* getXAudioVoice( NodeRef node );
 
 	//! find the first XAudioNode in \t node's source tree (possibly node)
-	std::shared_ptr<XAudioNode> getVoice( NodeRef node );
+	std::shared_ptr<XAudioNode> getXAudioNode( NodeRef node );
 	//! find this node's SourceVoiceXAudio (possibly node)
 	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
 
