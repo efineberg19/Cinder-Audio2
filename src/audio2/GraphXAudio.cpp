@@ -90,8 +90,10 @@ shared_ptr<SourceVoiceXAudio> XAudioNode::getSourceVoice( NodeRef node )
 	return shared_ptr<SourceVoiceXAudio>();
 }
 
-void XAudioNode::addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc )
+size_t XAudioNode::addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc )
 {
+	size_t index = mEffectsDescriptors.size();
+
 	mEffectsDescriptors.push_back( effectDesc );
 
 	::XAUDIO2_EFFECT_CHAIN effectsChain;
@@ -100,6 +102,8 @@ void XAudioNode::addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DES
 
 	HRESULT hr = voice.voice->SetEffectChain( &effectsChain );
 	CI_ASSERT( hr == S_OK );
+
+	return index;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -121,11 +125,13 @@ void OutputXAudio::initialize()
 {
 	// Device initialize is handled by the graph because it needs to ensure there is a valid IXAudio instance and mastering voice before anything else is initialized
 	//mDevice->initialize();
+	mInitialized = true;
 }
 
 void OutputXAudio::uninitialize()
 {
 	mDevice->uninitialize();
+	mInitialized = false;
 }
 
 void OutputXAudio::start()
@@ -198,11 +204,13 @@ void SourceVoiceXAudio::initialize()
 	CI_ASSERT( hr == S_OK );
 	mVoiceCallback->setSourceVoice( mSourceVoice );
 
+	mInitialized = true;
 	LOG_V << "complete." << endl;
 }
 
 void SourceVoiceXAudio::uninitialize()
 {
+	mInitialized = false;
 }
 
 // TODO: source voice must be made during initialize() pass, so there is a chance start/stop can be called
@@ -391,16 +399,36 @@ void EffectXAudio::initialize()
 	effectDesc.OutputChannels = mFormat.getNumChannels();
 
 	NodeRef source = mSources[0];
-	XAudioVoice voice = getXAudioVoice( source );
-	voice.parent->addEffect( voice, effectDesc );
+	XAudioVoice v = getXAudioVoice( source );
+	mChainIndex = v.parent->addEffect( v, effectDesc );
 
-	// TODO: init params
-
-	LOG_V << "successfully added self to effects chain." << endl;
+	mInitialized = true;
+	LOG_V << "successfully added self to effects chain. index: " << mChainIndex << endl;
 }
 
 void EffectXAudio::uninitialize()
 {
+	mInitialized = false;
+}
+
+void EffectXAudio::getParams( void *params, size_t sizeParams )
+{
+	if( ! mInitialized )
+		throw AudioParamExc( "must be initialized before accessing params" );
+
+	XAudioVoice v = getXAudioVoice( mSources[0] );
+	HRESULT hr = v.voice->GetEffectParameters( mChainIndex, params, sizeParams );
+	CI_ASSERT( hr == S_OK );
+}
+
+void EffectXAudio::setParams( const void *params, size_t sizeParams )
+{
+	if( ! mInitialized )
+		throw AudioParamExc( "must be initialized before accessing params" );
+
+	XAudioVoice v = getXAudioVoice( mSources[0] );
+	HRESULT hr = v.voice->SetEffectParameters( mChainIndex, params, sizeParams );
+	CI_ASSERT( hr == S_OK );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -434,15 +462,19 @@ void MixerXAudio::initialize()
 		::IXAudio2Voice *sourceVoice = nodeXAudio->getXAudioVoice( node ).voice;
 		sourceVoice->SetOutputVoices( &sendList );
 	}
+
+	mInitialized = true;
 	LOG_V << "initialize complete. " << endl;
 }
 
 void MixerXAudio::uninitialize()
 {
+	// TODO: methinks this should be done at destruction, not un-init
 	if( mSubmixVoice ) {
 		LOG_V << "about to destroy submix voice: " << hex << mSubmixVoice << dec << endl;
 		mSubmixVoice->DestroyVoice();
 	}
+	mInitialized = false;
 }
 
 size_t MixerXAudio::getNumBusses()
@@ -644,6 +676,7 @@ void GraphXAudio::initialize()
 		return;
 	CI_ASSERT( mOutput );
 
+	// TODO: what about when outputting to file? Do we still need a device?
 	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
 	outputXAudio->initialize();
 
@@ -655,8 +688,8 @@ void GraphXAudio::initialize()
 	//	channel.resize( blockSize );
 	//mRenderContext.currentNode = mOutput.get();
 
-	//mInitialized = true;
-	//LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.size() << ", blocksize: " << blockSize << endl;
+	mInitialized = true;
+	LOG_V << "graph initialize complete. output channels: " <<outputXAudio->getNumOutputChannels() << endl;
 }
 
 void GraphXAudio::initNode( NodeRef node )

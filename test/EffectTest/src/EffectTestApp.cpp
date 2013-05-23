@@ -11,10 +11,8 @@
 
 #if defined( CINDER_COCOA )
 #include "audio2/GraphAudioUnit.h"
-#define EffectNative EffectAudioUnit
 #elif defined( CINDER_MSW )
 #include "audio2/GraphXAudio.h"
-#define EffectNative EffectXAudio
 #endif
 
 #include "Gui.h"
@@ -56,10 +54,16 @@ class EffectTestApp : public AppNative {
 
 	void setupUI();
 	void processEvent( Vec2i pos );
+	void updateLowpass();
 
 	GraphRef mGraph;
-	shared_ptr<EffectNative> mEffect, mEffect2;
 
+#if defined( CINDER_COCOA )
+	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
+#elif defined( CINDER_MSW )
+	shared_ptr<EffectXAudio> mEffect, mEffect2;
+	FXEQ_PARAMETERS mEQParams;
+#endif
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mBandPassCenterSlider;
 };
@@ -104,6 +108,19 @@ void EffectTestApp::setup()
 		mEffect2->setParameter( kBandpassParam_Bandwidth, 1200 );
 		mBandPassCenterSlider.set( 1000 );
 	}
+#elif defined( CINDER_MSW )
+	mEffect->getParams( &mEQParams, sizeof( mEQParams ) );
+
+	// reset so it's like a lowpass
+	mEQParams.Gain0 = FXEQ_MAX_GAIN;
+	mEQParams.Gain1 = FXEQ_MIN_GAIN;
+	mEQParams.Gain2 = FXEQ_MIN_GAIN;
+	mEQParams.Gain3 = FXEQ_MIN_GAIN;
+
+	mEffect->setParams( &mEQParams, sizeof( mEQParams ) );
+
+	mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
+
 #endif
 }
 
@@ -186,15 +203,25 @@ void EffectTestApp::keyDown( KeyEvent event )
 
 void EffectTestApp::processEvent( Vec2i pos )
 {
-	//if( mEffect ) {
-	//	if( mLowpassCutoffSlider.hitTest( pos ) )
-	//		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
-	//}
+	if( mLowpassCutoffSlider.hitTest( pos ) )
+		updateLowpass();
 
 	//if( mEffect2 ) {
 	//	if( mBandPassCenterSlider.hitTest( pos ) )
 	//		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
 	//}
+}
+
+void EffectTestApp::updateLowpass()
+{
+	if( mEffect ) {
+#if defined( CINDER_COCOA )
+		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
+#elif defined( CINDER_MSW )
+		mEQParams.FrequencyCenter0 = std::max( FXEQ_MIN_FREQUENCY_CENTER, mLowpassCutoffSlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
+		mEffect->setParams( &mEQParams, sizeof( mEQParams ) );
+#endif
+	}
 }
 
 void EffectTestApp::mouseDown( MouseEvent event )

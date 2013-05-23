@@ -41,8 +41,8 @@ class XAudioNode {
 	//! find this node's SourceVoiceXAudio (possibly node)
 	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
 
-
-	void addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc );
+	//! append the effect to \t voice's effect chain. Returns the index of the added effect.
+	size_t addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc );
 
   protected:
 	  ::IXAudio2 *mXAudio;
@@ -133,9 +133,13 @@ public:
 	void initialize() override;
 	void uninitialize() override;
 
+	void getParams( void *params, size_t sizeParams );
+	void setParams( const void *params, size_t sizeParams );
+
   private:
 	std::unique_ptr<::IUnknown, msw::ComReleaser> mXapo;
 	XapoType mType;
+	size_t mChainIndex;
 };
 
 class MixerXAudio : public Mixer, public XAudioNode {
