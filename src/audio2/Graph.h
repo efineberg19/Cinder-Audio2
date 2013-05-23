@@ -92,7 +92,7 @@ class Input : public Producer {
 
 class Consumer : public Node {
   public:
-	Consumer() : Node() {}
+	Consumer() : Node() { mSources.resize( 1 ); }
 	virtual ~Consumer() {}
 
 	virtual void connect( NodeRef source );
@@ -113,7 +113,7 @@ class Output : public Consumer {
 
 class Effect : public Node {
   public:
-	Effect() : Node() {}
+	Effect() : Node() { mSources.resize( 1 ); }
 	virtual ~Effect() {}
 
 	virtual void connect( NodeRef source );
@@ -175,6 +175,7 @@ class Graph {
 	virtual void start();
 	virtual void stop();
 
+	// TODO: add isInitialized()
 	bool isRunning() const	{ return mRunning; }
 
   protected:

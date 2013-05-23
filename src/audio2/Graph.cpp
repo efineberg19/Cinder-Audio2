@@ -33,16 +33,12 @@ const Node::Format& Node::getSourceFormat()
 //	- override in Mixer to push_back
 void Consumer::connect( NodeRef source )
 {
-	if( mSources.empty() )
-		mSources.resize( 1 );
 	mSources[0] = source;
 	mSources[0]->setParent( shared_from_this() );
 }
 
 void Effect::connect( NodeRef source )
 {
-	if( mSources.empty() )
-		mSources.resize( 1 );
 	mSources[0] = source;
 	source->setParent( shared_from_this() );
 }
@@ -84,6 +80,7 @@ BufferTap::BufferTap( size_t bufferSize )
 : Node(), mBufferSize( bufferSize )
 {
 	mTag = "BufferTap";
+	mSources.resize( 1 );
 }
 
 BufferTap::~BufferTap()
@@ -102,8 +99,6 @@ void BufferTap::initialize()
 
 void BufferTap::connect( NodeRef source )
 {
-	if( mSources.empty() )
-		mSources.resize( 1 );
 	mSources[0] = source;
 	mSources[0]->setParent( shared_from_this() );
 }
