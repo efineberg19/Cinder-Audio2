@@ -50,7 +50,8 @@ class EffectTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void setupEffects();
+	void setupOne();
+	void setupTwo();
 	void toggleGraph();
 
 	void setupUI();
@@ -82,7 +83,7 @@ void EffectTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 
-	setupEffects();
+	setupOne();
 
 	mGraph->initialize();
 
@@ -106,38 +107,28 @@ void EffectTestApp::setup()
 #endif
 }
 
-void EffectTestApp::setupEffects()
+void EffectTestApp::setupOne()
 {
-//	auto noise = make_shared<UGenNode<NoiseGen> >();
-//	noise->mGen.setAmp( 0.25f );
-//
-//	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-//	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
-//
-//	mEffect->getFormat().setSampleRate( 22050 );
-//	
-//	mEffect->connect( noise );
-//	mEffect2->connect( mEffect );
-//	mGraph->getOutput()->connect( mEffect2 );
-
-
-	// =====================================
-	// testing sine @ 44k -> effect @ 22k... sounds right but probably because effect is samplerate independant
-
-//	auto sine = make_shared<UGenNode<SineGen> >();
-//	sine->mGen.setAmp( 0.25f );
-//	sine->mGen.setFreq( 440.0f );
-//	sine->mGen.setSampleRate( 44100 );
-//
-//	sine->getFormat().setSampleRate( 44100 );
-//	sine->getFormat().setNumChannels( 1 ); // force mono
-
-	// =====================================
-	// testing mono gen -> effect (implicitly mono) -> stereo output
-	
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->mGen.setAmp( 0.25f );
-	noise->getFormat().setNumChannels( 1 ); // force mono
+	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
+
+#if defined( CINDER_COCOA )
+	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+#else
+	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
+#endif
+	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
+
+	mEffect->connect( noise );
+	mGraph->getOutput()->connect( mEffect );
+}
+
+void EffectTestApp::setupTwo()
+{
+	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->mGen.setAmp( 0.25f );
+	//noise->getFormat().setNumChannels( 1 ); // force mono
 
 	//mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 	//mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );

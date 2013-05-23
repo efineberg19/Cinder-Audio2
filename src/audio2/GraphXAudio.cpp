@@ -44,36 +44,34 @@ XAudioNode::~XAudioNode()
 {
 }
 
-::IXAudio2Voice* XAudioNode::getXAudioVoice( NodeRef node )
+XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
 {
-	CI_ASSERT( node && ! node->getSources().empty() );
-	
-	NodeRef source = node->getSources().front();
-	while( source ) {
-		XAudioNode *sourceXAudio = dynamic_cast<XAudioNode *>( source.get() );
-		if( sourceXAudio )
-			return sourceXAudio->getXAudioVoice( source );
-		else {
-			CI_ASSERT( ! source->getSources().empty() );
-			node = source->getSources().front();
-		}
-	}
-	return nullptr;
-}
-
-shared_ptr<XAudioNode> XAudioNode::getXAudioNode( NodeRef node )
-{
-	CI_ASSERT( node );
 	while( node ) {
-		auto voice = dynamic_pointer_cast<XAudioNode>( node ); // ???: does this work with multiple inheritance?
-		if( voice )
-			return voice;
+		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
+		if( nodeXAudio )
+			return nodeXAudio->getXAudioVoice( node );
 		else {
 			CI_ASSERT( ! node->getSources().empty() );
 			node = node->getSources().front();
 		}
 	}
-	return nullptr;
+	CI_ASSERT( false && "unreachable" ); // ???: throw?
+	return XAudioVoice();
+}
+
+shared_ptr<XAudioNode> XAudioNode::getXAudioNode( NodeRef node )
+{
+	while( node ) {
+		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
+		if( nodeXAudio )
+			return nodeXAudio;
+		else {
+			CI_ASSERT( ! node->getSources().empty() );
+			node = node->getSources().front();
+		}
+	}
+	CI_ASSERT( false && "unreachable" ); // ???: throw?
+	return shared_ptr<XAudioNode>();
 }
 
 shared_ptr<SourceVoiceXAudio> XAudioNode::getSourceVoice( NodeRef node )
@@ -88,7 +86,20 @@ shared_ptr<SourceVoiceXAudio> XAudioNode::getSourceVoice( NodeRef node )
 			node = node->getSources().front();
 		}
 	}
-	return nullptr;
+	CI_ASSERT( false && "unreachable" ); // ???: throw?
+	return shared_ptr<SourceVoiceXAudio>();
+}
+
+void XAudioNode::addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc )
+{
+	mEffectsDescriptors.push_back( effectDesc );
+
+	::XAUDIO2_EFFECT_CHAIN effectsChain;
+	effectsChain.EffectCount = mEffectsDescriptors.size();
+	effectsChain.pEffectDescriptors = mEffectsDescriptors.data();
+
+	HRESULT hr = voice.voice->SetEffectChain( &effectsChain );
+	CI_ASSERT( hr == S_OK );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -359,7 +370,7 @@ EffectXAudio::EffectXAudio( XapoType type )
 
 	::IUnknown *xapo;
 	switch( type ) {
-		case XapoType::FXECHO:				::CreateFX( __uuidof( ::FXECHO ), &xapo ); break;
+		//case XapoType::FXECHO:				::CreateFX( __uuidof( ::FXECHO ), &xapo ); break; // ???: missing in xaudio 2.8?
 		case XapoType::FXEQ:				::CreateFX( __uuidof( ::FXEQ ), &xapo ); break;
 		case XapoType::FXMasteringLimiter:	::CreateFX( __uuidof( ::FXMasteringLimiter ), &xapo ); break;
 		case XapoType::FXReverb:			::CreateFX( __uuidof( ::FXReverb ), &xapo ); break;
@@ -379,14 +390,11 @@ void EffectXAudio::initialize()
 	effectDesc.pEffect = mXapo.get();
 	effectDesc.OutputChannels = mFormat.getNumChannels();
 
-	::IXAudio2Voice *voice = getXAudioVoice( mSources[0] );
+	NodeRef source = mSources[0];
+	XAudioVoice voice = getXAudioVoice( source );
+	voice.parent->addEffect( voice, effectDesc );
 
-	// TODO NEXT: need a method like NodeXAudio::addEffect
-	// - it should push_back this effectDesc into it's own container and manage it
-	// - that method finds the appropriate IXAudio2Voice to attach to
-
-	//generator->mVoice->addEffect( effectDesc, &mParams, sizeof( mParams ) );
-
+	// TODO: init params
 
 	LOG_V << "successfully added self to effects chain." << endl;
 }
@@ -423,7 +431,7 @@ void MixerXAudio::initialize()
 		if( ! node )
 			continue;
 		XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
-		::IXAudio2Voice *sourceVoice = nodeXAudio->getXAudioVoice( node );
+		::IXAudio2Voice *sourceVoice = nodeXAudio->getXAudioVoice( node ).voice;
 		sourceVoice->SetOutputVoices( &sendList );
 	}
 	LOG_V << "initialize complete. " << endl;
@@ -492,7 +500,7 @@ void MixerXAudio::setBusVolume( size_t bus, float volume )
 	
 	NodeRef node = mSources[bus];
 	auto nodeXAudio = getXAudioNode( node );
-	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
+	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node ).voice;
 
 	HRESULT hr = voice->SetVolume( volume );
 	CI_ASSERT( hr == S_OK );
@@ -504,7 +512,7 @@ float MixerXAudio::getBusVolume( size_t bus )
 
 	NodeRef node = mSources[bus];
 	auto nodeXAudio = getXAudioNode( node );
-	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
+	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node ).voice;
 
 	float volume;
 	voice->GetVolume( &volume );
@@ -534,7 +542,7 @@ void MixerXAudio::setBusPan( size_t bus, float pan )
 
 	NodeRef node = mSources[bus];
 	auto nodeXAudio = getXAudioNode( node );
-	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node );
+	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node ).voice;
 	HRESULT hr = voice->SetOutputMatrix( nullptr, node->getFormat().getNumChannels(), numChannels, outputMatrix.data() );
 	CI_ASSERT( hr == S_OK );
 }
@@ -653,6 +661,7 @@ void GraphXAudio::initialize()
 
 void GraphXAudio::initNode( NodeRef node )
 {
+
 	setXAudio( node );
 
 	Node::Format& format = node->getFormat();
@@ -675,6 +684,9 @@ void GraphXAudio::initNode( NodeRef node )
 	// recurse through sources
 	for( size_t i = 0; i < node->getSources().size(); i++ ) {
 		NodeRef source = node->getSources()[i];
+
+		if( ! source )
+			continue;
 
 		initNode( source );
 
@@ -704,6 +716,9 @@ void GraphXAudio::initNode( NodeRef node )
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
 		NodeRef& sourceNode = node->getSources()[bus];
+		if( ! sourceNode )
+			continue;
+
 		bool needsConverter = false;
 		if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
 #if 0

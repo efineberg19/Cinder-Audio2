@@ -13,6 +13,14 @@ namespace audio2 {
 //};
 
 class SourceVoiceXAudio;
+class XAudioNode;
+
+struct XAudioVoice {
+	XAudioVoice() : voice( nullptr ), parent( nullptr )	{}
+	XAudioVoice( ::IXAudio2Voice *voice, XAudioNode *parent ) : voice( voice ), parent( parent ) {}
+	::IXAudio2Voice *voice;
+	XAudioNode *parent;
+};
 
 class XAudioNode {
   public:
@@ -26,15 +34,19 @@ class XAudioNode {
 	// otherwise the default implementation recurses through sources to find the goods.
 	// Node must be passed in here to traverse it's children and I want to avoid the complexities of dual inheriting from Node.
 	// (this is a +1 for using a pimpl approach instead of dual inheritance)
-	virtual ::IXAudio2Voice* getXAudioVoice( NodeRef node );
+	virtual XAudioVoice getXAudioVoice( NodeRef node );
 
 	//! find the first XAudioNode in \t node's source tree (possibly node)
 	std::shared_ptr<XAudioNode> getXAudioNode( NodeRef node );
 	//! find this node's SourceVoiceXAudio (possibly node)
 	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
 
+
+	void addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc );
+
   protected:
 	  ::IXAudio2 *mXAudio;
+	  std::vector<::XAUDIO2_EFFECT_DESCRIPTOR> mEffectsDescriptors;
 };
 
 class DeviceOutputXAudio;
@@ -71,7 +83,7 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 	void start() override;
 	void stop() override;
 
-	::IXAudio2Voice*		getXAudioVoice( NodeRef node ) override			{ return static_cast<::IXAudio2Voice *>( mSourceVoice ); }
+	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSourceVoice ), this ); }
   
 	bool isRunning() const	{ return mIsRunning; }
 
@@ -144,7 +156,7 @@ public:
 	void setBusPan( size_t bus, float pan ) override;
 	float getBusPan( size_t bus ) override;
 
-	::IXAudio2Voice* getXAudioVoice( NodeRef node ) override	{ return static_cast<IXAudio2Voice *>( mSubmixVoice ); }
+	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSubmixVoice ), this ); }
 
   private:
 	void checkBusIsValid( size_t bus );
