@@ -42,8 +42,8 @@ void DeviceOutputXAudio::initialize()
 
 #if defined( CINDER_XAUDIO_2_8 )
 	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
-	debugConfig.TraceMask = XAUDIO2_LOG_DETAIL;
-	debugConfig.BreakMask = XAUDIO2_LOG_WARNINGS;
+	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
 	debugConfig.LogFunctionName = true;
 	mXAudio->SetDebugConfiguration( &debugConfig );
 #endif

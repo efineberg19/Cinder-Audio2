@@ -16,10 +16,10 @@ class SourceVoiceXAudio;
 class XAudioNode;
 
 struct XAudioVoice {
-	XAudioVoice() : voice( nullptr ), parent( nullptr )	{}
-	XAudioVoice( ::IXAudio2Voice *voice, XAudioNode *parent ) : voice( voice ), parent( parent ) {}
+	XAudioVoice() : voice( nullptr ), node( nullptr )	{}
+	XAudioVoice( ::IXAudio2Voice *voice, XAudioNode *parent ) : voice( voice ), node( parent ) {}
 	::IXAudio2Voice *voice;
-	XAudioNode *parent;
+	XAudioNode *node;
 };
 
 class XAudioNode {
@@ -30,15 +30,16 @@ class XAudioNode {
 	void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
 
 	// ???: these methods don't rely on this XAudioNode instance - make them freestanding?
+	// - cannot override them then
 	// Subclasses override these methods to return their xaudio voice if they have one,
 	// otherwise the default implementation recurses through sources to find the goods.
 	// Node must be passed in here to traverse it's children and I want to avoid the complexities of dual inheriting from Node.
 	// (this is a +1 for using a pimpl approach instead of dual inheritance)
 	virtual XAudioVoice getXAudioVoice( NodeRef node );
 
-	//! find the first XAudioNode in \t node's source tree (possibly node)
+	//! find the first XAudioNode in \t node's source tree
 	std::shared_ptr<XAudioNode> getXAudioNode( NodeRef node );
-	//! find this node's SourceVoiceXAudio (possibly node)
+	//! find this node's SourceVoiceXAudio
 	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
 
 	//! append the effect to \t voice's effect chain. Returns the index of the added effect.
@@ -125,7 +126,7 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 
 class EffectXAudio : public Effect, public XAudioNode {
 public:
-	enum XapoType { FXECHO, FXEQ, FXMasteringLimiter, FXReverb };
+	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
 	EffectXAudio( XapoType type );
 	virtual ~EffectXAudio();

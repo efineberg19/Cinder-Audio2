@@ -63,6 +63,7 @@ class EffectTestApp : public AppNative {
 #elif defined( CINDER_MSW )
 	shared_ptr<EffectXAudio> mEffect, mEffect2;
 	FXEQ_PARAMETERS mEQParams;
+	FXECHO_PARAMETERS mEchoParams;
 #endif
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mBandPassCenterSlider;
@@ -87,7 +88,8 @@ void EffectTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 
-	setupOne();
+	//setupOne();
+	setupTwo();
 
 	mGraph->initialize();
 
@@ -121,6 +123,9 @@ void EffectTestApp::setup()
 
 	mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
 
+	if( mEffect2 ) {
+		mEffect2->getParams( &mEchoParams, sizeof( mEchoParams ) );
+	}
 #endif
 }
 
@@ -147,8 +152,13 @@ void EffectTestApp::setupTwo()
 	noise->mGen.setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force mono
 
-	//mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	//mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+#if defined( CINDER_COCOA )
+	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+#else
+	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
+	mEffect2 = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEcho );
+#endif
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 

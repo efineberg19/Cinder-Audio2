@@ -44,19 +44,31 @@ XAudioNode::~XAudioNode()
 {
 }
 
+//XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
+//{
+//	while( node ) {
+//		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
+//		if( nodeXAudio )
+//			return nodeXAudio->getXAudioVoice( node );
+//		else {
+//			CI_ASSERT( ! node->getSources().empty() );
+//			node = node->getSources().front();
+//		}
+//	}
+//	CI_ASSERT( false && "unreachable" ); // ???: throw?
+//	return XAudioVoice();
+//}
+
 XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
 {
-	while( node ) {
-		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
-		if( nodeXAudio )
-			return nodeXAudio->getXAudioVoice( node );
-		else {
-			CI_ASSERT( ! node->getSources().empty() );
-			node = node->getSources().front();
-		}
-	}
-	CI_ASSERT( false && "unreachable" ); // ???: throw?
-	return XAudioVoice();
+	CI_ASSERT( ! node->getSources().empty() );
+	NodeRef source = node->getSources().front();
+
+	auto sourceXAudio = dynamic_pointer_cast<XAudioNode>( source );
+	if( sourceXAudio )
+		return sourceXAudio->getXAudioVoice( source );
+
+	return getXAudioVoice( source );
 }
 
 shared_ptr<XAudioNode> XAudioNode::getXAudioNode( NodeRef node )
@@ -378,7 +390,7 @@ EffectXAudio::EffectXAudio( XapoType type )
 
 	::IUnknown *xapo;
 	switch( type ) {
-		//case XapoType::FXECHO:				::CreateFX( __uuidof( ::FXECHO ), &xapo ); break; // ???: missing in xaudio 2.8?
+		case XapoType::FXEcho:				::CreateFX( __uuidof( ::FXEcho ), &xapo ); break;
 		case XapoType::FXEQ:				::CreateFX( __uuidof( ::FXEQ ), &xapo ); break;
 		case XapoType::FXMasteringLimiter:	::CreateFX( __uuidof( ::FXMasteringLimiter ), &xapo ); break;
 		case XapoType::FXReverb:			::CreateFX( __uuidof( ::FXReverb ), &xapo ); break;
@@ -398,9 +410,9 @@ void EffectXAudio::initialize()
 	effectDesc.pEffect = mXapo.get();
 	effectDesc.OutputChannels = mFormat.getNumChannels();
 
-	NodeRef source = mSources[0];
-	XAudioVoice v = getXAudioVoice( source );
-	mChainIndex = v.parent->addEffect( v, effectDesc );
+	//NodeRef source = mSources[0];
+	XAudioVoice v = getXAudioVoice( shared_from_this() );
+	mChainIndex = v.node->addEffect( v, effectDesc );
 
 	mInitialized = true;
 	LOG_V << "successfully added self to effects chain. index: " << mChainIndex << endl;
@@ -416,7 +428,7 @@ void EffectXAudio::getParams( void *params, size_t sizeParams )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	XAudioVoice v = getXAudioVoice( mSources[0] );
+	XAudioVoice v = getXAudioVoice( shared_from_this() );
 	HRESULT hr = v.voice->GetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
@@ -426,7 +438,7 @@ void EffectXAudio::setParams( const void *params, size_t sizeParams )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	XAudioVoice v = getXAudioVoice( mSources[0] );
+	XAudioVoice v = getXAudioVoice( shared_from_this() );
 	HRESULT hr = v.voice->SetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
@@ -459,8 +471,8 @@ void MixerXAudio::initialize()
 		if( ! node )
 			continue;
 		XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
-		::IXAudio2Voice *sourceVoice = nodeXAudio->getXAudioVoice( node ).voice;
-		sourceVoice->SetOutputVoices( &sendList );
+		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
+		v.voice->SetOutputVoices( &sendList );
 	}
 
 	mInitialized = true;
