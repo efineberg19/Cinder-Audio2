@@ -58,8 +58,8 @@ struct SineGen : public UGen {
 		for( size_t i = 0; i < channel->size(); i++ ) {
 			channel->at( i ) = std::sin( mPhase ) * amp;
 			mPhase += mPhaseIncr;
-			if( mPhase > M_PI * 2.0f ) {
-				mPhase -= M_PI * 2.0f;
+			if( mPhase > M_PI * 2.0 ) {
+				mPhase -= (float)(M_PI * 2.0);
 			}
 		}
 	}
