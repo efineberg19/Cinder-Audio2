@@ -17,6 +17,8 @@
 
 #include "Gui.h"
 
+// TODO NEXT: FilterEffectXAudio
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -55,6 +57,7 @@ class EffectTestApp : public AppNative {
 	void setupUI();
 	void processEvent( Vec2i pos );
 	void updateLowpass();
+	void updateEcho();
 
 	GraphRef mGraph;
 
@@ -125,6 +128,7 @@ void EffectTestApp::setup()
 
 	if( mEffect2 ) {
 		mEffect2->getParams( &mEchoParams, sizeof( mEchoParams ) );
+		mEffect2->setParams( &mEchoParams, sizeof( mEchoParams ) );
 	}
 #endif
 }
@@ -215,11 +219,9 @@ void EffectTestApp::processEvent( Vec2i pos )
 {
 	if( mLowpassCutoffSlider.hitTest( pos ) )
 		updateLowpass();
-
-	//if( mEffect2 ) {
-	//	if( mBandPassCenterSlider.hitTest( pos ) )
-	//		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandPassCenterSlider.valueScaled );
-	//}
+	
+	if( mBandPassCenterSlider.hitTest( pos ) )
+		updateEcho();
 }
 
 void EffectTestApp::updateLowpass()
@@ -232,6 +234,11 @@ void EffectTestApp::updateLowpass()
 		mEffect->setParams( &mEQParams, sizeof( mEQParams ) );
 #endif
 	}
+}
+
+void EffectTestApp::updateEcho()
+{
+
 }
 
 void EffectTestApp::mouseDown( MouseEvent event )

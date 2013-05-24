@@ -15,6 +15,10 @@
 
 #include "Gui.h"
 
+
+// FIXME: mixer crashed on shutdown while dsp was on
+// - I think it is because the buffers aren't flushed 
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;

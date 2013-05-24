@@ -103,22 +103,6 @@ shared_ptr<SourceVoiceXAudio> XAudioNode::getSourceVoice( NodeRef node )
 	return shared_ptr<SourceVoiceXAudio>();
 }
 
-size_t XAudioNode::addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc )
-{
-	size_t index = mEffectsDescriptors.size();
-
-	mEffectsDescriptors.push_back( effectDesc );
-
-	::XAUDIO2_EFFECT_CHAIN effectsChain;
-	effectsChain.EffectCount = mEffectsDescriptors.size();
-	effectsChain.pEffectDescriptors = mEffectsDescriptors.data();
-
-	HRESULT hr = voice.voice->SetEffectChain( &effectsChain );
-	CI_ASSERT( hr == S_OK );
-
-	return index;
-}
-
 // ----------------------------------------------------------------------------------------------------
 // MARK: - OutputXAudio
 // ----------------------------------------------------------------------------------------------------
@@ -418,10 +402,12 @@ void EffectXAudio::initialize()
 	effectDesc.OutputChannels = mFormat.getNumChannels();
 
 	XAudioVoice v = getXAudioVoice( shared_from_this() );
-	mChainIndex = v.node->addEffect( v, effectDesc );
+	auto &effects = v.node->getEffectsDescriptors();
+	mChainIndex = effects.size();
+	effects.push_back( effectDesc );
 
 	mInitialized = true;
-	LOG_V << "successfully added self to effects chain. index: " << mChainIndex << endl;
+	LOG_V << "complete. effect index: " << mChainIndex << endl;
 }
 
 void EffectXAudio::uninitialize()
@@ -699,7 +685,7 @@ void GraphXAudio::initialize()
 	outputXAudio->initialize();
 
 	initNode( mOutput );
-
+	initEffects( mOutput->getSources().front() );
 	//size_t blockSize = mOutput->getBlockSize();
 	//mRenderContext.buffer.resize( mOutput->getFormat().getNumChannels() );
 	//for( auto& channel : mRenderContext.buffer )
@@ -824,5 +810,31 @@ void GraphXAudio::setXAudio( NodeRef node )
 		nodeXAudio->setXAudio( outputXAudio->getXAudio() );
 	}
 }
+
+// It appears IXAudio2Voice::SetEffectChain should only be called once - i.e. setting the chain
+// with length 1 and then again setting it with length 2 causes the engine to go down when the 
+// dsp loop starts.  To overcome this, initEffects recursively looks for all XAudioNode's that 
+// have effects attatched to them (during the first graph traversal) and sets the chain just once.
+void GraphXAudio::initEffects( NodeRef node )
+{
+	if( ! node )
+		return;
+	for( NodeRef& node : node->getSources() )
+		initEffects( node );
+
+	auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
+	if( nodeXAudio && ! nodeXAudio->getEffectsDescriptors().empty() ) {
+		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
+		CI_ASSERT( v.node == nodeXAudio.get() );
+		::XAUDIO2_EFFECT_CHAIN effectsChain;
+		effectsChain.EffectCount = nodeXAudio->getEffectsDescriptors().size();
+		effectsChain.pEffectDescriptors = nodeXAudio->getEffectsDescriptors().data();
+
+		LOG_V << "SetEffectChain, p: " << (void*)nodeXAudio.get() << ", count: " << effectsChain.EffectCount << endl;
+		HRESULT hr = v.voice->SetEffectChain( &effectsChain );
+		CI_ASSERT( hr == S_OK );
+	}
+}
+
 
 } // namespace audio2

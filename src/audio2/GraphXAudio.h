@@ -29,8 +29,6 @@ class XAudioNode {
 
 	void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
 
-	// ???: these methods don't rely on this XAudioNode instance - make them freestanding?
-	// - cannot override them then
 	// Subclasses override these methods to return their xaudio voice if they have one,
 	// otherwise the default implementation recurses through sources to find the goods.
 	// Node must be passed in here to traverse it's children and I want to avoid the complexities of dual inheriting from Node.
@@ -42,9 +40,7 @@ class XAudioNode {
 	//! find this node's SourceVoiceXAudio
 	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
 
-	//! append the effect to \t voice's effect chain. Returns the index of the added effect.
-	size_t addEffect( const XAudioVoice &voice, const ::XAUDIO2_EFFECT_DESCRIPTOR &effectDesc );
-
+	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
   protected:
 	  ::IXAudio2 *mXAudio;
 	  std::vector<::XAUDIO2_EFFECT_DESCRIPTOR> mEffectsDescriptors;
@@ -196,6 +192,7 @@ class GraphXAudio : public Graph {
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );
 	void setXAudio( NodeRef node );
+	void initEffects( NodeRef node );
 };
 
 } // namespace audio2
