@@ -69,7 +69,7 @@ class EffectTestApp : public AppNative {
 	FXECHO_PARAMETERS mEchoParams;
 #endif
 	Button mPlayButton;
-	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mBandPassCenterSlider;
+	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mEchoDelaySlider;
 };
 
 void EffectTestApp::prepareSettings( Settings *settings )
@@ -111,7 +111,7 @@ void EffectTestApp::setup()
 	if( mEffect2 ) {
 		mEffect2->setParameter( kBandpassParam_CenterFrequency, 1000 );
 		mEffect2->setParameter( kBandpassParam_Bandwidth, 1200 );
-		mBandPassCenterSlider.set( 1000 );
+		mEchoDelaySlider.set( 1000 );
 	}
 #elif defined( CINDER_MSW )
 	mEffect->getParams( &mEQParams, sizeof( mEQParams ) );
@@ -128,7 +128,7 @@ void EffectTestApp::setup()
 
 	if( mEffect2 ) {
 		mEffect2->getParams( &mEchoParams, sizeof( mEchoParams ) );
-		mEffect2->setParams( &mEchoParams, sizeof( mEchoParams ) );
+		mEchoDelaySlider.set( mEchoParams.Delay );
 	}
 #endif
 }
@@ -199,14 +199,14 @@ void EffectTestApp::setupUI()
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mLowpassCutoffSlider.bounds = sliderRect;
-	mLowpassCutoffSlider.title = "Lowpass Cutoff (Noise)";
+	mLowpassCutoffSlider.title = "Lowpass Cutoff";
 	mLowpassCutoffSlider.max = 1500.0f;
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mBandPassCenterSlider.bounds = sliderRect;
-	mBandPassCenterSlider.title = "Bandpass Center (Noise)";
-	mBandPassCenterSlider.min = 500.0f;
-	mBandPassCenterSlider.max = 2500.0f;
+	mEchoDelaySlider.bounds = sliderRect;
+	mEchoDelaySlider.title = "Echo Delay";
+	mEchoDelaySlider.min = 1.0f;
+	mEchoDelaySlider.max = 2000.0f;
 
 	gl::enableAlphaBlending();
 }
@@ -220,7 +220,7 @@ void EffectTestApp::processEvent( Vec2i pos )
 	if( mLowpassCutoffSlider.hitTest( pos ) )
 		updateLowpass();
 	
-	if( mBandPassCenterSlider.hitTest( pos ) )
+	if( mEchoDelaySlider.hitTest( pos ) )
 		updateEcho();
 }
 
@@ -238,7 +238,14 @@ void EffectTestApp::updateLowpass()
 
 void EffectTestApp::updateEcho()
 {
-
+	if( mEffect2 ) {
+#if defined( CINDER_COCOA )
+		//mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
+#elif defined( CINDER_MSW )
+		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mEchoDelaySlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
+		mEffect2->setParams( &mEchoParams, sizeof( mEchoParams ) );
+#endif
+	}
 }
 
 void EffectTestApp::mouseDown( MouseEvent event )
@@ -277,7 +284,7 @@ void EffectTestApp::draw()
 	mNoisePanSlider.draw();
 	mFreqPanSlider.draw();
 	mLowpassCutoffSlider.draw();
-	mBandPassCenterSlider.draw();
+	mEchoDelaySlider.draw();
 }
 
 CINDER_APP_NATIVE( EffectTestApp, RendererGl )
