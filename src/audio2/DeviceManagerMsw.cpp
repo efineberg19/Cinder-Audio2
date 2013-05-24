@@ -16,6 +16,12 @@
 
 #include <map>
 
+#if defined( CINDER_XAUDIO_2_7 )
+// The GUID's needed to query audio interfaces were not exposed in v110_xp sdk, for whatever reason, so I'm defining them here as they are when building with v110.
+DEFINE_GUID(DEVINTERFACE_AUDIO_RENDER , 0xe6327cad, 0xdcec, 0x4949, 0xae, 0x8a, 0x99, 0x1e, 0x97, 0x6a, 0x79, 0xd2);
+DEFINE_GUID(DEVINTERFACE_AUDIO_CAPTURE, 0x2eef81be, 0x33fa, 0x4800, 0x96, 0x70, 0x1c, 0xd4, 0x74, 0x97, 0x2c, 0x3f);
+#endif
+
 using namespace std;
 
 namespace audio2 {
@@ -150,11 +156,11 @@ DeviceManagerMsw::DeviceContainerT& DeviceManagerMsw::getDevices()
 
 		DWORD deviceIndex = 0;
 
-		map<string, wstring> deviceIdMap;
+		map<string, wstring> deviceIdMap; // [name:deviceId]
 
 		while ( true ) {
 
-			if( ! SetupDiEnumDeviceInterfaces( devInfoSet, 0, &DEVINTERFACE_AUDIO_RENDER, deviceIndex, &devInterface ) ) {
+			if( ! ::SetupDiEnumDeviceInterfaces( devInfoSet, 0, &DEVINTERFACE_AUDIO_RENDER, deviceIndex, &devInterface ) ) {
 				DWORD error = GetLastError();
 				if( error == ERROR_NO_MORE_ITEMS ) {
 					// ok, we're done.
@@ -183,8 +189,8 @@ DeviceManagerMsw::DeviceContainerT& DeviceManagerMsw::getDevices()
 
 			char friendlyName[kMaxPropertyStringLength];
 			::DWORD propertyDataType;
-			if( ! SetupDiGetDeviceRegistryPropertyA( devInfoSet, &devInfo, SPDRP_FRIENDLYNAME, &propertyDataType, (LPBYTE)friendlyName, kMaxPropertyStringLength, 0 ) ) {
-				LOG_E << "could not get SPDRP_FRIENDLYNAME. error: " << GetLastError() << endl;
+			if( ! ::SetupDiGetDeviceRegistryPropertyA( devInfoSet, &devInfo, SPDRP_FRIENDLYNAME, &propertyDataType, (LPBYTE)friendlyName, kMaxPropertyStringLength, 0 ) ) {
+				LOG_E << "could not get SPDRP_FRIENDLYNAME. error: " << ::GetLastError() << endl;
 				continue;
 			}
 

@@ -3,6 +3,8 @@
 #include "audio2/Debug.h"
 #include "audio2/assert.h"
 
+#include "cinder/Utilities.h"
+
 using namespace std;
 
 namespace audio2 {
@@ -51,9 +53,12 @@ void DeviceOutputXAudio::initialize()
 	// mXAudio is started at creation time, so stop it here until after the graph is configured
 	stop();
 
+	auto deviceManager = dynamic_cast<DeviceManagerMsw *>( DeviceManager::instance() );
+	const wstring &deviceId = deviceManager->getDeviceId( mKey );
+	const string &name = deviceManager->getName( mKey );
+
 #if defined( CINDER_XAUDIO_2_8 )
 	// TODO: consider moving master voice to Output node
-	const wstring &deviceId = dynamic_cast<DeviceManagerMsw *>( DeviceManager::instance() )->getDeviceId( mKey );
 	hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, deviceId.c_str() );
 	CI_ASSERT( hr == S_OK );
 
@@ -63,26 +68,33 @@ void DeviceOutputXAudio::initialize()
 	mMasteringVoice->GetVoiceDetails( &voiceDetails );
 	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
 #else
-	// TODO: pick device with index
-	HRESULT hr = device->mXAudio->CreateMasteringVoice( &device->mMasteringVoice );
-	CI_ASSERT( ! FAILED( hr ) );
 
-	CI_ASSERT( 0 ); // TODO: fill out params
+	// TODO: on XAudio2.7, mKey (from WASAPI) is the device Id, but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
+	UINT32 deviceCount;
+	hr = mXAudio->GetDeviceCount( &deviceCount );
+	CI_ASSERT( hr == S_OK );
+	::XAUDIO2_DEVICE_DETAILS deviceDetails;
+	for( UINT32 i = 0; i < deviceCount; i++ ) {
+		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
+		CI_ASSERT( hr == S_OK );
+		if( mKey == ci::toUtf8( deviceDetails.DeviceID ) ) {
+			LOG_V << "found match: display name: " << deviceDetails.DisplayName << endl;
+			LOG_V << "device id: " << deviceDetails.DeviceID << endl;
 
-	//UINT32 deviceCount;
-	//XAUDIO2_DEVICE_DETAILS deviceDetails;
-	//device->mXAudio->GetDeviceCount( &deviceCount );
-	//for( UINT32 i = 0; i < deviceCount; i++ ) {
-	//	device->mXAudio->GetDeviceDetails( 0, &deviceDetails );
-	//	if( deviceDetails.Role == GlobalDefaultDevice ) {
-	//		LOG_V << "default master voice created." << endl;
-	//		break;
-	//	}
-	//}
+			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, i );
+			CI_ASSERT( hr == S_OK );
+		}
+
+	}
+
+	CI_ASSERT( mMasteringVoice );
 
 #endif
 
-	//LOG_V << "init complete" << endl;
+	::XAUDIO2_VOICE_DETAILS voiceDetails;
+	mMasteringVoice->GetVoiceDetails( &voiceDetails );
+	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
+
 }
 
 void DeviceOutputXAudio::uninitialize()
