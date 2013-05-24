@@ -130,10 +130,20 @@ public:
 	void initialize() override;
 	void uninitialize() override;
 
+	// TODO: get/set params should throw if a bad HRESULT shows up because of this
+
+	template<typename ParamsT>
+	void getParams( ParamsT *params )			{ getParams( static_cast<void *>( params ), sizeof( *params ) ); }
+
+	// TODO: ask AFB if setter should be *params or &params
+	template<typename ParamsT>
+	void setParams( const ParamsT &params )		{ setParams( static_cast<const void *>( &params ), sizeof( params ) ); }
+ 
+private:
+
 	void getParams( void *params, size_t sizeParams );
 	void setParams( const void *params, size_t sizeParams );
 
-  private:
 	void makeXapo( REFCLSID clsid );
 	std::unique_ptr<::IUnknown, msw::ComReleaser> mXapo;
 	XapoType mType;

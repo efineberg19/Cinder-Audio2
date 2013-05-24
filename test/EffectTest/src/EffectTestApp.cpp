@@ -114,7 +114,7 @@ void EffectTestApp::setup()
 		mEchoDelaySlider.set( 1000 );
 	}
 #elif defined( CINDER_MSW )
-	mEffect->getParams( &mEQParams, sizeof( mEQParams ) );
+	mEffect->getParams( &mEQParams );
 
 	// reset so it's like a lowpass
 	mEQParams.Gain0 = FXEQ_MAX_GAIN;
@@ -122,12 +122,13 @@ void EffectTestApp::setup()
 	mEQParams.Gain2 = FXEQ_MIN_GAIN;
 	mEQParams.Gain3 = FXEQ_MIN_GAIN;
 
-	mEffect->setParams( &mEQParams, sizeof( mEQParams ) );
+	mEffect->setParams( mEQParams );
 
 	mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
 
 	if( mEffect2 ) {
-		mEffect2->getParams( &mEchoParams, sizeof( mEchoParams ) );
+		//mEffect2->getParams( &mEchoParams, sizeof( mEchoParams ) );
+		mEffect2->getParams( &mEchoParams );
 		mEchoDelaySlider.set( mEchoParams.Delay );
 	}
 #endif
@@ -231,7 +232,7 @@ void EffectTestApp::updateLowpass()
 		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
 #elif defined( CINDER_MSW )
 		mEQParams.FrequencyCenter0 = std::max( FXEQ_MIN_FREQUENCY_CENTER, mLowpassCutoffSlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
-		mEffect->setParams( &mEQParams, sizeof( mEQParams ) );
+		mEffect->setParams( mEQParams );
 #endif
 	}
 }
@@ -243,7 +244,7 @@ void EffectTestApp::updateEcho()
 		//mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
 #elif defined( CINDER_MSW )
 		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mEchoDelaySlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
-		mEffect2->setParams( &mEchoParams, sizeof( mEchoParams ) );
+		mEffect2->setParams( mEchoParams );
 #endif
 	}
 }
