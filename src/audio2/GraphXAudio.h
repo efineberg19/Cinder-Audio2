@@ -138,6 +138,7 @@ public:
 	void setParams( const void *params, size_t sizeParams );
 
   private:
+	void makeXapo( REFCLSID clsid );
 	std::unique_ptr<::IUnknown, msw::ComReleaser> mXapo;
 	XapoType mType;
 	size_t mChainIndex;

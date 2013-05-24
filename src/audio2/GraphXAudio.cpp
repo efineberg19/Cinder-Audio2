@@ -71,6 +71,7 @@ XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
 	return getXAudioVoice( source );
 }
 
+// TODO: make these two methods recursive - they don't need the while loop, assert at top
 shared_ptr<XAudioNode> XAudioNode::getXAudioNode( NodeRef node )
 {
 	while( node ) {
@@ -382,35 +383,40 @@ OSStatus InputXAudio::inputCallback( void *context, ::AudioUnitRenderActionFlags
 // MARK: - EffectXAudio
 // ----------------------------------------------------------------------------------------------------
 
-
+// TODO: cover the 2 built-ins too, included via xaudio2fx.h
 EffectXAudio::EffectXAudio( XapoType type )
 : mType( type )
 {
 	mTag = "EffectXAudio";
 
-	::IUnknown *xapo;
 	switch( type ) {
-		case XapoType::FXEcho:				::CreateFX( __uuidof( ::FXEcho ), &xapo ); break;
-		case XapoType::FXEQ:				::CreateFX( __uuidof( ::FXEQ ), &xapo ); break;
-		case XapoType::FXMasteringLimiter:	::CreateFX( __uuidof( ::FXMasteringLimiter ), &xapo ); break;
-		case XapoType::FXReverb:			::CreateFX( __uuidof( ::FXReverb ), &xapo ); break;
+		case XapoType::FXEcho:				makeXapo( __uuidof( ::FXEcho ) ); break;
+		case XapoType::FXEQ:				makeXapo( __uuidof( ::FXEQ ) ); break;
+		case XapoType::FXMasteringLimiter:	makeXapo( __uuidof( ::FXMasteringLimiter ) ); break;
+		case XapoType::FXReverb:			makeXapo( __uuidof( ::FXReverb ) ); break;
 	}
-	mXapo = msw::makeComUnique( xapo );
 }
 
 EffectXAudio::~EffectXAudio()
 {
 }
 
+void EffectXAudio::makeXapo( REFCLSID clsid )
+{
+	::IUnknown *xapo;
+	HRESULT hr = ::CreateFX( clsid, &xapo );
+	CI_ASSERT( hr == S_OK );
+	mXapo = msw::makeComUnique( xapo );
+}
+
 void EffectXAudio::initialize()
 {
 	::XAUDIO2_EFFECT_DESCRIPTOR effectDesc;
-	//effectDesc.InitialState = mEnabled = true; // TODO: consider adding enabled param to Effect base class
+	//effectDesc.InitialState = mEnabled = true; // TODO: add enabled / running param for all Nodes.
 	effectDesc.InitialState = true;
 	effectDesc.pEffect = mXapo.get();
 	effectDesc.OutputChannels = mFormat.getNumChannels();
 
-	//NodeRef source = mSources[0];
 	XAudioVoice v = getXAudioVoice( shared_from_this() );
 	mChainIndex = v.node->addEffect( v, effectDesc );
 

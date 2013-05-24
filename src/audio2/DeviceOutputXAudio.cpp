@@ -4,6 +4,7 @@
 #include "audio2/assert.h"
 
 #include "cinder/Utilities.h"
+#include "cinder/msw/CinderMsw.h"
 
 using namespace std;
 
@@ -34,6 +35,8 @@ void DeviceOutputXAudio::initialize()
 	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
 	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
 
+	ci::msw::initializeCom();
+
 #else
 	LOG_V << "CINDER_XAUDIO_2_8, toolset: v110" << endl;
 	UINT32 flags = 0;
@@ -61,12 +64,6 @@ void DeviceOutputXAudio::initialize()
 	// TODO: consider moving master voice to Output node
 	hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, deviceId.c_str() );
 	CI_ASSERT( hr == S_OK );
-
-	// parse voice details
-
-	::XAUDIO2_VOICE_DETAILS voiceDetails;
-	mMasteringVoice->GetVoiceDetails( &voiceDetails );
-	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
 #else
 
 	// TODO: on XAudio2.7, mKey (from WASAPI) is the device Id, but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
