@@ -47,6 +47,7 @@ public:
 	void setupOne();
 	void setupTwo();
 	void setupFilter();
+	void setupFilterDelay();
 
 	void toggleGraph();
 
@@ -90,7 +91,8 @@ void EffectXAudioTestApp::setup()
 
 	//setupOne();
 	//setupTwo();
-	setupFilter();
+	//setupFilter();
+	setupFilterDelay();
 
 	mGraph->initialize();
 
@@ -115,7 +117,6 @@ void EffectXAudioTestApp::setup()
 	}
 
 	if( mEffect2 ) {
-		//mEffect2->getParams( &mEchoParams, sizeof( mEchoParams ) );
 		mEffect2->getParams( &mEchoParams );
 		mEchoDelaySlider.set( mEchoParams.Delay );
 	}
@@ -157,6 +158,16 @@ void EffectXAudioTestApp::setupFilter()
 
 	mFilterEffect->connect( mSource );
 	mGraph->getOutput()->connect( mFilterEffect );
+}
+
+void EffectXAudioTestApp::setupFilterDelay()
+{
+	mFilterEffect = make_shared<EffectXAudioFilter>();
+	mEffect2 = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEcho );
+
+	mFilterEffect->connect( mSource );
+	mEffect2->connect( mFilterEffect );
+	mGraph->getOutput()->connect( mEffect2 );
 }
 
 void EffectXAudioTestApp::toggleGraph()
