@@ -27,5 +27,11 @@
 		<sourcePattern>src/audio2/cocoa/*.cpp</sourcePattern>
 		<staticLibrary>lib/ios/libboost_atomic.a</staticLibrary>
 	</platform>
+	<platform os="msw">
+		<headerPattern>src/audio2/msw/*.h</headerPattern>
+		<sourcePattern>src/audio2/msw/*.cpp</sourcePattern>
+		<includePath system="true">$(DXSDK_DIR)\include</includePath>
+		<libraryPath>$(DXSDK_DIR)\Lib\x86</libraryPath>
+	</platform>
 </block>
 </cinder>
