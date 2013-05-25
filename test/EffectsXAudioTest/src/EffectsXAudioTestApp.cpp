@@ -8,14 +8,11 @@
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
-
-#if defined( CINDER_COCOA )
-#include "audio2/GraphAudioUnit.h"
-#elif defined( CINDER_MSW )
 #include "audio2/GraphXAudio.h"
-#endif
 
 #include "Gui.h"
+
+// TODO NEXT: FilterEffectXAudio
 
 using namespace ci;
 using namespace ci::app;
@@ -26,7 +23,7 @@ template <typename UGenT>
 struct UGenNode : public Producer {
 	UGenNode()	{
 		mTag = "UGenNode";
- 		mFormat.setWantsDefaultFormatFromParent();
+		mFormat.setWantsDefaultFormatFromParent();
 	}
 
 	virtual void render( BufferT *buffer ) override {
@@ -36,9 +33,8 @@ struct UGenNode : public Producer {
 	UGenT mGen;
 };
 
-class EffectTestApp : public AppNative {
-  public:
-	void prepareSettings( Settings *settings );
+class EffectXAudioTestApp : public AppNative {
+public:
 	void setup();
 	void keyDown( KeyEvent event );
 	void touchesBegan( TouchEvent event ) override;
@@ -59,23 +55,15 @@ class EffectTestApp : public AppNative {
 
 	GraphRef mGraph;
 
-#if defined( CINDER_COCOA )
-	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
-#elif defined( CINDER_MSW )
 	shared_ptr<EffectXAudio> mEffect, mEffect2;
 	FXEQ_PARAMETERS mEQParams;
 	FXECHO_PARAMETERS mEchoParams;
-#endif
+
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mEchoDelaySlider;
 };
 
-void EffectTestApp::prepareSettings( Settings *settings )
-{
-//	settings->enableMultiTouch();
-}
-
-void EffectTestApp::setup()
+void EffectXAudioTestApp::setup()
 {
 	DeviceRef device = Device::getDefaultOutput();
 
@@ -97,21 +85,9 @@ void EffectTestApp::setup()
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration:" << endl;
 	printGraph( mGraph );
-	
+
 	setupUI();
 
-#if defined( CINDER_COCOA )
-	if( mEffect ) {
-		mEffect->setParameter( kLowPassParam_CutoffFrequency, 500 );
-		mLowpassCutoffSlider.set( 500 );
-	}
-
-	if( mEffect2 ) {
-		mEffect2->setParameter( kBandpassParam_CenterFrequency, 1000 );
-		mEffect2->setParameter( kBandpassParam_Bandwidth, 1200 );
-		mEchoDelaySlider.set( 1000 );
-	}
-#elif defined( CINDER_MSW )
 	mEffect->getParams( &mEQParams );
 
 	// reset so it's like a lowpass
@@ -129,39 +105,29 @@ void EffectTestApp::setup()
 		mEffect2->getParams( &mEchoParams );
 		mEchoDelaySlider.set( mEchoParams.Delay );
 	}
-#endif
 }
 
-void EffectTestApp::setupOne()
+void EffectXAudioTestApp::setupOne()
 {
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->mGen.setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 
-#if defined( CINDER_COCOA )
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-#else
 	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
-#endif
 	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
 
 	mEffect->connect( noise );
 	mGraph->getOutput()->connect( mEffect );
 }
 
-void EffectTestApp::setupTwo()
+void EffectXAudioTestApp::setupTwo()
 {
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->mGen.setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force mono
 
-#if defined( CINDER_COCOA )
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
-#else
 	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
 	mEffect2 = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEcho );
-#endif
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
@@ -170,7 +136,7 @@ void EffectTestApp::setupTwo()
 	mGraph->getOutput()->connect( mEffect2 );
 }
 
-void EffectTestApp::toggleGraph()
+void EffectXAudioTestApp::toggleGraph()
 {
 	if( ! mGraph->isRunning() )
 		mGraph->start();
@@ -178,7 +144,7 @@ void EffectTestApp::toggleGraph()
 		mGraph->stop();
 }
 
-void EffectTestApp::setupUI()
+void EffectXAudioTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
@@ -210,72 +176,64 @@ void EffectTestApp::setupUI()
 	gl::enableAlphaBlending();
 }
 
-void EffectTestApp::keyDown( KeyEvent event )
+void EffectXAudioTestApp::keyDown( KeyEvent event )
 {
 }
 
-void EffectTestApp::processEvent( Vec2i pos )
+void EffectXAudioTestApp::processEvent( Vec2i pos )
 {
 	if( mLowpassCutoffSlider.hitTest( pos ) )
 		updateLowpass();
-	
+
 	if( mEchoDelaySlider.hitTest( pos ) )
 		updateEcho();
 }
 
-void EffectTestApp::updateLowpass()
+void EffectXAudioTestApp::updateLowpass()
 {
 	if( mEffect ) {
-#if defined( CINDER_COCOA )
-		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
-#elif defined( CINDER_MSW )
 		mEQParams.FrequencyCenter0 = std::max( FXEQ_MIN_FREQUENCY_CENTER, mLowpassCutoffSlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
 		mEffect->setParams( mEQParams );
-#endif
 	}
 }
 
-void EffectTestApp::updateEcho()
+void EffectXAudioTestApp::updateEcho()
 {
 	if( mEffect2 ) {
-#if defined( CINDER_COCOA )
-		//mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
-#elif defined( CINDER_MSW )
 		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mEchoDelaySlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
 		mEffect2->setParams( mEchoParams );
-#endif
 	}
 }
 
-void EffectTestApp::mouseDown( MouseEvent event )
+void EffectXAudioTestApp::mouseDown( MouseEvent event )
 {
 	if( mPlayButton.hitTest( event.getPos() ) )
 		toggleGraph();
 }
 
-void EffectTestApp::mouseDrag( MouseEvent event )
+void EffectXAudioTestApp::mouseDrag( MouseEvent event )
 {
 	processEvent( event.getPos() );
 }
 
-void EffectTestApp::touchesBegan( TouchEvent event )
+void EffectXAudioTestApp::touchesBegan( TouchEvent event )
 {
 	if( mPlayButton.hitTest( event.getTouches().front().getPos() ) )
 		toggleGraph();
 }
 
-void EffectTestApp::touchesMoved( TouchEvent event )
+void EffectXAudioTestApp::touchesMoved( TouchEvent event )
 {
 	for( const TouchEvent::Touch &touch : getActiveTouches() ) {
 		processEvent( touch.getPos() );
 	}
 }
 
-void EffectTestApp::update()
+void EffectXAudioTestApp::update()
 {
 }
 
-void EffectTestApp::draw()
+void EffectXAudioTestApp::draw()
 {
 	gl::clear();
 
@@ -286,4 +244,4 @@ void EffectTestApp::draw()
 	mEchoDelaySlider.draw();
 }
 
-CINDER_APP_NATIVE( EffectTestApp, RendererGl )
+CINDER_APP_NATIVE( EffectXAudioTestApp, RendererGl )
