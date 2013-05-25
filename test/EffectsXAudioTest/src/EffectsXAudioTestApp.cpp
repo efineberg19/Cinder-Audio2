@@ -46,6 +46,8 @@ public:
 
 	void setupOne();
 	void setupTwo();
+	void setupFilter();
+
 	void toggleGraph();
 
 	void setupUI();
@@ -55,9 +57,13 @@ public:
 
 	GraphRef mGraph;
 
+	NodeRef mSource;
 	shared_ptr<EffectXAudio> mEffect, mEffect2;
 	FXEQ_PARAMETERS mEQParams;
 	FXECHO_PARAMETERS mEchoParams;
+
+	shared_ptr<EffectXAudioFilter> mFilterEffect;
+	XAUDIO2_FILTER_PARAMETERS mFilterParams;
 
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mEchoDelaySlider;
@@ -77,8 +83,14 @@ void EffectXAudioTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setOutput( output );
 
+	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->mGen.setAmp( 0.25f );
+	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
+	mSource = noise;
+
 	//setupOne();
-	setupTwo();
+	//setupTwo();
+	setupFilter();
 
 	mGraph->initialize();
 
@@ -88,52 +100,63 @@ void EffectXAudioTestApp::setup()
 
 	setupUI();
 
-	mEffect->getParams( &mEQParams );
+	if( mEffect ) {
+		mEffect->getParams( &mEQParams );
 
-	// reset so it's like a lowpass
-	mEQParams.Gain0 = FXEQ_MAX_GAIN;
-	mEQParams.Gain1 = FXEQ_MIN_GAIN;
-	mEQParams.Gain2 = FXEQ_MIN_GAIN;
-	mEQParams.Gain3 = FXEQ_MIN_GAIN;
+		// reset so it's like a lowpass
+		mEQParams.Gain0 = FXEQ_MAX_GAIN;
+		mEQParams.Gain1 = FXEQ_MIN_GAIN;
+		mEQParams.Gain2 = FXEQ_MIN_GAIN;
+		mEQParams.Gain3 = FXEQ_MIN_GAIN;
 
-	mEffect->setParams( mEQParams );
+		mEffect->setParams( mEQParams );
 
-	mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
+		mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
+	}
 
 	if( mEffect2 ) {
 		//mEffect2->getParams( &mEchoParams, sizeof( mEchoParams ) );
 		mEffect2->getParams( &mEchoParams );
 		mEchoDelaySlider.set( mEchoParams.Delay );
 	}
+
+	if( mFilterEffect ) {
+		mFilterEffect->getParams( &mFilterParams );
+		mFilterParams.Type = LowPassFilter;
+		mFilterEffect->setParams( mFilterParams );
+
+		float cutoff = XAudio2FrequencyRatioToSemitones( mFilterParams.Frequency );
+		mLowpassCutoffSlider.set( cutoff );
+	}
 }
 
 void EffectXAudioTestApp::setupOne()
 {
-	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->mGen.setAmp( 0.25f );
-	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
-
 	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
 	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
 
-	mEffect->connect( noise );
+	mEffect->connect( mSource );
 	mGraph->getOutput()->connect( mEffect );
 }
 
 void EffectXAudioTestApp::setupTwo()
 {
-	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->mGen.setAmp( 0.25f );
-	//noise->getFormat().setNumChannels( 1 ); // force mono
-
 	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
 	mEffect2 = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEcho );
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
-	mEffect->connect( noise );
+	mEffect->connect( mSource );
 	mEffect2->connect( mEffect );
 	mGraph->getOutput()->connect( mEffect2 );
+}
+
+void EffectXAudioTestApp::setupFilter()
+{
+	mFilterEffect = make_shared<EffectXAudioFilter>();
+
+	mFilterEffect->connect( mSource );
+	mGraph->getOutput()->connect( mFilterEffect );
 }
 
 void EffectXAudioTestApp::toggleGraph()
@@ -191,9 +214,9 @@ void EffectXAudioTestApp::processEvent( Vec2i pos )
 
 void EffectXAudioTestApp::updateLowpass()
 {
-	if( mEffect ) {
-		mEQParams.FrequencyCenter0 = std::max( FXEQ_MIN_FREQUENCY_CENTER, mLowpassCutoffSlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
-		mEffect->setParams( mEQParams );
+	if( mFilterEffect ) {
+		mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.valueScaled, mFilterEffect->getFormat().getSampleRate() );
+		mFilterEffect->setParams( mFilterParams );
 	}
 }
 

@@ -24,7 +24,7 @@ struct XAudioVoice {
 
 class XAudioNode {
   public:
-	XAudioNode() {}
+	XAudioNode() : mFilterEnabled( false ), mFilterConnected( false ) {}
 	virtual ~XAudioNode();
 
 	void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
@@ -41,9 +41,17 @@ class XAudioNode {
 	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
 
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
+
+	void setFilterEnabled( bool b = true )	{ mFilterEnabled = b; }
+	bool isFilterEnabled() const			{ return mFilterEnabled; }
+	void setFilterConnected( bool b = true )	{ mFilterConnected = b; }
+	bool isFilterConnected() const			{ return mFilterConnected; }
+
   protected:
-	  ::IXAudio2 *mXAudio;
-	  std::vector<::XAUDIO2_EFFECT_DESCRIPTOR> mEffectsDescriptors;
+	::IXAudio2 *mXAudio;
+	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR> mEffectsDescriptors;
+
+	bool								mFilterEnabled, mFilterConnected;
 };
 
 class DeviceOutputXAudio;
@@ -149,6 +157,23 @@ private:
 	XapoType mType;
 	size_t mChainIndex;
 };
+
+class EffectXAudioFilter : public Effect, public XAudioNode {
+public:
+
+	EffectXAudioFilter();
+	virtual ~EffectXAudioFilter();
+
+	void initialize() override;
+	void uninitialize() override;
+
+	void getParams( ::XAUDIO2_FILTER_PARAMETERS *params );
+	void setParams( const ::XAUDIO2_FILTER_PARAMETERS &params ); // TODO: ask AFB if this shoul be * of &
+
+private:
+
+};
+
 
 class MixerXAudio : public Mixer, public XAudioNode {
 public:

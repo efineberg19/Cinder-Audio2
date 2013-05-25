@@ -197,7 +197,8 @@ void SourceVoiceXAudio::initialize()
 	wfx.SubFormat                   = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 	wfx.dwChannelMask				= 0; // this could be a very complicated bit mask of channel order, but 0 means 'first channel is left, second channel is right, etc'
 
-	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, (::WAVEFORMATEX*)&wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
+	UINT32 flags = ( mFilterEnabled ? XAUDIO2_VOICE_USEFILTER : 0 );
+	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, (::WAVEFORMATEX*)&wfx, flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
 	mVoiceCallback->setSourceVoice( mSourceVoice );
 
@@ -371,7 +372,7 @@ OSStatus InputXAudio::inputCallback( void *context, ::AudioUnitRenderActionFlags
 EffectXAudio::EffectXAudio( XapoType type )
 : mType( type )
 {
-	mTag = "EffectXAudio";
+	mTag = "EffectXAudioXapo";
 
 	switch( type ) {
 		case XapoType::FXEcho:				makeXapo( __uuidof( ::FXEcho ) ); break;
@@ -432,6 +433,60 @@ void EffectXAudio::setParams( const void *params, size_t sizeParams )
 
 	XAudioVoice v = getXAudioVoice( shared_from_this() );
 	HRESULT hr = v.voice->SetEffectParameters( mChainIndex, params, sizeParams );
+	CI_ASSERT( hr == S_OK );
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - EffectXAudioFilter
+// ----------------------------------------------------------------------------------------------------
+
+EffectXAudioFilter::EffectXAudioFilter()
+{
+	mTag = "EffectXAudioFilter";
+
+}
+
+EffectXAudioFilter::~EffectXAudioFilter()
+{
+
+}
+
+void EffectXAudioFilter::initialize()
+{
+
+	XAudioVoice v = getXAudioVoice( shared_from_this() );
+
+	if( v.node->isFilterConnected() )
+		throw AudioGraphExc( "source voice already has a filter connected." );
+	v.node->setFilterConnected();
+
+	mInitialized = true;
+	LOG_V << "complete." << endl;
+}
+
+void EffectXAudioFilter::uninitialize()
+{
+	mInitialized = false;
+}
+
+void EffectXAudioFilter::getParams( ::XAUDIO2_FILTER_PARAMETERS *params )
+{
+	if( ! mInitialized )
+		throw AudioParamExc( "must be initialized before accessing params" );
+
+	XAudioVoice v = getXAudioVoice( shared_from_this() );
+
+	v.voice->GetFilterParameters( params );
+}
+
+void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
+{
+	if( ! mInitialized )
+		throw AudioParamExc( "must be initialized before accessing params" );
+
+	XAudioVoice v = getXAudioVoice( shared_from_this() );
+
+	HRESULT hr = v.voice->SetFilterParameters( &params );
 	CI_ASSERT( hr == S_OK );
 }
 
@@ -730,12 +785,13 @@ void GraphXAudio::initNode( NodeRef node )
 		// if source is generic, add implicit SourceXAudio
 		// TODO: check all edge cases (such as generic effect later in the chain)
 		if( ! dynamic_cast<XAudioNode *>( source.get() ) ) {
-			NodeRef sourceVoice = make_shared<SourceVoiceXAudio>();
+			auto sourceVoice = make_shared<SourceVoiceXAudio>();
 			node->getSources()[i] = sourceVoice;
 			sourceVoice->getSources()[0] = source;
 			sourceVoice->getFormat().setNumChannels( source->getFormat().getNumChannels() );
 			sourceVoice->getFormat().setSampleRate( source->getFormat().getSampleRate() );
 			setXAudio( sourceVoice );
+			sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
 			sourceVoice->initialize();
 		}
 
