@@ -17,6 +17,9 @@
 
 #include "Gui.h"
 
+// TOD: rename EffectsTest and make it generic
+// - audio unit stuff should go in its own test app
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -62,7 +65,7 @@ class EffectTestApp : public AppNative {
 #if defined( CINDER_COCOA )
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 #elif defined( CINDER_MSW )
-	shared_ptr<EffectXAudio> mEffect, mEffect2;
+	shared_ptr<EffectXAudioXapo> mEffect, mEffect2;
 	FXEQ_PARAMETERS mEQParams;
 	FXECHO_PARAMETERS mEchoParams;
 #endif
@@ -141,7 +144,7 @@ void EffectTestApp::setupOne()
 #if defined( CINDER_COCOA )
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 #else
-	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
+	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
 #endif
 	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
 
@@ -159,8 +162,8 @@ void EffectTestApp::setupTwo()
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
 #else
-	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
-	mEffect2 = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEcho );
+	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
+	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
 #endif
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo

@@ -369,7 +369,7 @@ OSStatus InputXAudio::inputCallback( void *context, ::AudioUnitRenderActionFlags
 // ----------------------------------------------------------------------------------------------------
 
 // TODO: cover the 2 built-ins too, included via xaudio2fx.h
-EffectXAudio::EffectXAudio( XapoType type )
+EffectXAudioXapo::EffectXAudioXapo( XapoType type )
 : mType( type )
 {
 	mTag = "EffectXAudioXapo";
@@ -382,11 +382,11 @@ EffectXAudio::EffectXAudio( XapoType type )
 	}
 }
 
-EffectXAudio::~EffectXAudio()
+EffectXAudioXapo::~EffectXAudioXapo()
 {
 }
 
-void EffectXAudio::makeXapo( REFCLSID clsid )
+void EffectXAudioXapo::makeXapo( REFCLSID clsid )
 {
 	::IUnknown *xapo;
 	HRESULT hr = ::CreateFX( clsid, &xapo );
@@ -394,7 +394,7 @@ void EffectXAudio::makeXapo( REFCLSID clsid )
 	mXapo = msw::makeComUnique( xapo );
 }
 
-void EffectXAudio::initialize()
+void EffectXAudioXapo::initialize()
 {
 	::XAUDIO2_EFFECT_DESCRIPTOR effectDesc;
 	//effectDesc.InitialState = mEnabled = true; // TODO: add enabled / running param for all Nodes.
@@ -411,12 +411,12 @@ void EffectXAudio::initialize()
 	LOG_V << "complete. effect index: " << mChainIndex << endl;
 }
 
-void EffectXAudio::uninitialize()
+void EffectXAudioXapo::uninitialize()
 {
 	mInitialized = false;
 }
 
-void EffectXAudio::getParams( void *params, size_t sizeParams )
+void EffectXAudioXapo::getParams( void *params, size_t sizeParams )
 {
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
@@ -426,7 +426,7 @@ void EffectXAudio::getParams( void *params, size_t sizeParams )
 	CI_ASSERT( hr == S_OK );
 }
 
-void EffectXAudio::setParams( const void *params, size_t sizeParams )
+void EffectXAudioXapo::setParams( const void *params, size_t sizeParams )
 {
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );

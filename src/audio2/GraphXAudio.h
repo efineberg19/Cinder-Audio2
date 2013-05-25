@@ -128,12 +128,12 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 //	cocoa::AudioBufferListRef mBufferList;
 //};
 
-class EffectXAudio : public Effect, public XAudioNode {
+class EffectXAudioXapo : public Effect, public XAudioNode {
 public:
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
-	EffectXAudio( XapoType type );
-	virtual ~EffectXAudio();
+	EffectXAudioXapo( XapoType type );
+	virtual ~EffectXAudioXapo();
 
 	void initialize() override;
 	void uninitialize() override;

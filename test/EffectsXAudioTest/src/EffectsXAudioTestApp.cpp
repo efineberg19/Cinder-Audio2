@@ -59,7 +59,7 @@ public:
 	GraphRef mGraph;
 
 	NodeRef mSource;
-	shared_ptr<EffectXAudio> mEffect, mEffect2;
+	shared_ptr<EffectXAudioXapo> mEffect, mEffect2;
 	FXEQ_PARAMETERS mEQParams;
 	FXECHO_PARAMETERS mEchoParams;
 
@@ -133,7 +133,7 @@ void EffectXAudioTestApp::setup()
 
 void EffectXAudioTestApp::setupOne()
 {
-	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
+	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
 	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
 
 	mEffect->connect( mSource );
@@ -142,8 +142,8 @@ void EffectXAudioTestApp::setupOne()
 
 void EffectXAudioTestApp::setupTwo()
 {
-	mEffect = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEQ );
-	mEffect2 = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEcho );
+	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
+	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
@@ -163,7 +163,7 @@ void EffectXAudioTestApp::setupFilter()
 void EffectXAudioTestApp::setupFilterDelay()
 {
 	mFilterEffect = make_shared<EffectXAudioFilter>();
-	mEffect2 = make_shared<EffectXAudio>( EffectXAudio::XapoType::FXEcho );
+	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
 
 	mFilterEffect->connect( mSource );
 	mEffect2->connect( mFilterEffect );
