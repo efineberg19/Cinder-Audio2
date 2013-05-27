@@ -17,7 +17,7 @@ using namespace audio2;
 
 struct RingMod : public Effect {
 	RingMod()
-	: mSineGen( 44100, 440.0f, 1.0f )
+	: mSineGen( 440.0f, 1.0f )
 	{
 		mTag = "RingMod";
  		mFormat.setWantsDefaultFormatFromParent();
