@@ -40,6 +40,7 @@ class DeviceManagerMsw : public DeviceManager {
 	  };
 
 	  DeviceInfo& getDeviceInfo( const std::string &key );
+	  void parseDevices( DeviceInfo::Usage usage );
 
 	  typedef std::vector<DeviceInfo> DeviceContainerT;
 	  DeviceContainerT& getDevices();
