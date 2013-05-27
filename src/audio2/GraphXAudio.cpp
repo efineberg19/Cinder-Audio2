@@ -11,30 +11,30 @@ using namespace std;
 
 namespace audio2 {
 
-	struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
+struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 
-		VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
+	VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
 
-		void setSourceVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
+	void setSourceVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
 
-		// TODO: apparently passing in XAUDIO2_VOICE_NOSAMPLESPLAYED to GetState is 4x faster
-		void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
-			::XAUDIO2_VOICE_STATE state;
-			mSourceVoice->GetState( &state );
-			if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
-				mRenderCallback();
-		}
+	// TODO: apparently passing in XAUDIO2_VOICE_NOSAMPLESPLAYED to GetState is 4x faster
+	void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
+		::XAUDIO2_VOICE_STATE state;
+		mSourceVoice->GetState( &state );
+		if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
+			mRenderCallback();
+	}
 
-		void STDMETHODCALLTYPE OnStreamEnd() {}
-		void STDMETHODCALLTYPE OnVoiceProcessingPassEnd() {}
-		void STDMETHODCALLTYPE OnVoiceProcessingPassStart( UINT32 SamplesRequired ) {}
-		void STDMETHODCALLTYPE OnBufferStart( void *pBufferContext ) {}
-		void STDMETHODCALLTYPE OnLoopEnd( void *pBufferContext ) {}
-		void STDMETHODCALLTYPE OnVoiceError( void *pBufferContext, HRESULT Error )	{ CI_ASSERT( false ); }
+	void STDMETHODCALLTYPE OnStreamEnd() {}
+	void STDMETHODCALLTYPE OnVoiceProcessingPassEnd() {}
+	void STDMETHODCALLTYPE OnVoiceProcessingPassStart( UINT32 SamplesRequired ) {}
+	void STDMETHODCALLTYPE OnBufferStart( void *pBufferContext ) {}
+	void STDMETHODCALLTYPE OnLoopEnd( void *pBufferContext ) {}
+	void STDMETHODCALLTYPE OnVoiceError( void *pBufferContext, HRESULT Error )	{ CI_ASSERT( false ); }
 
-		::IXAudio2SourceVoice	*mSourceVoice;
-		function<void()>		mRenderCallback;
-	};
+	::IXAudio2SourceVoice	*mSourceVoice;
+	function<void()>		mRenderCallback;
+};
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - XAudioNode
@@ -243,126 +243,6 @@ void SourceVoiceXAudio::submitNextBuffer()
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
 	CI_ASSERT( hr == S_OK );
 }
-
-// ----------------------------------------------------------------------------------------------------
-// MARK: - InputXAudio
-// ----------------------------------------------------------------------------------------------------
-
-/*
-InputXAudio::InputXAudio( DeviceRef device )
-: Input( device )
-{
-	mTag = "InputXAudio";
-	mRenderBus = DeviceAudioUnit::Bus::Input;
-
-	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
-	CI_ASSERT( mDevice );
-
-	mFormat.setSampleRate( mDevice->getSampleRate() );
-	mFormat.setNumChannels( 2 );
-
-	CI_ASSERT( ! mDevice->isInputConnected() );
-	mDevice->setInputConnected();
-}
-
-InputXAudio::~InputXAudio()
-{
-}
-
-void InputXAudio::initialize()
-{
-	::AudioUnit audioUnit = getAudioUnit();
-	CI_ASSERT( audioUnit );
-
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
-
-	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::Input, &asbd, sizeof( asbd ) );
-	CI_ASSERT( status == noErr );
-
-	if( mDevice->isOutputConnected() ) {
-		LOG_V << "Path A. The High Road." << endl;
-		// output node is expected to initialize device, since it is pulling all the way to here.
-	}
-	else {
-		LOG_V << "Path B. initiate ringbuffer" << endl;
-		mShouldUseGraphRenderCallback = false;
-
-		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getBlockSize() * mFormat.getNumChannels() ) );
-		mBufferList = cocoa::createNonInterleavedBufferList( mFormat.getNumChannels(), mDevice->getBlockSize() * sizeof( float ) );
-
-		::AURenderCallbackStruct callbackStruct;
-		callbackStruct.inputProc = InputXAudio::inputCallback;
-		callbackStruct.inputProcRefCon = this;
-		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::Input, &callbackStruct, sizeof( callbackStruct ) );
-		CI_ASSERT( status == noErr );
-
-		mDevice->initialize();
-	}
-
-	LOG_V << "initialize complete." << endl;
-}
-
-void InputXAudio::uninitialize()
-{
-	mDevice->uninitialize();
-}
-
-void InputXAudio::start()
-{
-
-	if( ! mDevice->isOutputConnected() ) {
-		mDevice->start();
-		LOG_V << "started: " << mDevice->getName() << endl;
-	}
-}
-
-void InputXAudio::stop()
-{
-	if( ! mDevice->isOutputConnected() ) {
-		mDevice->stop();
-		LOG_V << "stopped: " << mDevice->getName() << endl;
-	}
-}
-
-DeviceRef InputXAudio::getDevice()
-{
-	return std::static_pointer_cast<Device>( mDevice );
-}
-
-::AudioUnit InputXAudio::getAudioUnit() const
-{
-	return mDevice->getComponentInstance();
-}
-
-void InputXAudio::render( BufferT *buffer )
-{
-	CI_ASSERT( mRingBuffer );
-
-	size_t numFrames = buffer->at( 0 ).size();
-	for( size_t c = 0; c < buffer->size(); c++ ) {
-		size_t count = mRingBuffer->read( &(*buffer)[c] );
-		if( count != numFrames )
-			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (c = " << c << ")" << endl;
-	}
-}
-
-OSStatus InputXAudio::inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
-{
-	InputXAudio *inputNode = static_cast<InputXAudio *>( context );
-	CI_ASSERT( inputNode->mRingBuffer );
-	
-	::AudioBufferList *nodeBufferList = inputNode->mBufferList.get();
-	OSStatus status = ::AudioUnitRender( inputNode->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::Input, numFrames, nodeBufferList );
-	CI_ASSERT( status == noErr );
-
-	for( size_t c = 0; c < nodeBufferList->mNumberBuffers; c++ ) {
-		float *channel = static_cast<float *>( nodeBufferList->mBuffers[c].mData );
-		inputNode->mRingBuffer->write( channel, numFrames );
-	}
-	return status;
-}
-
-*/
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - EffectXAudio

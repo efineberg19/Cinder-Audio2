@@ -104,30 +104,6 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 	bool										mIsRunning;
 };
 
-//class InputXAudio : public Input, public XAudioNode {
-//  public:
-//	InputAudioUnit( DeviceRef device );
-//	virtual ~InputAudioUnit();
-//
-//	void initialize() override;
-//	void uninitialize() override;
-//
-//	void start() override;
-//	void stop() override;
-//
-//	::AudioUnit getAudioUnit() const override;
-//	DeviceRef getDevice() override;
-//
-//	void render( BufferT *buffer ) override;
-//
-//  private:
-//	static OSStatus inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
-//
-//	std::shared_ptr<DeviceAudioUnit> mDevice;
-//	std::unique_ptr<RingBuffer> mRingBuffer;
-//	cocoa::AudioBufferListRef mBufferList;
-//};
-
 class EffectXAudioXapo : public Effect, public XAudioNode {
 public:
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
