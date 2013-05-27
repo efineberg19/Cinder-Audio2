@@ -7,6 +7,41 @@ using namespace std;
 
 namespace audio2 {
 
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - DeviceInputWasapi
+// ----------------------------------------------------------------------------------------------------
+
+DeviceInputWasapi::DeviceInputWasapi( const std::string &key )
+: Device( key )
+{
+
+}
+
+DeviceInputWasapi::~DeviceInputWasapi()
+{
+
+}
+
+void DeviceInputWasapi::initialize()
+{
+
+}
+
+void DeviceInputWasapi::uninitialize()
+{
+
+}
+
+void DeviceInputWasapi::start()
+{
+
+}
+
+void DeviceInputWasapi::stop()
+{
+
+}
 	
 // ----------------------------------------------------------------------------------------------------
 // MARK: - InputWasapi
