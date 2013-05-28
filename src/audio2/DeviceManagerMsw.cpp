@@ -1,5 +1,6 @@
 #include "audio2/DeviceManagerMsw.h"
 #include "audio2/DeviceOutputXAudio.h"
+#include "audio2/DeviceInputWasapi.h"
 #include "audio2/audio.h"
 #include "audio2/msw/util.h"
 #include "audio2/assert.h"
@@ -276,7 +277,10 @@ void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
 		::CoTaskMemFree( idStr );
 
 		devInfo.usage = usage;
-		devInfo.device = DeviceRef( new DeviceOutputXAudio( devInfo.key ) );
+		if( usage == DeviceInfo::Usage::Input )
+			devInfo.device = DeviceRef( new DeviceInputWasapi( devInfo.key ) );
+		else
+			devInfo.device = DeviceRef( new DeviceOutputXAudio( devInfo.key ) );
 
 		CI_ASSERT( deviceIdMap.find( devInfo.name ) != deviceIdMap.end() );
 		devInfo.deviceId = deviceIdMap[devInfo.name];
