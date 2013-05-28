@@ -96,6 +96,9 @@
     <ClCompile Include="..\..\..\src\audio2\msw\util.cpp">
       <Filter>Blocks\Audio2\src\audio2\msw</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\audio2\DeviceInputWasapi.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
@@ -118,6 +121,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio2\msw\util.h">
       <Filter>Blocks\Audio2\src\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\DeviceInputWasapi.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
