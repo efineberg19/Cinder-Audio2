@@ -37,6 +37,11 @@ const std::string& Device::getName()
 	return mName;
 }
 
+const std::string& Device::getKey()
+{
+	return mKey;
+}
+
 size_t Device::getNumInputChannels()
 {
 	return DeviceManager::instance()->getNumInputChannels( mKey );

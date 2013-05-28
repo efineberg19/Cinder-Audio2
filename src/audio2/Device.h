@@ -20,6 +20,7 @@ class Device {
 	virtual void stop() = 0;
 
 	const std::string& getName();
+	const std::string& getKey();
 	size_t getNumInputChannels();
 	size_t getNumOutputChannels();
 	size_t getSampleRate();
