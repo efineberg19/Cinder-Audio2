@@ -15,9 +15,7 @@
 #include <mmdeviceapi.h>
 #include <Functiondiscoverykeys_devpkey.h>
 
-#include <map>
-
-#if defined( CINDER_XAUDIO_2_7 )
+#if defined( _USING_V110_SDK71_ )
 // The GUID's needed to query audio interfaces were not exposed in v110_xp sdk, for whatever reason, so I'm defining them here as they are when building with v110.
 DEFINE_GUID(DEVINTERFACE_AUDIO_RENDER , 0xe6327cad, 0xdcec, 0x4949, 0xae, 0x8a, 0x99, 0x1e, 0x97, 0x6a, 0x79, 0xd2);
 DEFINE_GUID(DEVINTERFACE_AUDIO_CAPTURE, 0x2eef81be, 0x33fa, 0x4800, 0x96, 0x70, 0x1c, 0xd4, 0x74, 0x97, 0x2c, 0x3f);
@@ -112,12 +110,29 @@ size_t DeviceManagerMsw::getBlockSize( const string &key )
 	// ???: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
 	// - if it doesn't need a way to tell the user they should not listen to this value,
 	//   or we can use a pretty standard default (like 512 or 1024).
+	// - IAudioClient::GetBufferSize seems to be a possiblity, needs to be activated first
 	return 0;
 }
 
 const std::wstring& DeviceManagerMsw::getDeviceId( const std::string &key )
 {
 	return getDeviceInfo( key ).deviceId;
+}
+
+// TODO: return shared object
+::IMMDevice *DeviceManagerMsw::getIMMDevice( const std::string &key )
+{
+
+	::IMMDeviceEnumerator *enumerator;
+	HRESULT hr = ::CoCreateInstance( __uuidof(::MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(::IMMDeviceEnumerator), (void**)&enumerator );
+	CI_ASSERT( hr == S_OK );
+	auto enumeratorPtr = msw::makeComUnique( enumerator );
+
+	::IMMDevice *device;
+	::LPCWSTR keyWide = static_cast<::LPCWSTR>( ci::toUtf16( key ).c_str() );
+	hr = enumerator->GetDevice( keyWide, &device );
+	CI_ASSERT( hr == S_OK );
+	return device;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -147,32 +162,27 @@ DeviceManagerMsw::DeviceContainerT& DeviceManagerMsw::getDevices()
 	return mDevices;
 }
 
-// TODO: cleanup vars
+// This call is performed twice because a separate Device subclass is used for input and output
+// and by using eRender / eCapture instead of eAll when enumerating the endpoints, it is easier
+// to distinguish between the two.
 void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
 {
 	const size_t kMaxPropertyStringLength = 2048;
-	::HDEVINFO devInfoSet;
-	::DWORD devCount = 0;
-	::SP_DEVINFO_DATA devInfo;
-	::SP_DEVICE_INTERFACE_DATA devInterface;
 
-	CONST GUID *devInterfaceGuid = ( usage == DeviceInfo::Usage::Input ? &DEVINTERFACE_AUDIO_CAPTURE : &DEVINTERFACE_AUDIO_RENDER );
-	devInfoSet = ::SetupDiGetClassDevs( devInterfaceGuid, 0, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT );
+	CONST ::GUID *devInterfaceGuid = ( usage == DeviceInfo::Usage::Input ? &DEVINTERFACE_AUDIO_CAPTURE : &DEVINTERFACE_AUDIO_RENDER );
+	::HDEVINFO devInfoSet = ::SetupDiGetClassDevs( devInterfaceGuid, 0, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT );
 	if( devInfoSet == INVALID_HANDLE_VALUE ) {
 		LOG_E << "INVALID_HANDLE_VALUE, detailed error: " << GetLastError() << endl;
 		CI_ASSERT( false );
 		return;
 	}
 
-	devInfo.cbSize = sizeof( ::SP_DEVINFO_DATA );
+	::SP_DEVICE_INTERFACE_DATA devInterface = {0};
 	devInterface.cbSize = sizeof( ::SP_DEVICE_INTERFACE_DATA );
-
 	DWORD deviceIndex = 0;
-
-	map<string, wstring> deviceIdMap; // [name:deviceId]
+	vector<wstring> deviceIds;
 
 	while ( true ) {
-
 		if( ! ::SetupDiEnumDeviceInterfaces( devInfoSet, 0, devInterfaceGuid, deviceIndex, &devInterface ) ) {
 			DWORD error = GetLastError();
 			if( error == ERROR_NO_MORE_ITEMS ) {
@@ -191,8 +201,9 @@ void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
 
 		shared_ptr<::SP_DEVICE_INTERFACE_DETAIL_DATA> interfaceDetail( (::SP_DEVICE_INTERFACE_DETAIL_DATA*)calloc( 1, sizeDevInterface ), free );
 		CI_ASSERT( interfaceDetail );
-
 		interfaceDetail->cbSize = sizeof( ::SP_DEVICE_INTERFACE_DETAIL_DATA );
+
+		::SP_DEVINFO_DATA devInfo = {0};
 		devInfo.cbSize = sizeof( ::SP_DEVINFO_DATA );
 		if( ! ::SetupDiGetDeviceInterfaceDetail( devInfoSet, &devInterface, interfaceDetail.get(), sizeDevInterface, 0, &devInfo ) ) {
 			continue;
@@ -200,36 +211,7 @@ void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
 			LOG_V << "get device returned false. error: " << error << endl;
 		}
 
-		char friendlyName[kMaxPropertyStringLength];
-		::DWORD propertyDataType;
-		if( ! ::SetupDiGetDeviceRegistryPropertyA( devInfoSet, &devInfo, SPDRP_FRIENDLYNAME, &propertyDataType, (LPBYTE)friendlyName, kMaxPropertyStringLength, 0 ) ) {
-			LOG_E << "could not get SPDRP_FRIENDLYNAME. error: " << ::GetLastError() << endl;
-			continue;
-		}
-
-		// note: I am keeping this code here as record that I have tried these two properties and neither directly correlate with the ID or GUID available through MMDevice
-
-		//char guid[kMaxPropertyStringLength];
-		//if( ! SetupDiGetDeviceRegistryPropertyA( devInfoSet, &devInfo, SPDRP_HARDWAREID, &propertyDataType, (LPBYTE)guid, kMaxPropertyStringLength, 0 ) ) {
-		//	LOG_E << "could not get SPDRP_CLASSGUID. error: " << GetLastError() << endl;
-		//	continue;
-		//}
-
-		//DWORD requiredSize;
-		//wchar_t deviceId[kMaxPropertyStringLength];
-		//deviceId[0] = 0;
-		//bool success = ::SetupDiGetDeviceInstanceId( devInfoSet, &devInfo, deviceId, kMaxPropertyStringLength, &requiredSize );
-		//CI_ASSERT( success );
-		//CI_ASSERT( requiredSize <= kMaxPropertyStringLength );
-
-		//LOG_V << "deviceId: " << ci::toUtf8( wstring( deviceId ) ) << endl;
-		//LOG_V << "guid: " << guid << endl;
-
-		string name( friendlyName );
-		wstring deviceId( interfaceDetail->DevicePath );
-
-		CI_ASSERT( deviceIdMap.find( name ) == deviceIdMap.end() );
-		deviceIdMap[name] = deviceId;
+		deviceIds.push_back( wstring( interfaceDetail->DevicePath ) );
 	}
 	if( devInfoSet )
 		::SetupDiDestroyDeviceInfoList( devInfoSet );
@@ -270,25 +252,28 @@ void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
 		devInfo.name = ci::toUtf8( nameVar.pwszVal );
 		CI_ASSERT( hr == S_OK );
 
-		LPWSTR idStr;
-		hr = device->GetId( &idStr );
+		LPWSTR endpointIdLpwStr;
+		hr = device->GetId( &endpointIdLpwStr );
 		CI_ASSERT( hr == S_OK );
-		devInfo.key = ci::toUtf8( idStr );
-		::CoTaskMemFree( idStr );
+		wstring endpointId( endpointIdLpwStr );
+		devInfo.key = ci::toUtf8( endpointId );
+		::CoTaskMemFree( endpointIdLpwStr );
+		
+		// Wasapi's device Id is actually a subset of the one xaudio needs, so we find and use the match.
+		// TODO: probably should just do this for output, since input is fine working with the key 
+		for( auto it = deviceIds.begin(); it != deviceIds.end(); ++it ) {
+			if( it->find( endpointId ) != wstring::npos ) {
+				devInfo.deviceId = *it;
+				deviceIds.erase( it );
+				break;
+			}
+		}
 
 		devInfo.usage = usage;
 		if( usage == DeviceInfo::Usage::Input )
 			devInfo.device = DeviceRef( new DeviceInputWasapi( devInfo.key ) );
 		else
 			devInfo.device = DeviceRef( new DeviceOutputXAudio( devInfo.key ) );
-
-		CI_ASSERT( deviceIdMap.find( devInfo.name ) != deviceIdMap.end() );
-		devInfo.deviceId = deviceIdMap[devInfo.name];
-
-		// TODO: PKEY_AudioEndpoint_GUID seems the most likely to be available somewhere in SetupDi - try again to look for it
-		//PROPVARIANT guidVar;
-		//hr = properties->GetValue( PKEY_AudioEndpoint_GUID, &guidVar );
-		//CI_ASSERT( hr == S_OK );
 
 		::PROPVARIANT formatVar;
 		hr = properties->GetValue( PKEY_AudioEngine_DeviceFormat, &formatVar );

@@ -3,6 +3,7 @@
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
 
+
 namespace audio2 {
 
 class DeviceInputWasapi : public Device {
@@ -41,9 +42,12 @@ class InputWasapi : public Input {
 	void render( BufferT *buffer ) override;
 
   private:
+	struct Impl;
+	std::unique_ptr<Impl> mImpl;
 
 	std::shared_ptr<DeviceInputWasapi> mDevice;
 	std::unique_ptr<RingBuffer> mRingBuffer;
+
 };
 
 } // namespace audio2

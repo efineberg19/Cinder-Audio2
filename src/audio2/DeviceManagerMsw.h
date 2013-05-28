@@ -4,10 +4,14 @@
 
 #include <vector>
 
+struct IMMDevice;
+
 namespace audio2 {
 
 // TODO: rename this DeviceManagerWasapi ?
-//	- will wait until all platforms are tested
+//	- this one requires Wasapi, as such XP is a no-go
+//  - but this also creates xaudio output
+//  - should have another device manager for xp that just uses XAudio
 class DeviceManagerMsw : public DeviceManager {
   public:
 	DeviceRef getDefaultOutput() override;
@@ -21,7 +25,10 @@ class DeviceManagerMsw : public DeviceManager {
 
 	void setActiveDevice( const std::string &key ) override;
 
-	const std::wstring& getDeviceId( const std::string &key ); 
+	const std::wstring& getDeviceId( const std::string &key );
+
+	::IMMDevice *getIMMDevice( const std::string &key );
+
   private:
 
 	  // TODO: this is suitable for the base class and public API

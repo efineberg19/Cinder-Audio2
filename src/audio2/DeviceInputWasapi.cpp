@@ -2,6 +2,9 @@
 #include "audio2/RingBuffer.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
+#include "audio2/msw/util.h"
+
+#include <Audioclient.h>
 
 using namespace std;
 
@@ -44,13 +47,31 @@ void DeviceInputWasapi::stop()
 }
 	
 // ----------------------------------------------------------------------------------------------------
+// MARK: - InputWasapi::Impl
+// ----------------------------------------------------------------------------------------------------
+
+struct InputWasapi::Impl {
+	::IAudioClient *mAudioClient;
+	::IAudioCaptureClient *mAudioCaptureClient;
+
+	Impl() : mAudioClient( nullptr ), mAudioCaptureClient( nullptr ) {}
+	~Impl() {
+		LOG_V << "BANG" << endl;
+		if( mAudioCaptureClient )
+			mAudioCaptureClient->Release();
+		if( mAudioClient )
+			mAudioClient->Release();
+	}
+};
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - InputWasapi
 // ----------------------------------------------------------------------------------------------------
 
 // TODO: samplerate / input channels should be configurable
 // TODO: rethink default samplerate / channels
 InputWasapi::InputWasapi( DeviceRef device )
-: Input( device )
+: Input( device ), mImpl( new InputWasapi::Impl() )
 {
 	mTag = "InputWasapi";
 
@@ -67,7 +88,12 @@ InputWasapi::~InputWasapi()
 
 void InputWasapi::initialize()
 {
-	LOG_E << "TODO." << endl;
+	// TODO NEXT: get IMMDevice with device's key
+	//::IAudioClient *audioClient;
+	//device->Activate( __uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&audioClient);
+	//mAudioClient = makeComUnique( audioClient );
+
+	LOG_E << "complete." << endl;
 }
 
 void InputWasapi::uninitialize()
