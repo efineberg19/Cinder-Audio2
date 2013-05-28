@@ -9,6 +9,7 @@
 #include "Gui.h"
 
 // TODO: test multiple formats for input
+// - make sure inputs and outputs with different samplerates somehow works correctly (which was default for my win8 laptop)
 
 using namespace ci;
 using namespace ci::app;
@@ -54,8 +55,13 @@ class InputTestApp : public AppNative {
 	void setupUI();
 	void toggleGraph();
 
+	void setupPassThrough();
+	void setupInProcessOut();
+	void setupInTapOut();
+	void setupInTapProcessOut();
 
 	GraphRef mGraph;
+	ProducerRef mInput;
 	BufferTapRef mTap;
 
 	Button mPlayButton;
@@ -70,37 +76,12 @@ void InputTestApp::setup()
 
 	logDevices( inputDevice, outputDevice );
 
-	ProducerRef input = Engine::instance()->createInput( inputDevice );
+	mInput = Engine::instance()->createInput( inputDevice );
 	ConsumerRef output = Engine::instance()->createOutput( outputDevice );
-
-	// TODO: make it possible for tap size to be auto-configured to input size
-	// - methinks it requires all nodes to be able to keep a blocksize
-	mTap = make_shared<BufferTap>( inputDevice->getBlockSize() );
-
-	// -------------------------------------------------
-	// pass-through
-//	output->connect( input );
-
-	// -------------------------------------------------
-	// input -> ringMod -> output
-//	auto ringMod = make_shared<RingMod>();
-//	ringMod->connect( input );
-//	output->connect( ringMod );
-
-	// -------------------------------------------------
-	// intput -> tap -> output
-//	mTap->connect( input );
-//	output->connect( mTap );
-
-	// -------------------------------------------------
-	// input -> tap -> ringMod -> output
-	auto ringMod = make_shared<RingMod>();
-	mTap->connect( input );
-	ringMod->connect( mTap );
-	output->connect( ringMod );
-
-
 	mGraph->setOutput( output );
+
+	setupPassThrough();
+
 	mGraph->initialize();
 
 	LOG_V << "-------------------------" << endl;
@@ -108,6 +89,38 @@ void InputTestApp::setup()
 	printGraph( mGraph );
 
 	setupUI();
+}
+
+void InputTestApp::setupPassThrough()
+{
+	mGraph->getOutput()->connect( mInput );
+}
+
+void InputTestApp::setupInProcessOut()
+{
+	auto ringMod = make_shared<RingMod>();
+	ringMod->connect( mInput );
+	mGraph->getOutput()->connect( ringMod );
+}
+
+void InputTestApp::setupInTapOut()
+{
+	// TODO: make it possible for tap size to be auto-configured to input size
+	// - methinks it requires all nodes to be able to keep a blocksize
+	// FIXME: getBlockSize returns 0 on windows
+	//mTap = make_shared<BufferTap>( mInput->getDevice()->getBlockSize() );
+
+	//mTap->connect( mInput );
+	//mGraph->getOutput()->connect( mTap );
+}
+
+void InputTestApp::setupInTapProcessOut()
+{
+	//mTap = make_shared<BufferTap>( mInput->getDevice()->getBlockSize() );
+	//auto ringMod = make_shared<RingMod>();
+	//mTap->connect( input );
+	//ringMod->connect( mTap );
+	//output->connect( ringMod );
 }
 
 void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
