@@ -1,10 +1,12 @@
 #include "audio2/DeviceInputWasapi.h"
+#include "audio2/DeviceManagerMsw.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 #include "audio2/msw/util.h"
 
 #include <Audioclient.h>
+#include <mmdeviceapi.h>
 
 using namespace std;
 
@@ -88,10 +90,12 @@ InputWasapi::~InputWasapi()
 
 void InputWasapi::initialize()
 {
-	// TODO NEXT: get IMMDevice with device's key
-	//::IAudioClient *audioClient;
-	//device->Activate( __uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&audioClient);
-	//mAudioClient = makeComUnique( audioClient );
+	DeviceManagerMsw *manager = dynamic_cast<DeviceManagerMsw *>( DeviceManagerMsw::instance() );
+	CI_ASSERT( manager );
+
+	::IMMDevice *immDevice = manager->getIMMDevice( mDevice->getKey() );
+
+	immDevice->Activate( __uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&mImpl->mAudioClient );
 
 	LOG_E << "complete." << endl;
 }

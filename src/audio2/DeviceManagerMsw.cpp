@@ -130,7 +130,7 @@ const std::wstring& DeviceManagerMsw::getDeviceId( const std::string &key )
 
 	::IMMDevice *device;
 	::LPCWSTR keyWide = static_cast<::LPCWSTR>( ci::toUtf16( key ).c_str() );
-	hr = enumerator->GetDevice( keyWide, &device );
+	hr = enumerator->GetDevice( keyWide, &device ); // FIXME: keyWide produces E_INVALIDARG
 	CI_ASSERT( hr == S_OK );
 	return device;
 }
