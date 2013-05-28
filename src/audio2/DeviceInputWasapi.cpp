@@ -47,20 +47,18 @@ void DeviceInputWasapi::stop()
 // MARK: - InputWasapi
 // ----------------------------------------------------------------------------------------------------
 
-
+// TODO: samplerate / input channels should be configurable
+// TODO: rethink default samplerate / channels
 InputWasapi::InputWasapi( DeviceRef device )
 : Input( device )
 {
 	mTag = "InputWasapi";
 
-	//mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
-	//CI_ASSERT( mDevice );
+	mDevice = dynamic_pointer_cast<DeviceInputWasapi>( device );
+	CI_ASSERT( mDevice );
 
-	//mFormat.setSampleRate( mDevice->getSampleRate() );
-	//mFormat.setNumChannels( 2 );
-
-	//CI_ASSERT( ! mDevice->isInputConnected() );
-	//mDevice->setInputConnected();
+	mFormat.setSampleRate( mDevice->getSampleRate() );
+	mFormat.setNumChannels( 2 );
 }
 
 InputWasapi::~InputWasapi()
