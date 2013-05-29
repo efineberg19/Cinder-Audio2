@@ -23,7 +23,7 @@ static inline ::REFERENCE_TIME toReferenceTime( size_t ms ) {
 
 struct InputWasapi::Impl {
 	Impl() : mCaptureInitialized( false ) {}
-	~Impl() {}
+	~Impl();
 
 	void initCapture( size_t bufferSize );
 	void captureAudio();
@@ -77,6 +77,7 @@ void DeviceInputWasapi::stop()
 
 // TODO: samplerate / input channels should be configurable
 // TODO: rethink default samplerate / channels
+// TODO: audio client activation should be in Device, maybe audio client should even be in there
 InputWasapi::InputWasapi( DeviceRef device )
 : Input( device ), mImpl( new InputWasapi::Impl() ), mCaptureDurationMs( 20 )
 {
@@ -85,18 +86,8 @@ InputWasapi::InputWasapi( DeviceRef device )
 	mDevice = dynamic_pointer_cast<DeviceInputWasapi>( device );
 	CI_ASSERT( mDevice );
 
-	mFormat.setSampleRate( mDevice->getSampleRate() );
-	mFormat.setNumChannels( 2 );
-}
+	
 
-InputWasapi::~InputWasapi()
-{
-}
-
-// TODO: Most of this, up to format setting, can be in constructor
-// - this simplifies re-initialization of input
-void InputWasapi::initialize()
-{
 	DeviceManagerMsw *manager = dynamic_cast<DeviceManagerMsw *>( DeviceManagerMsw::instance() );
 	CI_ASSERT( manager );
 
@@ -107,16 +98,32 @@ void InputWasapi::initialize()
 	CI_ASSERT( hr == S_OK );
 	mImpl->mAudioClient = msw::makeComUnique( audioClient );
 
+	// set default format to match the audio client's defaults
+
 	::WAVEFORMATEX *mixFormat;
 	hr = mImpl->mAudioClient->GetMixFormat( &mixFormat );
 	CI_ASSERT( hr == S_OK );
 
+	mFormat.setSampleRate( mixFormat->nSamplesPerSec );
+	mFormat.setNumChannels( mixFormat->nChannels );
+
 	LOG_V << "initial mix format samplerate: " << mixFormat->nSamplesPerSec << ", num channels: " << mixFormat->nChannels << endl;
 	CoTaskMemFree( mixFormat );
 
+	LOG_V << "activated audio client" << endl;
+}
+
+InputWasapi::~InputWasapi()
+{
+}
+
+// TODO NEXT: store block size instead of ms for requested size
+// TODO: properly handle channel counts != 2
+void InputWasapi::initialize()
+{
 	auto wfx = msw::interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );
 	::WAVEFORMATEX *closestMatch;
-	hr = mImpl->mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
+	HRESULT hr = mImpl->mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
 	if( hr == S_OK )
 		LOG_V << "requested format is supported." << endl;
 	else if( hr == S_FALSE ) {
@@ -155,14 +162,13 @@ void InputWasapi::uninitialize()
 	if( ! mInitialized )
 		return;
 
+	mImpl->mCaptureInitialized = false;
 	HRESULT hr = mImpl->mAudioClient->Reset();
 	CI_ASSERT( hr == S_OK );
 
 	mInitialized = false;
 }
 
-// ???: is there a way to re-use the thread so it doesn't need to be allocated each start / stop?
-// - could probably create thread in init and just wait. then start the client here
 void InputWasapi::start()
 {
 	if( ! mInitialized ) {
@@ -203,6 +209,11 @@ void InputWasapi::render( BufferT *buffer )
 // ----------------------------------------------------------------------------------------------------
 // MARK: - InputWasapi::Impl
 // ----------------------------------------------------------------------------------------------------
+
+InputWasapi::Impl::~Impl()
+{
+	mCaptureThread->detach();
+}
 
 void InputWasapi::Impl::initCapture( size_t bufferSize ) {
 	CI_ASSERT( mAudioClient );
