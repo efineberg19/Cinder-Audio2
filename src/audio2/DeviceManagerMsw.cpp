@@ -7,6 +7,7 @@
 #include "audio2/Debug.h"
 
 #include "cinder/Utilities.h"
+#include "cinder/msw/CinderMsw.h"
 
 #include <setupapi.h>
 #pragma comment(lib, "setupapi.lib")
@@ -119,20 +120,19 @@ const std::wstring& DeviceManagerMsw::getDeviceId( const std::string &key )
 	return getDeviceInfo( key ).deviceId;
 }
 
-// TODO: return shared object
-::IMMDevice *DeviceManagerMsw::getIMMDevice( const std::string &key )
+shared_ptr<::IMMDevice> DeviceManagerMsw::getIMMDevice( const std::string &key )
 {
-
 	::IMMDeviceEnumerator *enumerator;
 	HRESULT hr = ::CoCreateInstance( __uuidof(::MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(::IMMDeviceEnumerator), (void**)&enumerator );
 	CI_ASSERT( hr == S_OK );
 	auto enumeratorPtr = msw::makeComUnique( enumerator );
 
 	::IMMDevice *device;
-	::LPCWSTR keyWide = static_cast<::LPCWSTR>( ci::toUtf16( key ).c_str() );
-	hr = enumerator->GetDevice( keyWide, &device ); // FIXME: keyWide produces E_INVALIDARG
+	const wstring &endpointId = getDeviceInfo( key ).endpointId;
+	hr = enumerator->GetDevice( endpointId.c_str(), &device );
 	CI_ASSERT( hr == S_OK );
-	return device;
+
+	return 	ci::msw::makeComShared( device );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -255,14 +255,14 @@ void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
 		LPWSTR endpointIdLpwStr;
 		hr = device->GetId( &endpointIdLpwStr );
 		CI_ASSERT( hr == S_OK );
-		wstring endpointId( endpointIdLpwStr );
-		devInfo.key = ci::toUtf8( endpointId );
+		devInfo.endpointId = wstring( endpointIdLpwStr );
+		devInfo.key = ci::toUtf8( devInfo.endpointId );
 		::CoTaskMemFree( endpointIdLpwStr );
 		
 		// Wasapi's device Id is actually a subset of the one xaudio needs, so we find and use the match.
 		// TODO: probably should just do this for output, since input is fine working with the key 
 		for( auto it = deviceIds.begin(); it != deviceIds.end(); ++it ) {
-			if( it->find( endpointId ) != wstring::npos ) {
+			if( it->find( devInfo.endpointId ) != wstring::npos ) {
 				devInfo.deviceId = *it;
 				deviceIds.erase( it );
 				break;

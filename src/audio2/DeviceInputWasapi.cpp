@@ -93,9 +93,10 @@ void InputWasapi::initialize()
 	DeviceManagerMsw *manager = dynamic_cast<DeviceManagerMsw *>( DeviceManagerMsw::instance() );
 	CI_ASSERT( manager );
 
-	::IMMDevice *immDevice = manager->getIMMDevice( mDevice->getKey() );
+	shared_ptr<::IMMDevice> immDevice = manager->getIMMDevice( mDevice->getKey() );
 
-	immDevice->Activate( __uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&mImpl->mAudioClient );
+	HRESULT hr = immDevice->Activate( __uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&mImpl->mAudioClient );
+	CI_ASSERT( hr == S_OK );
 
 	LOG_E << "complete." << endl;
 }

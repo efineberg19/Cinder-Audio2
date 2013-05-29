@@ -27,7 +27,7 @@ class DeviceManagerMsw : public DeviceManager {
 
 	const std::wstring& getDeviceId( const std::string &key );
 
-	::IMMDevice *getIMMDevice( const std::string &key );
+	std::shared_ptr<::IMMDevice> getIMMDevice( const std::string &key );
 
   private:
 
@@ -37,11 +37,11 @@ class DeviceManagerMsw : public DeviceManager {
 	  DeviceRef getDevice( const std::string &key );
 
 	  struct DeviceInfo {
-		  std::string key;
-		  std::string name;
-		  enum Usage { Input, Output } usage; // TODO: add field for I/O
-		  std::wstring			deviceId;
-
+		  std::string key;						//! key used by Device to get more info from manager
+		  std::string name;						//! friendly name
+		  enum Usage { Input, Output } usage;	// TODO: add field for I/O
+		  std::wstring			deviceId;		//! id used when creating XAudio2 master voice
+		  std::wstring			endpointId;		//! id used by Wasapi / MMDevice
 		  DeviceRef			device;
 		  size_t numChannels, sampleRate;
 	  };
