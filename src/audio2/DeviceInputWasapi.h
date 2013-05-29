@@ -3,7 +3,6 @@
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
 
-
 namespace audio2 {
 
 class DeviceInputWasapi : public Device {
@@ -24,8 +23,6 @@ private:
 };
 
 
-class RingBuffer;
-
 class InputWasapi : public Input {
   public:
 	InputWasapi( DeviceRef device );
@@ -42,12 +39,12 @@ class InputWasapi : public Input {
 	void render( BufferT *buffer ) override;
 
   private:
+
 	struct Impl;
 	std::unique_ptr<Impl> mImpl;
-
 	std::shared_ptr<DeviceInputWasapi> mDevice;
-	std::unique_ptr<RingBuffer> mRingBuffer;
-
+	ChannelT mInterleavedBuffer;
+	size_t mCaptureDurationMs; // TODO: consider making user settable
 };
 
 } // namespace audio2
