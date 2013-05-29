@@ -44,7 +44,8 @@ class InputWasapi : public Input {
 	std::unique_ptr<Impl> mImpl;
 	std::shared_ptr<DeviceInputWasapi> mDevice;
 	ChannelT mInterleavedBuffer;
-	size_t mCaptureDurationMs; // TODO: consider making user settable
+
+	size_t mCaptureBlockSize; // per channel. TODO: this should be user settable
 };
 
 } // namespace audio2

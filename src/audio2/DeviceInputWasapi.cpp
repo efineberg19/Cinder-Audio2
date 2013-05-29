@@ -16,11 +16,6 @@ using namespace std;
 
 namespace audio2 {
 
-// converts from from milliseconds to 100-nanoseconds
-static inline ::REFERENCE_TIME toReferenceTime( size_t ms ) {
-	return ms * 10000;
-}
-
 struct InputWasapi::Impl {
 	Impl() : mCaptureInitialized( false ) {}
 	~Impl();
@@ -35,6 +30,11 @@ struct InputWasapi::Impl {
 	::HANDLE						mCaptureEvent;
 	atomic<bool> mCaptureInitialized;
 };
+
+// converts to 100-nanoseconds
+inline ::REFERENCE_TIME samplesToReferenceTime( size_t samples, size_t sampleRate ) {
+	return (::REFERENCE_TIME)( (double)samples * 10000000.0 / (double)sampleRate );
+}
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceInputWasapi
@@ -75,11 +75,12 @@ void DeviceInputWasapi::stop()
 // MARK: - InputWasapi
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: samplerate / input channels should be configurable
-// TODO: rethink default samplerate / channels
 // TODO: audio client activation should be in Device, maybe audio client should even be in there
+// TODO: default block sizes should be set in one place and propagate down the graph
+//  - first set in Graph?
+//  - nodes can override in format
 InputWasapi::InputWasapi( DeviceRef device )
-: Input( device ), mImpl( new InputWasapi::Impl() ), mCaptureDurationMs( 20 )
+: Input( device ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 512 )
 {
 	mTag = "InputWasapi";
 
@@ -133,23 +134,23 @@ void InputWasapi::initialize()
 	else
 		throw AudioFormatExc( "Could not find a suitable format for IAudioCaptureClient" );
 
-	LOG_V << "requested duration: " << mCaptureDurationMs << "ms" << endl;
+	LOG_V << "requested block size: " << mCaptureBlockSize << " frames" << endl;
 
-	::REFERENCE_TIME requestedDuration = toReferenceTime( mCaptureDurationMs );
+	::REFERENCE_TIME requestedDuration = samplesToReferenceTime( mCaptureBlockSize, mFormat.getSampleRate() );
 	DWORD streamFlags = AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
 	hr = mImpl->mAudioClient->Initialize( ::AUDCLNT_SHAREMODE_SHARED, streamFlags, requestedDuration, 0, wfx.get(), NULL ); 
 	CI_ASSERT( hr == S_OK );
 
-	UINT32 bufferSize;
-	hr = mImpl->mAudioClient->GetBufferSize( &bufferSize );
+	UINT32 numFrames;
+	hr = mImpl->mAudioClient->GetBufferSize( &numFrames );
 	CI_ASSERT( hr == S_OK );
 
-	mCaptureDurationMs = (size_t)( (double) bufferSize * 1000.0 / (double) wfx->nSamplesPerSec );
+	double captureDurationMs = (double) numFrames * 1000.0 / (double) wfx->nSamplesPerSec;
+	LOG_V << "numFrames: " << numFrames << ", actual duration: " << captureDurationMs << "ms" << endl;
 
-	LOG_V << "bufferSize: " << bufferSize << ", actual duration: " << mCaptureDurationMs << "ms" << endl;
-
+	mCaptureBlockSize = numFrames;
+	size_t bufferSize = numFrames * mFormat.getNumChannels();
 	mImpl->initCapture( bufferSize );
-
 	mInterleavedBuffer.resize( bufferSize );
 	
 	mInitialized = true;
@@ -178,8 +179,11 @@ void InputWasapi::start()
 	
 	HRESULT hr = mImpl->mAudioClient->Start();
 	CI_ASSERT( hr == S_OK );
+
+	LOG_V << "started " << mDevice->getName() << endl;
 }
 
+// FIXME: stop is not blocking the capture loop as I expected...  segfaults are occuring.
 void InputWasapi::stop()
 {
 	if( ! mInitialized ) {
@@ -189,6 +193,8 @@ void InputWasapi::stop()
 
 	HRESULT hr = mImpl->mAudioClient->Stop();
 	CI_ASSERT( hr == S_OK );
+
+	LOG_V << "stopped " << mDevice->getName() << endl;
 }
 
 DeviceRef InputWasapi::getDevice()
