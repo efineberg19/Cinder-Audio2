@@ -183,22 +183,10 @@ void SourceVoiceXAudio::initialize()
 	mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferDeInterleaved.data() );
 	mXAudio2Buffer.AudioBytes = mBufferDeInterleaved.size() * sizeof( float );
 
-	::WAVEFORMATEXTENSIBLE wfx;
-	memset(&wfx, 0, sizeof( ::WAVEFORMATEXTENSIBLE ) );
-
-	wfx.Format.wFormatTag           = WAVE_FORMAT_EXTENSIBLE ;
-	wfx.Format.nSamplesPerSec       = mFormat.getSampleRate();
-	wfx.Format.nChannels            = mFormat.getNumChannels();
-	wfx.Format.wBitsPerSample       = 32;
-	wfx.Format.nBlockAlign          = wfx.Format.nChannels * wfx.Format.wBitsPerSample / 8;
-	wfx.Format.nAvgBytesPerSec      = wfx.Format.nSamplesPerSec * wfx.Format.nBlockAlign;
-	wfx.Format.cbSize               = sizeof( ::WAVEFORMATEXTENSIBLE ) - sizeof( ::WAVEFORMATEX );
-	wfx.Samples.wValidBitsPerSample = wfx.Format.wBitsPerSample;
-	wfx.SubFormat                   = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
-	wfx.dwChannelMask				= 0; // this could be a very complicated bit mask of channel order, but 0 means 'first channel is left, second channel is right, etc'
+	auto wfx = msw::interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
 	UINT32 flags = ( mFilterEnabled ? XAUDIO2_VOICE_USEFILTER : 0 );
-	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, (::WAVEFORMATEX*)&wfx, flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
+	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
 	mVoiceCallback->setSourceVoice( mSourceVoice );
 
