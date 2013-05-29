@@ -21,6 +21,21 @@ static inline ::REFERENCE_TIME toReferenceTime( size_t ms ) {
 	return ms * 10000;
 }
 
+struct InputWasapi::Impl {
+	Impl() : mCaptureInitialized( false ) {}
+	~Impl() {}
+
+	void initCapture( size_t bufferSize );
+	void captureAudio();
+
+	std::unique_ptr<::IAudioClient, msw::ComReleaser>			mAudioClient;
+	std::unique_ptr<::IAudioCaptureClient, msw::ComReleaser>	mCaptureClient;
+	std::unique_ptr<std::thread>	mCaptureThread;
+	std::unique_ptr<RingBuffer>		mRingBuffer;
+	::HANDLE						mCaptureEvent;
+	atomic<bool> mCaptureInitialized;
+};
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceInputWasapi
 // ----------------------------------------------------------------------------------------------------
@@ -55,88 +70,6 @@ void DeviceInputWasapi::stop()
 {
 
 }
-	
-// ----------------------------------------------------------------------------------------------------
-// MARK: - InputWasapi::Impl
-// ----------------------------------------------------------------------------------------------------
-
-struct InputWasapi::Impl {
-	::IAudioClient					*mAudioClient;
-	::IAudioCaptureClient			*mCaptureClient;
-	::HANDLE						mCaptureEvent;
-	std::unique_ptr<std::thread>	mCaptureThread;
-	std::unique_ptr<RingBuffer>		mRingBuffer;
-	atomic<bool> mCaptureInitialized;
-	size_t mNumChannels, mBlockSize;
-
-	Impl() : mAudioClient( nullptr ), mCaptureClient( nullptr ), mCaptureInitialized( false ) {}
-	~Impl() {
-		LOG_V << "BANG" << endl;
-		if( mCaptureClient )
-			mCaptureClient->Release();
-		if( mAudioClient )
-			mAudioClient->Release();
-			
-	}
-
-	void initCapture( size_t bufferSize ) {
-		CI_ASSERT( mAudioClient );
-
-		mCaptureEvent = ::CreateEventEx( nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE );
-		CI_ASSERT( mCaptureEvent );
-
-		HRESULT hr = mAudioClient->SetEventHandle( mCaptureEvent );
-		CI_ASSERT( hr == S_OK );
-
-		hr = mAudioClient->GetService( __uuidof(IAudioCaptureClient), (void**)&mCaptureClient );
-		CI_ASSERT( hr == S_OK );
-
-		mRingBuffer.reset( new RingBuffer( bufferSize ) );
-
-		mCaptureInitialized = true;
-		mCaptureThread = unique_ptr<thread>( new thread( bind( &InputWasapi::Impl::captureAudio, this ) ) );
-	}
-
-	void captureAudio() {
-		while( mCaptureInitialized ) {
-			DWORD waitResult = ::WaitForSingleObject( mCaptureEvent, INFINITE );
-
-			BYTE *audioData;
-			UINT32 numFramesAvailable;
-			DWORD flags;
-			HRESULT hr = mCaptureClient->GetBuffer( &audioData, &numFramesAvailable, &flags, NULL, NULL );
-			switch( hr ) {
-			case S_OK: break;
-			case AUDCLNT_S_BUFFER_EMPTY: LOG_V << "AUDCLNT_S_BUFFER_EMPTY" << endl; continue;
-			case AUDCLNT_E_BUFFER_ERROR: LOG_V << "AUDCLNT_E_BUFFER_ERROR" << endl; return;
-			case AUDCLNT_E_OUT_OF_ORDER: LOG_V << "AUDCLNT_E_OUT_OF_ORDER" << endl; return;
-			case AUDCLNT_E_DEVICE_INVALIDATED: LOG_V << "AUDCLNT_E_DEVICE_INVALIDATED" << endl; return;
-			case AUDCLNT_E_BUFFER_OPERATION_PENDING: LOG_V << "AUDCLNT_E_BUFFER_OPERATION_PENDING" << endl; return;
-			case AUDCLNT_E_SERVICE_NOT_RUNNING: LOG_V << "AUDCLNT_E_SERVICE_NOT_RUNNING" << endl; return;
-			case E_POINTER: LOG_V << "E_POINTER" << endl; return;
-			default: LOG_V << "unknown" << endl; return;
-			}
-
-			if ( flags & AUDCLNT_BUFFERFLAGS_SILENT ) {
-				LOG_V << "silence. TODO: fil buffer with zeros." << endl;
-				// ???: ignore this? copying the samples is just about the same as setting to 0
-				//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
-			}
-			else {
-				float *samples = (float *)audioData;
-
-				// TODO: make sure this is doing the right thing when there is:
-				//	- A) more samples than the buffer can hold
-				//  - B) not enough samples to fill the entire block size
-				mRingBuffer->write( samples, numFramesAvailable );
-			}
-
-			hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
-			CI_ASSERT( hr == S_OK );
-		}
-	}
-
-};
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - InputWasapi
@@ -169,8 +102,10 @@ void InputWasapi::initialize()
 
 	shared_ptr<::IMMDevice> immDevice = manager->getIMMDevice( mDevice->getKey() );
 
-	HRESULT hr = immDevice->Activate( __uuidof(::IAudioClient), CLSCTX_ALL, NULL, (void**)&mImpl->mAudioClient );
+	::IAudioClient *audioClient;
+	HRESULT hr = immDevice->Activate( __uuidof(::IAudioClient), CLSCTX_ALL, NULL, (void**)&audioClient );
 	CI_ASSERT( hr == S_OK );
+	mImpl->mAudioClient = msw::makeComUnique( audioClient );
 
 	::WAVEFORMATEX *mixFormat;
 	hr = mImpl->mAudioClient->GetMixFormat( &mixFormat );
@@ -263,6 +198,69 @@ void InputWasapi::render( BufferT *buffer )
 	mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
 
 	deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - InputWasapi::Impl
+// ----------------------------------------------------------------------------------------------------
+
+void InputWasapi::Impl::initCapture( size_t bufferSize ) {
+	CI_ASSERT( mAudioClient );
+
+	mCaptureEvent = ::CreateEventEx( nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE );
+	CI_ASSERT( mCaptureEvent );
+
+	HRESULT hr = mAudioClient->SetEventHandle( mCaptureEvent );
+	CI_ASSERT( hr == S_OK );
+
+	::IAudioCaptureClient *captureClient;
+	hr = mAudioClient->GetService( __uuidof(IAudioCaptureClient), (void**)&captureClient );
+	CI_ASSERT( hr == S_OK );
+	mCaptureClient = msw::makeComUnique( captureClient );
+
+	mRingBuffer.reset( new RingBuffer( bufferSize ) );
+
+	mCaptureInitialized = true;
+	mCaptureThread = unique_ptr<thread>( new thread( bind( &InputWasapi::Impl::captureAudio, this ) ) );
+}
+
+void InputWasapi::Impl::captureAudio() {
+	while( mCaptureInitialized ) {
+		DWORD waitResult = ::WaitForSingleObject( mCaptureEvent, INFINITE );
+
+		BYTE *audioData;
+		UINT32 numFramesAvailable;
+		DWORD flags;
+		HRESULT hr = mCaptureClient->GetBuffer( &audioData, &numFramesAvailable, &flags, NULL, NULL );
+		switch( hr ) {
+		case S_OK: break;
+		case AUDCLNT_S_BUFFER_EMPTY: LOG_V << "AUDCLNT_S_BUFFER_EMPTY" << endl; continue;
+		case AUDCLNT_E_BUFFER_ERROR: LOG_V << "AUDCLNT_E_BUFFER_ERROR" << endl; return;
+		case AUDCLNT_E_OUT_OF_ORDER: LOG_V << "AUDCLNT_E_OUT_OF_ORDER" << endl; return;
+		case AUDCLNT_E_DEVICE_INVALIDATED: LOG_V << "AUDCLNT_E_DEVICE_INVALIDATED" << endl; return;
+		case AUDCLNT_E_BUFFER_OPERATION_PENDING: LOG_V << "AUDCLNT_E_BUFFER_OPERATION_PENDING" << endl; return;
+		case AUDCLNT_E_SERVICE_NOT_RUNNING: LOG_V << "AUDCLNT_E_SERVICE_NOT_RUNNING" << endl; return;
+		case E_POINTER: LOG_V << "E_POINTER" << endl; return;
+		default: LOG_V << "unknown" << endl; return;
+		}
+
+		if ( flags & AUDCLNT_BUFFERFLAGS_SILENT ) {
+			LOG_V << "silence. TODO: fil buffer with zeros." << endl;
+			// ???: ignore this? copying the samples is just about the same as setting to 0
+			//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
+		}
+		else {
+			float *samples = (float *)audioData;
+
+			// TODO: make sure this is doing the right thing when there is:
+			//	- A) more samples than the buffer can hold
+			//  - B) not enough samples to fill the entire block size
+			mRingBuffer->write( samples, numFramesAvailable );
+		}
+
+		hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
+		CI_ASSERT( hr == S_OK );
+	}
 }
 
 } // namespace audio2
