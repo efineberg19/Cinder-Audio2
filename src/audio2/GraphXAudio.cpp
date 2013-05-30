@@ -11,6 +11,40 @@ using namespace std;
 
 namespace audio2 {
 
+static bool isNodeNativeXAudio( NodeRef node ) {
+	return dynamic_pointer_cast<XAudioNode>( node );
+}
+
+// TODO: consider making these two methods recursive - they don't need the while loop, assert at top
+
+static shared_ptr<XAudioNode> getXAudioNode( NodeRef node )
+{
+	while( node ) {
+		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
+		if( nodeXAudio )
+			return nodeXAudio;
+		else {
+			CI_ASSERT( ! node->getSources().empty() );
+			node = node->getSources().front();
+		}
+	}
+	LOG_V << "No XAudioNode in this tree." << endl;
+	return shared_ptr<XAudioNode>();
+}
+
+static shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node )
+{
+	CI_ASSERT( node );
+	while( node ) {
+		auto sourceVoice = dynamic_pointer_cast<SourceVoiceXAudio>( node );
+		if( sourceVoice )
+			return sourceVoice;
+		node = node->getParent();
+	}
+	LOG_V << "No SourceVoiceXAudio in this tree." << endl;
+	return shared_ptr<SourceVoiceXAudio>();
+}
+
 struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 
 	VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
@@ -44,21 +78,6 @@ XAudioNode::~XAudioNode()
 {
 }
 
-//XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
-//{
-//	while( node ) {
-//		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
-//		if( nodeXAudio )
-//			return nodeXAudio->getXAudioVoice( node );
-//		else {
-//			CI_ASSERT( ! node->getSources().empty() );
-//			node = node->getSources().front();
-//		}
-//	}
-//	CI_ASSERT( false && "unreachable" ); // ???: throw?
-//	return XAudioVoice();
-//}
-
 XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
 {
 	CI_ASSERT( ! node->getSources().empty() );
@@ -69,38 +88,6 @@ XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
 		return sourceXAudio->getXAudioVoice( source );
 
 	return getXAudioVoice( source );
-}
-
-// TODO: make these two methods recursive - they don't need the while loop, assert at top
-shared_ptr<XAudioNode> XAudioNode::getXAudioNode( NodeRef node )
-{
-	while( node ) {
-		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
-		if( nodeXAudio )
-			return nodeXAudio;
-		else {
-			CI_ASSERT( ! node->getSources().empty() );
-			node = node->getSources().front();
-		}
-	}
-	CI_ASSERT( false && "unreachable" ); // ???: throw?
-	return shared_ptr<XAudioNode>();
-}
-
-shared_ptr<SourceVoiceXAudio> XAudioNode::getSourceVoice( NodeRef node )
-{
-	CI_ASSERT( node );
-	while( node ) {
-		auto sourceVoice = dynamic_pointer_cast<SourceVoiceXAudio>( node );
-		if( sourceVoice )
-			return sourceVoice;
-		else {
-			CI_ASSERT( ! node->getSources().empty() );
-			node = node->getSources().front();
-		}
-	}
-	CI_ASSERT( false && "unreachable" ); // ???: throw?
-	return shared_ptr<SourceVoiceXAudio>();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -393,7 +380,8 @@ void MixerXAudio::initialize()
 	for( NodeRef node : mSources ) {
 		if( ! node )
 			continue;
-		XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
+
+		auto nodeXAudio = getXAudioNode( node );
 		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
 		v.voice->SetOutputVoices( &sendList );
 	}
@@ -436,13 +424,14 @@ void MixerXAudio::setMaxNumBusses( size_t count )
 	mMaxNumBusses = count;
 }
 
+// TODO: test the way getSourceVoice is now implemented in BasicTest
+
 bool MixerXAudio::isBusEnabled( size_t bus )
 {
 	checkBusIsValid( bus );
 
 	NodeRef node = mSources[bus];
-	auto nodeXAudio = getXAudioNode( node );
-	auto sourceVoice = nodeXAudio->getSourceVoice( node );
+	auto sourceVoice = getSourceVoice( node );
 
 	return sourceVoice->isRunning();
 }
@@ -452,8 +441,7 @@ void MixerXAudio::setBusEnabled( size_t bus, bool enabled )
 	checkBusIsValid( bus );
 
 	NodeRef node = mSources[bus];
-	auto nodeXAudio = getXAudioNode( node );
-	auto sourceVoice = nodeXAudio->getSourceVoice( node );
+	auto sourceVoice = getSourceVoice( node );
 
 	if( enabled )
 		sourceVoice->stop();
@@ -487,7 +475,7 @@ float MixerXAudio::getBusVolume( size_t bus )
 }
 
 // panning explained here: http://msdn.microsoft.com/en-us/library/windows/desktop/hh405043(v=vs.85).aspx
-// TODO: panning should be done logarithmically, this is linear
+// TODO: panning should be done on an equal power scale, this is linear
 void MixerXAudio::setBusPan( size_t bus, float pan )
 {
 	checkBusIsValid( bus );
@@ -517,7 +505,7 @@ void MixerXAudio::setBusPan( size_t bus, float pan )
 float MixerXAudio::getBusPan( size_t bus )
 {
 	checkBusIsValid( bus );
-
+	// TODO: implement
 	return 0.0f;
 }
 
@@ -617,11 +605,6 @@ void GraphXAudio::initialize()
 
 	initNode( mOutput );
 	initEffects( mOutput->getSources().front() );
-	//size_t blockSize = mOutput->getBlockSize();
-	//mRenderContext.buffer.resize( mOutput->getFormat().getNumChannels() );
-	//for( auto& channel : mRenderContext.buffer )
-	//	channel.resize( blockSize );
-	//mRenderContext.currentNode = mOutput.get();
 
 	mInitialized = true;
 	LOG_V << "graph initialize complete. output channels: " <<outputXAudio->getNumOutputChannels() << endl;
@@ -629,12 +612,11 @@ void GraphXAudio::initialize()
 
 void GraphXAudio::initNode( NodeRef node )
 {
-
 	setXAudio( node );
 
 	Node::Format& format = node->getFormat();
 
-	// set default params from parent if requested
+	// set default params from parent if requested // TODO: switch these checks, and one below as well
 	if( ! format.isComplete() && format.wantsDefaultFormatFromParent() ) {
 		NodeRef parent = node->getParent();
 		while( parent ) {
@@ -656,21 +638,33 @@ void GraphXAudio::initNode( NodeRef node )
 		if( ! source )
 			continue;
 
+		// if source is generic, add implicit SourceXAudio
+		shared_ptr<SourceVoiceXAudio> sourceVoice;
+
+		if( ! isNodeNativeXAudio( source ) ) {
+			sourceVoice = getSourceVoice( source );
+			if( ! sourceVoice ) {
+
+				// TODO: check if any child is a native node - if it is, that indicates we need a custom XAPO
+
+				sourceVoice = make_shared<SourceVoiceXAudio>();
+				node->getSources()[i] = sourceVoice;
+				sourceVoice->setParent( node );
+				sourceVoice->getSources()[0] = source; // TODO: do these two steps in virtual Node::connect, override for Producers and throw
+				source->setParent( sourceVoice );
+			}
+		}
+
 		initNode( source );
 
-		// if source is generic, add implicit SourceXAudio
-		// TODO: check all edge cases (such as generic effect later in the chain)
-		if( ! dynamic_cast<XAudioNode *>( source.get() ) ) {
-			auto sourceVoice = make_shared<SourceVoiceXAudio>();
-			node->getSources()[i] = sourceVoice;
-			sourceVoice->getSources()[0] = source;
+		// initialize source voice after node
+		if( sourceVoice && ! sourceVoice->isInitialized() ) {
 			sourceVoice->getFormat().setNumChannels( source->getFormat().getNumChannels() );
 			sourceVoice->getFormat().setSampleRate( source->getFormat().getSampleRate() );
 			setXAudio( sourceVoice );
 			sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
 			sourceVoice->initialize();
 		}
-
 	}
 
 	// set default params from source
@@ -754,7 +748,7 @@ void GraphXAudio::initEffects( NodeRef node )
 	for( NodeRef& node : node->getSources() )
 		initEffects( node );
 
-	auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
+	auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node ); // TODO: replace with static method check
 	if( nodeXAudio && ! nodeXAudio->getEffectsDescriptors().empty() ) {
 		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
 		CI_ASSERT( v.node == nodeXAudio.get() );

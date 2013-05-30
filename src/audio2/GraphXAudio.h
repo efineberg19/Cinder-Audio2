@@ -35,11 +35,6 @@ class XAudioNode {
 	// (this is a +1 for using a pimpl approach instead of dual inheritance)
 	virtual XAudioVoice getXAudioVoice( NodeRef node );
 
-	//! find the first XAudioNode in \t node's source tree
-	std::shared_ptr<XAudioNode> getXAudioNode( NodeRef node );
-	//! find this node's SourceVoiceXAudio
-	std::shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node );
-
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
 
 	void setFilterEnabled( bool b = true )	{ mFilterEnabled = b; }
