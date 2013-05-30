@@ -223,13 +223,21 @@ void SourceVoiceXAudio::submitNextBuffer()
 {
 	CI_ASSERT( mSourceVoice );
 
-	mSources[0]->render( &mBuffer );
+	renderNode( mSources[0] );
 
-	// xaudio requires de-interleaved samples
+	// XAudio2 requires de-interleaved samples
 	interleaveStereoBuffer( &mBuffer, &mBufferDeInterleaved );
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
 	CI_ASSERT( hr == S_OK );
+}
+
+void SourceVoiceXAudio::renderNode( NodeRef node )
+{
+	if( ! node->getSources().empty() )
+		renderNode( node->getSources()[0] );
+
+	node->render( &mBuffer );
 }
 
 // ----------------------------------------------------------------------------------------------------
