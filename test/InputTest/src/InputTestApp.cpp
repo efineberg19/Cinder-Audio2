@@ -80,12 +80,17 @@ void InputTestApp::setup()
 	ConsumerRef output = Engine::instance()->createOutput( outputDevice );
 	mGraph->setOutput( output );
 
-	setupPassThrough();
+	//setupPassThrough();
+	setupInTapOut();
+
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration (before init):" << endl;
+	printGraph( mGraph );
 
 	mGraph->initialize();
 
 	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration:" << endl;
+	console() << "Graph configuration (after init):" << endl;
 	printGraph( mGraph );
 
 	setupUI();
@@ -107,11 +112,10 @@ void InputTestApp::setupInTapOut()
 {
 	// TODO: make it possible for tap size to be auto-configured to input size
 	// - methinks it requires all nodes to be able to keep a blocksize
-	// FIXME: getBlockSize returns 0 on windows
-	//mTap = make_shared<BufferTap>( mInput->getDevice()->getBlockSize() );
 
-	//mTap->connect( mInput );
-	//mGraph->getOutput()->connect( mTap );
+	mTap = make_shared<BufferTap>();
+	mTap->connect( mInput );
+	mGraph->getOutput()->connect( mTap );
 }
 
 void InputTestApp::setupInTapProcessOut()
@@ -186,7 +190,7 @@ void InputTestApp::draw()
 {
 	gl::clear();
 
-	if( mTap ) {
+	if( mTap && mTap->isInitialized() ) {
 		const audio2::BufferT &buffer = mTap->getBuffer();
 
 		float padding = 20.0f;

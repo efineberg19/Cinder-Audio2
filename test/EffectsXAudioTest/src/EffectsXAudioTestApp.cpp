@@ -94,10 +94,14 @@ void EffectXAudioTestApp::setup()
 	//setupFilter();
 	setupFilterDelay();
 
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration: (before)" << endl;
+	printGraph( mGraph );
+
 	mGraph->initialize();
 
 	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration:" << endl;
+	console() << "Graph configuration: (after)" << endl;
 	printGraph( mGraph );
 
 	setupUI();
