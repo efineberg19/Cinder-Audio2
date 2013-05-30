@@ -1,5 +1,9 @@
 #pragma once
 
+#if ( _WIN32_WINNT < 0x600 )
+#error "WASAPI unsupported for deployment target less than 0x600 (Windows Vista)"
+#endif
+
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
 
