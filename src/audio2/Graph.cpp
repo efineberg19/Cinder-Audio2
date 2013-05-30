@@ -95,6 +95,8 @@ void BufferTap::initialize()
 		mCopiedBuffer[ch].resize( mBufferSize );
 		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mBufferSize ) ) );
 	}
+
+	mInitialized = true;
 }
 
 void BufferTap::connect( NodeRef source )

@@ -41,8 +41,8 @@ class Node : public std::enable_shared_from_this<Node> {
 		bool mWantsDefaultFormatFromParent;
 	};
 
-	virtual void initialize()	{}
-	virtual void uninitialize()	{}
+	virtual void initialize()	{ mInitialized = true; }
+	virtual void uninitialize()	{ mInitialized = false; }
 	virtual void start()		{}
 	virtual void stop()			{}
 
@@ -59,6 +59,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual const Format& getSourceFormat();
 
 	const std::string& getTag()	const	{ return mTag; }
+
+	bool isInitialized() const	{ return mInitialized; }
 
   protected:
 	Node() : mInitialized( false )	{}
