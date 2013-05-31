@@ -29,6 +29,10 @@ struct InputWasapi::Impl {
 	std::unique_ptr<RingBuffer>		mRingBuffer;
 	::HANDLE						mCaptureEvent;
 	atomic<bool> mCaptureInitialized;
+
+	atomic<size_t> mNumSamplesBuffered;
+
+	std::mutex mBlargMutex;
 };
 
 // converts to 100-nanoseconds
@@ -80,7 +84,7 @@ void DeviceInputWasapi::stop()
 //  - first set in Graph?
 //  - nodes can override in format
 InputWasapi::InputWasapi( DeviceRef device )
-: Input( device ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 512 )
+: Input( device ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
 	mTag = "InputWasapi";
 
@@ -206,7 +210,16 @@ DeviceRef InputWasapi::getDevice()
 void InputWasapi::render( BufferT *buffer )
 {
 	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
-	mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
+
+	lock_guard<std::mutex> lock( mImpl->mBlargMutex );
+
+	if( samplesNeeded > mImpl->mNumSamplesBuffered ) {
+		LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
+		return;
+	}
+	size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
+	CI_ASSERT( samplesNeeded == numRead );
+	mImpl->mNumSamplesBuffered -= samplesNeeded;
 
 	deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
 }
@@ -221,6 +234,8 @@ InputWasapi::Impl::~Impl()
 }
 
 void InputWasapi::Impl::initCapture( size_t bufferSize ) {
+	mNumSamplesBuffered = 0;
+
 	CI_ASSERT( mAudioClient );
 
 	mCaptureEvent = ::CreateEventEx( nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE );
@@ -262,17 +277,18 @@ void InputWasapi::Impl::captureAudio() {
 		}
 
 		if ( flags & AUDCLNT_BUFFERFLAGS_SILENT ) {
-			LOG_V << "silence. TODO: fil buffer with zeros." << endl;
+			LOG_V << "silence. TODO: fill buffer with zeros." << endl;
 			// ???: ignore this? copying the samples is just about the same as setting to 0
 			//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
 		}
 		else {
-			float *samples = (float *)audioData;
+			lock_guard<std::mutex> lock( mBlargMutex );
 
-			// TODO: make sure this is doing the right thing when there is:
-			//	- A) more samples than the buffer can hold
-			//  - B) not enough samples to fill the entire block size
+			float *samples = (float *)audioData;
 			mRingBuffer->write( samples, numFramesAvailable );
+
+			size_t numBuffered = std::min( mRingBuffer->getSize(), mNumSamplesBuffered + static_cast<size_t>( numFramesAvailable ) );
+			mNumSamplesBuffered = numBuffered;
 		}
 
 		hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
