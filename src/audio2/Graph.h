@@ -11,9 +11,9 @@ typedef std::shared_ptr<class Graph> GraphRef;
 typedef std::shared_ptr<class Node> NodeRef;
 typedef std::weak_ptr<class Node> NodeWeakRef;
 
-typedef std::shared_ptr<class Mixer> MixerRef;
-typedef std::shared_ptr<class Root> RootRef;
-typedef std::shared_ptr<class BufferTap> BufferTapRef;
+typedef std::shared_ptr<class MixerNode> MixerNodeRef;
+typedef std::shared_ptr<class RootNode> RootNodeRef;
+typedef std::shared_ptr<class TapNode> TapNodeRef;
 
 typedef std::vector<float>		ChannelT;
 typedef std::vector<ChannelT>	BufferT;
@@ -80,20 +80,20 @@ class Node : public std::enable_shared_from_this<Node> {
 	  Node& operator=( Node const& );
 };
 
-class Root : public Node {
+class RootNode : public Node {
   public:
-	Root() : Node() { mSources.resize( 1 ); }
-	virtual ~Root() {}
+	RootNode() : Node() { mSources.resize( 1 ); }
+	virtual ~RootNode() {}
 
 	virtual size_t getBlockSize() const = 0;
 };
 
-class Output : public Root {
+class OutputNode : public RootNode {
   public:
 
 	// ???: device param here necessary?
-	Output( DeviceRef device ) : Root() {}
-	virtual ~Output() {}
+	OutputNode( DeviceRef device ) : RootNode() {}
+	virtual ~OutputNode() {}
 
 	virtual DeviceRef getDevice() = 0;
 
@@ -102,10 +102,10 @@ class Output : public Root {
 
 class RingBuffer;
 
-class BufferTap : public Node {
+class TapNode : public Node {
   public:
-	BufferTap( size_t bufferSize = 1024 );
-	virtual ~BufferTap();
+	TapNode( size_t bufferSize = 1024 );
+	virtual ~TapNode();
 
 	const ChannelT& getChannel( size_t channel = 0 );
 	const BufferT& getBuffer();
@@ -119,10 +119,10 @@ class BufferTap : public Node {
 	size_t mBufferSize;
 };
 
-class Mixer : public Node {
+class MixerNode : public Node {
   public:
-	Mixer() : Node(), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
-	virtual ~Mixer() {}
+	MixerNode() : Node(), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
+	virtual ~MixerNode() {}
 
 	virtual void connect( NodeRef source ) override;
 	virtual void connect( NodeRef source, size_t bus );
@@ -149,8 +149,8 @@ class Graph {
 
 	virtual void initialize();
 	virtual void uninitialize();
-	virtual void setRoot( RootRef root )	{ mRoot = root; }
-	virtual RootRef getRoot() const	{ return mRoot; }
+	virtual void setRoot( RootNodeRef root )	{ mRoot = root; }
+	virtual RootNodeRef getRoot() const	{ return mRoot; }
 	virtual void start();
 	virtual void stop();
 
@@ -164,7 +164,7 @@ class Graph {
 	virtual void stop( NodeRef node );
 
 
-	RootRef		mRoot;
+	RootNodeRef		mRoot;
 	bool		mInitialized, mRunning;
 };
 

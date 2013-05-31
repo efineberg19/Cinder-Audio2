@@ -7,28 +7,28 @@
 
 namespace audio2 {
 
-typedef std::shared_ptr<class Generator> GeneratorRef;
+typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
 
-class Generator : public Node {
+class GeneratorNode : public Node {
 public:
-	Generator() : Node() {}
-	virtual ~Generator() {}
+	GeneratorNode() : Node() {}
+	virtual ~GeneratorNode() {}
 
 	// TODO: consider making this private.
 	// - it can still be called by typecasting to Node first, and that may also be more confusing than throwing
 	void connect( NodeRef source ) override	{ throw AudioGraphExc( "cannot connect a source to Node of type Generator" ); }
 };
 
-class Input : public Generator {
+class Input : public GeneratorNode {
 public:
-	Input( DeviceRef device ) : Generator() {}
+	Input( DeviceRef device ) : GeneratorNode() {}
 	virtual ~Input() {}
 
 	virtual DeviceRef getDevice() = 0;
 };
 
 template <typename UGenT>
-struct UGenNode : public Generator {
+struct UGenNode : public GeneratorNode {
 	UGenNode()	{
 		mTag = "UGenNode";
 		mFormat.setWantsDefaultFormatFromParent();

@@ -5,15 +5,15 @@
 
 namespace audio2 {
 
-	typedef std::shared_ptr<class Effect> EffectRef;
+	typedef std::shared_ptr<class EffectNode> EffectNodeRef;
 
-	class Effect : public Node {
+	class EffectNode : public Node {
 	public:
-		Effect() : Node() { mSources.resize( 1 ); }
-		virtual ~Effect() {}
+		EffectNode() : Node() { mSources.resize( 1 ); }
+		virtual ~EffectNode() {}
 	};
 
-	struct RingMod : public Effect {
+	struct RingMod : public EffectNode {
 		RingMod()
 			: mSineGen( 440.0f, 1.0f )	{
 				mTag = "RingMod";

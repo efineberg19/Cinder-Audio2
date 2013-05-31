@@ -95,7 +95,7 @@ XAudioVoice NodeXAudio::getXAudioVoice( NodeRef node )
 // ----------------------------------------------------------------------------------------------------
 
 OutputXAudio::OutputXAudio( DeviceRef device )
-: Output( device )
+: OutputNode( device )
 {
 	mTag = "OutputAudioUnit";
 	mDevice = dynamic_pointer_cast<DeviceOutputXAudio>( device );

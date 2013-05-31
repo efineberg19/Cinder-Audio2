@@ -55,13 +55,13 @@ const Node::Format& Node::getSourceFormat()
 //		- there can be 'holes', slots in mSources that are not used
 //		- getNumActiveBusses() returns number of used slots
 
-void Mixer::connect( NodeRef source )
+void MixerNode::connect( NodeRef source )
 {
 	mSources.push_back( source );
 	source->setParent( shared_from_this() );
 }
 
-void Mixer::connect( NodeRef source, size_t bus )
+void MixerNode::connect( NodeRef source, size_t bus )
 {
 	if( bus > mSources.size() )
 		throw AudioExc( string( "Mixer bus " ) + ci::toString( bus ) + " out of range (max: " + ci::toString( mSources.size() ) + ")" );
@@ -72,20 +72,20 @@ void Mixer::connect( NodeRef source, size_t bus )
 	source->setParent( shared_from_this() );
 }
 
-BufferTap::BufferTap( size_t bufferSize )
+TapNode::TapNode( size_t bufferSize )
 : Node(), mBufferSize( bufferSize )
 {
 	mTag = "BufferTap";
 	mSources.resize( 1 );
 }
 
-BufferTap::~BufferTap()
+TapNode::~TapNode()
 {
 }
 
 // TODO: make it possible for tap size to be auto-configured to input size
 // - methinks it requires all nodes to be able to keep a blocksize
-void BufferTap::initialize()
+void TapNode::initialize()
 {
 	size_t numChannels = mFormat.getNumChannels();
 	mCopiedBuffer.resize( numChannels );
@@ -97,7 +97,7 @@ void BufferTap::initialize()
 	mInitialized = true;
 }
 
-const BufferT& BufferTap::getBuffer()
+const BufferT& TapNode::getBuffer()
 {
 	for( size_t ch = 0; ch < mFormat.getNumChannels(); ch++ )
 		mRingBuffers[ch]->read( &mCopiedBuffer[ch] );
@@ -105,7 +105,7 @@ const BufferT& BufferTap::getBuffer()
 	return mCopiedBuffer;
 }
 
-const ChannelT& BufferTap::getChannel( size_t channel )
+const ChannelT& TapNode::getChannel( size_t channel )
 {
 	CI_ASSERT( channel < mCopiedBuffer.size() );
 
@@ -115,7 +115,7 @@ const ChannelT& BufferTap::getChannel( size_t channel )
 	return buf;
 }
 
-void BufferTap::render( BufferT *buffer )
+void TapNode::render( BufferT *buffer )
 {
 	CI_ASSERT( mFormat.getNumChannels() == buffer->size() );
 

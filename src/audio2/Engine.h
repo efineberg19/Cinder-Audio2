@@ -10,10 +10,10 @@ class Engine {
   public:
 	virtual ~Engine() {}
 
-	virtual GraphRef	createGraph() = 0;
-	virtual MixerRef	createMixer() = 0;
-	virtual RootRef createOutput( DeviceRef device ) = 0;
-	virtual GeneratorRef createInput( DeviceRef device ) = 0;
+	virtual GraphRef			createGraph() = 0;
+	virtual MixerNodeRef		createMixer() = 0;
+	virtual RootNodeRef			createOutput( DeviceRef device ) = 0;
+	virtual GeneratorNodeRef	createInput( DeviceRef device ) = 0;
 
 	static Engine* instance();
 };

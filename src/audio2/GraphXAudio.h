@@ -46,7 +46,7 @@ class NodeXAudio {
 
 class DeviceOutputXAudio;
 
-class OutputXAudio : public Output, public NodeXAudio {
+class OutputXAudio : public OutputNode, public NodeXAudio {
   public:
 	OutputXAudio( DeviceRef device );
 	virtual ~OutputXAudio() {}
@@ -97,7 +97,7 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	bool										mIsRunning;
 };
 
-class EffectXAudioXapo : public Effect, public NodeXAudio {
+class EffectXAudioXapo : public EffectNode, public NodeXAudio {
 public:
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
@@ -127,7 +127,7 @@ private:
 	size_t mChainIndex;
 };
 
-class EffectXAudioFilter : public Effect, public NodeXAudio {
+class EffectXAudioFilter : public EffectNode, public NodeXAudio {
 public:
 
 	EffectXAudioFilter();
@@ -144,7 +144,7 @@ private:
 };
 
 
-class MixerXAudio : public Mixer, public NodeXAudio {
+class MixerXAudio : public MixerNode, public NodeXAudio {
 public:
 	MixerXAudio();
 	virtual ~MixerXAudio();
