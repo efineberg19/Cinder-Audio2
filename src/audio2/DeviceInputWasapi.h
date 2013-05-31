@@ -5,7 +5,7 @@
 #endif
 
 #include "audio2/Device.h"
-#include "audio2/Graph.h"
+#include "audio2/GeneratorNode.h"
 
 namespace audio2 {
 

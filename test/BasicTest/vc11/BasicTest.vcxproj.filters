@@ -125,6 +125,12 @@
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Dsp.h">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\EffectNode.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\GeneratorNode.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources.rc">

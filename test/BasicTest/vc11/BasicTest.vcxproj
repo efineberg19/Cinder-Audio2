@@ -130,7 +130,9 @@
     <ClInclude Include="..\..\..\src\audio2\DeviceInputWasapi.h" />
     <ClInclude Include="..\..\..\src\audio2\DeviceManagerMsw.h" />
     <ClInclude Include="..\..\..\src\audio2\DeviceOutputXAudio.h" />
+    <ClInclude Include="..\..\..\src\audio2\EffectNode.h" />
     <ClInclude Include="..\..\..\src\audio2\EngineXAudio.h" />
+    <ClInclude Include="..\..\..\src\audio2\GeneratorNode.h" />
     <ClInclude Include="..\..\..\src\audio2\GraphXAudio.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\util.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\xaudio.h" />

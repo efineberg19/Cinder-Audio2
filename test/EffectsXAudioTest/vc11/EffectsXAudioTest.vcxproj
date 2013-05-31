@@ -125,6 +125,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\audio2\DeviceInputWasapi.h" />
+    <ClInclude Include="..\..\..\src\audio2\Dsp.h" />
+    <ClInclude Include="..\..\..\src\audio2\EffectNode.h" />
+    <ClInclude Include="..\..\..\src\audio2\GeneratorNode.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\Gui.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\assert.h" />
@@ -139,7 +142,6 @@
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Graph.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\GraphXAudio.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\RingBuffer.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\UGen.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\util.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\xaudio.h" />
   </ItemGroup>

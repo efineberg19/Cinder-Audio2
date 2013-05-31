@@ -66,9 +66,6 @@
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\RingBuffer.h">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\UGen.h">
-      <Filter>Blocks\Audio2\src\audio2</Filter>
-    </ClInclude>
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.cpp">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClCompile>
@@ -123,6 +120,15 @@
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio2\DeviceInputWasapi.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\Dsp.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\EffectNode.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\GeneratorNode.h">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
   </ItemGroup>

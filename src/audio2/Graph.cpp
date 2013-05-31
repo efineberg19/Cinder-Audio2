@@ -37,11 +37,6 @@ void Root::connect( NodeRef source )
 	mSources[0]->setParent( shared_from_this() );
 }
 
-void Effect::connect( NodeRef source )
-{
-	mSources[0] = source;
-	source->setParent( shared_from_this() );
-}
 
 // TODO: Mixer connections need to be thought about more. Notes from discussion with Andrew:
 // - connect( node ):

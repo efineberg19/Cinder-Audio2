@@ -1,16 +1,11 @@
 #pragma once
 
 #include "audio2/Graph.h"
+#include "audio2/EffectNode.h"
 #include "audio2/msw/xaudio.h"
 #include "audio2/msw/util.h"
 
 namespace audio2 {
-
-// ??? useful on win?
-//struct RenderContext {
-//	Node *currentNode;
-//	BufferT buffer;
-//};
 
 class SourceVoiceXAudio;
 class NodeXAudio;

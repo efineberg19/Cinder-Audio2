@@ -13,7 +13,6 @@ typedef std::weak_ptr<class Node> NodeWeakRef;
 
 typedef std::shared_ptr<class Mixer> MixerRef;
 typedef std::shared_ptr<class Root> RootRef;
-typedef std::shared_ptr<class Generator> GeneratorRef;
 typedef std::shared_ptr<class BufferTap> BufferTapRef;
 
 typedef std::vector<float>		ChannelT;
@@ -76,20 +75,6 @@ class Node : public std::enable_shared_from_this<Node> {
 	  Node& operator=( Node const& );
 };
 
-class Generator : public Node {
-  public:
-	Generator() : Node() {}
-	virtual ~Generator() {}
-};
-
-class Input : public Generator {
-  public:
-	Input( DeviceRef device ) : Generator() {}
-	virtual ~Input() {}
-
-	virtual DeviceRef getDevice() = 0;
-};
-
 class Root : public Node {
   public:
 	Root() : Node() { mSources.resize( 1 ); }
@@ -109,14 +94,6 @@ class Output : public Root {
 	virtual DeviceRef getDevice() = 0;
 
   protected:
-};
-
-class Effect : public Node {
-  public:
-	Effect() : Node() { mSources.resize( 1 ); }
-	virtual ~Effect() {}
-
-	virtual void connect( NodeRef source );
 };
 
 class RingBuffer;
