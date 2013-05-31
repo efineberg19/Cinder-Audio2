@@ -5,6 +5,7 @@
 #include "audio2/Graph.h"
 #include "audio2/Engine.h"
 #include "audio2/GeneratorNode.h"
+#include "audio2/EffectNode.h"
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
@@ -77,8 +78,8 @@ void EffectXAudioTestApp::setup()
 	//setupOne();
 	//setupTwo(); // TODO: check this is working, sounds like maybe it isn't
 	//setupFilter();
-	setupFilterDelay();
-	//setupNativeThenGeneric();
+	//setupFilterDelay();
+	setupNativeThenGeneric(); // TODO: not yet implemented, throws...
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
@@ -127,7 +128,7 @@ void EffectXAudioTestApp::setupOne()
 	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
 
 	mEffect->connect( mSource );
-	mGraph->getOutput()->connect( mEffect );
+	mGraph->getRoot()->connect( mEffect );
 }
 
 void EffectXAudioTestApp::setupTwo()
@@ -139,7 +140,7 @@ void EffectXAudioTestApp::setupTwo()
 
 	mEffect->connect( mSource );
 	mEffect2->connect( mEffect );
-	mGraph->getOutput()->connect( mEffect2 );
+	mGraph->getRoot()->connect( mEffect2 );
 }
 
 void EffectXAudioTestApp::setupFilter()
@@ -147,7 +148,7 @@ void EffectXAudioTestApp::setupFilter()
 	mFilterEffect = make_shared<EffectXAudioFilter>();
 
 	mFilterEffect->connect( mSource );
-	mGraph->getOutput()->connect( mFilterEffect );
+	mGraph->getRoot()->connect( mFilterEffect );
 }
 
 void EffectXAudioTestApp::setupFilterDelay()
@@ -157,19 +158,18 @@ void EffectXAudioTestApp::setupFilterDelay()
 
 	mFilterEffect->connect( mSource );
 	mEffect2->connect( mFilterEffect );
-	mGraph->getOutput()->connect( mEffect2 );
+	mGraph->getRoot()->connect( mEffect2 );
 }
 
-// TODO NEXT: set this up and make sure it is detectable (will throw for now)
 void EffectXAudioTestApp::setupNativeThenGeneric()
 {
 	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
+	auto ringMod = make_shared<RingMod>();
 
 	mEffect->connect( mSource );
+	ringMod->connect( mEffect );
 
-
-	mGraph->getOutput()->connect( mEffect );
-
+	mGraph->getRoot()->connect( ringMod );
 }
 
 void EffectXAudioTestApp::toggleGraph()
