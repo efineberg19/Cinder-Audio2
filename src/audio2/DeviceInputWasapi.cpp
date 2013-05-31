@@ -260,8 +260,10 @@ void InputWasapi::Impl::captureAudio( size_t numSamplesNeeded )
 		}
 		else {
 			float *samples = (float *)audioData;
-			mRingBuffer->write( samples, numFramesAvailable ); // TODO: return num dropped samples?
-			
+			size_t numDropped = mRingBuffer->write( samples, numFramesAvailable );
+			if( numDropped )
+				LOG_V << "BUFFER OVERRUN. dropped: " << numDropped << endl;
+
 			mNumSamplesBuffered += static_cast<size_t>( numFramesAvailable );
 
 			if( mNumSamplesBuffered >= numSamplesNeeded ) {

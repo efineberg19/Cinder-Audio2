@@ -26,8 +26,8 @@ class RingBuffer {
 	//! fills vector \t samples and removes them from internal buffer. returns the amount actually copied.
 	size_t read( std::vector<float> *samples )	{ return read( samples->data(), samples->size() ); }
 
-	//! pushes \t count \t samples to buffer, overwriting oldest samples
-	void write( const float *samples, size_t count ) {
+	//! pushes \t count \t samples to buffer, overwriting oldest samples. returns the amount overwritten or 0.
+	size_t write( const float *samples, size_t count ) {
 		if( count > mSize )
 			count = mSize;
 
@@ -41,7 +41,9 @@ class RingBuffer {
 				mLockFreeQueue.pop( old );
 			numPushed = mLockFreeQueue.push( &samples[numPushed], numLeft );
 			CI_ASSERT( numPushed == numLeft );
+			return numLeft;
 		}
+		return 0;
 	}
 
 	//! fills array \t samples and removes them from internal buffer. returns the amount actually copied.
