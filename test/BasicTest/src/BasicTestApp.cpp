@@ -45,7 +45,7 @@ public:
 	void processEvent( Vec2i pos );
 
 	GraphRef mGraph;
-	MixerRef mMixer;
+	MixerNodeRef mMixer;
 
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mNoiseVolumeSlider, mFreqVolumeSlider; // TODO: rename Freq to Sine

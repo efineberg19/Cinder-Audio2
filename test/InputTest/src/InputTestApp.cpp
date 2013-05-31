@@ -37,8 +37,8 @@ class InputTestApp : public AppNative {
 	void setupInTapProcessOut();
 
 	GraphRef mGraph;
-	GeneratorRef mInput;
-	BufferTapRef mTap;
+	GeneratorNodeRef mInput;
+	TapNodeRef mTap;
 
 	Button mPlayButton;
 };
@@ -91,14 +91,14 @@ void InputTestApp::setupInProcessOut()
 
 void InputTestApp::setupInTapOut()
 {
-	mTap = make_shared<BufferTap>();
+	mTap = make_shared<TapNode>();
 	mTap->connect( mInput );
 	mGraph->getRoot()->connect( mTap );
 }
 
 void InputTestApp::setupInTapProcessOut()
 {
-	mTap = make_shared<BufferTap>();
+	mTap = make_shared<TapNode>();
 	auto ringMod = make_shared<RingMod>();
 	mTap->connect( mInput );
 	ringMod->connect( mTap );
@@ -184,7 +184,7 @@ void InputTestApp::draw()
 				float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
 				waveform.push_back( Vec2f( x, y ) );
 			}
-			gl::color( 0, 0.9, 0 );
+			gl::color( 0.0f, 0.9f, 0.0f );
 			gl::draw( waveform );
 			yOffset += waveHeight + padding;
 		}
