@@ -182,7 +182,7 @@ void SourceVoiceXAudio::initialize()
 		mXAudio2Buffer.AudioBytes = mBufferInterleaved.size() * sizeof( float );
 	} else {
 		// setup mono
-		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.data() );
+		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>(  mBuffer[0].data() );
 		mXAudio2Buffer.AudioBytes = mBuffer[0].size() * sizeof( float );
 	}
 
