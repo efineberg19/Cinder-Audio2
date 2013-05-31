@@ -21,7 +21,8 @@ struct InputWasapi::Impl {
 	~Impl();
 
 	void initCapture( size_t bufferSize );
-	void captureAudio();
+	//void captureAudio();
+	size_t captureAudio( size_t numRequired );
 
 	std::unique_ptr<::IAudioClient, msw::ComReleaser>			mAudioClient;
 	std::unique_ptr<::IAudioCaptureClient, msw::ComReleaser>	mCaptureClient;
@@ -210,18 +211,19 @@ DeviceRef InputWasapi::getDevice()
 // - default capture size is currently too small anyway
 void InputWasapi::render( BufferT *buffer )
 {
-	mImpl->captureAudio();
-
 	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
+	samplesNeeded -= mImpl->mNumSamplesBuffered;
 
-	lock_guard<std::mutex> lock( mImpl->mBlargMutex );
+	size_t numRead = mImpl->captureAudio( samplesNeeded );
 
-	if( samplesNeeded > mImpl->mNumSamplesBuffered ) {
+	//lock_guard<std::mutex> lock( mImpl->mBlargMutex );
+
+	if( numRead < samplesNeeded ) {
 		LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
 		return;
 	}
-	size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
-	CI_ASSERT( samplesNeeded == numRead );
+	size_t numRead2 = mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
+	CI_ASSERT( numRead == numRead2 );
 	mImpl->mNumSamplesBuffered -= samplesNeeded;
 
 	deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
@@ -258,31 +260,26 @@ void InputWasapi::Impl::initCapture( size_t bufferSize ) {
 	//mCaptureThread = unique_ptr<thread>( new thread( bind( &InputWasapi::Impl::captureAudio, this ) ) );
 }
 
-// TODO: clean up capture client's return hr handling
-void InputWasapi::Impl::captureAudio() {
+// TODO NEXT: this needs much more work
+size_t InputWasapi::Impl::captureAudio( size_t numRequired ) {
 	CI_ASSERT( mCaptureInitialized );
-
+	size_t numRead = 0;
 	UINT32 sizeNextPacket;
 	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket );
 	CI_ASSERT( hr == S_OK );
 
 	while( sizeNextPacket ) {
 		BYTE *audioData;
-		UINT32 numFramesAvailable; // ???: is this samples or samples * channels?
+		UINT32 numFramesAvailable; // ???: is this samples or samples * channels? I very well could only be reading half of the samples... enabling mono capture would tell
 		UINT32 numFramesRead = 0;
 		DWORD flags;
 		HRESULT hr = mCaptureClient->GetBuffer( &audioData, &numFramesAvailable, &flags, NULL, NULL );
-		switch( hr ) {
-		case S_OK: break;
-		case AUDCLNT_S_BUFFER_EMPTY: LOG_V << "AUDCLNT_S_BUFFER_EMPTY" << endl; continue;
-		case AUDCLNT_E_BUFFER_ERROR: LOG_V << "AUDCLNT_E_BUFFER_ERROR" << endl; return;
-		case AUDCLNT_E_OUT_OF_ORDER: LOG_V << "AUDCLNT_E_OUT_OF_ORDER" << endl; return;
-		case AUDCLNT_E_DEVICE_INVALIDATED: LOG_V << "AUDCLNT_E_DEVICE_INVALIDATED" << endl; return;
-		case AUDCLNT_E_BUFFER_OPERATION_PENDING: LOG_V << "AUDCLNT_E_BUFFER_OPERATION_PENDING" << endl; return;
-		case AUDCLNT_E_SERVICE_NOT_RUNNING: LOG_V << "AUDCLNT_E_SERVICE_NOT_RUNNING" << endl; return;
-		case E_POINTER: LOG_V << "E_POINTER" << endl; return;
-		default: LOG_V << "unknown" << endl; return;
+		if( hr == AUDCLNT_S_BUFFER_EMPTY ) {
+			LOG_V << "AUDCLNT_S_BUFFER_EMPTY, returning" << endl;
+			return numRead;
 		}
+		else
+			CI_ASSERT( hr == S_OK );
 
 		if ( flags & AUDCLNT_BUFFERFLAGS_SILENT ) {
 			LOG_V << "silence. TODO: fill buffer with zeros." << endl;
@@ -290,17 +287,15 @@ void InputWasapi::Impl::captureAudio() {
 			//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
 		}
 		else {
-			lock_guard<std::mutex> lock( mBlargMutex );
+			//lock_guard<std::mutex> lock( mBlargMutex );
 
 			float *samples = (float *)audioData;
-
-			size_t samplesNeeded = mRingBuffer->getSize() - mNumSamplesBuffered;
-			numFramesRead = std::min( samplesNeeded, numFramesAvailable );
-			mRingBuffer->write( samples, numFramesRead );
+			mRingBuffer->write( samples, numFramesAvailable );
 
 			mNumSamplesBuffered += static_cast<size_t>( numFramesRead );
+			numRead += numFramesRead;
 
-			if( samplesNeeded <= numFramesAvailable ) {
+			if( numRead >= numRequired ) {
 				hr = mCaptureClient->ReleaseBuffer( numFramesRead );
 				CI_ASSERT( hr == S_OK );
 				break;
@@ -314,6 +309,7 @@ void InputWasapi::Impl::captureAudio() {
 		CI_ASSERT( hr == S_OK );
 
 	}
+	return numRead;
 }
 
 } // namespace audio2
