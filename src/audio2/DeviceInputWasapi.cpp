@@ -118,7 +118,6 @@ InputWasapi::~InputWasapi()
 {
 }
 
-// TODO NEXT: store block size instead of ms for requested size
 // TODO: properly handle channel counts != 2
 void InputWasapi::initialize()
 {
@@ -241,6 +240,7 @@ void InputWasapi::Impl::initCapture( size_t bufferSize ) {
 	mCaptureThread = unique_ptr<thread>( new thread( bind( &InputWasapi::Impl::captureAudio, this ) ) );
 }
 
+// TODO: try fetching samples from XAudio's thread instead of creating our own
 void InputWasapi::Impl::captureAudio() {
 	while( mCaptureInitialized ) {
 		DWORD waitResult = ::WaitForSingleObject( mCaptureEvent, INFINITE );
