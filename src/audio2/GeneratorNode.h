@@ -19,10 +19,10 @@ public:
 	void connect( NodeRef source ) override	{ throw AudioGraphExc( "cannot connect a source to Node of type Generator" ); }
 };
 
-class Input : public GeneratorNode {
+class InputNode : public GeneratorNode {
 public:
-	Input( DeviceRef device ) : GeneratorNode() {}
-	virtual ~Input() {}
+	InputNode( DeviceRef device ) : GeneratorNode() {}
+	virtual ~InputNode() {}
 
 	virtual DeviceRef getDevice() = 0;
 };

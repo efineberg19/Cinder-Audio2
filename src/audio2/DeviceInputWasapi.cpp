@@ -76,7 +76,7 @@ void DeviceInputWasapi::stop()
 //  - first set in Graph?
 //  - nodes can override in format
 InputWasapi::InputWasapi( DeviceRef device )
-: Input( device ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 1024 )
+: InputNode( device ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
 	mTag = "InputWasapi";
 

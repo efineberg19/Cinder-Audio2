@@ -27,7 +27,7 @@ private:
 };
 
 
-class InputWasapi : public Input {
+class InputWasapi : public InputNode {
   public:
 	InputWasapi( DeviceRef device );
 	virtual ~InputWasapi();
