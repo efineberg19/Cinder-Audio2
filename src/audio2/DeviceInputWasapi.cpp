@@ -18,13 +18,13 @@ struct InputWasapi::Impl {
 	Impl() : mNumSamplesBuffered( 0 ) {}
 	~Impl() {}
 
-	void initCapture( size_t bufferSize );
+	void initCapture( size_t numFrames, size_t numChannels );
 	void captureAudio();
 
 	std::unique_ptr<::IAudioClient, msw::ComReleaser>			mAudioClient;
 	std::unique_ptr<::IAudioCaptureClient, msw::ComReleaser>	mCaptureClient;
 	std::unique_ptr<RingBuffer>		mRingBuffer;
-	size_t mNumSamplesBuffered;
+	size_t mNumSamplesBuffered, mNumChannels;
 };
 
 // converts to 100-nanoseconds
@@ -139,13 +139,15 @@ void InputWasapi::initialize()
 	CI_ASSERT( hr == S_OK );
 
 	double captureDurationMs = (double) numFrames * 1000.0 / (double) wfx->nSamplesPerSec;
-	LOG_V << "numFrames: " << numFrames << ", actual duration: " << captureDurationMs << "ms" << endl;
 
 	mCaptureBlockSize = numFrames;
+	mImpl->initCapture( numFrames, mFormat.getNumChannels() );
+
 	size_t bufferSize = numFrames * mFormat.getNumChannels();
-	mImpl->initCapture( bufferSize );
 	mInterleavedBuffer.resize( bufferSize );
 	
+	LOG_V << "numFrames: " << numFrames << ", buffer size: " << bufferSize << ", actual duration: " << captureDurationMs << "ms" << endl;
+
 	mInitialized = true;
 	LOG_V << "complete." << endl;
 }
@@ -193,14 +195,14 @@ DeviceRef InputWasapi::getDevice()
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
-// TODO: properly handle channel counts == 2
+// TODO: decide what to do when there is a buffer under/over run. LOG_V / app::console() is not thread-safe..
 void InputWasapi::render( BufferT *buffer )
 {
 	mImpl->captureAudio();
 
 	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
 	if( mImpl->mNumSamplesBuffered < samplesNeeded ) {
-		LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
+		//LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
 		return;
 	}
 
@@ -221,15 +223,17 @@ void InputWasapi::render( BufferT *buffer )
 // MARK: - InputWasapi::Impl
 // ----------------------------------------------------------------------------------------------------
 
-void InputWasapi::Impl::initCapture( size_t bufferSize ) {
+void InputWasapi::Impl::initCapture( size_t numFrames, size_t numChannels ) {
 	CI_ASSERT( mAudioClient );
+
+	mNumChannels = numChannels;
 
 	::IAudioCaptureClient *captureClient;
 	HRESULT hr = mAudioClient->GetService( __uuidof(::IAudioCaptureClient), (void**)&captureClient );
 	CI_ASSERT( hr == S_OK );
 	mCaptureClient = msw::makeComUnique( captureClient );
 
-	mRingBuffer.reset( new RingBuffer( bufferSize ) );
+	mRingBuffer.reset( new RingBuffer( numFrames * numChannels ) );
 }
 
 void InputWasapi::Impl::captureAudio()
@@ -240,7 +244,7 @@ void InputWasapi::Impl::captureAudio()
 
 	while( sizeNextPacket ) {
 
-		if( sizeNextPacket > ( mRingBuffer->getSize() - mNumSamplesBuffered ) ) {
+		if( ( sizeNextPacket * mNumChannels ) > ( mRingBuffer->getSize() - mNumSamplesBuffered ) ) {
 			return; // not enough space, we'll read it next time
 		}
 
@@ -249,7 +253,7 @@ void InputWasapi::Impl::captureAudio()
 		DWORD flags;
 		HRESULT hr = mCaptureClient->GetBuffer( &audioData, &numFramesAvailable, &flags, NULL, NULL );
 		if( hr == AUDCLNT_S_BUFFER_EMPTY ) {
-			LOG_V << "AUDCLNT_S_BUFFER_EMPTY, returning" << endl;
+			//LOG_V << "AUDCLNT_S_BUFFER_EMPTY, returning" << endl;
 			return;
 		}
 		else
@@ -262,11 +266,12 @@ void InputWasapi::Impl::captureAudio()
 		}
 		else {
 			float *samples = (float *)audioData;
-			size_t numDropped = mRingBuffer->write( samples, numFramesAvailable );
-			if( numDropped )
-				LOG_V << "BUFFER OVERRUN. dropped: " << numDropped << endl;
+			size_t numSamples = numFramesAvailable * mNumChannels;
+			size_t numDropped = mRingBuffer->write( samples, numSamples );
+			//if( numDropped )
+				//LOG_V << "BUFFER OVERRUN. dropped: " << numDropped << endl;
 
-			mNumSamplesBuffered += static_cast<size_t>( numFramesAvailable );
+			mNumSamplesBuffered += static_cast<size_t>( numSamples );
 		}
 
 		hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );

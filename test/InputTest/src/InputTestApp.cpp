@@ -54,8 +54,7 @@ void InputTestApp::setup()
 
 	mInput = Engine::instance()->createInput( inputDevice );
 
-	mInput->getFormat().setNumChannels( 1 );
-
+	//mInput->getFormat().setNumChannels( 1 );
 
 	auto output = Engine::instance()->createOutput( outputDevice );
 	mGraph->setRoot( output );
