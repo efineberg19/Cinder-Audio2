@@ -115,7 +115,7 @@ void BasicTestApp::setupBasic()
 	genNode->mGen.setAmp( 0.2f );
 	genNode->mGen.setFreq( 440.0f );
 
-	mGraph->getOutput()->connect( genNode );
+	mGraph->getRoot()->connect( genNode );
 }
 
 void BasicTestApp::setupMixer()
@@ -137,7 +137,7 @@ void BasicTestApp::setupMixer()
 	mMixer->connect( noise, Bus::Noise );
 	mMixer->connect( sine, Bus::Sine );
 
-	mGraph->getOutput()->connect( mMixer );
+	mGraph->getRoot()->connect( mMixer );
 }
 
 void BasicTestApp::toggleGraph()

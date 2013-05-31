@@ -74,14 +74,14 @@ void InputTestApp::setup()
 
 void InputTestApp::setupPassThrough()
 {
-	mGraph->getOutput()->connect( mInput );
+	mGraph->getRoot()->connect( mInput );
 }
 
 void InputTestApp::setupInProcessOut()
 {
 	auto ringMod = make_shared<RingMod>();
 	ringMod->connect( mInput );
-	mGraph->getOutput()->connect( ringMod );
+	mGraph->getRoot()->connect( ringMod );
 }
 
 void InputTestApp::setupInTapOut()
@@ -91,7 +91,7 @@ void InputTestApp::setupInTapOut()
 
 	mTap = make_shared<BufferTap>();
 	mTap->connect( mInput );
-	mGraph->getOutput()->connect( mTap );
+	mGraph->getRoot()->connect( mTap );
 }
 
 void InputTestApp::setupInTapProcessOut()
