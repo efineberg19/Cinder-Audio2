@@ -173,17 +173,17 @@ void SourceVoiceXAudio::initialize()
 	for( auto& channel : mBuffer )
 		channel.resize( 512 );
 
-	mBufferInterleaved.resize( mBuffer.size() * mBuffer[0].size() );
+	size_t numSamples = mBuffer.size() * mBuffer[0].size();
 
 	memset( &mXAudio2Buffer, 0, sizeof( mXAudio2Buffer ) );
+	mXAudio2Buffer.AudioBytes = numSamples * sizeof( float );
 	if( mFormat.getNumChannels() == 2 ) {
 		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
+		mBufferInterleaved.resize( numSamples );
 		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.data() );
-		mXAudio2Buffer.AudioBytes = mBufferInterleaved.size() * sizeof( float );
 	} else {
 		// setup mono
 		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>(  mBuffer[0].data() );
-		mXAudio2Buffer.AudioBytes = mBuffer[0].size() * sizeof( float );
 	}
 
 	auto wfx = msw::interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );
