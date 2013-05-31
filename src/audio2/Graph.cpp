@@ -83,6 +83,8 @@ BufferTap::~BufferTap()
 {
 }
 
+// TODO: make it possible for tap size to be auto-configured to input size
+// - methinks it requires all nodes to be able to keep a blocksize
 void BufferTap::initialize()
 {
 	size_t numChannels = mFormat.getNumChannels();

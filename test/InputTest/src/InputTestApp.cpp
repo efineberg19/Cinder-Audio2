@@ -32,11 +32,9 @@ class InputTestApp : public AppNative {
 	void toggleGraph();
 
 	void setupPassThrough();
-	void setupInTapOutMono();
 	void setupInProcessOut();
 	void setupInTapOut();
 	void setupInTapProcessOut();
-	void setupInTapProcessOutMono();
 
 	GraphRef mGraph;
 	GeneratorRef mInput;
@@ -55,13 +53,17 @@ void InputTestApp::setup()
 	logDevices( inputDevice, outputDevice );
 
 	mInput = Engine::instance()->createInput( inputDevice );
+
+	mInput->getFormat().setNumChannels( 1 );
+
+
 	auto output = Engine::instance()->createOutput( outputDevice );
 	mGraph->setRoot( output );
 
 	//setupPassThrough();
 	//setupInTapOut();
-	//setupInTapOutMono();
-	setupInTapProcessOutMono();
+	//setupInTapOut();
+	setupInTapProcessOut();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration (before init):" << endl;
@@ -90,18 +92,6 @@ void InputTestApp::setupInProcessOut()
 
 void InputTestApp::setupInTapOut()
 {
-	// TODO: make it possible for tap size to be auto-configured to input size
-	// - methinks it requires all nodes to be able to keep a blocksize
-
-	mTap = make_shared<BufferTap>();
-	mTap->connect( mInput );
-	mGraph->getRoot()->connect( mTap );
-}
-
-void InputTestApp::setupInTapOutMono()
-{
-	mInput->getFormat().setNumChannels( 1 );
-
 	mTap = make_shared<BufferTap>();
 	mTap->connect( mInput );
 	mGraph->getRoot()->connect( mTap );
@@ -109,17 +99,6 @@ void InputTestApp::setupInTapOutMono()
 
 void InputTestApp::setupInTapProcessOut()
 {
-	//mTap = make_shared<BufferTap>( mInput->getDevice()->getBlockSize() );
-	//auto ringMod = make_shared<RingMod>();
-	//mTap->connect( input );
-	//ringMod->connect( mTap );
-	//output->connect( ringMod );
-}
-
-void InputTestApp::setupInTapProcessOutMono()
-{
-	mInput->getFormat().setNumChannels( 1 );
-
 	mTap = make_shared<BufferTap>();
 	auto ringMod = make_shared<RingMod>();
 	mTap->connect( mInput );
