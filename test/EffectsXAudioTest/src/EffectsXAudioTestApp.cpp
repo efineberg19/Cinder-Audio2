@@ -75,10 +75,10 @@ void EffectXAudioTestApp::setup()
 	mSource = noise;
 
 	//setupOne();
-	//setupTwo();
+	//setupTwo(); // TODO: check this is working, sounds like maybe it isn't
 	//setupFilter();
-	//setupFilterDelay();
-	setupNativeThenGeneric();
+	setupFilterDelay();
+	//setupNativeThenGeneric();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;

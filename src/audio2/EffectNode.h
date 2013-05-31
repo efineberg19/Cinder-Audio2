@@ -11,12 +11,6 @@ namespace audio2 {
 	public:
 		Effect() : Node() { mSources.resize( 1 ); }
 		virtual ~Effect() {}
-
-		virtual void connect( NodeRef source ) // TODO: remove and implement in Node
-		{
-			mSources[0] = source;
-			source->setParent( shared_from_this() );
-		}
 	};
 
 	struct RingMod : public Effect {

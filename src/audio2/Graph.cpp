@@ -22,21 +22,17 @@ Node::~Node()
 
 }
 
-const Node::Format& Node::getSourceFormat()
-{
-	CI_ASSERT( ! mSources.empty() );
-	return mSources[0]->mFormat;
-}
-
-// TODO: consider default implementing connect() in Node
-//	- would throw if Producer since nothing can connect to it
-//	- override in Mixer to push_back
-void Root::connect( NodeRef source )
+void Node::connect( NodeRef source )
 {
 	mSources[0] = source;
 	mSources[0]->setParent( shared_from_this() );
 }
 
+const Node::Format& Node::getSourceFormat()
+{
+	CI_ASSERT( ! mSources.empty() );
+	return mSources[0]->mFormat;
+}
 
 // TODO: Mixer connections need to be thought about more. Notes from discussion with Andrew:
 // - connect( node ):
@@ -92,12 +88,6 @@ void BufferTap::initialize()
 	}
 
 	mInitialized = true;
-}
-
-void BufferTap::connect( NodeRef source )
-{
-	mSources[0] = source;
-	mSources[0]->setParent( shared_from_this() );
 }
 
 const BufferT& BufferTap::getBuffer()

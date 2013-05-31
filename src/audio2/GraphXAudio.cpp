@@ -646,15 +646,14 @@ void GraphXAudio::initNode( NodeRef node )
 			sourceVoice = getSourceVoice( source );
 			if( ! sourceVoice ) {
 				// first check if any child is a native node - if it is, that indicates we need a custom XAPO
-				// TODO: implement custom Xapo. make sure  EffectXAudioFilter is handled appropriately as well
+				// TODO: implement custom Xapo and insert for this. make sure EffectXAudioFilter is handled appropriately as well
 				if( getXAudioNode( source ) )
 					throw AudioGraphExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 
 				sourceVoice = make_shared<SourceVoiceXAudio>();
 				node->getSources()[i] = sourceVoice;
 				sourceVoice->setParent( node );
-				sourceVoice->getSources()[0] = source; // TODO: do these two steps in virtual Node::connect, override for Producers and throw
-				source->setParent( sourceVoice );
+				sourceVoice->connect( source );
 			}
 		}
 
