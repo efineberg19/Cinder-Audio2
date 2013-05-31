@@ -13,19 +13,19 @@ namespace audio2 {
 //};
 
 class SourceVoiceXAudio;
-class XAudioNode;
+class NodeXAudio;
 
 struct XAudioVoice {
 	XAudioVoice() : voice( nullptr ), node( nullptr )	{}
-	XAudioVoice( ::IXAudio2Voice *voice, XAudioNode *parent ) : voice( voice ), node( parent ) {}
+	XAudioVoice( ::IXAudio2Voice *voice, NodeXAudio *parent ) : voice( voice ), node( parent ) {}
 	::IXAudio2Voice *voice;
-	XAudioNode *node;
+	NodeXAudio *node;
 };
 
-class XAudioNode {
+class NodeXAudio {
   public:
-	XAudioNode() : mFilterEnabled( false ), mFilterConnected( false ) {}
-	virtual ~XAudioNode();
+	NodeXAudio() : mFilterEnabled( false ), mFilterConnected( false ) {}
+	virtual ~NodeXAudio();
 
 	void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
 
@@ -51,7 +51,7 @@ class XAudioNode {
 
 class DeviceOutputXAudio;
 
-class OutputXAudio : public Output, public XAudioNode {
+class OutputXAudio : public Output, public NodeXAudio {
   public:
 	OutputXAudio( DeviceRef device );
 	virtual ~OutputXAudio() {}
@@ -72,7 +72,7 @@ class OutputXAudio : public Output, public XAudioNode {
 
 struct VoiceCallbackImpl;
 
-class SourceVoiceXAudio : public Node, public XAudioNode {
+class SourceVoiceXAudio : public Node, public NodeXAudio {
   public:
 	SourceVoiceXAudio();
 	~SourceVoiceXAudio();
@@ -100,7 +100,7 @@ class SourceVoiceXAudio : public Node, public XAudioNode {
 	bool										mIsRunning;
 };
 
-class EffectXAudioXapo : public Effect, public XAudioNode {
+class EffectXAudioXapo : public Effect, public NodeXAudio {
 public:
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
@@ -130,7 +130,7 @@ private:
 	size_t mChainIndex;
 };
 
-class EffectXAudioFilter : public Effect, public XAudioNode {
+class EffectXAudioFilter : public Effect, public NodeXAudio {
 public:
 
 	EffectXAudioFilter();
@@ -147,7 +147,7 @@ private:
 };
 
 
-class MixerXAudio : public Mixer, public XAudioNode {
+class MixerXAudio : public Mixer, public NodeXAudio {
 public:
 	MixerXAudio();
 	virtual ~MixerXAudio();

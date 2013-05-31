@@ -12,24 +12,24 @@ using namespace std;
 namespace audio2 {
 
 static bool isNodeNativeXAudio( NodeRef node ) {
-	return dynamic_pointer_cast<XAudioNode>( node );
+	return dynamic_pointer_cast<NodeXAudio>( node );
 }
 
 // TODO: consider making these two methods recursive - they don't need the while loop, assert at top
 
-static shared_ptr<XAudioNode> getXAudioNode( NodeRef node )
+static shared_ptr<NodeXAudio> getXAudioNode( NodeRef node )
 {
 	while( node ) {
-		auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node );
+		auto nodeXAudio = dynamic_pointer_cast<NodeXAudio>( node );
 		if( nodeXAudio )
 			return nodeXAudio;
-		else {
-			CI_ASSERT( ! node->getSources().empty() );
-			node = node->getSources().front();
-		}
+		else if( node->getSources().empty() )
+			break;
+
+		node = node->getSources().front();
 	}
 	LOG_V << "No XAudioNode in this tree." << endl;
-	return shared_ptr<XAudioNode>();
+	return shared_ptr<NodeXAudio>();
 }
 
 static shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node )
@@ -74,16 +74,16 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 // MARK: - XAudioNode
 // ----------------------------------------------------------------------------------------------------
 
-XAudioNode::~XAudioNode()
+NodeXAudio::~NodeXAudio()
 {
 }
 
-XAudioVoice XAudioNode::getXAudioVoice( NodeRef node )
+XAudioVoice NodeXAudio::getXAudioVoice( NodeRef node )
 {
 	CI_ASSERT( ! node->getSources().empty() );
 	NodeRef source = node->getSources().front();
 
-	auto sourceXAudio = dynamic_pointer_cast<XAudioNode>( source );
+	auto sourceXAudio = dynamic_pointer_cast<NodeXAudio>( source );
 	if( sourceXAudio )
 		return sourceXAudio->getXAudioVoice( source );
 
@@ -638,14 +638,16 @@ void GraphXAudio::initNode( NodeRef node )
 		if( ! source )
 			continue;
 
-		// if source is generic, add implicit SourceXAudio
+		// if source is generic, if it does it needs a SourceXAudio so add one implicitly
 		shared_ptr<SourceVoiceXAudio> sourceVoice;
 
 		if( ! isNodeNativeXAudio( source ) ) {
 			sourceVoice = getSourceVoice( source );
 			if( ! sourceVoice ) {
-
-				// TODO: check if any child is a native node - if it is, that indicates we need a custom XAPO
+				// first check if any child is a native node - if it is, that indicates we need a custom XAPO
+				// TODO: implement custom Xapo. make sure  EffectXAudioFilter is handled appropriately as well
+				if( getXAudioNode( source ) )
+					throw AudioGraphExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 
 				sourceVoice = make_shared<SourceVoiceXAudio>();
 				node->getSources()[i] = sourceVoice;
@@ -730,7 +732,7 @@ void GraphXAudio::uninitNode( NodeRef node )
 
 void GraphXAudio::setXAudio( NodeRef node )
 {
-	XAudioNode *nodeXAudio = dynamic_cast<XAudioNode *>( node.get() );
+	NodeXAudio *nodeXAudio = dynamic_cast<NodeXAudio *>( node.get() );
 	if( nodeXAudio ) {
 		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
 		nodeXAudio->setXAudio( outputXAudio->getXAudio() );
@@ -748,7 +750,7 @@ void GraphXAudio::initEffects( NodeRef node )
 	for( NodeRef& node : node->getSources() )
 		initEffects( node );
 
-	auto nodeXAudio = dynamic_pointer_cast<XAudioNode>( node ); // TODO: replace with static method check
+	auto nodeXAudio = dynamic_pointer_cast<NodeXAudio>( node ); // TODO: replace with static method check
 	if( nodeXAudio && ! nodeXAudio->getEffectsDescriptors().empty() ) {
 		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
 		CI_ASSERT( v.node == nodeXAudio.get() );
