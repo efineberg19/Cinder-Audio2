@@ -22,7 +22,7 @@ struct InputWasapi::Impl {
 
 	void initCapture( size_t bufferSize );
 	//void captureAudio();
-	size_t captureAudio( size_t numRequired );
+	void captureAudio( size_t numSamplesNeeded );
 
 	std::unique_ptr<::IAudioClient, msw::ComReleaser>			mAudioClient;
 	std::unique_ptr<::IAudioCaptureClient, msw::ComReleaser>	mCaptureClient;
@@ -31,7 +31,7 @@ struct InputWasapi::Impl {
 //	::HANDLE						mCaptureEvent;
 	atomic<bool> mCaptureInitialized;
 
-	atomic<size_t> mNumSamplesBuffered;
+	size_t mNumSamplesBuffered;
 
 	std::mutex mBlargMutex;
 };
@@ -212,21 +212,28 @@ DeviceRef InputWasapi::getDevice()
 void InputWasapi::render( BufferT *buffer )
 {
 	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
-	samplesNeeded -= mImpl->mNumSamplesBuffered;
+	//samplesNeeded -= mImpl->mNumSamplesBuffered;
 
-	size_t numRead = mImpl->captureAudio( samplesNeeded );
+	mImpl->captureAudio( samplesNeeded );
 
 	//lock_guard<std::mutex> lock( mImpl->mBlargMutex );
 
-	if( numRead < samplesNeeded ) {
+	if( mImpl->mNumSamplesBuffered < samplesNeeded ) {
 		LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
 		return;
 	}
-	size_t numRead2 = mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
-	CI_ASSERT( numRead == numRead2 );
-	mImpl->mNumSamplesBuffered -= samplesNeeded;
 
-	deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
+	if( buffer->size() == 2 ) {
+		size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
+		CI_ASSERT( numRead == samplesNeeded );
+
+		deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
+	} else {
+		size_t numRead = mImpl->mRingBuffer->read( buffer->at( 0 ).data(), samplesNeeded );
+		CI_ASSERT( numRead == samplesNeeded );
+	}
+
+	mImpl->mNumSamplesBuffered -= samplesNeeded;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -260,10 +267,11 @@ void InputWasapi::Impl::initCapture( size_t bufferSize ) {
 	//mCaptureThread = unique_ptr<thread>( new thread( bind( &InputWasapi::Impl::captureAudio, this ) ) );
 }
 
-// TODO NEXT: this needs much more work
-size_t InputWasapi::Impl::captureAudio( size_t numRequired ) {
+// TODO: this should probably just fill up the buffer as much as possible, and we don't need to check numSamplesNeeded
+void InputWasapi::Impl::captureAudio( size_t numSamplesNeeded )
+{
 	CI_ASSERT( mCaptureInitialized );
-	size_t numRead = 0;
+
 	UINT32 sizeNextPacket;
 	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket );
 	CI_ASSERT( hr == S_OK );
@@ -271,12 +279,11 @@ size_t InputWasapi::Impl::captureAudio( size_t numRequired ) {
 	while( sizeNextPacket ) {
 		BYTE *audioData;
 		UINT32 numFramesAvailable; // ???: is this samples or samples * channels? I very well could only be reading half of the samples... enabling mono capture would tell
-		UINT32 numFramesRead = 0;
 		DWORD flags;
 		HRESULT hr = mCaptureClient->GetBuffer( &audioData, &numFramesAvailable, &flags, NULL, NULL );
 		if( hr == AUDCLNT_S_BUFFER_EMPTY ) {
 			LOG_V << "AUDCLNT_S_BUFFER_EMPTY, returning" << endl;
-			return numRead;
+			return;
 		}
 		else
 			CI_ASSERT( hr == S_OK );
@@ -287,29 +294,25 @@ size_t InputWasapi::Impl::captureAudio( size_t numRequired ) {
 			//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
 		}
 		else {
-			//lock_guard<std::mutex> lock( mBlargMutex );
-
 			float *samples = (float *)audioData;
-			mRingBuffer->write( samples, numFramesAvailable );
+			mRingBuffer->write( samples, numFramesAvailable ); // TODO: return num dropped samples?
+			
+			mNumSamplesBuffered += static_cast<size_t>( numFramesAvailable );
 
-			mNumSamplesBuffered += static_cast<size_t>( numFramesRead );
-			numRead += numFramesRead;
-
-			if( numRead >= numRequired ) {
-				hr = mCaptureClient->ReleaseBuffer( numFramesRead );
+			if( mNumSamplesBuffered >= numSamplesNeeded ) {
+				hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
 				CI_ASSERT( hr == S_OK );
 				break;
 			}
 		}
 
-		hr = mCaptureClient->ReleaseBuffer( numFramesRead );
+		hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
 		CI_ASSERT( hr == S_OK );
 
 		hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket );
 		CI_ASSERT( hr == S_OK );
 
 	}
-	return numRead;
 }
 
 } // namespace audio2

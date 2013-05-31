@@ -36,6 +36,7 @@ class InputTestApp : public AppNative {
 	void setupInProcessOut();
 	void setupInTapOut();
 	void setupInTapProcessOut();
+	void setupInTapProcessOutMono();
 
 	GraphRef mGraph;
 	GeneratorRef mInput;
@@ -59,7 +60,8 @@ void InputTestApp::setup()
 
 	//setupPassThrough();
 	//setupInTapOut();
-	setupInTapOutMono();
+	//setupInTapOutMono();
+	setupInTapProcessOutMono();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration (before init):" << endl;
@@ -112,6 +114,17 @@ void InputTestApp::setupInTapProcessOut()
 	//mTap->connect( input );
 	//ringMod->connect( mTap );
 	//output->connect( ringMod );
+}
+
+void InputTestApp::setupInTapProcessOutMono()
+{
+	mInput->getFormat().setNumChannels( 1 );
+
+	mTap = make_shared<BufferTap>();
+	auto ringMod = make_shared<RingMod>();
+	mTap->connect( mInput );
+	ringMod->connect( mTap );
+	mGraph->getRoot()->connect( ringMod );
 }
 
 void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
