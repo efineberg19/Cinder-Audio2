@@ -141,6 +141,12 @@ size_t OutputXAudio::getBlockSize() const
 	return mDevice->getBlockSize();
 }
 
+// TODO: check what happens for different samplerates
+bool OutputXAudio::supportsSourceFormat( const Node::Format &sourceFormat ) const
+{
+	return true;
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - InputXAudio
 // ----------------------------------------------------------------------------------------------------
@@ -160,15 +166,25 @@ SourceVoiceXAudio::~SourceVoiceXAudio()
 
 void SourceVoiceXAudio::initialize()
 {
+	// TODO: consider whether this should handle higher channel counts, or disallow in graph configure / node format
+	CI_ASSERT( mFormat.getNumChannels() <= 2 ); 
+
 	mBuffer.resize(  mFormat.getNumChannels() );
 	for( auto& channel : mBuffer )
 		channel.resize( 512 );
 
-	mBufferDeInterleaved.resize( mBuffer.size() * mBuffer[0].size() );
+	mBufferInterleaved.resize( mBuffer.size() * mBuffer[0].size() );
 
 	memset( &mXAudio2Buffer, 0, sizeof( mXAudio2Buffer ) );
-	mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferDeInterleaved.data() );
-	mXAudio2Buffer.AudioBytes = mBufferDeInterleaved.size() * sizeof( float );
+	if( mFormat.getNumChannels() == 2 ) {
+		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
+		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.data() );
+		mXAudio2Buffer.AudioBytes = mBufferInterleaved.size() * sizeof( float );
+	} else {
+		// setup mono
+		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.data() );
+		mXAudio2Buffer.AudioBytes = mBuffer[0].size() * sizeof( float );
+	}
 
 	auto wfx = msw::interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );
 
@@ -212,8 +228,8 @@ void SourceVoiceXAudio::submitNextBuffer()
 
 	renderNode( mSources[0] );
 
-	// XAudio2 requires de-interleaved samples
-	interleaveStereoBuffer( &mBuffer, &mBufferDeInterleaved );
+	if( mFormat.getNumChannels() == 2 )
+		interleaveStereoBuffer( &mBuffer, &mBufferInterleaved );
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
 	CI_ASSERT( hr == S_OK );
@@ -517,6 +533,12 @@ void MixerXAudio::checkBusIsValid( size_t bus )
 		throw AudioParamExc( "There is no node at bus index: " + bus );
 }
 
+// TODO: check what happens for different samplerates
+bool MixerXAudio::supportsSourceFormat( const Node::Format &sourceFormat ) const
+{
+	return true;
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - ConverterXAudio
 // ----------------------------------------------------------------------------------------------------
@@ -684,26 +706,26 @@ void GraphXAudio::initNode( NodeRef node )
 		if( ! sourceNode )
 			continue;
 
-		bool needsConverter = false;
-		if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
+		if( ! node->supportsSourceFormat( sourceNode->getFormat() ) ) {
+			CI_ASSERT( 0 && "ConverterXAudio not yet implemented" );
+			bool needsConverter = false;
+			if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
 #if 0
-			needsConverter = true;
+				needsConverter = true;
 #else
-			throw AudioFormatExc( "non-matching samplerates not supported" );
+				throw AudioFormatExc( "non-matching samplerates not supported" );
 #endif
-		if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
-			LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
-			// TODO: if node is an Output, or Mixer, they can do the channel mapping and avoid the converter
-			needsConverter = true;
-		}
-		if( needsConverter ) {
-			CI_ASSERT( 0 && "conversion not yet implemented" );
-			//auto converter = make_shared<ConverterAudioUnit>( sourceNode, node, mOutput->getBlockSize() );
-			//converter->getSources()[0] = sourceNode;
-			//node->getSources()[bus] = converter;
-			//converter->setParent( node->getSources()[bus] );
-			//converter->initialize();
-			//connectRenderCallback( converter, &converter->mRenderContext, true ); // TODO: make sure this doesn't blow away other converters
+			if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
+				LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
+				needsConverter = true;
+			}
+			if( needsConverter ) {
+				//auto converter = make_shared<ConverterAudioUnit>( sourceNode, node, mOutput->getBlockSize() );
+				//converter->getSources()[0] = sourceNode;
+				//node->getSources()[bus] = converter;
+				//converter->setParent( node->getSources()[bus] );
+				//converter->initialize();
+			}
 		}
 	}
 

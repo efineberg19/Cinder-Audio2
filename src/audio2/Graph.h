@@ -47,6 +47,9 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual void connect( NodeRef source );
 
+	//! Default implementation returns true if samplerate and numChannels match our format
+	virtual bool supportsSourceFormat( const Format &sourceFormat ) const;
+
 	// ???: does making BufferT const help make it less expandable? Because it shouldb't be resize()'ed
 	virtual void render( BufferT *buffer )	{}
 

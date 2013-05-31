@@ -61,6 +61,8 @@ class OutputXAudio : public Output, public NodeXAudio {
 
 	size_t getBlockSize() const override;
 
+	bool supportsSourceFormat( const Format &sourceFormat ) const override;
+
   private:
 	std::shared_ptr<DeviceOutputXAudio> mDevice;
 };
@@ -90,7 +92,7 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	::XAUDIO2_BUFFER							mXAudio2Buffer;
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
 	BufferT										mBuffer;
-	ChannelT									mBufferDeInterleaved;
+	ChannelT									mBufferInterleaved;
 	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
 	bool										mIsRunning;
 };
@@ -161,6 +163,8 @@ public:
 	float getBusPan( size_t bus ) override;
 
 	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSubmixVoice ), this ); }
+
+	bool supportsSourceFormat( const Node::Format &sourceFormat ) const override;
 
   private:
 	void checkBusIsValid( size_t bus );

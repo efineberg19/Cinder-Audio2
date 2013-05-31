@@ -32,6 +32,7 @@ class InputTestApp : public AppNative {
 	void toggleGraph();
 
 	void setupPassThrough();
+	void setupInTapOutMono();
 	void setupInProcessOut();
 	void setupInTapOut();
 	void setupInTapProcessOut();
@@ -57,7 +58,8 @@ void InputTestApp::setup()
 	mGraph->setRoot( output );
 
 	//setupPassThrough();
-	setupInTapOut();
+	//setupInTapOut();
+	setupInTapOutMono();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration (before init):" << endl;
@@ -88,6 +90,15 @@ void InputTestApp::setupInTapOut()
 {
 	// TODO: make it possible for tap size to be auto-configured to input size
 	// - methinks it requires all nodes to be able to keep a blocksize
+
+	mTap = make_shared<BufferTap>();
+	mTap->connect( mInput );
+	mGraph->getRoot()->connect( mTap );
+}
+
+void InputTestApp::setupInTapOutMono()
+{
+	mInput->getFormat().setNumChannels( 1 );
 
 	mTap = make_shared<BufferTap>();
 	mTap->connect( mInput );

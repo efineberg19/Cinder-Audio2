@@ -28,6 +28,11 @@ void Node::connect( NodeRef source )
 	mSources[0]->setParent( shared_from_this() );
 }
 
+bool Node::supportsSourceFormat( const Node::Format &sourceFormat ) const
+{
+	return ( mFormat.getNumChannels() == sourceFormat.getNumChannels() && mFormat.getSampleRate() == sourceFormat.getSampleRate() );
+}
+
 const Node::Format& Node::getSourceFormat()
 {
 	CI_ASSERT( ! mSources.empty() );
