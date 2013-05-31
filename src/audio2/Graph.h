@@ -147,7 +147,7 @@ class Graph {
 	virtual void initialize();
 	virtual void uninitialize();
 	virtual void setRoot( RootRef root )	{ mRoot = root; }
-	virtual RootRef getOutput() const	{ return mRoot; }
+	virtual RootRef getRoot() const	{ return mRoot; }
 	virtual void start();
 	virtual void stop();
 

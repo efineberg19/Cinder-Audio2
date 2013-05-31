@@ -19,7 +19,7 @@ void printGraph( GraphRef graph )
 			printNode( source, depth + 1 );
 	};
 
-	printNode( graph->getOutput(), 0 );
+	printNode( graph->getRoot(), 0 );
 }
 
 } // namespace audio2
