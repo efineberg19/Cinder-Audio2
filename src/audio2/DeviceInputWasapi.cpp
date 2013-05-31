@@ -19,7 +19,7 @@ struct InputWasapi::Impl {
 	~Impl() {}
 
 	void initCapture( size_t bufferSize );
-	void captureAudio( size_t numSamplesNeeded );
+	void captureAudio();
 
 	std::unique_ptr<::IAudioClient, msw::ComReleaser>			mAudioClient;
 	std::unique_ptr<::IAudioCaptureClient, msw::ComReleaser>	mCaptureClient;
@@ -131,9 +131,7 @@ void InputWasapi::initialize()
 	LOG_V << "requested block size: " << mCaptureBlockSize << " frames" << endl;
 
 	::REFERENCE_TIME requestedDuration = samplesToReferenceTime( mCaptureBlockSize, mFormat.getSampleRate() );
-	//DWORD streamFlags = AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
-	DWORD streamFlags = 0;
-	hr = mImpl->mAudioClient->Initialize( ::AUDCLNT_SHAREMODE_SHARED, streamFlags, requestedDuration, 0, wfx.get(), NULL ); 
+	hr = mImpl->mAudioClient->Initialize( ::AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, wfx.get(), NULL ); 
 	CI_ASSERT( hr == S_OK );
 
 	UINT32 numFrames;
@@ -198,9 +196,9 @@ DeviceRef InputWasapi::getDevice()
 // TODO: properly handle channel counts == 2
 void InputWasapi::render( BufferT *buffer )
 {
-	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
-	mImpl->captureAudio( samplesNeeded );
+	mImpl->captureAudio();
 
+	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
 	if( mImpl->mNumSamplesBuffered < samplesNeeded ) {
 		LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
 		return;
@@ -234,14 +232,18 @@ void InputWasapi::Impl::initCapture( size_t bufferSize ) {
 	mRingBuffer.reset( new RingBuffer( bufferSize ) );
 }
 
-// TODO: this should probably just fill up the buffer as much as possible, and we don't need to check numSamplesNeeded
-void InputWasapi::Impl::captureAudio( size_t numSamplesNeeded )
+void InputWasapi::Impl::captureAudio()
 {
 	UINT32 sizeNextPacket;
-	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket );
+	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket ); // TODO: treat this accordingly for stereo (2x)
 	CI_ASSERT( hr == S_OK );
 
 	while( sizeNextPacket ) {
+
+		if( sizeNextPacket > ( mRingBuffer->getSize() - mNumSamplesBuffered ) ) {
+			return; // not enough space, we'll read it next time
+		}
+
 		BYTE *audioData;
 		UINT32 numFramesAvailable; // ???: is this samples or samples * channels? I very well could only be reading half of the samples... enabling mono capture would tell
 		DWORD flags;
@@ -265,12 +267,6 @@ void InputWasapi::Impl::captureAudio( size_t numSamplesNeeded )
 				LOG_V << "BUFFER OVERRUN. dropped: " << numDropped << endl;
 
 			mNumSamplesBuffered += static_cast<size_t>( numFramesAvailable );
-
-			if( mNumSamplesBuffered >= numSamplesNeeded ) {
-				hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
-				CI_ASSERT( hr == S_OK );
-				break;
-			}
 		}
 
 		hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
