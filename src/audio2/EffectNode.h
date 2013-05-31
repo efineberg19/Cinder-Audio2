@@ -15,10 +15,12 @@ namespace audio2 {
 
 	struct RingMod : public Effect {
 		RingMod()
-			: mSineGen( 440.0f, 1.0f )
-		{
-			mTag = "RingMod";
-			mFormat.setWantsDefaultFormatFromParent();
+			: mSineGen( 440.0f, 1.0f )	{
+				mTag = "RingMod";
+		}
+
+		virtual void initialize() override {
+			mSineGen.setSampleRate( mFormat.getSampleRate() );
 		}
 
 		virtual void render( BufferT *buffer ) override {
