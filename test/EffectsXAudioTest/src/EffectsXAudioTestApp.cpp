@@ -4,7 +4,7 @@
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
 #include "audio2/Engine.h"
-#include "audio2/UGen.h"
+#include "audio2/Dsp.h"
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"

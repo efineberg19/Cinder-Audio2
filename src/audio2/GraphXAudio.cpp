@@ -3,7 +3,7 @@
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
-#include "audio2/UGen.h" // buffer interleaving currently lives in here. TODO: if that is to remain, consider renaming file back to dsp.h/cpp
+#include "audio2/Dsp.h"
 
 #include "cinder/Utilities.h"
 

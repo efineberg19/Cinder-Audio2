@@ -144,7 +144,7 @@
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Engine.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Graph.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\RingBuffer.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\UGen.h" />
+    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Dsp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
