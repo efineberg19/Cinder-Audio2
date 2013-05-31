@@ -7,8 +7,6 @@
 #include "audio2/Debug.h"
 #include "audio2/msw/util.h"
 
-#include "cinder/Thread.h"
-
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
 
@@ -17,23 +15,16 @@ using namespace std;
 namespace audio2 {
 
 struct InputWasapi::Impl {
-	Impl() : mCaptureInitialized( false ) {}
-	~Impl();
+	Impl() : mNumSamplesBuffered( 0 ) {}
+	~Impl() {}
 
 	void initCapture( size_t bufferSize );
-	//void captureAudio();
 	void captureAudio( size_t numSamplesNeeded );
 
 	std::unique_ptr<::IAudioClient, msw::ComReleaser>			mAudioClient;
 	std::unique_ptr<::IAudioCaptureClient, msw::ComReleaser>	mCaptureClient;
-//	std::unique_ptr<std::thread>	mCaptureThread;
 	std::unique_ptr<RingBuffer>		mRingBuffer;
-//	::HANDLE						mCaptureEvent;
-	atomic<bool> mCaptureInitialized;
-
 	size_t mNumSamplesBuffered;
-
-	std::mutex mBlargMutex;
 };
 
 // converts to 100-nanoseconds
@@ -123,7 +114,6 @@ InputWasapi::~InputWasapi()
 {
 }
 
-// TODO: properly handle channel counts != 2
 void InputWasapi::initialize()
 {
 	auto wfx = msw::interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );
@@ -168,7 +158,6 @@ void InputWasapi::uninitialize()
 	if( ! mInitialized )
 		return;
 
-	mImpl->mCaptureInitialized = false;
 	HRESULT hr = mImpl->mAudioClient->Reset();
 	CI_ASSERT( hr == S_OK );
 
@@ -188,7 +177,6 @@ void InputWasapi::start()
 	LOG_V << "started " << mDevice->getName() << endl;
 }
 
-// FIXME: stop is not blocking the capture loop as I expected...  segfaults are occuring.
 void InputWasapi::stop()
 {
 	if( ! mInitialized ) {
@@ -207,16 +195,11 @@ DeviceRef InputWasapi::getDevice()
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
-// FIXME: This doesn't handle mismatched buffer sizes well at all
-// - default capture size is currently too small anyway
+// TODO: properly handle channel counts == 2
 void InputWasapi::render( BufferT *buffer )
 {
 	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
-	//samplesNeeded -= mImpl->mNumSamplesBuffered;
-
 	mImpl->captureAudio( samplesNeeded );
-
-	//lock_guard<std::mutex> lock( mImpl->mBlargMutex );
 
 	if( mImpl->mNumSamplesBuffered < samplesNeeded ) {
 		LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
@@ -240,21 +223,8 @@ void InputWasapi::render( BufferT *buffer )
 // MARK: - InputWasapi::Impl
 // ----------------------------------------------------------------------------------------------------
 
-InputWasapi::Impl::~Impl()
-{
-	//mCaptureThread->detach();
-}
-
 void InputWasapi::Impl::initCapture( size_t bufferSize ) {
-	mNumSamplesBuffered = 0;
-
 	CI_ASSERT( mAudioClient );
-
-	//mCaptureEvent = ::CreateEventEx( nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE );
-	//CI_ASSERT( mCaptureEvent );
-
-	//HRESULT hr = mAudioClient->SetEventHandle( mCaptureEvent );
-	//CI_ASSERT( hr == S_OK );
 
 	::IAudioCaptureClient *captureClient;
 	HRESULT hr = mAudioClient->GetService( __uuidof(::IAudioCaptureClient), (void**)&captureClient );
@@ -262,16 +232,11 @@ void InputWasapi::Impl::initCapture( size_t bufferSize ) {
 	mCaptureClient = msw::makeComUnique( captureClient );
 
 	mRingBuffer.reset( new RingBuffer( bufferSize ) );
-
-	mCaptureInitialized = true;
-	//mCaptureThread = unique_ptr<thread>( new thread( bind( &InputWasapi::Impl::captureAudio, this ) ) );
 }
 
 // TODO: this should probably just fill up the buffer as much as possible, and we don't need to check numSamplesNeeded
 void InputWasapi::Impl::captureAudio( size_t numSamplesNeeded )
 {
-	CI_ASSERT( mCaptureInitialized );
-
 	UINT32 sizeNextPacket;
 	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket );
 	CI_ASSERT( hr == S_OK );
@@ -311,7 +276,6 @@ void InputWasapi::Impl::captureAudio( size_t numSamplesNeeded )
 
 		hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket );
 		CI_ASSERT( hr == S_OK );
-
 	}
 }
 
