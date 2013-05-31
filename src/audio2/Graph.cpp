@@ -128,15 +128,18 @@ void BufferTap::render( BufferT *buffer )
 
 Graph::~Graph()
 {
-	uninitialize();
+	if( mInitialized )
+		uninitialize();
 }
 
 void Graph::initialize()
 {
+	mInitialized = true;
 }
 
 void Graph::uninitialize()
 {
+	mInitialized = false;
 }
 
 void Graph::start()
