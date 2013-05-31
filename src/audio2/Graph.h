@@ -12,8 +12,8 @@ typedef std::shared_ptr<class Node> NodeRef;
 typedef std::weak_ptr<class Node> NodeWeakRef;
 
 typedef std::shared_ptr<class Mixer> MixerRef;
-typedef std::shared_ptr<class Consumer> ConsumerRef;
-typedef std::shared_ptr<class Producer> ProducerRef;
+typedef std::shared_ptr<class Root> RootRef;
+typedef std::shared_ptr<class Generator> GeneratorRef;
 typedef std::shared_ptr<class BufferTap> BufferTapRef;
 
 typedef std::vector<float>		ChannelT;
@@ -76,36 +76,34 @@ class Node : public std::enable_shared_from_this<Node> {
 	  Node& operator=( Node const& );
 };
 
-// TODO: these names don't really make sense here, it's just a feable attempt at avoiding naiming these Input / Output or Generator / ??
-
-class Producer : public Node {
+class Generator : public Node {
   public:
-	Producer() : Node() {}
-	virtual ~Producer() {}
+	Generator() : Node() {}
+	virtual ~Generator() {}
 };
 
-class Input : public Producer {
+class Input : public Generator {
   public:
-	Input( DeviceRef device ) : Producer() {}
+	Input( DeviceRef device ) : Generator() {}
 	virtual ~Input() {}
 
 	virtual DeviceRef getDevice() = 0;
 };
 
-class Consumer : public Node {
+class Root : public Node {
   public:
-	Consumer() : Node() { mSources.resize( 1 ); }
-	virtual ~Consumer() {}
+	Root() : Node() { mSources.resize( 1 ); }
+	virtual ~Root() {}
 
 	virtual void connect( NodeRef source );
 	virtual size_t getBlockSize() const = 0;
 };
 
-class Output : public Consumer {
+class Output : public Root {
   public:
 
 	// ???: device param here necessary?
-	Output( DeviceRef device ) : Consumer() {}
+	Output( DeviceRef device ) : Root() {}
 	virtual ~Output() {}
 
 	virtual DeviceRef getDevice() = 0;
@@ -172,8 +170,8 @@ class Graph {
 
 	virtual void initialize();
 	virtual void uninitialize();
-	virtual void setOutput( ConsumerRef output )	{ mOutput = output; }
-	virtual ConsumerRef getOutput() const	{ return mOutput; }
+	virtual void setRoot( RootRef root )	{ mRoot = root; }
+	virtual RootRef getOutput() const	{ return mRoot; }
 	virtual void start();
 	virtual void stop();
 
@@ -187,7 +185,7 @@ class Graph {
 	virtual void stop( NodeRef node );
 
 
-	ConsumerRef	mOutput;
+	RootRef		mRoot;
 	bool		mInitialized, mRunning;
 };
 

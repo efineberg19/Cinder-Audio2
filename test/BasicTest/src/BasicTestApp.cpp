@@ -26,7 +26,7 @@ using namespace std;
 using namespace audio2;
 
 template <typename UGenT>
-struct UGenNode : public Producer {
+struct UGenNode : public Generator {
 	UGenNode()	{
 		mTag = "UGenNode";
 		mFormat.setWantsDefaultFormatFromParent();
@@ -88,7 +88,7 @@ void BasicTestApp::setup()
 
 	auto output = Engine::instance()->createOutput( device );
 	mGraph = Engine::instance()->createGraph();
-	mGraph->setOutput( output );
+	mGraph->setRoot( output );
 
 	//setupBasic();
 	setupMixer();

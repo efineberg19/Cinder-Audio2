@@ -12,14 +12,14 @@ GraphRef EngineXAudio::createGraph()
 	return GraphRef( new GraphXAudio() );
 }
 
-ConsumerRef EngineXAudio::createOutput( DeviceRef device )
+RootRef EngineXAudio::createOutput( DeviceRef device )
 {
-	return ConsumerRef( new OutputXAudio( device ) );
+	return RootRef( new OutputXAudio( device ) );
 }
 
-ProducerRef EngineXAudio::createInput( DeviceRef device )
+GeneratorRef EngineXAudio::createInput( DeviceRef device )
 {
-	return ProducerRef( new InputWasapi( device ) );
+	return GeneratorRef( new InputWasapi( device ) );
 }
 
 MixerRef EngineXAudio::createMixer()

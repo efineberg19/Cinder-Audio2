@@ -31,7 +31,7 @@ const Node::Format& Node::getSourceFormat()
 // TODO: consider default implementing connect() in Node
 //	- would throw if Producer since nothing can connect to it
 //	- override in Mixer to push_back
-void Consumer::connect( NodeRef source )
+void Root::connect( NodeRef source )
 {
 	mSources[0] = source;
 	mSources[0]->setParent( shared_from_this() );
@@ -148,9 +148,9 @@ void Graph::start()
 {
 	if( mRunning )
 		return;
-	CI_ASSERT( mOutput );
+	CI_ASSERT( mRoot );
 	mRunning = true;
-	start( mOutput );
+	start( mRoot );
 }
 
 void Graph::stop()
@@ -158,7 +158,7 @@ void Graph::stop()
 	if( ! mRunning )
 		return;
 	mRunning = false;
-	stop( mOutput );
+	stop( mRoot );
 }
 
 void Graph::start( NodeRef node )

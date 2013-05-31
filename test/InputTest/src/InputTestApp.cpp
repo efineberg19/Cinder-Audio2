@@ -61,7 +61,7 @@ class InputTestApp : public AppNative {
 	void setupInTapProcessOut();
 
 	GraphRef mGraph;
-	ProducerRef mInput;
+	GeneratorRef mInput;
 	BufferTapRef mTap;
 
 	Button mPlayButton;
@@ -77,8 +77,8 @@ void InputTestApp::setup()
 	logDevices( inputDevice, outputDevice );
 
 	mInput = Engine::instance()->createInput( inputDevice );
-	ConsumerRef output = Engine::instance()->createOutput( outputDevice );
-	mGraph->setOutput( output );
+	auto output = Engine::instance()->createOutput( outputDevice );
+	mGraph->setRoot( output );
 
 	//setupPassThrough();
 	setupInTapOut();

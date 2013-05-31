@@ -20,7 +20,7 @@ using namespace std;
 using namespace audio2;
 
 template <typename UGenT>
-struct UGenNode : public Producer {
+struct UGenNode : public Generator {
 	UGenNode()	{
 		mTag = "UGenNode";
 		mFormat.setWantsDefaultFormatFromParent();
@@ -48,6 +48,7 @@ public:
 	void setupTwo();
 	void setupFilter();
 	void setupFilterDelay();
+	void setupNativeThenGeneric();
 
 	void toggleGraph();
 
@@ -82,7 +83,7 @@ void EffectXAudioTestApp::setup()
 
 	auto output = Engine::instance()->createOutput( device );
 	mGraph = Engine::instance()->createGraph();
-	mGraph->setOutput( output );
+	mGraph->setRoot( output );
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->mGen.setAmp( 0.25f );
@@ -92,7 +93,8 @@ void EffectXAudioTestApp::setup()
 	//setupOne();
 	//setupTwo();
 	//setupFilter();
-	setupFilterDelay();
+	//setupFilterDelay();
+	setupNativeThenGeneric();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
@@ -172,6 +174,18 @@ void EffectXAudioTestApp::setupFilterDelay()
 	mFilterEffect->connect( mSource );
 	mEffect2->connect( mFilterEffect );
 	mGraph->getOutput()->connect( mEffect2 );
+}
+
+// TODO NEXT: set this up and make sure it is detectable (will throw for now)
+void EffectXAudioTestApp::setupNativeThenGeneric()
+{
+	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
+
+	mEffect->connect( mSource );
+
+
+	mGraph->getOutput()->connect( mEffect );
+
 }
 
 void EffectXAudioTestApp::toggleGraph()

@@ -597,14 +597,15 @@ void GraphXAudio::initialize()
 {
 	if( mInitialized )
 		return;
-	CI_ASSERT( mOutput );
+	CI_ASSERT( mRoot );
 
 	// TODO: what about when outputting to file? Do we still need a device?
-	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
+	// - probably requires abstracting to RootXAudio - if not a device output, we implicitly have one but it is muted
+	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mRoot )->getDevice().get() );
 	outputXAudio->initialize();
 
-	initNode( mOutput );
-	initEffects( mOutput->getSources().front() );
+	initNode( mRoot );
+	initEffects( mRoot->getSources().front() );
 
 	mInitialized = true;
 	LOG_V << "graph initialize complete. output channels: " <<outputXAudio->getNumOutputChannels() << endl;
@@ -716,7 +717,7 @@ void GraphXAudio::uninitialize()
 		return;
 
 	stop();
-	uninitNode( mOutput );
+	uninitNode( mRoot );
 	mInitialized = false;
 }
 
@@ -734,7 +735,7 @@ void GraphXAudio::setXAudio( NodeRef node )
 {
 	NodeXAudio *nodeXAudio = dynamic_cast<NodeXAudio *>( node.get() );
 	if( nodeXAudio ) {
-		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mOutput )->getDevice().get() );
+		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mRoot )->getDevice().get() );
 		nodeXAudio->setXAudio( outputXAudio->getXAudio() );
 	}
 }
