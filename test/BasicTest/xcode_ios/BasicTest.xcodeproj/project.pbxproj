@@ -55,6 +55,11 @@
 		11CB3529172EFA910082917F /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
 		11CB352A172EFA910082917F /* DeviceManagerCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerCoreAudio.cpp; sourceTree = "<group>"; };
 		11CB352B172EFA910082917F /* DeviceManagerCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerCoreAudio.h; sourceTree = "<group>"; };
+		11D679DC1759748900E96E0D /* Atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
+		11D679DD1759748900E96E0D /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dsp.h; sourceTree = "<group>"; };
+		11D679DE1759748900E96E0D /* EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectNode.h; sourceTree = "<group>"; };
+		11D679DF1759748900E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneratorNode.h; sourceTree = "<group>"; };
+		11D679E01759748900E96E0D /* RingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
 		148AFBE617317F9D0066D8BE /* Engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Engine.cpp; sourceTree = "<group>"; };
 		148AFBE717317F9D0066D8BE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		148AFBE817317F9D0066D8BE /* EngineAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EngineAudioUnit.cpp; sourceTree = "<group>"; };
@@ -162,6 +167,11 @@
 		114FBBDF172CBF7E002CD25C /* audio2 */ = {
 			isa = PBXGroup;
 			children = (
+				11D679DC1759748900E96E0D /* Atomic.h */,
+				11D679DD1759748900E96E0D /* Dsp.h */,
+				11D679DE1759748900E96E0D /* EffectNode.h */,
+				11D679DF1759748900E96E0D /* GeneratorNode.h */,
+				11D679E01759748900E96E0D /* RingBuffer.h */,
 				114FBBE0172CBF7E002CD25C /* assert.h */,
 				114FBBE1172CBF7E002CD25C /* audio.cpp */,
 				114FBBE2172CBF7E002CD25C /* audio.h */,

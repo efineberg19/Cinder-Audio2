@@ -51,7 +51,9 @@
 		11CB352F172EFAA70082917F /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
 		11CB3530172EFAA70082917F /* DeviceManagerCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerCoreAudio.cpp; sourceTree = "<group>"; };
 		11CB3531172EFAA70082917F /* DeviceManagerCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerCoreAudio.h; sourceTree = "<group>"; };
-		11CB35341731F3850082917F /* UGen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UGen.h; sourceTree = "<group>"; };
+		11D679D9175970A700E96E0D /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dsp.h; sourceTree = "<group>"; };
+		11D679DA175970A700E96E0D /* EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectNode.h; sourceTree = "<group>"; };
+		11D679DB175970A700E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneratorNode.h; sourceTree = "<group>"; };
 		11EFFBB01732183E009EF46B /* Atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
 		128572BBFD5C4118B6B34756 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		14485524173D51C500C27AD5 /* RingBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
@@ -150,16 +152,18 @@
 				11CB352F172EFAA70082917F /* DeviceManagerAudioSession.h */,
 				11CB3530172EFAA70082917F /* DeviceManagerCoreAudio.cpp */,
 				11CB3531172EFAA70082917F /* DeviceManagerCoreAudio.h */,
+				11D679D9175970A700E96E0D /* Dsp.h */,
+				11D679DA175970A700E96E0D /* EffectNode.h */,
 				114FBA36172A1CB9002CD25C /* Engine.cpp */,
 				114FBA37172A1CB9002CD25C /* Engine.h */,
 				148AFBE0173060E10066D8BE /* EngineAudioUnit.cpp */,
 				148AFBE1173060E10066D8BE /* EngineAudioUnit.h */,
+				11D679DB175970A700E96E0D /* GeneratorNode.h */,
 				114FBA34172A1CB9002CD25C /* Graph.cpp */,
 				114FBA35172A1CB9002CD25C /* Graph.h */,
 				148AFBE3173062FF0066D8BE /* GraphAudioUnit.cpp */,
 				148AFBE4173062FF0066D8BE /* GraphAudioUnit.h */,
 				14485524173D51C500C27AD5 /* RingBuffer.h */,
-				11CB35341731F3850082917F /* UGen.h */,
 			);
 			name = audio2;
 			path = ../../../src/audio2;

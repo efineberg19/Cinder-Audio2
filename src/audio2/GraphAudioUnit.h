@@ -1,6 +1,8 @@
 #pragma once
 
 #include "audio2/Graph.h"
+#include "audio2/GeneratorNode.h"
+#include "audio2/EffectNode.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/cocoa/Util.h"
 #include <AudioUnit/AudioUnit.h>
@@ -14,6 +16,7 @@ struct RenderContext {
 	BufferT buffer;
 };
 
+	// TODO: rename to NodeAudioUnit for consistency
 class AudioUnitNode {
   public:
 	AudioUnitNode() : mAudioUnit( nullptr ), mRenderBus( 0 ), mShouldUseGraphRenderCallback( true )	{}
@@ -28,7 +31,7 @@ class AudioUnitNode {
 	bool				mShouldUseGraphRenderCallback;
 };
 
-class OutputAudioUnit : public Output, public AudioUnitNode {
+class OutputAudioUnit : public OutputNode, public AudioUnitNode {
   public:
 	OutputAudioUnit( DeviceRef device );
 	virtual ~OutputAudioUnit() = default;
@@ -48,7 +51,7 @@ class OutputAudioUnit : public Output, public AudioUnitNode {
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
 
-class InputAudioUnit : public Input, public AudioUnitNode {
+class InputAudioUnit : public InputNode, public AudioUnitNode {
   public:
 	InputAudioUnit( DeviceRef device );
 	virtual ~InputAudioUnit();
@@ -72,7 +75,7 @@ class InputAudioUnit : public Input, public AudioUnitNode {
 	cocoa::AudioBufferListRef mBufferList;
 };
 
-class EffectAudioUnit : public Effect, public AudioUnitNode {
+class EffectAudioUnit : public EffectNode, public AudioUnitNode {
 public:
 	EffectAudioUnit( UInt32 subType );
 	virtual ~EffectAudioUnit();
@@ -86,7 +89,7 @@ public:
 	UInt32		mEffectSubType;
 };
 
-class MixerAudioUnit : public Mixer, public AudioUnitNode {
+class MixerAudioUnit : public MixerNode, public AudioUnitNode {
 public:
 	MixerAudioUnit();
 	virtual ~MixerAudioUnit();

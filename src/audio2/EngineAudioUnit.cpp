@@ -10,19 +10,19 @@ GraphRef EngineAudioUnit::createGraph()
 	return GraphRef( new GraphAudioUnit() );
 }
 
-ConsumerRef EngineAudioUnit::createOutput( DeviceRef device )
+RootNodeRef EngineAudioUnit::createOutput( DeviceRef device )
 {
-	return ConsumerRef( new OutputAudioUnit( device ) );
+	return RootNodeRef( new OutputAudioUnit( device ) );
 }
 
-ProducerRef EngineAudioUnit::createInput( DeviceRef device )
+GeneratorNodeRef EngineAudioUnit::createInput( DeviceRef device )
 {
-	return ProducerRef( new InputAudioUnit( device ) );
+	return GeneratorNodeRef( new InputAudioUnit( device ) );
 }
 
-MixerRef EngineAudioUnit::createMixer()
+MixerNodeRef EngineAudioUnit::createMixer()
 {
-	return MixerRef( new MixerAudioUnit() );
+	return MixerNodeRef( new MixerAudioUnit() );
 }
 
 } // namespace audio2

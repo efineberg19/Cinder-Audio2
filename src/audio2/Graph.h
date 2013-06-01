@@ -165,7 +165,7 @@ class Graph {
 
 
 	RootNodeRef		mRoot;
-	bool		mInitialized, mRunning;
+	bool			mInitialized, mRunning;
 };
 
 } // namespace audio2

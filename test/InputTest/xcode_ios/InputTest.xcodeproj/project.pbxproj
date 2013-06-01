@@ -41,6 +41,9 @@
 		03ABD282BE4140AFBF0B7D53 /* DeviceAudioUnit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = DeviceAudioUnit.cpp; path = ../../../src/audio2/DeviceAudioUnit.cpp; sourceTree = "<group>"; };
 		07E9D4A1AE6743AB9760292B /* EngineAudioUnit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = EngineAudioUnit.cpp; path = ../../../src/audio2/EngineAudioUnit.cpp; sourceTree = "<group>"; };
 		082881F7FD2242169C715247 /* Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Device.h; path = ../../../src/audio2/Device.h; sourceTree = "<group>"; };
+		11D679E41759767700E96E0D /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dsp.h; path = ../../../src/audio2/Dsp.h; sourceTree = "<group>"; };
+		11D679E51759767700E96E0D /* EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffectNode.h; path = ../../../src/audio2/EffectNode.h; sourceTree = "<group>"; };
+		11D679E61759767700E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GeneratorNode.h; path = ../../../src/audio2/GeneratorNode.h; sourceTree = "<group>"; };
 		144855541742F68800C27AD5 /* Util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Util.cpp; sourceTree = "<group>"; };
 		144855551742F68800C27AD5 /* Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Util.h; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -76,7 +79,6 @@
 		E9644BFF92B746C58E61EC99 /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../src/audio2/Debug.h; sourceTree = "<group>"; };
 		E9663B875A7542F5B634755A /* assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = assert.h; path = ../../../src/audio2/assert.h; sourceTree = "<group>"; };
 		EF966C616CDD4F64A52E1A7C /* InputTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = InputTest_Prefix.pch; sourceTree = "<group>"; };
-		F109413CE57F42CD9FCDA8D6 /* UGen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = UGen.h; path = ../../../src/audio2/UGen.h; sourceTree = "<group>"; };
 		F2C3DB0006124B19BB432372 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		F747DB4A232445BD9F8E6B3F /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -174,6 +176,9 @@
 		78906FF6EEF14C7BAA5E75D7 /* audio2 */ = {
 			isa = PBXGroup;
 			children = (
+				11D679E41759767700E96E0D /* Dsp.h */,
+				11D679E51759767700E96E0D /* EffectNode.h */,
+				11D679E61759767700E96E0D /* GeneratorNode.h */,
 				144855531742F68800C27AD5 /* cocoa */,
 				E9663B875A7542F5B634755A /* assert.h */,
 				C747026CDC5E42AC90503B0C /* Atomic.h */,
@@ -188,7 +193,6 @@
 				E8F7E5945F6046BAB6F7595F /* Graph.h */,
 				C1337EE1A041478393FDA791 /* GraphAudioUnit.h */,
 				91CFF48A02FD455E91306BEF /* RingBuffer.h */,
-				F109413CE57F42CD9FCDA8D6 /* UGen.h */,
 				4DFE211676884CE19B7B153C /* audio.cpp */,
 				A1F6D1F5423E4392AA441033 /* Device.cpp */,
 				03ABD282BE4140AFBF0B7D53 /* DeviceAudioUnit.cpp */,

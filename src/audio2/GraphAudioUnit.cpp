@@ -76,7 +76,7 @@ AudioUnitNode::~AudioUnitNode()
 // ----------------------------------------------------------------------------------------------------
 
 OutputAudioUnit::OutputAudioUnit( DeviceRef device )
-: Output( device )
+: OutputNode( device )
 {
 	mTag = "OutputAudioUnit";
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
@@ -147,7 +147,7 @@ size_t OutputAudioUnit::getBlockSize() const
 //	  check graph->output->device in initialize to see if it's the same
 
 InputAudioUnit::InputAudioUnit( DeviceRef device )
-: Input( device )
+: InputNode( device )
 {
 	mTag = "InputAudioUnit";
 	mRenderBus = DeviceAudioUnit::Bus::Input;
@@ -532,15 +532,15 @@ void GraphAudioUnit::initialize()
 {
 	if( mInitialized )
 		return;
-	CI_ASSERT( mOutput );
+	CI_ASSERT( mRoot );
 
-	initNode( mOutput );
+	initNode( mRoot );
 
-	size_t blockSize = mOutput->getBlockSize();
-	mRenderContext.buffer.resize( mOutput->getFormat().getNumChannels() );
+	size_t blockSize = mRoot->getBlockSize();
+	mRenderContext.buffer.resize( mRoot->getFormat().getNumChannels() );
 	for( auto& channel : mRenderContext.buffer )
 		channel.resize( blockSize );
-	mRenderContext.currentNode = mOutput.get();
+	mRenderContext.currentNode = mRoot.get();
 
 	mInitialized = true;
 	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.size() << ", blocksize: " << blockSize << endl;
@@ -599,7 +599,7 @@ void GraphAudioUnit::initNode( NodeRef node )
 			needsConverter = true;
 		}
 		if( needsConverter ) {
-			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node, mOutput->getBlockSize() );
+			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node, mRoot->getBlockSize() );
 			converter->getSources()[0] = sourceNode;
 			node->getSources()[bus] = converter;
 			converter->setParent( node->getSources()[bus] );
@@ -654,7 +654,7 @@ void GraphAudioUnit::uninitialize()
 		return;
 
 	stop();
-	uninitNode( mOutput );
+	uninitNode( mRoot );
 	mInitialized = false;
 }
 
