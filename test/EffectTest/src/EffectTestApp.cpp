@@ -4,40 +4,18 @@
 #include "audio2/Device.h"
 #include "audio2/Graph.h"
 #include "audio2/Engine.h"
-#include "audio2/UGen.h"
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
-#if defined( CINDER_COCOA )
-#include "audio2/GraphAudioUnit.h"
-#elif defined( CINDER_MSW )
-#include "audio2/GraphXAudio.h"
-#endif
-
 #include "Gui.h"
 
-// TOD: rename EffectsTest and make it generic
-// - audio unit stuff should go in its own test app
+// TODO: make some native effects like EffectNativeReverb, EffectNativeDelay, and replace those below
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 using namespace audio2;
-
-template <typename UGenT>
-struct UGenNode : public Producer {
-	UGenNode()	{
-		mTag = "UGenNode";
- 		mFormat.setWantsDefaultFormatFromParent();
-	}
-
-	virtual void render( BufferT *buffer ) override {
-		mGen.render( buffer );
-	}
-
-	UGenT mGen;
-};
 
 class EffectTestApp : public AppNative {
   public:
@@ -62,13 +40,13 @@ class EffectTestApp : public AppNative {
 
 	GraphRef mGraph;
 
-#if defined( CINDER_COCOA )
-	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
-#elif defined( CINDER_MSW )
-	shared_ptr<EffectXAudioXapo> mEffect, mEffect2;
-	FXEQ_PARAMETERS mEQParams;
-	FXECHO_PARAMETERS mEchoParams;
-#endif
+//#if defined( CINDER_COCOA )
+//	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
+//#elif defined( CINDER_MSW )
+//	shared_ptr<EffectXAudioXapo> mEffect, mEffect2;
+//	FXEQ_PARAMETERS mEQParams;
+//	FXECHO_PARAMETERS mEchoParams;
+//#endif
 	Button mPlayButton;
 	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mEchoDelaySlider;
 };
@@ -90,7 +68,7 @@ void EffectTestApp::setup()
 
 	auto output = Engine::instance()->createOutput( device );
 	mGraph = Engine::instance()->createGraph();
-	mGraph->setOutput( output );
+	mGraph->setRoot( output );
 
 	//setupOne();
 	setupTwo();
