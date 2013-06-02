@@ -1,5 +1,7 @@
 #pragma once
 
+#include "audio2/assert.h"
+
 // note: this file will be removed at a later point
 
 #include "cinder/app/App.h"
