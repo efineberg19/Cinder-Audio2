@@ -37,7 +37,7 @@ class InputTestApp : public AppNative {
 	void setupInTapProcessOut();
 
 	GraphRef mGraph;
-	GeneratorNodeRef mInput;
+	InputNodeRef mInput;
 	TapNodeRef mTap;
 
 	Button mPlayButton;

@@ -12,8 +12,8 @@ class Engine {
 
 	virtual GraphRef			createGraph() = 0;
 	virtual MixerNodeRef		createMixer() = 0;
-	virtual RootNodeRef			createOutput( DeviceRef device ) = 0;
-	virtual GeneratorNodeRef	createInput( DeviceRef device ) = 0;
+	virtual OutputNodeRef		createOutput( DeviceRef device = Device::getDefaultOutput() ) = 0;
+	virtual InputNodeRef		createInput( DeviceRef device = Device::getDefaultInput() ) = 0;
 
 	static Engine* instance();
 };

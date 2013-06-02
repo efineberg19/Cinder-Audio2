@@ -13,6 +13,7 @@ typedef std::weak_ptr<class Node> NodeWeakRef;
 
 typedef std::shared_ptr<class MixerNode> MixerNodeRef;
 typedef std::shared_ptr<class RootNode> RootNodeRef;
+typedef std::shared_ptr<class OutputNode> OutputNodeRef;
 typedef std::shared_ptr<class TapNode> TapNodeRef;
 
 typedef std::vector<float>		ChannelT;

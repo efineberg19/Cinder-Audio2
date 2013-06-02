@@ -8,8 +8,8 @@ class EngineAudioUnit : public Engine {
   public:
 	virtual GraphRef			createGraph() override;
 	virtual MixerNodeRef		createMixer() override;
-	virtual RootNodeRef			createOutput( DeviceRef device ) override;
-	virtual GeneratorNodeRef	createInput( DeviceRef device ) override;
+	virtual OutputNodeRef		createOutput( DeviceRef device ) override;
+	virtual InputNodeRef		createInput( DeviceRef device ) override;
 };
 
 } // namespace audio2

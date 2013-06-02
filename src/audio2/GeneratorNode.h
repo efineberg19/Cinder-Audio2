@@ -8,6 +8,8 @@
 namespace audio2 {
 
 typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
+typedef std::shared_ptr<class InputNode> InputNodeRef;
+typedef std::shared_ptr<class FileInputNode> FileInputNodeRef;
 
 class GeneratorNode : public Node {
 public:
@@ -25,6 +27,12 @@ public:
 	virtual ~InputNode() {}
 
 	virtual DeviceRef getDevice() = 0;
+};
+
+class FileInputNode : public GeneratorNode {
+public:
+	FileInputNode() : GeneratorNode() {}
+	virtual ~FileInputNode() {}
 };
 
 template <typename UGenT>

@@ -10,14 +10,14 @@ GraphRef EngineAudioUnit::createGraph()
 	return GraphRef( new GraphAudioUnit() );
 }
 
-RootNodeRef EngineAudioUnit::createOutput( DeviceRef device )
+OutputNodeRef EngineAudioUnit::createOutput( DeviceRef device )
 {
-	return RootNodeRef( new OutputAudioUnit( device ) );
+	return OutputNodeRef( new OutputAudioUnit( device ) );
 }
 
-GeneratorNodeRef EngineAudioUnit::createInput( DeviceRef device )
+InputNodeRef EngineAudioUnit::createInput( DeviceRef device )
 {
-	return GeneratorNodeRef( new InputAudioUnit( device ) );
+	return InputNodeRef( new InputAudioUnit( device ) );
 }
 
 MixerNodeRef EngineAudioUnit::createMixer()
