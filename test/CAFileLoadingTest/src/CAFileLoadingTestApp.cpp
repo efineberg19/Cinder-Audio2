@@ -33,7 +33,7 @@ class CAFileLoadingTestApp : public AppNative {
 
 	GraphRef mGraph;
 
-	BufferT mSamples;
+	vector<float> mSamples;
 
 	WaveformPlot mWaveformPlot;
 };
@@ -81,6 +81,8 @@ void CAFileLoadingTestApp::setup()
 	LOG_V << "input ABSD: " << endl;
 	audio2::cocoa::printASBD( inputAbsd );
 
+	size_t numChannels = inputAbsd.mChannelsPerFrame;
+
 	UInt64 packetCount;
 	UInt32 packetCountSize = sizeof( packetCount );
 
@@ -90,7 +92,19 @@ void CAFileLoadingTestApp::setup()
 	LOG_V << "packet count: " << packetCount << endl;
 
 
-	AudioStreamBasicDescription outputAbsd = audio2::cocoa::nonInterleavedFloatABSD( 2, output->getDevice()->getSampleRate() );
+//	AudioStreamBasicDescription outputAbsd = audio2::cocoa::nonInterleavedFloatABSD( 2, output->getDevice()->getSampleRate() );
+
+	const size_t kBytesPerSample = sizeof( float );
+
+	AudioStreamBasicDescription outputAbsd = { 0 };
+	outputAbsd.mSampleRate = 44100.0;
+	outputAbsd.mFormatID = kAudioFormatLinearPCM;
+    outputAbsd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian;
+	outputAbsd.mBytesPerPacket = kBytesPerSample * numChannels;
+	outputAbsd.mFramesPerPacket = 1;
+	outputAbsd.mBytesPerFrame = kBytesPerSample * numChannels;
+	outputAbsd.mChannelsPerFrame = numChannels;
+	outputAbsd.mBitsPerChannel = 8 * kBytesPerSample;
 
 	LOG_V << "output ABSD: " << endl;
 	audio2::cocoa::printASBD( outputAbsd );
@@ -121,12 +135,11 @@ void CAFileLoadingTestApp::setup()
 		packetsPerBuffer = outputBufferSize / sizePerPacket;
 	}
 
-	size_t numChannels = inputAbsd.mChannelsPerFrame;
-	mSamples.resize( numChannels );
-    for( int i = 0; i < numChannels; i++ ) {
-		// added outputBufferSize for the last frame, CoreAudio expects that the entire size of the buffer is valid even if it isn't going to write to it.
-        mSamples[i].resize( packetCount + packetsPerBuffer );
-    }
+	mSamples.resize( packetCount );
+//    for( int i = 0; i < numChannels; i++ ) {
+//		// added outputBufferSize for the last frame, CoreAudio expects that the entire size of the buffer is valid even if it isn't going to write to it.
+//        mSamples[i].resize( packetCount + packetsPerBuffer );
+//    }
 
 	ConverterInfo converterInfo = { 0 };
 	converterInfo.inputFile = audioFile;
@@ -136,20 +149,25 @@ void CAFileLoadingTestApp::setup()
 //	UInt32 readBlockSize = 1000;
 
 	// TODO: had to make the sample buffer a little bigger here for the last frame, make sure to trim. Also check if still necessary.
-	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( numChannels, packetsPerBuffer );
+//	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( numChannels, packetsPerBuffer );
 
 	LOG_V << "reading..." << endl;
 	while( true ) {
 
-		for( int i = 0; i < mSamples.size(); i++ ) {
-            bufferList->mBuffers[i].mData = &mSamples[i][converterInfo.readIndex];
-        }
+//		for( int i = 0; i < mSamples.size(); i++ ) {
+//            bufferList->mBuffers[i].mData = &mSamples[i][converterInfo.readIndex];
+//        }
 
-//		bufferList->mBuffers[0].mData = &mSamples[0][converterInfo.readIndex];
+		AudioBufferList bufferList;
+		bufferList.mNumberBuffers = 1;
+		bufferList.mBuffers[0].mNumberChannels = numChannels;
+		bufferList.mBuffers[0].mDataByteSize = outputBufferSize;
+		bufferList.mBuffers[0].mData = &mSamples[0]; // FIXME: mSamples is not the right format
+		
 
 
 		UInt32 ioOutputDataPackets = packetsPerBuffer;
-		status = AudioConverterFillComplexBuffer( audioConverter, converterCallback, &converterInfo, &ioOutputDataPackets, bufferList.get(), inputFilePacketDescriptions );
+		status = AudioConverterFillComplexBuffer( audioConverter, converterCallback, &converterInfo, &ioOutputDataPackets, &bufferList, inputFilePacketDescriptions );
 		CI_ASSERT( status == noErr );
 
 		if( ! ioOutputDataPackets )
