@@ -24,7 +24,7 @@ class DeviceAudioUnit : public Device {
 	void setOutputConnected()	{ mOutputConnected = true; }
 
   private:
-	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key );
+	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key ); // TODO: swap these two for consistency
 
 	::AudioComponentDescription mComponentDescription;
 	::AudioComponentInstance	mComponentInstance;

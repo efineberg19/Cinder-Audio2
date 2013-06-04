@@ -7,6 +7,8 @@
 using namespace std;
 using namespace ci;
 
+// TODO: place all AudioUnit funciton calls in global namespace
+
 namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
