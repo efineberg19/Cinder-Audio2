@@ -22,10 +22,12 @@ Node::~Node()
 
 }
 
-void Node::connect( NodeRef source )
+NodeRef Node::connect( NodeRef source )
 {
 	mSources[0] = source;
 	mSources[0]->setParent( shared_from_this() );
+
+	return source;
 }
 
 bool Node::supportsSourceFormat( const Node::Format &sourceFormat ) const
@@ -55,13 +57,15 @@ const Node::Format& Node::getSourceFormat()
 //		- there can be 'holes', slots in mSources that are not used
 //		- getNumActiveBusses() returns number of used slots
 
-void MixerNode::connect( NodeRef source )
+NodeRef MixerNode::connect( NodeRef source )
 {
 	mSources.push_back( source );
 	source->setParent( shared_from_this() );
+
+	return source;
 }
 
-void MixerNode::connect( NodeRef source, size_t bus )
+NodeRef MixerNode::connect( NodeRef source, size_t bus )
 {
 	if( bus > mSources.size() )
 		throw AudioExc( string( "Mixer bus " ) + ci::toString( bus ) + " out of range (max: " + ci::toString( mSources.size() ) + ")" );
@@ -70,6 +74,8 @@ void MixerNode::connect( NodeRef source, size_t bus )
 
 	mSources[bus] = source;
 	source->setParent( shared_from_this() );
+
+	return source;
 }
 
 TapNode::TapNode( size_t bufferSize )

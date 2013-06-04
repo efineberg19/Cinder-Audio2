@@ -46,7 +46,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void start()		{}
 	virtual void stop()			{}
 
-	virtual void connect( NodeRef source );
+	virtual NodeRef connect( NodeRef source );
 
 	//! Default implementation returns true if samplerate and numChannels match our format
 	virtual bool supportsSourceFormat( const Format &sourceFormat ) const;
@@ -125,8 +125,8 @@ class MixerNode : public Node {
 	MixerNode() : Node(), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
 
-	virtual void connect( NodeRef source ) override;
-	virtual void connect( NodeRef source, size_t bus );
+	virtual NodeRef connect( NodeRef source ) override;
+	virtual NodeRef connect( NodeRef source, size_t bus );
 
 	//! returns the number of connected busses.
 	virtual size_t getNumBusses() = 0;

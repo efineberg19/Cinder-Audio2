@@ -18,7 +18,7 @@ public:
 
 	// TODO: consider making this private.
 	// - it can still be called by typecasting to Node first, and that may also be more confusing than throwing
-	void connect( NodeRef source ) override	{ throw AudioGraphExc( "cannot connect a source to Node of type Generator" ); }
+	NodeRef connect( NodeRef source ) override	{ throw AudioGraphExc( "cannot connect a source to Node of type Generator" ); }
 };
 
 class InputNode : public GeneratorNode {
