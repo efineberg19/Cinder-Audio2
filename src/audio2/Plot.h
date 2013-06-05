@@ -39,6 +39,8 @@ public:
 	// - alternatively, load could return / fill a vector of TriMesh2d data, or some container, that can be drawn by user
 	void drawGl();
 
+	const std::vector<Waveform>& getWaveforms() { return mWaveforms; }
+
 private:
 	std::vector<Waveform> mWaveforms;
 	ci::ColorA mColorMinMax, mColorAvg;
@@ -46,3 +48,10 @@ private:
 };
 
 } // namespace audio2
+
+namespace cinder { namespace gl {
+
+	void draw( const audio2::WaveformPlot &plot, const ColorA &colorMinMax = ColorA::gray( 0.5f ), const ColorA &colorAverage = ColorA::gray( 0.75f ) );
+
+} } // namespace cinder::gl
+

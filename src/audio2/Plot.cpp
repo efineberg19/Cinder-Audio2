@@ -117,3 +117,39 @@ void WaveformPlot::drawGl()
 }
 
 } // namespace audio2
+
+
+namespace cinder { namespace gl {
+
+	void draw( const audio2::WaveformPlot &plot, const ColorA &colorMinMax, const ColorA &colorAverage )
+	{
+		auto &waveforms = plot.getWaveforms();
+		if( waveforms.empty() ) {
+			return;
+		}
+
+		return;
+
+		gl::color( colorMinMax );
+		gl::draw( waveforms[0].getMesh() );
+
+		gl::color( colorAverage );
+		gl::draw( waveforms[1].getMesh() );
+
+		if( mWaveforms.size() > 2 ) {
+
+			gl::pushMatrices();
+			gl::translate( 0.0f, mBounds.getHeight() / 2 );
+
+			gl::color( mColorMinMax );
+			gl::draw( mWaveforms[2].getMesh() );
+
+			gl::color( mColorAvg );
+			gl::draw( mWaveforms[3].getMesh() );
+
+			gl::popMatrices();
+		}
+		
+	}
+	
+} } // namespace ci::gl
