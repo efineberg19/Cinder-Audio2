@@ -9,9 +9,7 @@
 #include "audio2/cocoa/Util.h"
 #include "audio2/Plot.h"
 
-// TODO NEXT: load signed int wav
-
-// TODO: load mp3
+// TODO NEXT: load mp3
 // TODO: load stereo files
 
 // before moving on, compare load times with this and Extended Audio File services
@@ -19,8 +17,8 @@
 // TODO finally: play file with custom GeneratorNode
 // - do this in a new test app
 
-//#define FILE_NAME "tone440.wav"
-#define FILE_NAME "tone440_float.wav"
+#define FILE_NAME "tone440.wav"
+//#define FILE_NAME "tone440_float.wav"
 
 using namespace ci;
 using namespace ci::app;
@@ -170,7 +168,7 @@ void CAFileLoadingTestApp::setup()
 		bufferList.mNumberBuffers = 1;
 		bufferList.mBuffers[0].mNumberChannels = mNumChannels;
 		bufferList.mBuffers[0].mDataByteSize = outputBufferSize;
-		bufferList.mBuffers[0].mData = converterInfo.readBuffer.data();
+		bufferList.mBuffers[0].mData = &mSamples[converterInfo.readIndex];
 		
 		UInt32 ioOutputDataPackets = std::min( framesPerRead, (uint32_t)packetCount - converterInfo.readIndex );
 		status = AudioConverterFillComplexBuffer( audioConverter, converterCallback, &converterInfo, &ioOutputDataPackets, &bufferList, converterInfo.inputFilePacketDescriptions );
@@ -178,8 +176,6 @@ void CAFileLoadingTestApp::setup()
 
 		if( ! ioOutputDataPackets )
 			break;
-
-		memcpy( &mSamples[converterInfo.readIndex], converterInfo.readBuffer.data(), ioOutputDataPackets * sizeof( float ) );
 
 	}
 	
@@ -202,7 +198,6 @@ OSStatus converterCallback( AudioConverterRef audioConverter, UInt32 *ioNumberDa
 	ConverterInfo *converterInfo = (ConverterInfo *)inUserData;
 
 	UInt32 readBlockSize = *ioNumberDataPackets;
-//	UInt32 readBlockSize = 100;
 	UInt32 outByteCount = readBlockSize * sizeof( float );
 	SInt64 inStartingPacket = converterInfo->readIndex;
 	OSStatus status = AudioFileReadPacketData( converterInfo->inputFile, true, &outByteCount, converterInfo->inputFilePacketDescriptions, inStartingPacket, &readBlockSize, converterInfo->readBuffer.data() );
