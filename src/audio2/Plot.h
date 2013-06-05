@@ -14,8 +14,8 @@ class Waveform {
     Waveform() {}
     Waveform( const std::vector<float> &samples, const ci::Vec2i &screenDimensions, int pixelsPerVertex = 2, CalcMode mode = MinMax );
 
-    const ci::PolyLine2f& getOutline() { return mOutline; }
-	const ci::TriMesh2d& getMesh();
+    const ci::PolyLine2f& getOutline() const	{ return mOutline; }
+	const ci::TriMesh2d& getMesh() const		{ return mMesh; };
 
     bool loaded() { return mOutline.getPoints().size() > 0; }
     
@@ -26,24 +26,16 @@ class Waveform {
 
 class WaveformPlot {
 public:
-	WaveformPlot() : mColorMinMax( ci::ColorA::gray( 0.5f ) ), mColorAvg( ci::ColorA::gray( 0.75f ) ) {}
+	WaveformPlot()	{}
 
 	void load( const std::vector<float> &channels, const ci::Rectf &bounds, int pixelsPerVertex = 2 );
 	void load( const std::vector<std::vector<float> > &channels, const ci::Rectf &bounds, int pixelsPerVertex = 2 );
 
-	void setColorMinMax( const ci::ColorA &color ) { mColorMinMax = color; }
-	void setColorAverage( const ci::ColorA &color ) { mColorAvg = color; }
-
-	// TODO: this is gl specific - it should be elsewhere
-	// - move it to freestanding gl::draw( WaveformPlot ) ?
-	// - alternatively, load could return / fill a vector of TriMesh2d data, or some container, that can be drawn by user
-	void drawGl();
-
-	const std::vector<Waveform>& getWaveforms() { return mWaveforms; }
+	const std::vector<Waveform>& getWaveforms() const	{ return mWaveforms; }
+	const ci::Rectf& getBounds() const					{ return mBounds; }
 
 private:
 	std::vector<Waveform> mWaveforms;
-	ci::ColorA mColorMinMax, mColorAvg;
 	ci::Rectf mBounds;
 };
 
@@ -51,7 +43,7 @@ private:
 
 namespace cinder { namespace gl {
 
-	void draw( const audio2::WaveformPlot &plot, const ColorA &colorMinMax = ColorA::gray( 0.5f ), const ColorA &colorAverage = ColorA::gray( 0.75f ) );
+	void draw( const audio2::WaveformPlot &plot, const Vec2i &offset = Vec2i::zero(), float scale = 1.0f, const ColorA &colorMinMax = ColorA::gray( 0.5f ), const ColorA &colorAverage = ColorA::gray( 0.75f ) );
 
 } } // namespace cinder::gl
 

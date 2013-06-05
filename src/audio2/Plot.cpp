@@ -55,15 +55,8 @@ Waveform::Waveform( const vector<float> &samples, const Vec2i &screenDimensions,
 		points[numSections * 2 - i - 1] = Vec2f( x, height - height * yLower );
     }
 	mOutline.setClosed();
-}
 
-const TriMesh2d& Waveform::getMesh()
-{
-	if( mMesh.getVertices().size() == 0 ) {
-		Triangulator tess( mOutline );
-		mMesh = tess.calcMesh();
-	}
-	return mMesh;
+	mMesh = Triangulator( mOutline ).calcMesh();
 }
 
 void WaveformPlot::load( const std::vector<float> &channel, const ci::Rectf &bounds, int pixelsPerVertex )
@@ -89,46 +82,19 @@ void WaveformPlot::load( const std::vector<std::vector<float>> &channels, const 
 	}
 }
 
-void WaveformPlot::drawGl()
-{
-    if( mWaveforms.empty() ) {
-        return;
-    }
-
-	gl::color( mColorMinMax );
-	gl::draw( mWaveforms[0].getMesh() );
-
-	gl::color( mColorAvg );
-	gl::draw( mWaveforms[1].getMesh() );
-
-	if( mWaveforms.size() > 2 ) {
-
-		gl::pushMatrices();
-		gl::translate( 0.0f, mBounds.getHeight() / 2 );
-
-		gl::color( mColorMinMax );
-		gl::draw( mWaveforms[2].getMesh() );
-
-		gl::color( mColorAvg );
-		gl::draw( mWaveforms[3].getMesh() );
-
-		gl::popMatrices();
-	}
-}
-
 } // namespace audio2
 
 
 namespace cinder { namespace gl {
 
-	void draw( const audio2::WaveformPlot &plot, const ColorA &colorMinMax, const ColorA &colorAverage )
+	// TODO: account for larger size waveforms
+	// TODO: use offset and scale
+	void draw( const audio2::WaveformPlot &plot, const Vec2i &offset, float scale, const ColorA &colorMinMax, const ColorA &colorAverage )
 	{
 		auto &waveforms = plot.getWaveforms();
 		if( waveforms.empty() ) {
 			return;
 		}
-
-		return;
 
 		gl::color( colorMinMax );
 		gl::draw( waveforms[0].getMesh() );
@@ -136,20 +102,18 @@ namespace cinder { namespace gl {
 		gl::color( colorAverage );
 		gl::draw( waveforms[1].getMesh() );
 
-		if( mWaveforms.size() > 2 ) {
-
+		if( waveforms.size() > 2 ) {
 			gl::pushMatrices();
-			gl::translate( 0.0f, mBounds.getHeight() / 2 );
+			gl::translate( 0.0f, plot.getBounds().getHeight() / 2 );
 
-			gl::color( mColorMinMax );
-			gl::draw( mWaveforms[2].getMesh() );
+			gl::color( colorMinMax );
+			gl::draw( waveforms[2].getMesh() );
 
-			gl::color( mColorAvg );
-			gl::draw( mWaveforms[3].getMesh() );
+			gl::color( colorAverage );
+			gl::draw( waveforms[3].getMesh() );
 
 			gl::popMatrices();
 		}
-		
 	}
 	
 } } // namespace ci::gl

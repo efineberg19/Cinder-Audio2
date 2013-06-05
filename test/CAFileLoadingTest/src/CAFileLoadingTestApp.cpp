@@ -19,9 +19,9 @@
 // TODO finally: play file with custom GeneratorNode
 // - do this in a new test app
 
-//#define FILE_NAME "tone440.wav"
+#define FILE_NAME "tone440.wav"
 //#define FILE_NAME "tone440_float.wav"
-#define FILE_NAME "tone440.mp3"
+//#define FILE_NAME "tone440.mp3"
 
 using namespace ci;
 using namespace ci::app;
@@ -244,9 +244,7 @@ void CAFileLoadingTestApp::update()
 void CAFileLoadingTestApp::draw()
 {
 	gl::clear();
-
-	mWaveformPlot.drawGl();
-
+	gl::draw( mWaveformPlot );
 }
 
 void CAFileLoadingTestApp::printErrorCodes()
