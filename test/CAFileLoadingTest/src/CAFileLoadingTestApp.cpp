@@ -10,6 +10,8 @@
 #include "audio2/Plot.h"
 
 // TODO NEXT: load mp3
+// - the VBR size is throwing it off - 155 frames, when it is really 155 packes and each packet is many frames
+
 // TODO: load stereo files
 
 // before moving on, compare load times with this and Extended Audio File services
@@ -17,8 +19,9 @@
 // TODO finally: play file with custom GeneratorNode
 // - do this in a new test app
 
-#define FILE_NAME "tone440.wav"
+//#define FILE_NAME "tone440.wav"
 //#define FILE_NAME "tone440_float.wav"
+#define FILE_NAME "tone440.mp3"
 
 using namespace ci;
 using namespace ci::app;
@@ -200,8 +203,8 @@ OSStatus converterCallback( AudioConverterRef audioConverter, UInt32 *ioNumberDa
 	UInt32 readBlockSize = *ioNumberDataPackets;
 	UInt32 outByteCount = readBlockSize * sizeof( float );
 	SInt64 inStartingPacket = converterInfo->readIndex;
-	OSStatus status = AudioFileReadPacketData( converterInfo->inputFile, true, &outByteCount, converterInfo->inputFilePacketDescriptions, inStartingPacket, &readBlockSize, converterInfo->readBuffer.data() );
-//	OSStatus status = AudioFileReadPackets( converterInfo->inputFile, true, &outByteCount, converterInfo->inputFilePacketDescriptions, inStartingPacket, &readBlockSize, converterInfo->readBuffer.data() );
+//	OSStatus status = AudioFileReadPacketData( converterInfo->inputFile, true, &outByteCount, converterInfo->inputFilePacketDescriptions, inStartingPacket, &readBlockSize, converterInfo->readBuffer.data() ); // FIXME: doesn't work with mp3
+	OSStatus status = AudioFileReadPackets( converterInfo->inputFile, true, &outByteCount, converterInfo->inputFilePacketDescriptions, inStartingPacket, &readBlockSize, converterInfo->readBuffer.data() );
 	if( status == kAudioFileEndOfFileError )
 		LOG_V << "kAudioFileEndOfFileError" << endl;
 	else
