@@ -6,7 +6,9 @@
 
 namespace audio2 {
 
-// TODO: following paper provides a 0(N) solution for interleaving: "A Simple In-Place Algorithm for In-Shuffle", http://arxiv.org/abs/0805.1598
+// TODO: following paper provides a 0(N) solution for interleaving: "A Simple In-Place Algorithm for In-Shuffle"
+// - http://arxiv.org/abs/0805.1598
+// - also explained in: http://cs.stackexchange.com/q/332
 
 // http://stackoverflow.com/q/7780279/506584
 template<typename T>
