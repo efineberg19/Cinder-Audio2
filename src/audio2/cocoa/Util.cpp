@@ -45,14 +45,29 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 	CI_ASSERT( status == noErr );
 }
 
+::AudioStreamBasicDescription interleavedFloatABSD( size_t numChannels, size_t sampleRate )
+{
+	const size_t kBytesPerSample = sizeof( float );
+	AudioStreamBasicDescription asbd = { 0 };
+	asbd.mSampleRate = 44100.0;
+	asbd.mFormatID = kAudioFormatLinearPCM;
+    asbd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kLinearPCMFormatFlagIsPacked;
+	asbd.mBytesPerPacket = kBytesPerSample * numChannels;
+	asbd.mFramesPerPacket = 1;
+	asbd.mBytesPerFrame = kBytesPerSample * numChannels;
+	asbd.mChannelsPerFrame = numChannels;
+	asbd.mBitsPerChannel = 8 * kBytesPerSample;
+	return asbd;
+}
+
 // paraphrasing comment in CoreAudioTypes.h: for non-interleaved, the ABSD describes the format of
 // one AudioBuffer that is contained with the AudioBufferList, each AudioBuffer is a mono signal.
 ::AudioStreamBasicDescription nonInterleavedFloatABSD( size_t numChannels, size_t sampleRate )
 {
 	const size_t kBytesPerSample = sizeof( float );
-	::AudioStreamBasicDescription asbd = {0};
+	::AudioStreamBasicDescription asbd = { 0 };
 	asbd.mFormatID           = kAudioFormatLinearPCM;
-	asbd.mFormatFlags        = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsNonInterleaved | kAudioFormatFlagIsPacked,
+	asbd.mFormatFlags        = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved,
 	asbd.mBytesPerPacket     = kBytesPerSample;
 	asbd.mFramesPerPacket    = 1;
 	asbd.mBytesPerFrame      = kBytesPerSample;
