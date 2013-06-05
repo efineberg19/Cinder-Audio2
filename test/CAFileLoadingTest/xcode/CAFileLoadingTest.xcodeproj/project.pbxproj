@@ -19,6 +19,7 @@
 		11944A611759B4BC0003B8ED /* tone440_float.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11944A601759B4BC0003B8ED /* tone440_float.wav */; };
 		11E8CE93175A9BDE00245372 /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11E8CE91175A9BDE00245372 /* Plot.cpp */; };
 		11E8CE97175AF7F300245372 /* CAFileLoadingTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11E8CE96175AF7F300245372 /* CAFileLoadingTestApp.cpp */; };
+		143C252F175FBE710063DFDA /* tone440L220R.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 143C252E175FBE710063DFDA /* tone440L220R.mp3 */; };
 		2628B36F058A4FBBAEEF94A0 /* GraphAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BB341A7B20114C0F9C42830C /* GraphAudioUnit.cpp */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
@@ -49,6 +50,7 @@
 		11E8CE91175A9BDE00245372 /* Plot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Plot.cpp; path = ../../../src/audio2/Plot.cpp; sourceTree = "<group>"; };
 		11E8CE92175A9BDE00245372 /* Plot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Plot.h; path = ../../../src/audio2/Plot.h; sourceTree = "<group>"; };
 		11E8CE96175AF7F300245372 /* CAFileLoadingTestApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CAFileLoadingTestApp.cpp; path = ../src/CAFileLoadingTestApp.cpp; sourceTree = "<group>"; };
+		143C252E175FBE710063DFDA /* tone440L220R.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440L220R.mp3; path = ../../../assets/tone440L220R.mp3; sourceTree = "<group>"; };
 		18B997B0A9DC4D3C975E886F /* Device.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Device.cpp; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/Device.cpp"; sourceTree = "<group>"; };
 		2165435E645D45CD9288CA54 /* DeviceManagerCoreAudio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = DeviceManagerCoreAudio.cpp; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/DeviceManagerCoreAudio.cpp"; sourceTree = "<group>"; };
 		2251CB298B2445559363A604 /* Graph.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Graph.cpp; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/Graph.cpp"; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				143C252E175FBE710063DFDA /* tone440L220R.mp3 */,
 				11944A601759B4BC0003B8ED /* tone440_float.wav */,
 				11944A5C1759AC930003B8ED /* tone440.mp3 */,
 				11944A5D1759AC930003B8ED /* tone440.wav */,
@@ -310,6 +313,7 @@
 				11944A5E1759AC930003B8ED /* tone440.mp3 in Resources */,
 				11944A5F1759AC930003B8ED /* tone440.wav in Resources */,
 				11944A611759B4BC0003B8ED /* tone440_float.wav in Resources */,
+				143C252F175FBE710063DFDA /* tone440L220R.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
