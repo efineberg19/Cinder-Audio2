@@ -231,15 +231,15 @@ DeviceRef InputAudioUnit::getDevice()
 	return mDevice->getComponentInstance();
 }
 
-void InputAudioUnit::render( BufferT *buffer )
+void InputAudioUnit::render( Buffer *buffer )
 {
 	CI_ASSERT( mRingBuffer );
 
-	size_t numFrames = buffer->at( 0 ).size();
-	for( size_t c = 0; c < buffer->size(); c++ ) {
-		size_t count = mRingBuffer->read( &(*buffer)[c] );
+	size_t numFrames = buffer->getNumFrames();
+	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
+		size_t count = mRingBuffer->read( buffer->getChannel( ch ), numFrames );
 		if( count != numFrames )
-			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (c = " << c << ")" << endl;
+			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (ch = " << ch << ")" << endl;
 	}
 }
 
@@ -459,6 +459,8 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 // MARK: - ConverterAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
+// TODO: outputBlockSize seems obscure. rename outputNumFrames?
+//	- this is in the Graph's render context too
 ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest, size_t outputBlockSize )
 {
 	mTag = "ConverterAudioUnit";
@@ -467,9 +469,7 @@ ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest, size_t out
 	mSources.resize( 1 );
 
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer.resize( mSourceFormat.getNumChannels() );
-	for( auto& channel : mRenderContext.buffer )
-		channel.resize( outputBlockSize );
+	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), outputBlockSize, Buffer::Format::NonInterleaved );
 }
 
 ConverterAudioUnit::~ConverterAudioUnit()
@@ -537,13 +537,15 @@ void GraphAudioUnit::initialize()
 	initNode( mRoot );
 
 	size_t blockSize = mRoot->getBlockSize();
-	mRenderContext.buffer.resize( mRoot->getFormat().getNumChannels() );
-	for( auto& channel : mRenderContext.buffer )
-		channel.resize( blockSize );
+	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), blockSize, Buffer::Format::NonInterleaved );
+
+//	mRenderContext.buffer.resize( mRoot->getFormat().getNumChannels() );
+//	for( auto& channel : mRenderContext.buffer )
+//		channel.resize( blockSize );
 	mRenderContext.currentNode = mRoot.get();
 
 	mInitialized = true;
-	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.size() << ", blocksize: " << blockSize << endl;
+	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", blocksize: " << blockSize << endl;
 }
 
 void GraphAudioUnit::initNode( NodeRef node )
@@ -674,10 +676,10 @@ OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionF
 	RenderContext *renderContext = static_cast<RenderContext *>( context );
 
 	CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
-	CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.size() );
+	CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.getNumChannels() );
 
 	// note: if samplerate conversion is allowed, this size may need to vary
-	CI_ASSERT( numFrames <= renderContext->buffer[0].size() ); // assumes non-interleaved
+	CI_ASSERT( numFrames <= renderContext->buffer.getNumFrames() ); // assumes non-interleaved
 
 	NodeRef source = renderContext->currentNode->getSources()[bus];
 
@@ -710,7 +712,7 @@ OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionF
 		if( didRenderChildren ) {
 			// copy samples from AudioBufferList to the generic buffer before generic render
 			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
-				memcpy( renderContext->buffer[i].data(), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
+				memcpy( renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
 			}
 		}
 		
@@ -718,7 +720,7 @@ OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionF
 
 		// now copy samples back to the output buffer
 		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
-			memcpy( bufferList->mBuffers[i].mData, renderContext->buffer[i].data(), bufferList->mBuffers[i].mDataByteSize );
+			memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
 		}
 	}
 	

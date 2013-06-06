@@ -28,7 +28,7 @@ void deinterleaveInplacePow2( T* arr, int length ) {
 template <typename T>
 class BufferT {
 public:
-	typedef T Type;
+	typedef T SampleType;
 	enum Format { Interleaved, NonInterleaved };
 
 	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::Interleaved ) : mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat )

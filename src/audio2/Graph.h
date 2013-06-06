@@ -1,6 +1,7 @@
 #pragma once
 
 #include "audio2/Device.h"
+#include "audio2/Buffer.h"
 
 #include <memory>
 #include <vector>
@@ -16,15 +17,12 @@ typedef std::shared_ptr<class RootNode> RootNodeRef;
 typedef std::shared_ptr<class OutputNode> OutputNodeRef;
 typedef std::shared_ptr<class TapNode> TapNodeRef;
 
-typedef std::vector<float>		ChannelT;
-typedef std::vector<ChannelT>	BufferT;
-
 class Node : public std::enable_shared_from_this<Node> {
   public:
 	virtual ~Node();
 
 	struct Format {
-		Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false )
+		Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ) // TODO: decide how to properly set this format per platform
 		{}
 
 		virtual bool isComplete() const	{ return ( mSampleRate && mNumChannels ); }
@@ -36,9 +34,13 @@ class Node : public std::enable_shared_from_this<Node> {
 		bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
 		void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
 
+		const Buffer::Format& getBufferFormat() const { return mBufferFormat; }
+		void	setBufferFormat( const Buffer::Format& format )	{ mBufferFormat = format; }
+		
   private:
 		size_t mSampleRate, mNumChannels;
 		bool mWantsDefaultFormatFromParent;
+		Buffer::Format			mBufferFormat;
 	};
 
 	virtual void initialize()	{ mInitialized = true; }
@@ -51,8 +53,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Default implementation returns true if samplerate and numChannels match our format
 	virtual bool supportsSourceFormat( const Format &sourceFormat ) const;
 
-	// ???: does making BufferT const help make it less expandable? Because it shouldb't be resize()'ed
-	virtual void render( BufferT *buffer )	{}
+	virtual void render( Buffer *buffer )	{}
 
 	std::vector<NodeRef>& getSources()			{ return mSources; }
 	NodeRef getParent()							{ return mParent.lock(); }
@@ -68,7 +69,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	bool isInitialized() const	{ return mInitialized; }
 
   protected:
-	Node() : mInitialized( false )	{}
+	Node() : mInitialized( false )
+	{}
 
 	std::vector<NodeRef>	mSources;
 	NodeWeakRef				mParent;
@@ -108,15 +110,15 @@ class TapNode : public Node {
 	TapNode( size_t bufferSize = 1024 );
 	virtual ~TapNode();
 
-	const ChannelT& getChannel( size_t channel = 0 );
-	const BufferT& getBuffer();
+	const float* getChannel( size_t ch = 0 );
+	const Buffer& getBuffer();
 
 	virtual void initialize() override;
-	virtual void render( BufferT *buffer ) override;
+	virtual void render( Buffer *buffer ) override;
 
   private:
-	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers;
-	BufferT mCopiedBuffer;
+	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: make this one continuous buffer so it better matches audio::Buffer
+	Buffer mCopiedBuffer;
 	size_t mBufferSize;
 };
 

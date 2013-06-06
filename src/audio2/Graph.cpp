@@ -93,40 +93,37 @@ TapNode::~TapNode()
 // - methinks it requires all nodes to be able to keep a blocksize
 void TapNode::initialize()
 {
-	size_t numChannels = mFormat.getNumChannels();
-	mCopiedBuffer.resize( numChannels );
+	mCopiedBuffer = Buffer( mFormat.getNumChannels(), mFormat.getSampleRate(), Buffer::Format::NonInterleaved );
 	for( size_t ch = 0; ch < mFormat.getNumChannels(); ch++ ) {
-		mCopiedBuffer[ch].resize( mBufferSize );
 		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mBufferSize ) ) );
 	}
 
 	mInitialized = true;
 }
 
-const BufferT& TapNode::getBuffer()
+const Buffer& TapNode::getBuffer()
 {
 	for( size_t ch = 0; ch < mFormat.getNumChannels(); ch++ )
-		mRingBuffers[ch]->read( &mCopiedBuffer[ch] );
+		mRingBuffers[ch]->read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() );
 
 	return mCopiedBuffer;
 }
 
-const ChannelT& TapNode::getChannel( size_t channel )
+// FIXME: samples will go out of whack if only one channel is pulled. add a fillCopiedBuffer private method
+const float *TapNode::getChannel( size_t channel )
 {
-	CI_ASSERT( channel < mCopiedBuffer.size() );
+	CI_ASSERT( channel < mCopiedBuffer.getNumChannels() );
 
-	ChannelT& buf = mCopiedBuffer[channel];
-	mRingBuffers[channel]->read( &buf );
+	float *buf = mCopiedBuffer.getChannel( channel );
+	mRingBuffers[channel]->read( buf, mCopiedBuffer.getNumFrames() );
 
 	return buf;
 }
 
-void TapNode::render( BufferT *buffer )
+void TapNode::render( Buffer *buffer )
 {
-	CI_ASSERT( mFormat.getNumChannels() == buffer->size() );
-
 	for( size_t ch = 0; ch < mFormat.getNumChannels(); ch++ )
-		mRingBuffers[ch]->write( (*buffer)[ch] );
+		mRingBuffers[ch]->write( buffer->getChannel( ch ), buffer->getNumFrames() );
 }
 
 Graph::~Graph()

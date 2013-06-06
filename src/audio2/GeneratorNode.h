@@ -46,8 +46,10 @@ struct UGenNode : public GeneratorNode {
 		mGen.setSampleRate( mFormat.getSampleRate() );
 	}
 
-	virtual void render( BufferT *buffer ) override {
-		mGen.render( buffer );
+	virtual void render( Buffer *buffer ) override {
+		size_t count = buffer->getNumFrames();
+		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
+			mGen.render( buffer->getChannel( ch ), count );
 	}
 
 	UGenT mGen;

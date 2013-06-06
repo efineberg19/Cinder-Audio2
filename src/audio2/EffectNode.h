@@ -17,27 +17,28 @@ namespace audio2 {
 		RingMod()
 			: mSineGen( 440.0f, 1.0f )	{
 				mTag = "RingMod";
+				mFormat.setBufferFormat( Buffer::Format::NonInterleaved );
 		}
 
 		virtual void initialize() override {
 			mSineGen.setSampleRate( mFormat.getSampleRate() );
 		}
 
-		virtual void render( BufferT *buffer ) override {
-			size_t numSamples = buffer->at( 0 ).size();
-			if( mSineBuffer.size() < numSamples )
-				mSineBuffer.resize( numSamples );
+		virtual void render( Buffer *buffer ) override {
+			size_t numFrames = buffer->getNumFrames();
+			if( mSineBuffer.size() < numFrames )
+				mSineBuffer.resize( numFrames );
 			mSineGen.render( &mSineBuffer );
 
-			for ( size_t c = 0; c < buffer->size(); c++ ) {
-				ChannelT &channel = buffer->at( c );
-				for( size_t i = 0; i < channel.size(); i++ )
+			for ( size_t c = 0; c < buffer->getNumChannels(); c++ ) {
+				float *channel = buffer->getChannel( c );
+				for( size_t i = 0; i < numFrames; i++ )
 					channel[i] *= mSineBuffer[i];
 			}
 		}
 
 		SineGen mSineGen;
-		ChannelT mSineBuffer;
+		std::vector<float> mSineBuffer;
 	};
 
 } // namespace audio2

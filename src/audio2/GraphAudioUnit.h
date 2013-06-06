@@ -13,7 +13,7 @@ class DeviceAudioUnit;
 
 struct RenderContext {
 	Node *currentNode;
-	BufferT buffer;
+	Buffer buffer;
 };
 
 	// TODO: rename to NodeAudioUnit for consistency
@@ -65,7 +65,7 @@ class InputAudioUnit : public InputNode, public AudioUnitNode {
 	::AudioUnit getAudioUnit() const override;
 	DeviceRef getDevice() override;
 
-	void render( BufferT *buffer ) override;
+	void render( Buffer *buffer ) override;
 
   private:
 	static OSStatus inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
@@ -76,7 +76,7 @@ class InputAudioUnit : public InputNode, public AudioUnitNode {
 };
 
 class EffectAudioUnit : public EffectNode, public AudioUnitNode {
-public:
+  public:
 	EffectAudioUnit( UInt32 subType );
 	virtual ~EffectAudioUnit();
 
@@ -90,7 +90,7 @@ public:
 };
 
 class MixerAudioUnit : public MixerNode, public AudioUnitNode {
-public:
+  public:
 	MixerAudioUnit();
 	virtual ~MixerAudioUnit();
 
