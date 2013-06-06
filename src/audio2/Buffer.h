@@ -25,24 +25,28 @@ void deinterleaveInplacePow2( T* arr, int length ) {
 	deinterleaveInplacePow2( arr+i, length-i );
 }
 	
-template <typename SampleT>
+template <typename T>
 class BufferT {
 public:
-	typedef SampleT SampleType;
+	typedef T Type;
 	enum Format { Interleaved, NonInterleaved };
 
-	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::Interleaved ) : mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat ) {}
+	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::Interleaved ) : mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat )
+	{
+		mData.resize( numChannels * numFrames );
+	}
 
-	SampleT* getChannel( size_t ch ) {
+	T* getChannel( size_t ch ) {
+		CI_ASSERT( mFormat == NonInterleaved );
 		CI_ASSERT( ch < mNumChannels );
-		asFormat( NonInterleaved );
-		
+//		asFormat( NonInterleaved );
+
 		return &mData[ch * mNumFrames];
 	}
 
-	size_t getSize() const	{ return mNumChannels * mNumFrames; }
-
-	SampleT* getData() { return mData.data(); }
+	size_t getNumFrames() const	{ return mNumFrames; }
+	size_t getNumChannels() const	{ return mNumChannels; }
+	size_t getSize() const	{ return mData.size(); }
 
 	void asFormat( Format fmt ) {
 		if( fmt == NonInterleaved && mFormat == Interleaved )
@@ -51,11 +55,58 @@ public:
 			CI_ASSERT( false ); // TODO: interleave
 	}
 
+	T* getData() { return mData.data(); }
+
+	T& operator[]( size_t n ) {
+		CI_ASSERT( n < getSize() );
+		return mData[n];
+	}
+
+	const T& operator[]( size_t n ) const {
+		CI_ASSERT( n < getSize() );
+		return mData[n];
+	}
+
+
 private:
-	std::vector<SampleT> mData;
+	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
 	Format mFormat;
 };
+
+template<typename T>
+inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *interleaved )
+{
+	CI_ASSERT( nonInterleaved->getSize() == interleaved->getSize() );
+
+	size_t numFrames = interleaved->getNumFrames();
+	T *left = nonInterleaved->getData();
+	T *right = &nonInterleaved->getData()[numFrames];
+	T *mixed = interleaved->getData();
+
+	size_t i, j;
+	for( i = 0, j = 0; i < numFrames; i++, j += 2 ) {
+		mixed[j] = left[i];
+		mixed[j + 1] = right[i];
+	}
+}
+
+template<typename T>
+inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonInterleaved )
+{
+	CI_ASSERT( nonInterleaved->getSize() == interleaved->getSize() );
+
+	size_t numFrames = interleaved->getNumFrames();
+	T *left = nonInterleaved->getData();
+	T *right = &nonInterleaved->getData()[numFrames];
+	T *mixed = interleaved->getData();
+
+	size_t i, j;
+	for( i = 0, j = 0; i < numFrames; i++, j += 2 ) {
+		left[i] = mixed[j];
+		right[i] = mixed[j + 1];
+	}
+}
 
 typedef BufferT<float> Buffer;
 

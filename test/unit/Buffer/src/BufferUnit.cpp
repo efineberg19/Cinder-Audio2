@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_CASE( TestSize )
     BOOST_REQUIRE_EQUAL( buffer.getSize(), 8 );
 }
 
-BOOST_AUTO_TEST_CASE( TestDeinterleavePow2 )
+BOOST_AUTO_TEST_CASE( TestDeinterleaveInplace )
 {
 	std::vector<int> arr( 4 );
 	arr[0] = 0;
@@ -29,3 +29,39 @@ BOOST_AUTO_TEST_CASE( TestDeinterleavePow2 )
     BOOST_CHECK_EQUAL( arr[3], 3 );
 }
 
+BOOST_AUTO_TEST_CASE( TestInterleaveTwoBuffers )
+{
+	BufferT<int> interleaved( 2, 4 );
+	BufferT<int> nonInterleaved( 2, 4, BufferT<int>::Format::NonInterleaved );
+
+	nonInterleaved[0] = 10;
+	nonInterleaved[1] = 11;
+	nonInterleaved[2] = 12;
+	nonInterleaved[3] = 13;
+	nonInterleaved[4] = 20;
+	nonInterleaved[5] = 21;
+	nonInterleaved[6] = 22;
+	nonInterleaved[7] = 23;
+
+	interleaveStereoBuffer( &nonInterleaved, &interleaved );
+
+    BOOST_CHECK_EQUAL( interleaved[0], 10 );
+    BOOST_CHECK_EQUAL( interleaved[1], 20 );
+    BOOST_CHECK_EQUAL( interleaved[2], 11 );
+    BOOST_CHECK_EQUAL( interleaved[3], 21 );
+    BOOST_CHECK_EQUAL( interleaved[4], 12 );
+    BOOST_CHECK_EQUAL( interleaved[5], 22 );
+    BOOST_CHECK_EQUAL( interleaved[6], 13 );
+    BOOST_CHECK_EQUAL( interleaved[7], 23 );
+
+	deinterleaveStereoBuffer( &interleaved, &nonInterleaved );
+
+	BOOST_CHECK_EQUAL( nonInterleaved[0], 10 );
+    BOOST_CHECK_EQUAL( nonInterleaved[1], 11 );
+    BOOST_CHECK_EQUAL( nonInterleaved[2], 12 );
+    BOOST_CHECK_EQUAL( nonInterleaved[3], 13 );
+    BOOST_CHECK_EQUAL( nonInterleaved[4], 20 );
+    BOOST_CHECK_EQUAL( nonInterleaved[5], 21 );
+    BOOST_CHECK_EQUAL( nonInterleaved[6], 22 );
+    BOOST_CHECK_EQUAL( nonInterleaved[7], 23 );
+}

@@ -17,7 +17,6 @@
 		446F78F83B0147D0BE49DBBA /* Engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FB11A6BBA19B4E29931CF69C /* Engine.cpp */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
-		59EB4F1D606A4F4F8F51D801 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5857896830504E5CAEF47631 /* Buffer.cpp */; };
 		63BD7DDBB23D4186BEFE7E61 /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB8E117D291F428ABFFDAD95 /* Util.cpp */; };
 		6C162F4E19184A288D27F177 /* GraphAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7B8CBDE6A5A45C4B5F25145 /* GraphAudioUnit.cpp */; };
 		7E3608E3262B40A4A0D6EED9 /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CCDFD9D546A14063BE5D2B70 /* Plot.cpp */; };
@@ -53,7 +52,6 @@
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		5323E6B50EAFCA7E003A9687 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
 		5558484FAD5546B786DBE547 /* Util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Util.h; path = "../../../../../../cinder-dev/blocks/audio2/src/audio2/cocoa/Util.h"; sourceTree = "<group>"; };
-		5857896830504E5CAEF47631 /* Buffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Buffer.cpp; path = "../../../../../../cinder-dev/blocks/audio2/src/audio2/Buffer.cpp"; sourceTree = "<group>"; };
 		58BB1F3BC5874965A8CAC665 /* Atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Atomic.h; path = "../../../../../../cinder-dev/blocks/audio2/src/audio2/Atomic.h"; sourceTree = "<group>"; };
 		59D4BCAD55F24C2E930EB368 /* GraphXAudio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GraphXAudio.h; path = "../../../../../../cinder-dev/blocks/audio2/src/audio2/GraphXAudio.h"; sourceTree = "<group>"; };
 		66863BCA4732472CA33415D3 /* GeneratorNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GeneratorNode.h; path = "../../../../../../cinder-dev/blocks/audio2/src/audio2/GeneratorNode.h"; sourceTree = "<group>"; };
@@ -235,7 +233,6 @@
 				D0DC8EE433A540FB917CA985 /* Plot.h */,
 				D3F869435CB144E692797A01 /* RingBuffer.h */,
 				778EDEC8B52D4648B76D4DDB /* audio.cpp */,
-				5857896830504E5CAEF47631 /* Buffer.cpp */,
 				0594B272DD164E21BF3BCB2E /* Device.cpp */,
 				D56EC358FBC5480DAFC9EAED /* DeviceAudioUnit.cpp */,
 				E447CF7EBE5F4ABFB93D7825 /* DeviceManagerCoreAudio.cpp */,
@@ -313,7 +310,6 @@
 			files = (
 				FA6574D75A624935A9BCF759 /* BufferUnit.cpp in Sources */,
 				00D5B8470D2A4A42AF67B339 /* audio.cpp in Sources */,
-				59EB4F1D606A4F4F8F51D801 /* Buffer.cpp in Sources */,
 				808892C68D7B4511A7C6FD7E /* Device.cpp in Sources */,
 				AB1237D8D92F4EA9911D39DE /* DeviceAudioUnit.cpp in Sources */,
 				B6BDD7823A694572A29A989C /* DeviceManagerCoreAudio.cpp in Sources */,
