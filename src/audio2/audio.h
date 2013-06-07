@@ -1,14 +1,14 @@
 #pragma once
 
-#include "audio2/Graph.h"
+#include "audio2/Context.h"
 
 #include "cinder/Cinder.h"
 #include "cinder/Exception.h"
-#include <string>
+//#include <string>
 
 namespace audio2 {
 
-void printGraph( GraphRef graph );
+void printGraph( ContextRef graph );
 
 class AudioExc : public ci::Exception {
 public:
@@ -23,9 +23,9 @@ public:
 	AudioDeviceExc( const std::string &description ) : AudioExc( description )	{}
 };
 
-class AudioGraphExc : public AudioExc {
+class AudioContextExc : public AudioExc {
 public:
-	AudioGraphExc( const std::string &description ) : AudioExc( description )	{}
+	AudioContextExc( const std::string &description ) : AudioExc( description )	{}
 };
 
 class AudioFormatExc : public AudioExc {

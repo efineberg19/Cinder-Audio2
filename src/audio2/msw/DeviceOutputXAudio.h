@@ -3,7 +3,7 @@
 #include "audio2/Device.h"
 #include "audio2/msw/xaudio.h"
 
-namespace audio2 {
+namespace audio2 { namespace msw {
 
 class DeviceOutputXAudio : public Device {
   public:
@@ -25,7 +25,7 @@ class DeviceOutputXAudio : public Device {
 	::IXAudio2 *mXAudio;
 	::IXAudio2MasteringVoice *mMasteringVoice;
 
-	friend class DeviceManagerMsw;
+	friend class DeviceManagerWasapi;
 };
 
-} // namespace audio2
+}} // namespace audio2::msw

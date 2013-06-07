@@ -1,6 +1,6 @@
-#include "audio2/DeviceManagerMsw.h"
-#include "audio2/DeviceOutputXAudio.h"
-#include "audio2/DeviceInputWasapi.h"
+#include "audio2/msw/DeviceManagerWasapi.h"
+#include "audio2/msw/DeviceOutputXAudio.h"
+#include "audio2/msw/DeviceInputWasapi.h"
 #include "audio2/audio.h"
 #include "audio2/msw/util.h"
 #include "audio2/assert.h"
@@ -24,15 +24,15 @@ DEFINE_GUID(DEVINTERFACE_AUDIO_CAPTURE, 0x2eef81be, 0x33fa, 0x4800, 0x96, 0x70, 
 
 using namespace std;
 
-namespace audio2 {
+namespace audio2 { namespace msw {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - DeviceManagerMsw
+// MARK: - DeviceManagerWasapi
 // ----------------------------------------------------------------------------------------------------
 
 // TODO: consider if lazy-loading the devices container will improve startup time
 
-DeviceRef DeviceManagerMsw::getDefaultOutput()
+DeviceRef DeviceManagerWasapi::getDefaultOutput()
 {
 	::IMMDeviceEnumerator *enumerator;
 	HRESULT hr = ::CoCreateInstance( __uuidof(::MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(::IMMDeviceEnumerator), (void**)&enumerator );
@@ -56,7 +56,7 @@ DeviceRef DeviceManagerMsw::getDefaultOutput()
 	return getDevice( key );
 }
 
-DeviceRef DeviceManagerMsw::getDefaultInput()
+DeviceRef DeviceManagerWasapi::getDefaultInput()
 {
 	::IMMDeviceEnumerator *enumerator;
 	HRESULT hr = ::CoCreateInstance( __uuidof(::MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(::IMMDeviceEnumerator), (void**)&enumerator );
@@ -80,33 +80,33 @@ DeviceRef DeviceManagerMsw::getDefaultInput()
 	return getDevice( key ); // TODO: method doesn't know this is input
 }
 
-void DeviceManagerMsw::setActiveDevice( const string &key )
+void DeviceManagerWasapi::setActiveDevice( const string &key )
 {
 	CI_ASSERT( 0 && "TODO" ); // umm, might not be anything needing doing here
 }
 
-std::string DeviceManagerMsw::getName( const string &key )
+std::string DeviceManagerWasapi::getName( const string &key )
 {
 	return getDeviceInfo( key ).name;
 }
 
-size_t DeviceManagerMsw::getNumInputChannels( const string &key )
+size_t DeviceManagerWasapi::getNumInputChannels( const string &key )
 {
 	// FIXME: need a way to distinguish inputs and outputs in devInfo 
 	return 0;
 }
 
-size_t DeviceManagerMsw::getNumOutputChannels( const string &key )
+size_t DeviceManagerWasapi::getNumOutputChannels( const string &key )
 {
 	return getDeviceInfo( key ).numChannels;
 }
 
-size_t DeviceManagerMsw::getSampleRate( const string &key )
+size_t DeviceManagerWasapi::getSampleRate( const string &key )
 {
 	return getDeviceInfo( key ).sampleRate;
 }
 
-size_t DeviceManagerMsw::getBlockSize( const string &key )
+size_t DeviceManagerWasapi::getBlockSize( const string &key )
 {
 	// ???: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
 	// - if it doesn't need a way to tell the user they should not listen to this value,
@@ -115,12 +115,12 @@ size_t DeviceManagerMsw::getBlockSize( const string &key )
 	return 0;
 }
 
-const std::wstring& DeviceManagerMsw::getDeviceId( const std::string &key )
+const std::wstring& DeviceManagerWasapi::getDeviceId( const std::string &key )
 {
 	return getDeviceInfo( key ).deviceId;
 }
 
-shared_ptr<::IMMDevice> DeviceManagerMsw::getIMMDevice( const std::string &key )
+shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const std::string &key )
 {
 	::IMMDeviceEnumerator *enumerator;
 	HRESULT hr = ::CoCreateInstance( __uuidof(::MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(::IMMDeviceEnumerator), (void**)&enumerator );
@@ -139,12 +139,12 @@ shared_ptr<::IMMDevice> DeviceManagerMsw::getIMMDevice( const std::string &key )
 // MARK: - Private
 // ----------------------------------------------------------------------------------------------------
 
-DeviceRef DeviceManagerMsw::getDevice( const string &key )
+DeviceRef DeviceManagerWasapi::getDevice( const string &key )
 {
 	return getDeviceInfo( key ).device;
 }
 
-DeviceManagerMsw::DeviceInfo& DeviceManagerMsw::getDeviceInfo( const std::string &key )
+DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const std::string &key )
 {
 	for( auto& devInfo : getDevices() ) {
 		if( key == devInfo.key )
@@ -153,7 +153,7 @@ DeviceManagerMsw::DeviceInfo& DeviceManagerMsw::getDeviceInfo( const std::string
 	throw AudioDeviceExc( string( "could not find device for key: " ) + key );
 }
 
-DeviceManagerMsw::DeviceContainerT& DeviceManagerMsw::getDevices()
+DeviceManagerWasapi::DeviceContainerT& DeviceManagerWasapi::getDevices()
 {
 	if( mDevices.empty() ) {
 		parseDevices( DeviceInfo::Usage::Input );
@@ -165,7 +165,7 @@ DeviceManagerMsw::DeviceContainerT& DeviceManagerMsw::getDevices()
 // This call is performed twice because a separate Device subclass is used for input and output
 // and by using eRender / eCapture instead of eAll when enumerating the endpoints, it is easier
 // to distinguish between the two.
-void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
+void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 {
 	const size_t kMaxPropertyStringLength = 2048;
 
@@ -285,4 +285,4 @@ void DeviceManagerMsw::parseDevices( DeviceInfo::Usage usage )
 	}
 }
 
-} // namespace audio2
+}} // namespace audio2::msw

@@ -10,7 +10,7 @@
 		#include "audio2/DeviceManagerAudioSession.h"
 	#endif
 #elif defined( CINDER_MSW )
-	#include "audio2/DeviceManagerMsw.h"
+	#include "audio2/msw/DeviceManagerWasapi.h"
 #endif
 
 namespace audio2 {
@@ -75,7 +75,7 @@ DeviceManager* DeviceManager::instance()
 #elif defined( CINDER_COCOA_TOUCH )
 		sInstance = new DeviceManagerAudioSession();
 #elif defined( CINDER_MSW )
-	sInstance = new DeviceManagerMsw();
+	sInstance = new msw::DeviceManagerWasapi();
 #endif
 	}
 	return sInstance;

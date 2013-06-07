@@ -7,7 +7,7 @@ using namespace ci;
 
 namespace audio2 {
 
-void printGraph( GraphRef graph )
+void printGraph( ContextRef graph )
 {
 	function<void( NodeRef, size_t )> printNode = [&]( NodeRef node, size_t depth ) -> void {
 		if( ! node )

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "audio2/Graph.h"
+#include "audio2/Context.h"
 #include "audio2/Buffer.h"
 #include "audio2/EffectNode.h"
 #include "audio2/msw/xaudio.h"
 #include "audio2/msw/util.h"
 
-namespace audio2 {
+namespace audio2 { namespace msw {
 
 class SourceVoiceXAudio;
 class NodeXAudio;
@@ -186,9 +186,16 @@ public:
 //
 //};
 
-class GraphXAudio : public Graph {
+class ContextXAudio : public Context {
   public:
-	virtual ~GraphXAudio();
+	virtual ~ContextXAudio();
+
+	virtual ContextRef		createGraph() override	{ return ContextRef( new ContextXAudio() ); }
+	virtual MixerNodeRef	createMixer() override	{ return MixerNodeRef( new MixerXAudio() ); }
+	virtual OutputNodeRef	createOutput( DeviceRef device ) override	{ return OutputNodeRef( new OutputXAudio( device ) ); }
+
+	//! If deployment target is 0x601 (win xp) or greater, uses InputWasapi
+	virtual InputNodeRef	createInput( DeviceRef device ) override;
 
 	void initialize() override;
 	void uninitialize() override;
@@ -201,4 +208,4 @@ class GraphXAudio : public Graph {
 	void initEffects( NodeRef node );
 };
 
-} // namespace audio2
+} } // namespace audio2::msw

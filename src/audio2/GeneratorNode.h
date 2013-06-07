@@ -1,15 +1,15 @@
 #pragma once
 
-#include "audio2/Graph.h"
+#include "audio2/Context.h"
 #include "audio2/audio.h"
 #include "audio2/Device.h"
 #include "audio2/Dsp.h"
 
 namespace audio2 {
 
-typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
-typedef std::shared_ptr<class InputNode> InputNodeRef;
-typedef std::shared_ptr<class FileInputNode> FileInputNodeRef;
+//typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
+//typedef std::shared_ptr<class InputNode> InputNodeRef;
+//typedef std::shared_ptr<class FileInputNode> FileInputNodeRef;
 
 class GeneratorNode : public Node {
 public:
@@ -18,7 +18,7 @@ public:
 
 	// TODO: consider making this private.
 	// - it can still be called by typecasting to Node first, and that may also be more confusing than throwing
-	NodeRef connect( NodeRef source ) override	{ throw AudioGraphExc( "cannot connect a source to Node of type Generator" ); }
+	NodeRef connect( NodeRef source ) override	{ throw AudioContextExc( "cannot connect a source to Node of type Generator" ); }
 };
 
 class InputNode : public GeneratorNode {

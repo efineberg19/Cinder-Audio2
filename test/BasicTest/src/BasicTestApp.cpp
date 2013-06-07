@@ -1,17 +1,10 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/Device.h"
-#include "audio2/Graph.h"
-#include "audio2/Engine.h"
-#include "audio2/GeneratorNode.h"
 #include "audio2/audio.h"
+#include "audio2/GeneratorNode.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
-
-#if defined( CINDER_COCOA )
-#include "audio2/GraphAudioUnit.h"
-#endif
 
 #include "Gui.h"
 
@@ -35,14 +28,14 @@ public:
 	void setupSine();
 	void setupNoise();
 	void setupMixer();
-	void initGraph();
+	void initContext();
 	void toggleGraph();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	GraphRef mGraph;
+	ContextRef mContext;
 	MixerNodeRef mMixer;
 
 	vector<TestWidget *> mWidgets;
@@ -68,13 +61,13 @@ void BasicTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t block size: " << device->getBlockSize() << endl;
 
-	auto output = Engine::instance()->createOutput( device );
-	mGraph = Engine::instance()->createGraph();
-	mGraph->setRoot( output );
+	auto output = Context::instance()->createOutput( device );
+	mContext = Context::instance()->createGraph();
+	mContext->setRoot( output );
 
 	setupSine();
 
-	initGraph();
+	initContext();
 	setupUI();
 }
 
@@ -84,7 +77,7 @@ void BasicTestApp::setupSine()
 	genNode->mGen.setAmp( 0.2f );
 	genNode->mGen.setFreq( 440.0f );
 
-	mGraph->getRoot()->connect( genNode );
+	mContext->getRoot()->connect( genNode );
 
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
 }
@@ -94,7 +87,7 @@ void BasicTestApp::setupNoise()
 	auto genNode = make_shared<UGenNode<NoiseGen> >();
 	genNode->mGen.setAmp( 0.2f );
 
-	mGraph->getRoot()->connect( genNode );
+	mContext->getRoot()->connect( genNode );
 
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
 }
@@ -108,7 +101,7 @@ void BasicTestApp::setupMixer()
 	sine->mGen.setAmp( 0.25f );
 	sine->mGen.setFreq( 440.0f );
 
-	mMixer = Engine::instance()->createMixer();
+	mMixer = Context::instance()->createMixer();
 
 	// connect by appending
 //	mMixer->connect( noise );
@@ -118,22 +111,22 @@ void BasicTestApp::setupMixer()
 	mMixer->connect( noise, Bus::Noise );
 	mMixer->connect( sine, Bus::Sine );
 
-	mGraph->getRoot()->connect( mMixer );
+	mContext->getRoot()->connect( mMixer );
 
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = false;
 }
 
-void BasicTestApp::initGraph()
+void BasicTestApp::initContext()
 {
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
-	printGraph( mGraph );
+	printGraph( mContext );
 
-	mGraph->initialize();
+	mContext->initialize();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (after)" << endl;
-	printGraph( mGraph );
+	printGraph( mContext );
 
 	if( mMixer ) {
 
@@ -161,10 +154,10 @@ void BasicTestApp::initGraph()
 
 void BasicTestApp::toggleGraph()
 {
-	if( ! mGraph->isRunning() )
-		mGraph->start();
+	if( ! mContext->isRunning() )
+		mContext->start();
 	else
-		mGraph->stop();
+		mContext->stop();
 }
 
 void BasicTestApp::setupUI()
@@ -241,8 +234,8 @@ void BasicTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mGraph->isRunning();
-		mGraph->uninitialize();
+		bool running = mContext->isRunning();
+		mContext->uninitialize();
 
 		if( currentTest == "sine" ) {
 			setupSine();
@@ -253,10 +246,10 @@ void BasicTestApp::processTap( Vec2i pos )
 		if( currentTest == "mixer" ) {
 			setupMixer();
 		}
-		initGraph();
+		initContext();
 
 		if( running )
-			mGraph->start();
+			mContext->start();
 	}
 }
 

@@ -114,27 +114,25 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\audio2\DeviceInputWasapi.cpp" />
-    <ClCompile Include="..\..\..\src\audio2\DeviceManagerMsw.cpp" />
-    <ClCompile Include="..\..\..\src\audio2\DeviceOutputXAudio.cpp" />
-    <ClCompile Include="..\..\..\src\audio2\EngineXAudio.cpp" />
-    <ClCompile Include="..\..\..\src\audio2\GraphXAudio.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\Context.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\msw\ContextXAudio.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\msw\DeviceInputWasapi.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\msw\DeviceManagerWasapi.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\msw\DeviceOutputXAudio.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\util.cpp" />
     <ClCompile Include="..\src\BasicTestApp.cpp" />
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.cpp" />
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Device.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Engine.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Graph.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\audio2\Buffer.h" />
-    <ClInclude Include="..\..\..\src\audio2\DeviceInputWasapi.h" />
-    <ClInclude Include="..\..\..\src\audio2\DeviceManagerMsw.h" />
-    <ClInclude Include="..\..\..\src\audio2\DeviceOutputXAudio.h" />
+    <ClInclude Include="..\..\..\src\audio2\Context.h" />
     <ClInclude Include="..\..\..\src\audio2\EffectNode.h" />
-    <ClInclude Include="..\..\..\src\audio2\EngineXAudio.h" />
     <ClInclude Include="..\..\..\src\audio2\GeneratorNode.h" />
-    <ClInclude Include="..\..\..\src\audio2\GraphXAudio.h" />
+    <ClInclude Include="..\..\..\src\audio2\msw\ContextXAudio.h" />
+    <ClInclude Include="..\..\..\src\audio2\msw\DeviceInputWasapi.h" />
+    <ClInclude Include="..\..\..\src\audio2\msw\DeviceManagerWasapi.h" />
+    <ClInclude Include="..\..\..\src\audio2\msw\DeviceOutputXAudio.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\util.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\xaudio.h" />
     <ClInclude Include="..\include\Resources.h" />
@@ -144,8 +142,6 @@
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Debug.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Device.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Engine.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Graph.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\RingBuffer.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Dsp.h" />
   </ItemGroup>

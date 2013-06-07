@@ -6,13 +6,11 @@
 
 struct IMMDevice;
 
-namespace audio2 {
+namespace audio2 { namespace msw {
 
-// TODO: rename this DeviceManagerWasapi
-//	- this one requires Wasapi, as such XP is a no-go
-//  - but this also creates xaudio output
-//  - should have another device manager for xp that just uses XAudio
-class DeviceManagerMsw : public DeviceManager {
+// TODO: DeviceManagerXp (which is minimal).
+
+class DeviceManagerWasapi : public DeviceManager {
   public:
 	DeviceRef getDefaultOutput() override;
 	DeviceRef getDefaultInput() override;
@@ -55,4 +53,4 @@ class DeviceManagerMsw : public DeviceManager {
 	  DeviceContainerT mDevices;
 };
 
-} // namespace audio2
+}} // namespace audio2::msw

@@ -1,5 +1,5 @@
-#include "audio2/DeviceOutputXAudio.h"
-#include "audio2/DeviceManagerMsw.h"
+#include "audio2/msw/DeviceOutputXAudio.h"
+#include "audio2/msw/DeviceManagerWasapi.h"
 #include "audio2/Debug.h"
 #include "audio2/assert.h"
 
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace audio2 {
+namespace audio2 { namespace msw {
 
 DeviceOutputXAudio::DeviceOutputXAudio( const std::string &key )
 : Device( key )
@@ -56,7 +56,7 @@ void DeviceOutputXAudio::initialize()
 	// mXAudio is started at creation time, so stop it here until after the graph is configured
 	stop();
 
-	auto deviceManager = dynamic_cast<DeviceManagerMsw *>( DeviceManager::instance() );
+	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( DeviceManager::instance() );
 	const wstring &deviceId = deviceManager->getDeviceId( mKey );
 	const string &name = deviceManager->getName( mKey );
 
@@ -112,4 +112,4 @@ void DeviceOutputXAudio::stop()
 	LOG_V "stopped" << endl;
 }
 
-} // namespace audio2
+}} // namespace audio2::msw

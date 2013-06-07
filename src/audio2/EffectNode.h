@@ -1,6 +1,6 @@
 #pragma once
 
-#include "audio2/Graph.h"
+#include "audio2/Context.h"
 #include "audio2/Dsp.h"
 
 namespace audio2 {

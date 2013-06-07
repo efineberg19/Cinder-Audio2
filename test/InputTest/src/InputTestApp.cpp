@@ -1,10 +1,9 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/Engine.h"
+#include "audio2/Context.h"
+#include "audio2/GeneratorNode.h"
 #include "audio2/EffectNode.h"
-#include "audio2/Buffer.h"
-#include "audio2/audio.h"
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
@@ -36,7 +35,7 @@ class InputTestApp : public AppNative {
 	void setupInTapOut();
 	void setupInTapProcessOut();
 
-	GraphRef mGraph;
+	ContextRef mContext;
 	InputNodeRef mInput;
 	TapNodeRef mTap;
 
@@ -46,19 +45,19 @@ class InputTestApp : public AppNative {
 
 void InputTestApp::setup()
 {
-	mGraph = Engine::instance()->createGraph();
+	mContext = Context::instance()->createGraph();
 
 	DeviceRef inputDevice = Device::getDefaultInput();
 	DeviceRef outputDevice = Device::getDefaultOutput();
 
 	logDevices( inputDevice, outputDevice );
 
-	mInput = Engine::instance()->createInput( inputDevice );
+	mInput = Context::instance()->createInput( inputDevice );
 
 	//mInput->getFormat().setNumChannels( 1 );
 
-	auto output = Engine::instance()->createOutput( outputDevice );
-	mGraph->setRoot( output );
+	auto output = Context::instance()->createOutput( outputDevice );
+	mContext->setRoot( output );
 
 	setupInTapOut();
 
@@ -68,21 +67,21 @@ void InputTestApp::setup()
 
 void InputTestApp::setupPassThrough()
 {
-	mGraph->getRoot()->connect( mInput );
+	mContext->getRoot()->connect( mInput );
 }
 
 void InputTestApp::setupInProcessOut()
 {
 	auto ringMod = make_shared<RingMod>();
 	ringMod->connect( mInput );
-	mGraph->getRoot()->connect( ringMod );
+	mContext->getRoot()->connect( ringMod );
 }
 
 void InputTestApp::setupInTapOut()
 {
 	mTap = make_shared<TapNode>();
 	mTap->connect( mInput );
-	mGraph->getRoot()->connect( mTap );
+	mContext->getRoot()->connect( mTap );
 }
 
 void InputTestApp::setupInTapProcessOut()
@@ -91,7 +90,7 @@ void InputTestApp::setupInTapProcessOut()
 	auto ringMod = make_shared<RingMod>();
 	mTap->connect( mInput );
 	ringMod->connect( mTap );
-	mGraph->getRoot()->connect( ringMod );
+	mContext->getRoot()->connect( ringMod );
 }
 
 void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
@@ -113,13 +112,13 @@ void InputTestApp::initGraph()
 {
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
-	printGraph( mGraph );
+	printGraph( mContext );
 
-	mGraph->initialize();
+	mContext->initialize();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (after)" << endl;
-	printGraph( mGraph );
+	printGraph( mContext );
 }
 
 void InputTestApp::setupUI()
@@ -142,10 +141,10 @@ void InputTestApp::setupUI()
 
 void InputTestApp::toggleGraph()
 {
-	if( ! mGraph->isRunning() )
-		mGraph->start();
+	if( ! mContext->isRunning() )
+		mContext->start();
 	else
-		mGraph->stop();
+		mContext->stop();
 }
 
 void InputTestApp::processTap( Vec2i pos )
@@ -158,8 +157,8 @@ void InputTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mGraph->isRunning();
-		mGraph->uninitialize();
+		bool running = mContext->isRunning();
+		mContext->uninitialize();
 
 		if( currentTest == "pass through" ) {
 			setupPassThrough();
@@ -176,7 +175,7 @@ void InputTestApp::processTap( Vec2i pos )
 		initGraph();
 
 		if( running )
-			mGraph->start();
+			mContext->start();
 	}
 }
 

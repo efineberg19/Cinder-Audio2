@@ -1,5 +1,7 @@
-#include "audio2/GraphXAudio.h"
-#include "audio2/DeviceOutputXAudio.h"
+#include "audio2/msw/ContextXAudio.h"
+#include "audio2/msw/DeviceOutputXAudio.h"
+#include "audio2/msw/DeviceInputWasapi.h"
+
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
@@ -9,7 +11,7 @@
 
 using namespace std;
 
-namespace audio2 {
+namespace audio2 { namespace msw {
 
 static bool isNodeNativeXAudio( NodeRef node ) {
 	return dynamic_pointer_cast<NodeXAudio>( node );
@@ -334,7 +336,7 @@ void EffectXAudioFilter::initialize()
 	XAudioVoice v = getXAudioVoice( shared_from_this() );
 
 	if( v.node->isFilterConnected() )
-		throw AudioGraphExc( "source voice already has a filter connected." );
+		throw AudioContextExc( "source voice already has a filter connected." );
 	v.node->setFilterConnected();
 
 	mInitialized = true;
@@ -605,15 +607,20 @@ void ConverterXAudio::uninitialize()
 */
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - GraphXAudio
+// MARK: - ContextXAudio
 // ----------------------------------------------------------------------------------------------------
 
-GraphXAudio::~GraphXAudio()
+ContextXAudio::~ContextXAudio()
 {
 	
 }
 
-void GraphXAudio::initialize()
+InputNodeRef ContextXAudio::createInput( DeviceRef device )
+{
+	return InputNodeRef( new InputWasapi( device ) );
+}
+
+void ContextXAudio::initialize()
 {
 	if( mInitialized )
 		return;
@@ -631,7 +638,7 @@ void GraphXAudio::initialize()
 	LOG_V << "graph initialize complete. output channels: " <<outputXAudio->getNumOutputChannels() << endl;
 }
 
-void GraphXAudio::initNode( NodeRef node )
+void ContextXAudio::initNode( NodeRef node )
 {
 	setXAudio( node );
 
@@ -668,7 +675,7 @@ void GraphXAudio::initNode( NodeRef node )
 				// first check if any child is a native node - if it is, that indicates we need a custom XAPO
 				// TODO: implement custom Xapo and insert for this. make sure EffectXAudioFilter is handled appropriately as well
 				if( getXAudioNode( source ) )
-					throw AudioGraphExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
+					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 
 				sourceVoice = make_shared<SourceVoiceXAudio>();
 				node->getSources()[i] = sourceVoice;
@@ -730,7 +737,7 @@ void GraphXAudio::initNode( NodeRef node )
 	node->initialize();
 }
 
-void GraphXAudio::uninitialize()
+void ContextXAudio::uninitialize()
 {
 	if( ! mInitialized )
 		return;
@@ -740,7 +747,7 @@ void GraphXAudio::uninitialize()
 	mInitialized = false;
 }
 
-void GraphXAudio::uninitNode( NodeRef node )
+void ContextXAudio::uninitNode( NodeRef node )
 {
 	if( ! node )
 		return;
@@ -750,7 +757,7 @@ void GraphXAudio::uninitNode( NodeRef node )
 	node->uninitialize();
 }
 
-void GraphXAudio::setXAudio( NodeRef node )
+void ContextXAudio::setXAudio( NodeRef node )
 {
 	NodeXAudio *nodeXAudio = dynamic_cast<NodeXAudio *>( node.get() );
 	if( nodeXAudio ) {
@@ -763,7 +770,7 @@ void GraphXAudio::setXAudio( NodeRef node )
 // with length 1 and then again setting it with length 2 causes the engine to go down when the 
 // dsp loop starts.  To overcome this, initEffects recursively looks for all XAudioNode's that 
 // have effects attatched to them (during the first graph traversal) and sets the chain just once.
-void GraphXAudio::initEffects( NodeRef node )
+void ContextXAudio::initEffects( NodeRef node )
 {
 	if( ! node )
 		return;
@@ -785,4 +792,4 @@ void GraphXAudio::initEffects( NodeRef node )
 }
 
 
-} // namespace audio2
+}} // namespace audio2::msw
