@@ -12,16 +12,19 @@
 using namespace ci;
 
 struct TestWidget {
+	TestWidget() : hidden( false ) {}
+
 	virtual void draw() {}
 
 	Rectf bounds;
 	ColorA backgroundColor;
 	Font font;
+	bool hidden;
 };
 
 struct Button : public TestWidget {
 	Button( bool isToggle = false, const std::string& titleNormal = "", const std::string& titleEnabled = "" )
-	: isToggle( isToggle ), titleNormal( titleNormal ), titleEnabled( titleEnabled )
+	: TestWidget(), isToggle( isToggle ), titleNormal( titleNormal ), titleEnabled( titleEnabled )
 	{
 		setEnabled( false );
 		textColor = Color::white();
@@ -37,6 +40,9 @@ struct Button : public TestWidget {
 	}
 
 	bool hitTest( const Vec2i &pos ) {
+		if( hidden )
+			return false;
+
 		bool b = bounds.contains( pos );
 		if( b )
 			setEnabled( ! enabled );
@@ -44,6 +50,8 @@ struct Button : public TestWidget {
 	}
 
 	void draw() {
+		if( hidden )
+			return;
 		if( ! font )
 			font = Font( Font::getDefault().getName(), FONT_SIZE );
 
@@ -60,7 +68,7 @@ struct Button : public TestWidget {
 };
 
 struct HSlider : public TestWidget {
-	HSlider() {
+	HSlider() : TestWidget() {
 		value = valueScaled = 0.0f;
 		min = 0.0f;
 		max = 1.0f;
@@ -75,6 +83,9 @@ struct HSlider : public TestWidget {
 	}
 
 	bool hitTest( const Vec2i &pos ) {
+		if( hidden )
+			return false;
+
 		bool b = bounds.contains( pos );
 		if( b ) {
 			value = ( pos.x - bounds.x1 ) / bounds.getWidth();
@@ -84,14 +95,17 @@ struct HSlider : public TestWidget {
 	}
 
 	void draw() {
+		if( hidden )
+			return;
+		if( ! font )
+			font = Font( Font::getDefault().getName(), FONT_SIZE );
+
 		gl::color( backgroundColor );
 		gl::drawSolidRect( bounds );
 
 		auto valFormatted = boost::format( "%0.3f" ) % valueScaled;
 
 		std::string str = title + ": " + valFormatted.str();
-		if( ! font )
-			font = Font( Font::getDefault().getName(), FONT_SIZE );
 		gl::drawString( str, Vec2f( bounds.x1 + 10.0f, bounds.getCenter().y ), textColor, font );
 
 		gl::color( valueColor );
@@ -110,7 +124,7 @@ struct HSlider : public TestWidget {
 };
 
 struct VSelector : public TestWidget {
-	VSelector() {
+	VSelector() : TestWidget() {
 		currentSectionIndex = 0;
 		backgroundColor = ColorA( 0.0f, 0.0f , 1.0f, 0.3f );
 		selectedColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
@@ -118,6 +132,9 @@ struct VSelector : public TestWidget {
 	}
 
 	bool hitTest( const Vec2i &pos ) {
+		if( hidden )
+			return false;
+
 		bool b = bounds.contains( pos );
 		if( b ) {
 			int offset = pos.y - bounds.y1;
@@ -130,6 +147,9 @@ struct VSelector : public TestWidget {
 	const std::string& currentSection() const	{ return segments[currentSectionIndex]; }
 
 	void draw() {
+		if( hidden )
+			return;
+
 		if( ! font )
 			font = Font( Font::getDefault().getName(), FONT_SIZE );
 		

@@ -19,8 +19,6 @@
 // FIXME: (msw) mixer crashed on shutdown while dsp was on
 // - I think it is because the buffers aren't flushed
 
-// FIXME: (mac) mixer crash on un-init from basic -> mixer -> basic
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -50,7 +48,7 @@ public:
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton;
 	VSelector mTestSelector;
-	HSlider mNoisePanSlider, mFreqPanSlider, mNoiseVolumeSlider, mFreqVolumeSlider; // TODO: rename Freq to Sine
+	HSlider mNoisePanSlider, mSinePanSlider, mNoiseVolumeSlider, mFreqVolumeSlider;
 	string mCurrentTest;
 
 	enum Bus { Noise, Sine };
@@ -88,6 +86,8 @@ void BasicTestApp::setupSine()
 	genNode->mGen.setFreq( 440.0f );
 
 	mGraph->getRoot()->connect( genNode );
+
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
 }
 
 void BasicTestApp::setupNoise()
@@ -96,6 +96,8 @@ void BasicTestApp::setupNoise()
 	genNode->mGen.setAmp( 0.2f );
 
 	mGraph->getRoot()->connect( genNode );
+
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
 }
 
 void BasicTestApp::setupMixer()
@@ -118,6 +120,8 @@ void BasicTestApp::setupMixer()
 	mMixer->connect( sine, Bus::Sine );
 
 	mGraph->getRoot()->connect( mMixer );
+
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = false;
 }
 
 void BasicTestApp::initGraph()
@@ -150,7 +154,7 @@ void BasicTestApp::initGraph()
 		}
 
 		mNoisePanSlider.set( mMixer->getBusPan( Bus::Noise ) );
-		mFreqPanSlider.set( mMixer->getBusPan( Bus::Sine ) );
+		mSinePanSlider.set( mMixer->getBusPan( Bus::Sine ) );
 		mNoiseVolumeSlider.set( mMixer->getBusVolume( Bus::Noise ) );
 		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::Sine ) );
 	}
@@ -184,11 +188,11 @@ void BasicTestApp::setupUI()
 	mWidgets.push_back( &mNoisePanSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mFreqPanSlider.bounds = sliderRect;
-	mFreqPanSlider.title = "Pan (Freq)";
-	mFreqPanSlider.min = -1.0f;
-	mFreqPanSlider.max = 1.0f;
-	mWidgets.push_back( &mFreqPanSlider );
+	mSinePanSlider.bounds = sliderRect;
+	mSinePanSlider.title = "Pan (Freq)";
+	mSinePanSlider.min = -1.0f;
+	mSinePanSlider.max = 1.0f;
+	mWidgets.push_back( &mSinePanSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mNoiseVolumeSlider.bounds = sliderRect;
@@ -218,8 +222,8 @@ void BasicTestApp::processDrag( Vec2i pos )
 	if( mMixer ) {
 		if( mNoisePanSlider.hitTest( pos ) )
 			mMixer->setBusPan( Bus::Noise, mNoisePanSlider.valueScaled );
-		if( mFreqPanSlider.hitTest( pos ) )
-			mMixer->setBusPan( Bus::Sine, mFreqPanSlider.valueScaled );
+		if( mSinePanSlider.hitTest( pos ) )
+			mMixer->setBusPan( Bus::Sine, mSinePanSlider.valueScaled );
 		if( mNoiseVolumeSlider.hitTest( pos ) )
 			mMixer->setBusVolume( Bus::Noise, mNoiseVolumeSlider.valueScaled );
 		if( mFreqVolumeSlider.hitTest( pos ) )
@@ -239,13 +243,15 @@ void BasicTestApp::processTap( Vec2i pos )
 
 		mGraph->uninitialize();
 
-		if( mCurrentTest == "sine" )
+		if( mCurrentTest == "sine" ) {
 			setupSine();
-		if( mCurrentTest == "noise" )
+		}
+		if( mCurrentTest == "noise" ) {
 			setupNoise();
-		if( mCurrentTest == "mixer" )
+		}
+		if( mCurrentTest == "mixer" ) {
 			setupMixer();
-
+		}
 		initGraph();
 
 		if( running )
