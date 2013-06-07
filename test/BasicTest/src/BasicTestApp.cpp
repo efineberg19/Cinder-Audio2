@@ -29,11 +29,6 @@ class BasicTestApp : public AppNative {
 public:
 	void prepareSettings( Settings *settings );
 	void setup();
-	void keyDown( KeyEvent event );
-	void touchesBegan( TouchEvent event ) override;
-	void touchesMoved( TouchEvent event ) override;
-	void mouseDown( MouseEvent event ) override;
-	void mouseDrag( MouseEvent event ) override;
 	void update();
 	void draw();
 
@@ -195,11 +190,15 @@ void BasicTestApp::setupUI()
 		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::Sine ) );
 	}
 
-	gl::enableAlphaBlending();
-}
+	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
+	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
+	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
+	getWindow()->getSignalTouchesMoved().connect( [this] ( TouchEvent &event ) {
+		for( const TouchEvent::Touch &touch : getActiveTouches() )
+			processDrag( touch.getPos() );
+	} );
 
-void BasicTestApp::keyDown( KeyEvent event )
-{
+	gl::enableAlphaBlending();
 }
 
 void BasicTestApp::processDrag( Vec2i pos )
@@ -222,28 +221,6 @@ void BasicTestApp::processTap( Vec2i pos )
 		toggleGraph();
 	if( mTestSelector.hitTest( pos ) ) {
 		LOG_V << "selected: " << mTestSelector.currentSection() << endl;
-	}
-}
-
-void BasicTestApp::mouseDown( MouseEvent event )
-{
-	processTap( event.getPos() );
-}
-
-void BasicTestApp::mouseDrag( MouseEvent event )
-{
-	processDrag( event.getPos() );
-}
-
-void BasicTestApp::touchesBegan( TouchEvent event )
-{
-	processTap( event.getTouches().front().getPos() );
-}
-
-void BasicTestApp::touchesMoved( TouchEvent event )
-{
-	for( const TouchEvent::Touch &touch : getActiveTouches() ) {
-		processDrag( touch.getPos() );
 	}
 }
 
