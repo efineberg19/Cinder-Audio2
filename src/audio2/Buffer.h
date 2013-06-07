@@ -85,11 +85,15 @@ private:
 template<typename T>
 inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *interleaved )
 {
-	CI_ASSERT( nonInterleaved->getSize() == interleaved->getSize() );
+	CI_ASSERT( interleaved->getNumChannels() == 2 && nonInterleaved->getNumChannels() == 2 );
+	CI_ASSERT( interleaved->getSize() <= nonInterleaved->getSize() );
 
 	size_t numFrames = interleaved->getNumFrames();
+//	T *left = nonInterleaved->getChannel( 0 ); // ???: doesn't compile?
+//	T *right = &nonInterleaved->getChannel( 1 );
 	T *left = nonInterleaved->getData();
-	T *right = &nonInterleaved->getData()[numFrames];
+	T *right = &nonInterleaved->getData()[nonInterleaved->getNumFrames()];
+
 	T *mixed = interleaved->getData();
 
 	size_t i, j;
@@ -102,9 +106,10 @@ inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *inte
 template<typename T>
 inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonInterleaved )
 {
-	CI_ASSERT( nonInterleaved->getSize() == interleaved->getSize() );
+	CI_ASSERT( interleaved->getNumChannels() == 2 && nonInterleaved->getNumChannels() == 2 );
+	CI_ASSERT( nonInterleaved->getSize() <= interleaved->getSize() );
 
-	size_t numFrames = interleaved->getNumFrames();
+	size_t numFrames = nonInterleaved->getNumFrames();
 	T *left = nonInterleaved->getData();
 	T *right = &nonInterleaved->getData()[numFrames];
 	T *mixed = interleaved->getData();
