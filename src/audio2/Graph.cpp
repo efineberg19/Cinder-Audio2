@@ -78,6 +78,7 @@ NodeRef MixerNode::connect( NodeRef source, size_t bus )
 	return source;
 }
 
+// TODO: bufferSize is ambigious, rename to numFrames
 TapNode::TapNode( size_t bufferSize )
 : Node(), mBufferSize( bufferSize )
 {
@@ -93,7 +94,7 @@ TapNode::~TapNode()
 // - methinks it requires all nodes to be able to keep a blocksize
 void TapNode::initialize()
 {
-	mCopiedBuffer = Buffer( mFormat.getNumChannels(), mFormat.getSampleRate(), Buffer::Format::NonInterleaved );
+	mCopiedBuffer = Buffer( mFormat.getNumChannels(), mBufferSize, Buffer::Format::NonInterleaved );
 	for( size_t ch = 0; ch < mFormat.getNumChannels(); ch++ ) {
 		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mBufferSize ) ) );
 	}

@@ -37,14 +37,18 @@ public:
 	}
 
 	// TODO: getChannel(), in this form is bad news for interleaved data. options:
-	// - implicitly de-interleave and change the format
+	// - implicitly de-interleave and change the format (call asFormat( fmt ) )
 	// - if interleaved, return null.
 	//		- afb suggestion: variant called getChannelIter - result knows how to iterate over interleaved samples 
 	T* getChannel( size_t ch ) {
 		CI_ASSERT( mFormat == NonInterleaved );
 		CI_ASSERT( ch < mNumChannels );
-//		asFormat( NonInterleaved );
+		return &mData[ch * mNumFrames];
+	}
 
+	const T* getChannel( size_t ch ) const {
+		CI_ASSERT( mFormat == NonInterleaved );
+		CI_ASSERT( ch < mNumChannels );
 		return &mData[ch * mNumFrames];
 	}
 

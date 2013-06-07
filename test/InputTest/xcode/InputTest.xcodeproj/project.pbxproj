@@ -39,6 +39,7 @@
 		11D679E11759755500E96E0D /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dsp.h; path = ../../../src/audio2/Dsp.h; sourceTree = "<group>"; };
 		11D679E21759755500E96E0D /* EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffectNode.h; path = ../../../src/audio2/EffectNode.h; sourceTree = "<group>"; };
 		11D679E31759755500E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GeneratorNode.h; path = ../../../src/audio2/GeneratorNode.h; sourceTree = "<group>"; };
+		143C2533176229570063DFDA /* Buffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Buffer.h; path = ../../../src/audio2/Buffer.h; sourceTree = "<group>"; };
 		1465A93ABECD437096A13581 /* assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = assert.h; path = ../../../src/audio2/assert.h; sourceTree = "<group>"; };
 		1A89F4E0C10941EEB856C672 /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../resources/CinderApp.icns; sourceTree = "<group>"; };
 		28B898AF66D64C9296C04BB7 /* InputTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = InputTest_Prefix.pch; sourceTree = "<group>"; };
@@ -185,14 +186,15 @@
 		3188D7627EA7402497EB1E01 /* audio2 */ = {
 			isa = PBXGroup;
 			children = (
+				9A8101F3A473433C9936B32D /* cocoa */,
 				11D679E11759755500E96E0D /* Dsp.h */,
 				11D679E21759755500E96E0D /* EffectNode.h */,
 				11D679E31759755500E96E0D /* GeneratorNode.h */,
-				9A8101F3A473433C9936B32D /* cocoa */,
 				1465A93ABECD437096A13581 /* assert.h */,
 				C96F9E48DD834E118A4032B6 /* Atomic.h */,
 				C0A0CDEBD3A54619A74D5968 /* audio.cpp */,
 				A9C9ABB1B03F4036821CC452 /* audio.h */,
+				143C2533176229570063DFDA /* Buffer.h */,
 				3A36401BFF9A4E1A81CCE2D3 /* Debug.h */,
 				FF58BC8C9FBE423E8DCAC6B9 /* Device.cpp */,
 				DDA5CBAA128D4E65BB8DC3FA /* Device.h */,

@@ -49,7 +49,6 @@ public:
 	Button mPlayButton;
 	VSelector mTestSelector;
 	HSlider mNoisePanSlider, mSinePanSlider, mNoiseVolumeSlider, mFreqVolumeSlider;
-	string mCurrentTest;
 
 	enum Bus { Noise, Sine };
 };
@@ -176,7 +175,6 @@ void BasicTestApp::setupUI()
 
 	mTestSelector.segments = { "sine", "noise", "mixer" };
 	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
-	mCurrentTest = mTestSelector.currentSection();
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
@@ -235,21 +233,22 @@ void BasicTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		toggleGraph();
-	if( mTestSelector.hitTest( pos ) && mCurrentTest != mTestSelector.currentSection() ) {
-		mCurrentTest = mTestSelector.currentSection();
-		LOG_V << "selected: " << mCurrentTest << endl;
+
+	size_t currentIndex = mTestSelector.currentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
+		string currentTest = mTestSelector.currentSection();
+		LOG_V << "selected: " << currentTest << endl;
 
 		bool running = mGraph->isRunning();
-
 		mGraph->uninitialize();
 
-		if( mCurrentTest == "sine" ) {
+		if( currentTest == "sine" ) {
 			setupSine();
 		}
-		if( mCurrentTest == "noise" ) {
+		if( currentTest == "noise" ) {
 			setupNoise();
 		}
-		if( mCurrentTest == "mixer" ) {
+		if( currentTest == "mixer" ) {
 			setupMixer();
 		}
 		initGraph();
