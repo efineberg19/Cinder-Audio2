@@ -157,8 +157,8 @@ class Graph {
 	virtual void start();
 	virtual void stop();
 
-	// TODO: add isInitialized()
-	bool isRunning() const	{ return mRunning; }
+	bool isInitialized() const	{ return mInitialized; }
+	bool isRunning() const		{ return mRunning; }
 
   protected:
 	Graph() : mInitialized( false ), mRunning( false ) {}
