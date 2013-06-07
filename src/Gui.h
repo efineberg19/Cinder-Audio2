@@ -1,14 +1,25 @@
+// note: this minimal gui set is not meant to be reusable beyond the scope of cinder's audio tests.
+
 #pragma once
 
 #include "cinder/gl/gl.h"
 #include <boost/format.hpp>
 
+#include <vector>
+
 #define FONT_SIZE 22
 
 using namespace ci;
 
+struct TestWidget {
+	virtual void draw() {}
 
-struct Button {
+	Rectf bounds;
+	ColorA backgroundColor;
+	Font font;
+};
+
+struct Button : public TestWidget {
 	Button( bool isToggle = false, const std::string& titleNormal = "", const std::string& titleEnabled = "" )
 	: isToggle( isToggle ), titleNormal( titleNormal ), titleEnabled( titleEnabled )
 	{
@@ -33,9 +44,9 @@ struct Button {
 	}
 
 	void draw() {
-		if( ! font ) {
+		if( ! font )
 			font = Font( Font::getDefault().getName(), FONT_SIZE );
-		}
+
 		gl::color( backgroundColor );
 		gl::drawSolidRoundedRect( bounds, 4 );
 
@@ -43,14 +54,12 @@ struct Button {
 		gl::drawStringCentered( title, bounds.getCenter(), textColor, font );
 	}
 
-	Rectf bounds;
-	ColorA backgroundColor, textColor;
+	ColorA textColor;
 	std::string titleNormal, titleEnabled;
-	Font font;
 	bool enabled, isToggle;
 };
 
-struct HSlider {
+struct HSlider : public TestWidget {
 	HSlider() {
 		value = valueScaled = 0.0f;
 		min = 0.0f;
@@ -75,7 +84,6 @@ struct HSlider {
 	}
 
 	void draw() {
-
 		gl::color( backgroundColor );
 		gl::drawSolidRect( bounds );
 
@@ -97,8 +105,57 @@ struct HSlider {
 	}
 
 	float value, valueScaled, min, max;
-	Rectf bounds;
-	ColorA backgroundColor, textColor, valueColor;
+	ColorA textColor, valueColor;
 	std::string title;
-	Font font;
+};
+
+struct VSelector : public TestWidget {
+	VSelector() {
+		currentSectionIndex = 0;
+		backgroundColor = ColorA( 0.0f, 0.0f , 1.0f, 0.3f );
+		selectedColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
+		unselectedColor = ColorA::gray( 0.5 );
+	}
+
+	bool hitTest( const Vec2i &pos ) {
+		bool b = bounds.contains( pos );
+		if( b ) {
+			int offset = pos.y - bounds.y1;
+			int sectionHeight = bounds.getHeight() / segments.size();
+			currentSectionIndex = offset / sectionHeight;
+		}
+		return b;
+	}
+
+	const std::string& currentSection() const	{ return segments[currentSectionIndex]; }
+
+	void draw() {
+		if( ! font )
+			font = Font( Font::getDefault().getName(), FONT_SIZE );
+		
+		gl::color( backgroundColor );
+		gl::drawSolidRect( bounds );
+
+		float sectionHeight = bounds.getHeight() / segments.size();
+		Rectf section( bounds.x1, bounds.y1, bounds.x2, bounds.y1 + sectionHeight );
+		gl::color( unselectedColor );
+		for( size_t i = 0; i < segments.size(); i++ ) {
+			if( i != currentSectionIndex ) {
+				gl::drawStrokedRect( section );
+				gl::drawStringCentered( segments[i], section.getCenter(), unselectedColor, font );
+			}
+			section += Vec2f( 0.0f, sectionHeight );
+		}
+
+		gl::color( selectedColor );
+
+		section.y1 = currentSectionIndex * sectionHeight;
+		section.y2 = section.y1 + sectionHeight;
+		gl::drawStrokedRect( section );
+		gl::drawStringCentered( segments[currentSectionIndex], section.getCenter(), selectedColor, font );
+	}
+
+	std::vector<std::string> segments;
+	ColorA selectedColor, unselectedColor;
+	size_t currentSectionIndex;
 };

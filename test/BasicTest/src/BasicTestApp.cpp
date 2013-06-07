@@ -42,12 +42,15 @@ public:
 	void toggleGraph();
 
 	void setupUI();
-	void processEvent( Vec2i pos );
+	void processDrag( Vec2i pos );
+	void processTap( Vec2i pos );
 
 	GraphRef mGraph;
 	MixerNodeRef mMixer;
 
+	vector<TestWidget *> mWidgets;
 	Button mPlayButton;
+	VSelector mTestSelector;
 	HSlider mNoisePanSlider, mFreqPanSlider, mNoiseVolumeSlider, mFreqVolumeSlider; // TODO: rename Freq to Sine
 
 	enum Bus { Noise, Sine };
@@ -152,6 +155,11 @@ void BasicTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+	mWidgets.push_back( &mPlayButton );
+
+	mTestSelector.segments = { "basic", "mixer" };
+	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
@@ -159,22 +167,26 @@ void BasicTestApp::setupUI()
 	mNoisePanSlider.title = "Pan (Noise)";
 	mNoisePanSlider.min = -1.0f;
 	mNoisePanSlider.max = 1.0f;
+	mWidgets.push_back( &mNoisePanSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mFreqPanSlider.bounds = sliderRect;
 	mFreqPanSlider.title = "Pan (Freq)";
 	mFreqPanSlider.min = -1.0f;
 	mFreqPanSlider.max = 1.0f;
+	mWidgets.push_back( &mFreqPanSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mNoiseVolumeSlider.bounds = sliderRect;
 	mNoiseVolumeSlider.title = "Volume (Noise)";
 	mNoiseVolumeSlider.max = 1.0f;
+	mWidgets.push_back( &mNoiseVolumeSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mFreqVolumeSlider.bounds = sliderRect;
 	mFreqVolumeSlider.title = "Volume (Freq)";
 	mFreqVolumeSlider.max = 1.0f;
+	mWidgets.push_back( &mFreqVolumeSlider );
 
 	if( mMixer ) {
 		mNoisePanSlider.set( mMixer->getBusPan( Bus::Noise ) );
@@ -190,7 +202,7 @@ void BasicTestApp::keyDown( KeyEvent event )
 {
 }
 
-void BasicTestApp::processEvent( Vec2i pos )
+void BasicTestApp::processDrag( Vec2i pos )
 {
 	if( mMixer ) {
 		if( mNoisePanSlider.hitTest( pos ) )
@@ -204,27 +216,34 @@ void BasicTestApp::processEvent( Vec2i pos )
 	}
 }
 
+void BasicTestApp::processTap( Vec2i pos )
+{
+	if( mPlayButton.hitTest( pos ) )
+		toggleGraph();
+	if( mTestSelector.hitTest( pos ) ) {
+		LOG_V << "selected: " << mTestSelector.currentSection() << endl;
+	}
+}
+
 void BasicTestApp::mouseDown( MouseEvent event )
 {
-	if( mPlayButton.hitTest( event.getPos() ) )
-		toggleGraph();
+	processTap( event.getPos() );
 }
 
 void BasicTestApp::mouseDrag( MouseEvent event )
 {
-	processEvent( event.getPos() );
+	processDrag( event.getPos() );
 }
 
 void BasicTestApp::touchesBegan( TouchEvent event )
 {
-	if( mPlayButton.hitTest( event.getTouches().front().getPos() ) )
-		toggleGraph();
+	processTap( event.getTouches().front().getPos() );
 }
 
 void BasicTestApp::touchesMoved( TouchEvent event )
 {
 	for( const TouchEvent::Touch &touch : getActiveTouches() ) {
-		processEvent( touch.getPos() );
+		processDrag( touch.getPos() );
 	}
 }
 
@@ -236,11 +255,8 @@ void BasicTestApp::draw()
 {
 	gl::clear();
 
-	mPlayButton.draw();
-	mNoisePanSlider.draw();
-	mFreqPanSlider.draw();
-	mNoiseVolumeSlider.draw();
-	mFreqVolumeSlider.draw();
+	for( auto w : mWidgets )
+		w->draw();
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )
