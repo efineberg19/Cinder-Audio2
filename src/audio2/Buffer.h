@@ -89,10 +89,8 @@ inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *inte
 	CI_ASSERT( interleaved->getSize() <= nonInterleaved->getSize() );
 
 	size_t numFrames = interleaved->getNumFrames();
-//	T *left = nonInterleaved->getChannel( 0 ); // ???: doesn't compile?
-//	T *right = &nonInterleaved->getChannel( 1 );
-	T *left = nonInterleaved->getData();
-	T *right = &nonInterleaved->getData()[nonInterleaved->getNumFrames()];
+	T *left = nonInterleaved->getChannel( 0 );
+	T *right = nonInterleaved->getChannel( 1 );
 
 	T *mixed = interleaved->getData();
 
@@ -110,8 +108,8 @@ inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonIn
 	CI_ASSERT( nonInterleaved->getSize() <= interleaved->getSize() );
 
 	size_t numFrames = nonInterleaved->getNumFrames();
-	T *left = nonInterleaved->getData();
-	T *right = &nonInterleaved->getData()[numFrames];
+	T *left = nonInterleaved->getChannel( 0 );
+	T *right = nonInterleaved->getChannel( 1 );
 	T *mixed = interleaved->getData();
 
 	size_t i, j;
