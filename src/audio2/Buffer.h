@@ -36,6 +36,10 @@ public:
 		mData.resize( numChannels * numFrames );
 	}
 
+	// TODO: getChannel(), in this form is bad news for interleaved data. options:
+	// - implicitly de-interleave and change the format
+	// - if interleaved, return null.
+	//		- afb suggestion: variant called getChannelIter - result knows how to iterate over interleaved samples 
 	T* getChannel( size_t ch ) {
 		CI_ASSERT( mFormat == NonInterleaved );
 		CI_ASSERT( ch < mNumChannels );
