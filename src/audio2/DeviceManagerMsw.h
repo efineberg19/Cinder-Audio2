@@ -8,7 +8,7 @@ struct IMMDevice;
 
 namespace audio2 {
 
-// TODO: rename this DeviceManagerWasapi ?
+// TODO: rename this DeviceManagerWasapi
 //	- this one requires Wasapi, as such XP is a no-go
 //  - but this also creates xaudio output
 //  - should have another device manager for xp that just uses XAudio

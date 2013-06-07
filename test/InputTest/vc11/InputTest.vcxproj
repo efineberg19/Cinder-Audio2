@@ -120,6 +120,7 @@
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Graph.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\audio2\Buffer.h" />
     <ClInclude Include="..\..\..\src\audio2\DeviceInputWasapi.h" />
     <ClInclude Include="..\..\..\src\audio2\DeviceManagerMsw.h" />
     <ClInclude Include="..\..\..\src\audio2\DeviceOutputXAudio.h" />

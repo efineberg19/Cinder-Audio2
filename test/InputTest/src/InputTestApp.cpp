@@ -127,7 +127,10 @@ void InputTestApp::setupUI()
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 
-	mTestSelector.segments = { "pass through", "in tap out", "in process out", "in tap process out" };
+	mTestSelector.segments.push_back( "pass through" );
+	mTestSelector.segments.push_back( "in tap out" );
+	mTestSelector.segments.push_back( "in process out" );
+	mTestSelector.segments.push_back( "in tap process out" );
 	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 	mTestSelector.currentSectionIndex = 1;
 

@@ -143,7 +143,7 @@ void InputWasapi::initialize()
 	mCaptureBlockSize = numFrames;
 	mImpl->initCapture( numFrames, mFormat.getNumChannels() );
 
-	mInterleavedBuffer = Buffer( numFrames, mFormat.getNumChannels(), Buffer::Format::Interleaved );
+	mInterleavedBuffer = Buffer( mFormat.getNumChannels(), numFrames, Buffer::Format::Interleaved );
 	
 	LOG_V << "numFrames: " << numFrames << ", buffer size: " << mInterleavedBuffer.getSize() << ", actual duration: " << captureDurationMs << "ms" << endl;
 
