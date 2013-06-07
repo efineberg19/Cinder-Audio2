@@ -31,7 +31,7 @@ public:
 	typedef T SampleType;
 	enum Format { Interleaved, NonInterleaved };
 
-	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::Interleaved ) : mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat )
+	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::NonInterleaved ) : mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat )
 	{
 		mData.resize( numChannels * numFrames );
 	}
