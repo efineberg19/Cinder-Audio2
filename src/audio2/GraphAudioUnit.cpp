@@ -299,7 +299,7 @@ void EffectAudioUnit::initialize()
 void EffectAudioUnit::uninitialize()
 {
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
-	CI_ASSERT( status );
+	CI_ASSERT( status == noErr );
 }
 
 void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
