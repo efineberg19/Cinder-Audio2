@@ -173,7 +173,9 @@ void BasicTestApp::setupUI()
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mPlayButton );
 
-	mTestSelector.segments = { "sine", "noise", "mixer" };
+	mTestSelector.segments.push_back( "sine" );
+	mTestSelector.segments.push_back( "noise" );
+	mTestSelector.segments.push_back( "mixer" );
 	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 

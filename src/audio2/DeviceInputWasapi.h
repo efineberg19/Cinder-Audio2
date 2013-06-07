@@ -40,14 +40,14 @@ class InputWasapi : public InputNode {
 
 	DeviceRef getDevice() override;
 
-	void render( BufferT *buffer ) override;
+	void render( Buffer *buffer ) override;
 
   private:
 
 	struct Impl;
 	std::unique_ptr<Impl> mImpl;
 	std::shared_ptr<DeviceInputWasapi> mDevice;
-	ChannelT mInterleavedBuffer;
+	Buffer mInterleavedBuffer;
 
 	size_t mCaptureBlockSize; // per channel. TODO: this should be user settable
 };

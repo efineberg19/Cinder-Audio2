@@ -169,21 +169,19 @@ void SourceVoiceXAudio::initialize()
 	// TODO: consider whether this should handle higher channel counts, or disallow in graph configure / node format
 	CI_ASSERT( mFormat.getNumChannels() <= 2 ); 
 
-	mBuffer.resize(  mFormat.getNumChannels() );
-	for( auto& channel : mBuffer )
-		channel.resize( 512 );
-
-	size_t numSamples = mBuffer.size() * mBuffer[0].size();
+	mBuffer = Buffer( mFormat.getNumChannels(), 512 );
+	
+	size_t numSamples = mBuffer.getSize();
 
 	memset( &mXAudio2Buffer, 0, sizeof( mXAudio2Buffer ) );
 	mXAudio2Buffer.AudioBytes = numSamples * sizeof( float );
 	if( mFormat.getNumChannels() == 2 ) {
 		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
-		mBufferInterleaved.resize( numSamples );
-		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.data() );
+		mBufferInterleaved = Buffer( mBuffer.getNumChannels(), mBuffer.getNumFrames(), Buffer::Format::Interleaved );
+		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.getData() );
 	} else {
 		// setup mono
-		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>(  mBuffer[0].data() );
+		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>(  mBuffer.getData() );
 	}
 
 	auto wfx = msw::interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );

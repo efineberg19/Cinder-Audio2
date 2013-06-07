@@ -1,6 +1,7 @@
 #pragma once
 
 #include "audio2/Graph.h"
+#include "audio2/Buffer.h"
 #include "audio2/EffectNode.h"
 #include "audio2/msw/xaudio.h"
 #include "audio2/msw/util.h"
@@ -91,8 +92,7 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	::IXAudio2SourceVoice						*mSourceVoice;
 	::XAUDIO2_BUFFER							mXAudio2Buffer;
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-	BufferT										mBuffer;
-	ChannelT									mBufferInterleaved;
+	Buffer										mBuffer, mBufferInterleaved;
 	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
 	bool										mIsRunning;
 };

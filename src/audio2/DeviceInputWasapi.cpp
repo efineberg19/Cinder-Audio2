@@ -143,10 +143,9 @@ void InputWasapi::initialize()
 	mCaptureBlockSize = numFrames;
 	mImpl->initCapture( numFrames, mFormat.getNumChannels() );
 
-	size_t bufferSize = numFrames * mFormat.getNumChannels();
-	mInterleavedBuffer.resize( bufferSize );
+	mInterleavedBuffer = Buffer( numFrames, mFormat.getNumChannels(), Buffer::Format::Interleaved );
 	
-	LOG_V << "numFrames: " << numFrames << ", buffer size: " << bufferSize << ", actual duration: " << captureDurationMs << "ms" << endl;
+	LOG_V << "numFrames: " << numFrames << ", buffer size: " << mInterleavedBuffer.getSize() << ", actual duration: " << captureDurationMs << "ms" << endl;
 
 	mInitialized = true;
 	LOG_V << "complete." << endl;
@@ -196,23 +195,23 @@ DeviceRef InputWasapi::getDevice()
 }
 
 // TODO: decide what to do when there is a buffer under/over run. LOG_V / app::console() is not thread-safe..
-void InputWasapi::render( BufferT *buffer )
+void InputWasapi::render( Buffer *buffer )
 {
 	mImpl->captureAudio();
 
-	size_t samplesNeeded = buffer->size() * buffer->at( 0 ).size();
+	size_t samplesNeeded = buffer->getSize();
 	if( mImpl->mNumSamplesBuffered < samplesNeeded ) {
 		//LOG_V << "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered << endl;
 		return;
 	}
 
-	if( buffer->size() == 2 ) {
-		size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.data(), samplesNeeded );
+	if( buffer->getNumChannels() == 2 ) {
+		size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.getData(), samplesNeeded );
 		CI_ASSERT( numRead == samplesNeeded );
 
 		deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
 	} else {
-		size_t numRead = mImpl->mRingBuffer->read( buffer->at( 0 ).data(), samplesNeeded );
+		size_t numRead = mImpl->mRingBuffer->read( buffer->getData(), samplesNeeded );
 		CI_ASSERT( numRead == samplesNeeded );
 	}
 
