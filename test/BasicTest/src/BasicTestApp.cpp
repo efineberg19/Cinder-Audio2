@@ -17,7 +17,9 @@
 
 
 // FIXME: (msw) mixer crashed on shutdown while dsp was on
-// - I think it is because the buffers aren't flushed 
+// - I think it is because the buffers aren't flushed
+
+// FIXME: (mac) mixer crash on un-init from basic -> mixer -> basic
 
 using namespace ci;
 using namespace ci::app;
@@ -32,8 +34,10 @@ public:
 	void update();
 	void draw();
 
-	void setupBasic();
+	void setupSine();
+	void setupNoise();
 	void setupMixer();
+	void initGraph();
 	void toggleGraph();
 
 	void setupUI();
@@ -47,6 +51,7 @@ public:
 	Button mPlayButton;
 	VSelector mTestSelector;
 	HSlider mNoisePanSlider, mFreqPanSlider, mNoiseVolumeSlider, mFreqVolumeSlider; // TODO: rename Freq to Sine
+	string mCurrentTest;
 
 	enum Bus { Noise, Sine };
 };
@@ -70,48 +75,25 @@ void BasicTestApp::setup()
 	mGraph = Engine::instance()->createGraph();
 	mGraph->setRoot( output );
 
-	//setupBasic();
-	setupMixer();
+	setupSine();
 
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mGraph );
-
-	mGraph->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
-	printGraph( mGraph );
-
-	if( mMixer ) {
-
-		// reduce default bus volumes
-		// FIXME: setting params fails before Graph::initialize(), so there isn't an audio unit yet.
-		//		- can I overcome this by lazy-loading the AudioUnit, just create when first asked for?
-		mMixer->setBusVolume( Bus::Noise, 0.65f );
-		mMixer->setBusVolume( Bus::Sine, 0.65f );
-
-		LOG_V << "mixer stats:" << endl;
-		size_t numBusses = mMixer->getNumBusses();
-		console() << "\t num busses: " << numBusses << endl;
-		for( size_t i = 0; i < numBusses; i++ ) {
-			console() << "\t [" << i << "] enabled: " << boolalpha << mMixer->isBusEnabled( i ) << dec;
-			console() << ", volume: " << mMixer->getBusVolume( i );
-			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
-		}
-	}
-
+	initGraph();
 	setupUI();
 }
 
-void BasicTestApp::setupBasic()
+void BasicTestApp::setupSine()
 {
-	//auto genNode = make_shared<UGenNode<NoiseGen> >();
-	//genNode->mGen.setAmp( 0.2f );
-
 	auto genNode = make_shared<UGenNode<SineGen> >();
 	genNode->mGen.setAmp( 0.2f );
 	genNode->mGen.setFreq( 440.0f );
+
+	mGraph->getRoot()->connect( genNode );
+}
+
+void BasicTestApp::setupNoise()
+{
+	auto genNode = make_shared<UGenNode<NoiseGen> >();
+	genNode->mGen.setAmp( 0.2f );
 
 	mGraph->getRoot()->connect( genNode );
 }
@@ -138,6 +120,42 @@ void BasicTestApp::setupMixer()
 	mGraph->getRoot()->connect( mMixer );
 }
 
+void BasicTestApp::initGraph()
+{
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration: (before)" << endl;
+	printGraph( mGraph );
+
+	mGraph->initialize();
+
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration: (after)" << endl;
+	printGraph( mGraph );
+
+	if( mMixer ) {
+
+		// reduce default bus volumes
+		// FIXME: setting params fails before Graph::initialize(), so there isn't an audio unit yet.
+		//		- can I overcome this by lazy-loading the AudioUnit, just create when first asked for?
+		mMixer->setBusVolume( Bus::Noise, 0.65f );
+		mMixer->setBusVolume( Bus::Sine, 0.65f );
+
+		LOG_V << "mixer stats:" << endl;
+		size_t numBusses = mMixer->getNumBusses();
+		console() << "\t num busses: " << numBusses << endl;
+		for( size_t i = 0; i < numBusses; i++ ) {
+			console() << "\t [" << i << "] enabled: " << boolalpha << mMixer->isBusEnabled( i ) << dec;
+			console() << ", volume: " << mMixer->getBusVolume( i );
+			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
+		}
+
+		mNoisePanSlider.set( mMixer->getBusPan( Bus::Noise ) );
+		mFreqPanSlider.set( mMixer->getBusPan( Bus::Sine ) );
+		mNoiseVolumeSlider.set( mMixer->getBusVolume( Bus::Noise ) );
+		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::Sine ) );
+	}
+}
+
 void BasicTestApp::toggleGraph()
 {
 	if( ! mGraph->isRunning() )
@@ -152,8 +170,9 @@ void BasicTestApp::setupUI()
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mPlayButton );
 
-	mTestSelector.segments = { "basic", "mixer" };
+	mTestSelector.segments = { "sine", "noise", "mixer" };
 	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+	mCurrentTest = mTestSelector.currentSection();
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
@@ -182,13 +201,6 @@ void BasicTestApp::setupUI()
 	mFreqVolumeSlider.title = "Volume (Freq)";
 	mFreqVolumeSlider.max = 1.0f;
 	mWidgets.push_back( &mFreqVolumeSlider );
-
-	if( mMixer ) {
-		mNoisePanSlider.set( mMixer->getBusPan( Bus::Noise ) );
-		mFreqPanSlider.set( mMixer->getBusPan( Bus::Sine ) );
-		mNoiseVolumeSlider.set( mMixer->getBusVolume( Bus::Noise ) );
-		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::Sine ) );
-	}
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -219,8 +231,25 @@ void BasicTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		toggleGraph();
-	if( mTestSelector.hitTest( pos ) ) {
-		LOG_V << "selected: " << mTestSelector.currentSection() << endl;
+	if( mTestSelector.hitTest( pos ) && mCurrentTest != mTestSelector.currentSection() ) {
+		mCurrentTest = mTestSelector.currentSection();
+		LOG_V << "selected: " << mCurrentTest << endl;
+
+		bool running = mGraph->isRunning();
+
+		mGraph->uninitialize();
+
+		if( mCurrentTest == "sine" )
+			setupSine();
+		if( mCurrentTest == "noise" )
+			setupNoise();
+		if( mCurrentTest == "mixer" )
+			setupMixer();
+
+		initGraph();
+
+		if( running )
+			mGraph->start();
 	}
 }
 
