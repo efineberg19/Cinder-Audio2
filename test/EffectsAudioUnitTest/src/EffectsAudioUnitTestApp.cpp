@@ -18,27 +18,25 @@ using namespace audio2;
 class EffectsAudioUnitTestApp : public AppNative {
   public:
 	void setup();
-	void mouseDown( MouseEvent event );	
 	void update();
 	void draw();
-	void mouseDrag( MouseEvent event );
-	void touchesBegan( TouchEvent event );
-	void touchesMoved( TouchEvent event );
-
 
 	void setupOne();
 	void setupTwo();
 	void setupNativeThenGeneric();
 
 	void setupUI();
-	void processEvent( Vec2i pos );
+	void processDrag( Vec2i pos );
+	void processTap( Vec2i pos );
+	void initGraph();
 	void toggleGraph();
 
 	GraphRef mGraph;
 	NodeRef mSource; // ???: can this be GeneratorNodeRef?
 
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
-	
+
+	VSelector mTestSelector;
 	Button mPlayButton;
 	HSlider mLowpassCutoffSlider, mBandpassSlider;
 };
@@ -63,12 +61,8 @@ void EffectsAudioUnitTestApp::setup()
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
+	setupOne();
 
-//	setupOne();
-	setupTwo();
-//	setupNativeThenGeneric();
-
-	
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
 	printGraph( mGraph );
@@ -115,7 +109,7 @@ void EffectsAudioUnitTestApp::setupTwo()
 
 void EffectsAudioUnitTestApp::setupNativeThenGeneric()
 {
-	
+	LOG_V << "TODO: implement test" << endl;
 }
 
 void EffectsAudioUnitTestApp::toggleGraph()
@@ -126,11 +120,26 @@ void EffectsAudioUnitTestApp::toggleGraph()
 		mGraph->stop();
 }
 
+void EffectsAudioUnitTestApp::initGraph()
+{
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration: (before)" << endl;
+	printGraph( mGraph );
+
+	mGraph->initialize();
+
+	LOG_V << "-------------------------" << endl;
+	console() << "Graph configuration: (after)" << endl;
+	printGraph( mGraph );
+}
 
 void EffectsAudioUnitTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+
+	mTestSelector.segments = { "one", "two", "native -> generic" };
+	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
@@ -146,10 +155,18 @@ void EffectsAudioUnitTestApp::setupUI()
 	mBandpassSlider.min = 100.0f;
 	mBandpassSlider.max = 2000.0f;
 
+	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
+	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
+	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
+	getWindow()->getSignalTouchesMoved().connect( [this] ( TouchEvent &event ) {
+		for( const TouchEvent::Touch &touch : getActiveTouches() )
+			processDrag( touch.getPos() );
+	} );
+
 	gl::enableAlphaBlending();
 }
 
-void EffectsAudioUnitTestApp::processEvent( Vec2i pos )
+void EffectsAudioUnitTestApp::processDrag( Vec2i pos )
 {
 	if( mEffect && mLowpassCutoffSlider.hitTest( pos ) )
 		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
@@ -158,27 +175,32 @@ void EffectsAudioUnitTestApp::processEvent( Vec2i pos )
 		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandpassSlider.valueScaled );
 }
 
-void EffectsAudioUnitTestApp::mouseDown( MouseEvent event )
+void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 {
-	if( mPlayButton.hitTest( event.getPos() ) )
+	if( mPlayButton.hitTest( pos ) )
 		toggleGraph();
-}
 
-void EffectsAudioUnitTestApp::mouseDrag( MouseEvent event )
-{
-	processEvent( event.getPos() );
-}
+	size_t currentIndex = mTestSelector.currentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
+		string currentTest = mTestSelector.currentSection();
+		LOG_V << "selected: " << currentTest << endl;
 
-void EffectsAudioUnitTestApp::touchesBegan( TouchEvent event )
-{
-	if( mPlayButton.hitTest( event.getTouches().front().getPos() ) )
-		toggleGraph();
-}
+		bool running = mGraph->isRunning();
+		mGraph->uninitialize();
 
-void EffectsAudioUnitTestApp::touchesMoved( TouchEvent event )
-{
-	for( const TouchEvent::Touch &touch : getActiveTouches() ) {
-		processEvent( touch.getPos() );
+		if( currentTest == "one" ) {
+			setupOne();
+		}
+		if( currentTest == "two" ) {
+			setupTwo();
+		}
+		if( currentTest == "native -> generic" ) {
+			setupNativeThenGeneric();
+		}
+		initGraph();
+
+		if( running )
+			mGraph->start();
 	}
 }
 
@@ -196,6 +218,8 @@ void EffectsAudioUnitTestApp::draw()
 		mLowpassCutoffSlider.draw();
 	if( mEffect2 )
 		mBandpassSlider.draw();
+
+	mTestSelector.draw();
 }
 
 CINDER_APP_NATIVE( EffectsAudioUnitTestApp, RendererGl )
