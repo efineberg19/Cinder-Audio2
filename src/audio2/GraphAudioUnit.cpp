@@ -372,7 +372,7 @@ void MixerAudioUnit::initialize()
 void MixerAudioUnit::uninitialize()
 {
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
-	CI_ASSERT( status );
+	CI_ASSERT( status == noErr );
 }
 
 size_t MixerAudioUnit::getNumBusses()
