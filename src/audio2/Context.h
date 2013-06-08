@@ -157,7 +157,7 @@ class Context {
   public:
 	virtual ~Context();
 
-	virtual ContextRef			createGraph() = 0;
+	virtual ContextRef			createContext() = 0;
 	virtual MixerNodeRef		createMixer() = 0;
 	virtual OutputNodeRef		createOutput( DeviceRef device = Device::getDefaultOutput() ) = 0;
 	virtual InputNodeRef		createInput( DeviceRef device = Device::getDefaultInput() ) = 0;

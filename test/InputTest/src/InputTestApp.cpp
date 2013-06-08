@@ -45,7 +45,7 @@ class InputTestApp : public AppNative {
 
 void InputTestApp::setup()
 {
-	mContext = Context::instance()->createGraph();
+	mContext = Context::instance()->createContext();
 
 	DeviceRef inputDevice = Device::getDefaultInput();
 	DeviceRef outputDevice = Device::getDefaultOutput();

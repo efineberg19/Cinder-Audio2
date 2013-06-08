@@ -9,7 +9,7 @@
 #include "cinder/Utilities.h"
 
 #if defined( CINDER_COCOA )
-#include "audio2/EngineAudioUnit.h"
+#include "audio2/cocoa/ContextAudioUnit.h"
 #elif defined( CINDER_MSW )
 #include "audio2/msw/ContextXAudio.h"
 #endif
@@ -133,7 +133,7 @@ Context* Context::instance()
 	static Context *sInstance = 0;
 	if( ! sInstance ) {
 #if defined( CINDER_COCOA )
-		sInstance = new EngineAudioUnit();
+		sInstance = new cocoa::ContextAudioUnit();
 #elif defined( CINDER_MSW )
 		sInstance = new msw::ContextXAudio();
 #else

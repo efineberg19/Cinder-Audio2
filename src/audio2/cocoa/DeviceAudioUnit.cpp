@@ -1,15 +1,15 @@
-#include "audio2/DeviceAudioUnit.h"
+#include "audio2/cocoa/DeviceAudioUnit.h"
+#include "audio2/cocoa/Util.h"
 #include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
-#include "audio2/cocoa/Util.h"
 
 using namespace std;
 using namespace ci;
 
 // TODO: place all AudioUnit funciton calls in global namespace
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceAudioUnit
@@ -101,4 +101,4 @@ const ::AudioComponentInstance& DeviceAudioUnit::getComponentInstance()
 	return mComponentInstance;
 }
 
-} // namespace audio2
+} } // namespace audio2::cocoa

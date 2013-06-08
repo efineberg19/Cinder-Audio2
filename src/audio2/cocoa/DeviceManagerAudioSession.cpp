@@ -1,5 +1,5 @@
-#include "audio2/DeviceManagerAudioSession.h"
-#include "audio2/DeviceAudioUnit.h"
+#include "audio2/cocoa/DeviceManagerAudioSession.h"
+#include "audio2/cocoa/DeviceAudioUnit.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 const string kRemoteIOKey = "iOS-RemoteIO";
 
@@ -138,4 +138,4 @@ UInt32	DeviceManagerAudioSession::getSessionCategory()
 	return result;
 }
 
-} // namespace audio2
+} } // namespace audio2::cocoa

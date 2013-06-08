@@ -52,7 +52,7 @@ void EffectsAudioUnitTestApp::setup()
 	console() << "\t block size: " << device->getBlockSize() << endl;
 
 	auto output = Engine::instance()->createOutput( device );
-	mGraph = Engine::instance()->createGraph();
+	mGraph = Engine::instance()->createContext();
 	mGraph->setRoot( output );
 
 

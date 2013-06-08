@@ -5,7 +5,7 @@
 #include <CoreAudio/CoreAudio.h>
 #include <vector>
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 class DeviceManagerCoreAudio : public DeviceManager {
 
@@ -39,4 +39,4 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	DeviceContainerT mDevices;
 };
 
-} // audio2
+} } // audio2::cocoa

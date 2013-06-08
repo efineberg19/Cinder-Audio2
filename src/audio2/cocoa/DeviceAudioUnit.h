@@ -3,7 +3,7 @@
 #include "audio2/Device.h"
 #include <AudioUnit/AudioUnit.h>
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit : public Device {
   public:
@@ -23,8 +23,10 @@ class DeviceAudioUnit : public Device {
 	void setInputConnected()	{ mInputConnected = true; }
 	void setOutputConnected()	{ mOutputConnected = true; }
 
-  private:
+	// FIXME: friendship isn't working since moving to namespaceaudio2::cocoa - sort it out, should be protected or private
 	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key ); // TODO: swap these two for consistency
+
+  private:
 
 	::AudioComponentDescription mComponentDescription;
 	::AudioComponentInstance	mComponentInstance;
@@ -38,4 +40,4 @@ class DeviceAudioUnit : public Device {
 #endif
 };
 
-} // namespace audio2
+} } // namespace audio2::cocoa

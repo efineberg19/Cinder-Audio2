@@ -3,7 +3,7 @@
 #include "audio2/audio.h"
 #include "audio2/Device.h"
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
 
@@ -37,4 +37,4 @@ class DeviceManagerAudioSession : public DeviceManager {
 	bool mSessionIsActive;
 };
 
-} // audio2
+} } // audio2::cocoa

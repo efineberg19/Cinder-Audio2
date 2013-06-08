@@ -67,7 +67,7 @@ void EffectXAudioTestApp::setup()
 	console() << "\t block size: " << device->getBlockSize() << endl;
 
 	auto output = Context::instance()->createOutput( device );
-	mContext = Context::instance()->createGraph();
+	mContext = Context::instance()->createContext();
 	mContext->setRoot( output );
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();

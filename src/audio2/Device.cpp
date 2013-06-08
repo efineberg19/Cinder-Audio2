@@ -3,11 +3,11 @@
 #include "audio2/Debug.h"
 
 #if defined( CINDER_COCOA )
-	#include "audio2/DeviceAudioUnit.h"
+	#include "audio2/cocoa/DeviceAudioUnit.h"
 	#if defined( CINDER_MAC )
-		#include "audio2/DeviceManagerCoreAudio.h"
+		#include "audio2/cocoa/DeviceManagerCoreAudio.h"
 	#else
-		#include "audio2/DeviceManagerAudioSession.h"
+		#include "audio2/cocoa/DeviceManagerAudioSession.h"
 	#endif
 #elif defined( CINDER_MSW )
 	#include "audio2/msw/DeviceManagerWasapi.h"
@@ -71,11 +71,11 @@ DeviceManager* DeviceManager::instance()
 	static DeviceManager *sInstance = 0;
 	if( ! sInstance ) {
 #if defined( CINDER_MAC )
-		sInstance = new DeviceManagerCoreAudio();
+		sInstance = new cocoa::DeviceManagerCoreAudio();
 #elif defined( CINDER_COCOA_TOUCH )
-		sInstance = new DeviceManagerAudioSession();
+		sInstance = new cocoa::DeviceManagerAudioSession();
 #elif defined( CINDER_MSW )
-	sInstance = new msw::DeviceManagerWasapi();
+		sInstance = new msw::DeviceManagerWasapi();
 #endif
 	}
 	return sInstance;

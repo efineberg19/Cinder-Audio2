@@ -1,7 +1,7 @@
-#include "audio2/GraphAudioUnit.h"
-#include "audio2/DeviceAudioUnit.h"
-#include "audio2/audio.h"
+#include "audio2/cocoa/ContextAudioUnit.h"
+#include "audio2/cocoa/DeviceAudioUnit.h"
 #include "audio2/cocoa/Util.h"
+#include "audio2/audio.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Audio Unit Helper Functions
@@ -520,15 +520,15 @@ void ConverterAudioUnit::uninitialize()
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - GraphAudioUnit
+// MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-GraphAudioUnit::~GraphAudioUnit()
+ContextAudioUnit::~ContextAudioUnit()
 {
 	
 }
 
-void GraphAudioUnit::initialize()
+void ContextAudioUnit::initialize()
 {
 	if( mInitialized )
 		return;
@@ -548,7 +548,7 @@ void GraphAudioUnit::initialize()
 	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", blocksize: " << blockSize << endl;
 }
 
-void GraphAudioUnit::initNode( NodeRef node )
+void ContextAudioUnit::initNode( NodeRef node )
 {
 	if( ! node )
 		return;
@@ -616,7 +616,7 @@ void GraphAudioUnit::initNode( NodeRef node )
 }
 
 // TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic render()
-void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive )
+void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive )
 {
 	AudioUnitNode *nodeAU = dynamic_cast<AudioUnitNode *>( node.get() );
 	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
@@ -634,7 +634,7 @@ void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context
 	}
 
 	::AURenderCallbackStruct callbackStruct;
-	callbackStruct.inputProc = GraphAudioUnit::renderCallback;
+	callbackStruct.inputProc = ContextAudioUnit::renderCallback;
 	callbackStruct.inputProcRefCon = ( context ? context : &mRenderContext );
 
 	for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
@@ -650,7 +650,7 @@ void GraphAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context
 	}
 }
 
-void GraphAudioUnit::uninitialize()
+void ContextAudioUnit::uninitialize()
 {
 	if( ! mInitialized )
 		return;
@@ -660,7 +660,7 @@ void GraphAudioUnit::uninitialize()
 	mInitialized = false;
 }
 
-void GraphAudioUnit::uninitNode( NodeRef node )
+void ContextAudioUnit::uninitNode( NodeRef node )
 {
 	if( ! node )
 		return;
@@ -671,7 +671,7 @@ void GraphAudioUnit::uninitNode( NodeRef node )
 }
 
 // TODO: try to avoid multiple copies when generic nodes are chained together
-OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus ContextAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *renderContext = static_cast<RenderContext *>( context );
 
@@ -727,4 +727,4 @@ OSStatus GraphAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionF
 	return noErr;
 }
 
-} // namespace audio2
+} } // namespace audio2::cocoa

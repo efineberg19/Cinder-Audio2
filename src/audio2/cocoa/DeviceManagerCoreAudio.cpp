@@ -1,6 +1,6 @@
+#include "audio2/cocoa/DeviceManagerCoreAudio.h"
+#include "audio2/cocoa/DeviceAudioUnit.h"
 #include "audio2/audio.h"
-#include "audio2/DeviceManagerCoreAudio.h"
-#include "audio2/DeviceAudioUnit.h"
 #include "audio2/assert.h"
 
 #include "cinder/cocoa/CinderCocoa.h"
@@ -8,7 +8,7 @@
 using namespace std;
 using namespace ci;
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 // some private helpers, not sure yet how widely useful these are
 AudioObjectPropertyAddress audioObjectProperty( AudioObjectPropertySelector propertySelector, AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
@@ -198,7 +198,7 @@ string audioObjectPropertyString( ::AudioObjectID objectId, ::AudioObjectPropert
 	OSStatus status = ::AudioObjectGetPropertyData( objectId, &property, 0, NULL, &cfStringSize, &resultCF );
 	CI_ASSERT( status == noErr );
 
-	string result = cocoa::convertCfString( resultCF );
+	string result = ci::cocoa::convertCfString( resultCF );
 	CFRelease( resultCF );
 	return result;
 }
@@ -218,4 +218,4 @@ size_t deviceNumChannels( ::AudioObjectID objectId, bool isInput )
 	return numChannels;
 }
 
-} // namespace audio2
+} } // namespace audio2::cocoa

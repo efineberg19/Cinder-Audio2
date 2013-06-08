@@ -50,7 +50,7 @@ void CAFileLoadingTestApp::prepareSettings( Settings *settings )
 
 void CAFileLoadingTestApp::setup()
 {
-	mGraph = Engine::instance()->createGraph();
+	mGraph = Engine::instance()->createContext();
 	OutputNodeRef output = Engine::instance()->createOutput();
 	mGraph->setRoot( output );
 

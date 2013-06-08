@@ -190,7 +190,7 @@ class ContextXAudio : public Context {
   public:
 	virtual ~ContextXAudio();
 
-	virtual ContextRef		createGraph() override	{ return ContextRef( new ContextXAudio() ); }
+	virtual ContextRef		createContext() override	{ return ContextRef( new ContextXAudio() ); }
 	virtual MixerNodeRef	createMixer() override	{ return MixerNodeRef( new MixerXAudio() ); }
 	virtual OutputNodeRef	createOutput( DeviceRef device ) override	{ return OutputNodeRef( new OutputXAudio( device ) ); }
 

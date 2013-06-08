@@ -1,13 +1,14 @@
 #pragma once
 
-#include "audio2/Graph.h"
+#include "audio2/Context.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/EffectNode.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/cocoa/Util.h"
+
 #include <AudioUnit/AudioUnit.h>
 
-namespace audio2 {
+namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
 
@@ -124,12 +125,17 @@ class ConverterAudioUnit : public Node, public AudioUnitNode {
 	Node::Format mSourceFormat;
 	RenderContext mRenderContext;
 
-	friend class GraphAudioUnit;
+	friend class ContextAudioUnit;
 };
 
-class GraphAudioUnit : public Graph {
+class ContextAudioUnit : public Context {
   public:
-	virtual ~GraphAudioUnit();
+	virtual ~ContextAudioUnit();
+
+	virtual ContextRef			createContext() override					{ return ContextRef( new ContextAudioUnit() ); }
+	virtual OutputNodeRef		createOutput( DeviceRef device ) override	{ return OutputNodeRef( new OutputAudioUnit( device ) ); }
+	virtual InputNodeRef		createInput( DeviceRef device ) override	{ return InputNodeRef( new InputAudioUnit( device ) ); }
+	virtual MixerNodeRef		createMixer() override						{ return MixerNodeRef( new MixerAudioUnit() ); }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -144,4 +150,4 @@ class GraphAudioUnit : public Graph {
 	RenderContext mRenderContext;
 };
 
-} // namespace audio2
+} } // namespace audio2::cocoa
