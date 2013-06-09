@@ -12,14 +12,14 @@
 using namespace ci;
 
 struct TestWidget {
-	TestWidget() : hidden( false ) {}
+	TestWidget() : hidden( false ), textIsCentered( true ) {}
 
 	virtual void draw() {}
 
 	Rectf bounds;
 	ColorA backgroundColor;
 	Font font;
-	bool hidden;
+	bool hidden, textIsCentered;
 };
 
 struct Button : public TestWidget {
@@ -59,7 +59,11 @@ struct Button : public TestWidget {
 		gl::drawSolidRoundedRect( bounds, 4 );
 
 		std::string& title = enabled ? titleEnabled : titleNormal;
-		gl::drawStringCentered( title, bounds.getCenter(), textColor, font );
+
+		if( textIsCentered )
+			gl::drawStringCentered( title, bounds.getCenter(), textColor, font );
+		else
+			gl::drawString( title, Vec2f( bounds.x1 + 10.0f, bounds.getCenter().y ), textColor, font );
 	}
 
 	ColorA textColor;
@@ -162,7 +166,10 @@ struct VSelector : public TestWidget {
 		for( size_t i = 0; i < segments.size(); i++ ) {
 			if( i != currentSectionIndex ) {
 				gl::drawStrokedRect( section );
-				gl::drawStringCentered( segments[i], section.getCenter(), unselectedColor, font );
+				if( textIsCentered )
+					gl::drawStringCentered( segments[i], section.getCenter(), unselectedColor, font );
+				else
+					gl::drawString( segments[i], Vec2f( section.x1 + 10.0f, section.getCenter().y ), unselectedColor, font );
 			}
 			section += Vec2f( 0.0f, sectionHeight );
 		}
@@ -172,7 +179,11 @@ struct VSelector : public TestWidget {
 		section.y1 = currentSectionIndex * sectionHeight;
 		section.y2 = section.y1 + sectionHeight;
 		gl::drawStrokedRect( section );
-		gl::drawStringCentered( segments[currentSectionIndex], section.getCenter(), selectedColor, font );
+//		gl::drawStringCentered( segments[currentSectionIndex], section.getCenter(), selectedColor, font );
+		if( textIsCentered )
+			gl::drawStringCentered( segments[currentSectionIndex], section.getCenter(), selectedColor, font );
+		else
+			gl::drawString( segments[currentSectionIndex], Vec2f( section.x1 + 10.0f, section.getCenter().y ), selectedColor, font );
 	}
 
 	std::vector<std::string> segments;

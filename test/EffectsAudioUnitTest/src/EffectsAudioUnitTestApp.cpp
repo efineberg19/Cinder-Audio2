@@ -1,19 +1,23 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/GraphAudioUnit.h"
-#include "audio2/Engine.h"
+#include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/assert.h"
 #include "audio2/Debug.h"
 
+#include "audio2/cocoa/ContextAudioUnit.h"
+
 #include "Gui.h"
+
+// TODO: switching from 2 effects to 1 should disconnect the second effect
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 using namespace audio2;
+using namespace audio2::cocoa;
 
 class EffectsAudioUnitTestApp : public AppNative {
   public:
@@ -28,11 +32,11 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
-	void initGraph();
+	void initContext();
 	void toggleGraph();
 
-	GraphRef mGraph;
-	NodeRef mSource; // ???: can this be GeneratorNodeRef?
+	ContextRef mContext;
+	GeneratorNodeRef mSource;
 
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 
@@ -51,9 +55,9 @@ void EffectsAudioUnitTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t block size: " << device->getBlockSize() << endl;
 
-	auto output = Engine::instance()->createOutput( device );
-	mGraph = Engine::instance()->createContext();
-	mGraph->setRoot( output );
+	auto output = Context::instance()->createOutput( device );
+	mContext = Context::instance()->createContext();
+	mContext->setRoot( output );
 
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();
@@ -63,17 +67,54 @@ void EffectsAudioUnitTestApp::setup()
 
 	setupOne();
 
+	initContext();
+	setupUI();
+}
+
+void EffectsAudioUnitTestApp::setupOne()
+{
+	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+
+	mEffect->connect( mSource );
+	mContext->getRoot()->connect( mEffect );
+}
+
+void EffectsAudioUnitTestApp::setupTwo()
+{
+	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+
+//	mEffect->getFormat().setNumChannels( 2 ); // force stereo
+
+	mEffect->connect( mSource );
+	mEffect2->connect( mEffect );
+	mContext->getRoot()->connect( mEffect2 );
+}
+
+void EffectsAudioUnitTestApp::setupNativeThenGeneric()
+{
+	LOG_V << "TODO: implement test" << endl;
+}
+
+void EffectsAudioUnitTestApp::toggleGraph()
+{
+	if( ! mContext->isRunning() )
+		mContext->start();
+	else
+		mContext->stop();
+}
+
+void EffectsAudioUnitTestApp::initContext()
+{
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
-	printGraph( mGraph );
+	printGraph( mContext );
 
-	mGraph->initialize();
+	mContext->initialize();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (after)" << endl;
-	printGraph( mGraph );
-
-	setupUI();
+	printGraph( mContext );
 
 	if( mEffect ) {
 		mEffect->setParameter( kLowPassParam_CutoffFrequency, 500 );
@@ -87,59 +128,23 @@ void EffectsAudioUnitTestApp::setup()
 	}
 }
 
-void EffectsAudioUnitTestApp::setupOne()
-{
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-
-	mEffect->connect( mSource );
-	mGraph->getRoot()->connect( mEffect );
-}
-
-void EffectsAudioUnitTestApp::setupTwo()
-{
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
-
-//	mEffect->getFormat().setNumChannels( 2 ); // force stereo
-
-	mEffect->connect( mSource );
-	mEffect2->connect( mEffect );
-	mGraph->getRoot()->connect( mEffect2 );
-}
-
-void EffectsAudioUnitTestApp::setupNativeThenGeneric()
-{
-	LOG_V << "TODO: implement test" << endl;
-}
-
-void EffectsAudioUnitTestApp::toggleGraph()
-{
-	if( ! mGraph->isRunning() )
-		mGraph->start();
-	else
-		mGraph->stop();
-}
-
-void EffectsAudioUnitTestApp::initGraph()
-{
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mGraph );
-
-	mGraph->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
-	printGraph( mGraph );
-}
-
 void EffectsAudioUnitTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
-	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+//	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 
 	mTestSelector.segments = { "one", "two", "native -> generic" };
+//	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+
+#if defined( CINDER_COCOA_TOUCH )
+	mPlayButton.bounds = Rectf( 0, 0, 120, 60 );
+	mPlayButton.textIsCentered = false;
+	mTestSelector.bounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.textIsCentered = false;
+#else
+	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+#endif
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
@@ -185,8 +190,8 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mGraph->isRunning();
-		mGraph->uninitialize();
+		bool running = mContext->isRunning();
+		mContext->uninitialize();
 
 		if( currentTest == "one" ) {
 			setupOne();
@@ -197,10 +202,10 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 		if( currentTest == "native -> generic" ) {
 			setupNativeThenGeneric();
 		}
-		initGraph();
+		initContext();
 
 		if( running )
-			mGraph->start();
+			mContext->start();
 	}
 }
 

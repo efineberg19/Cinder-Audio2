@@ -675,6 +675,7 @@ OSStatus ContextAudioUnit::renderCallback( void *context, ::AudioUnitRenderActio
 {
 	RenderContext *renderContext = static_cast<RenderContext *>( context );
 
+	CI_ASSERT( renderContext->currentNode );
 	CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
 	CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.getNumChannels() );
 

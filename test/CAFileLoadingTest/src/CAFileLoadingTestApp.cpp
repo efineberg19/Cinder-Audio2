@@ -2,14 +2,10 @@
 #include "cinder/gl/gl.h"
 #include "cinder/cocoa/CinderCocoa.h"
 
-#include "audio2/GraphAudioUnit.h"
-#include "audio2/Engine.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/audio.h"
 #include "audio2/Debug.h"
 #include "audio2/cocoa/Util.h"
 #include "audio2/Plot.h"
-
-// TODO NEXT: make Buffer class
 
 // TODO finally: play file with custom GeneratorNode
 // - do this in a new test app
@@ -35,9 +31,9 @@ class CAFileLoadingTestApp : public AppNative {
 
 	void printErrorCodes();
 
-	GraphRef mGraph;
+	ContextRef mContext;
 
-	audio2::BufferT mSamples;
+	audio2::Buffer mSamples;
 	size_t mNumChannels, mNumSamples;
 
 	WaveformPlot mWaveformPlot;
@@ -50,9 +46,9 @@ void CAFileLoadingTestApp::prepareSettings( Settings *settings )
 
 void CAFileLoadingTestApp::setup()
 {
-	mGraph = Engine::instance()->createContext();
-	OutputNodeRef output = Engine::instance()->createOutput();
-	mGraph->setRoot( output );
+	mContext = Context::instance()->createContext();
+	OutputNodeRef output = Context::instance()->createOutput();
+	mContext->setRoot( output );
 
 	DataSourceRef dataSource = loadResource( FILE_NAME );
 
@@ -95,17 +91,20 @@ void CAFileLoadingTestApp::setup()
 	UInt32 packetsPerBuffer = outputBufferSize / sizePerPacket;
     int currReadPos = 0;
 
-    mSamples.resize( mNumChannels );
-    for( int i = 0; i < mNumChannels; i++ ) {
-		// added outputBufferSize for the last frame, CoreAudio expects that the entire size of the buffer is valid even if it isn't going to write to it.
-        mSamples[i].resize( numFrames + outputBufferSize );
-    }
+//    mSamples.resize( mNumChannels );
+//    for( int i = 0; i < mNumChannels; i++ ) {
+//        mSamples[i].resize( numFrames + outputBufferSize );
+//    }
+
+	// added outputBufferSize for the last frame, CoreAudio expects that the entire size of the buffer is valid even if it isn't going to write to it.
+	mSamples = audio2::Buffer( mNumChannels, numFrames + outputBufferSize );
 
 	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, outputBufferSize );
 
 	while( true ) {
         for( int i = 0; i < mNumChannels; i++ ) {
-            bufferList->mBuffers[i].mData = &mSamples[i][currReadPos];
+//            bufferList->mBuffers[i].mData = &mSamples[i][currReadPos];
+            bufferList->mBuffers[i].mData = &mSamples.getChannel( i )[currReadPos];
         }
 
 		// read from the extaudiofile
@@ -130,7 +129,7 @@ void CAFileLoadingTestApp::setup()
     }
 
 	LOG_V << "load complete.\n";
-	LOG_V << "num samples per channel: " << mSamples[0].size() << endl;
+//	LOG_V << "num samples per channel: " << mSamples[0].size() << endl;
 
 	mWaveformPlot.load( mSamples, getWindowBounds() );
 }

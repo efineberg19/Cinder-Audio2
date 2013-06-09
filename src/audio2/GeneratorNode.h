@@ -7,10 +7,6 @@
 
 namespace audio2 {
 
-//typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
-//typedef std::shared_ptr<class InputNode> InputNodeRef;
-//typedef std::shared_ptr<class FileInputNode> FileInputNodeRef;
-
 class GeneratorNode : public Node {
 public:
 	GeneratorNode() : Node() {}

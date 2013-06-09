@@ -9,6 +9,10 @@
 
 #include "Gui.h"
 
+// FIXME: (mac) crash on shutdown while audio was running
+// - in ContextAudioUnit::renderCallback(), renderContext->currentNode was null.
+// - may mean calling Context::stop() at shutdown is required, but I hope not.
+
 // TODO: test multiple formats for input
 // - make sure inputs and outputs with different samplerates somehow works correctly (which was default for my win8 laptop)
 
@@ -124,14 +128,22 @@ void InputTestApp::initGraph()
 void InputTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
-	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 
 	mTestSelector.segments.push_back( "pass through" );
 	mTestSelector.segments.push_back( "in tap out" );
 	mTestSelector.segments.push_back( "in process out" );
 	mTestSelector.segments.push_back( "in tap process out" );
-	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 	mTestSelector.currentSectionIndex = 1;
+
+#if defined( CINDER_COCOA_TOUCH )
+	mPlayButton.bounds = Rectf( 0, 0, 120, 60 );
+	mPlayButton.textIsCentered = false;
+	mTestSelector.bounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.textIsCentered = false;
+#else
+	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+#endif
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );

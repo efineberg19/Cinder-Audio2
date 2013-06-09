@@ -169,7 +169,7 @@ void BasicTestApp::setupUI()
 	mTestSelector.segments.push_back( "sine" );
 	mTestSelector.segments.push_back( "noise" );
 	mTestSelector.segments.push_back( "mixer" );
-	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.bounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
