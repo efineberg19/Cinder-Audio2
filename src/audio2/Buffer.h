@@ -75,12 +75,29 @@ public:
 		return mData[n];
 	}
 
-
-private:
+protected:
 	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
 	Format mFormat;
 };
+
+//! SourceBuffer is meant to be read from as a source (Generator)
+template <typename T>
+class SourceBufferT : public BufferT<T> {
+  public:
+
+//	void setNumFrames( size_t numFrames ) {
+//		mNumFrames = numFrames;
+//		mData.resize( mNumFrames * mNumChannels );
+//	}
+
+	void setNumFrames( size_t numFrames ) {
+		BufferT<T>::mNumFrames = numFrames;
+		BufferT<T>::mData.resize( BufferT<T>::mNumFrames * BufferT<T>::mNumChannels );
+	}
+};
+
+
 
 template<typename T>
 inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *interleaved )
@@ -120,5 +137,8 @@ inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonIn
 }
 
 typedef BufferT<float> Buffer;
+typedef SourceBufferT<float> SourceBuffer;
+
+typedef std::shared_ptr<SourceBuffer> SourceBufferRef;
 
 } // namespace audio2
