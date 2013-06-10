@@ -52,9 +52,8 @@ void CAFileLoadingTestApp::setup()
 
 	DataSourceRef dataSource = loadResource( FILE_NAME );
 
-	CFURLRef audioFileUrl = ci::cocoa::createCfUrl( Url( dataSource->getFilePath().string() ) ); // FIXME: broken for .wma sample (check again)
-//	CFStringRef pathString = cocoa::createCfString( sample->getFilePath().string() );
-//  CFURLRef urlRef = CFURLCreateWithFileSystemPath( kCFAllocatorDefault, pathString, kCFURLPOSIXPathStyle, false );
+	Url url( dataSource->getFilePath().string() );
+	CFURLRef audioFileUrl = ci::cocoa::createCfUrl( url );
 
 	ExtAudioFileRef inputFile;
 	OSStatus status = ExtAudioFileOpenURL( audioFileUrl, &inputFile );
@@ -76,8 +75,6 @@ void CAFileLoadingTestApp::setup()
     status = ExtAudioFileGetProperty( inputFile, kExtAudioFileProperty_FileLengthFrames, &propSize, &numFrames );
 	CI_ASSERT( status == noErr );
     LOG_V << "number of frames: " << numFrames << endl;
-//    mNumFrames = numFrames;
-
 
 	AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mNumChannels, 44100 );
 
@@ -91,45 +88,32 @@ void CAFileLoadingTestApp::setup()
 	UInt32 packetsPerBuffer = outputBufferSize / sizePerPacket;
     int currReadPos = 0;
 
-//    mBuffer.resize( mNumChannels );
-//    for( int i = 0; i < mNumChannels; i++ ) {
-//        mBuffer[i].resize( numFrames + outputBufferSize );
-//    }
-
-	// added outputBufferSize for the last frame, CoreAudio expects that the entire size of the buffer is valid even if it isn't going to write to it.
-	mBuffer = audio2::Buffer( mNumChannels, numFrames + outputBufferSize );
-
+	mBuffer = audio2::Buffer( mNumChannels, numFrames );
 	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, outputBufferSize );
 
 	while( true ) {
+		size_t framesLeft = numFrames - currReadPos;
+		if( framesLeft <= 0 ) {
+			LOG_V << "read done, framesLeft: " << framesLeft << endl;
+			break;
+		}
+
+		UInt32 frameCount = std::min( framesLeft, packetsPerBuffer );
+		LOG_V << "frameCount: " << frameCount << endl;
+
         for( int i = 0; i < mNumChannels; i++ ) {
-//            bufferList->mBuffers[i].mData = &mBuffer[i][currReadPos];
+            bufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
             bufferList->mBuffers[i].mData = &mBuffer.getChannel( i )[currReadPos];
         }
 
 		// read from the extaudiofile
-		UInt32 frameCount = packetsPerBuffer;
 		status = ExtAudioFileRead( inputFile, &frameCount, bufferList.get() );
 		CI_ASSERT( status == noErr );
-
-		if ( frameCount == 0 ) {
-			LOG_V << "done reading from file" << endl;
-			break;
-		}
 
         currReadPos += frameCount;
 	}
 
-    // resize the vectors to their actual size if needed.
-//    for( vector<float> &buffer : mBuffer ) {
-//        if( currReadPos != buffer.size() ) {
-//            LOG_V << "resizing buffer from " << buffer.size() << " to " << currReadPos << endl;
-//            buffer.resize( currReadPos );
-//        }
-//    }
-
 	LOG_V << "load complete.\n";
-//	LOG_V << "num samples per channel: " << mBuffer[0].size() << endl;
 
 	mWaveformPlot.load( mBuffer, getWindowBounds() );
 }
