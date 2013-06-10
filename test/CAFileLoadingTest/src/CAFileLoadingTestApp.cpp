@@ -33,7 +33,7 @@ class CAFileLoadingTestApp : public AppNative {
 
 	ContextRef mContext;
 
-	audio2::Buffer mSamples;
+	audio2::Buffer mBuffer;
 	size_t mNumChannels, mNumSamples;
 
 	WaveformPlot mWaveformPlot;
@@ -91,20 +91,20 @@ void CAFileLoadingTestApp::setup()
 	UInt32 packetsPerBuffer = outputBufferSize / sizePerPacket;
     int currReadPos = 0;
 
-//    mSamples.resize( mNumChannels );
+//    mBuffer.resize( mNumChannels );
 //    for( int i = 0; i < mNumChannels; i++ ) {
-//        mSamples[i].resize( numFrames + outputBufferSize );
+//        mBuffer[i].resize( numFrames + outputBufferSize );
 //    }
 
 	// added outputBufferSize for the last frame, CoreAudio expects that the entire size of the buffer is valid even if it isn't going to write to it.
-	mSamples = audio2::Buffer( mNumChannels, numFrames + outputBufferSize );
+	mBuffer = audio2::Buffer( mNumChannels, numFrames + outputBufferSize );
 
 	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, outputBufferSize );
 
 	while( true ) {
         for( int i = 0; i < mNumChannels; i++ ) {
-//            bufferList->mBuffers[i].mData = &mSamples[i][currReadPos];
-            bufferList->mBuffers[i].mData = &mSamples.getChannel( i )[currReadPos];
+//            bufferList->mBuffers[i].mData = &mBuffer[i][currReadPos];
+            bufferList->mBuffers[i].mData = &mBuffer.getChannel( i )[currReadPos];
         }
 
 		// read from the extaudiofile
@@ -121,29 +121,29 @@ void CAFileLoadingTestApp::setup()
 	}
 
     // resize the vectors to their actual size if needed.
-    for( vector<float> &buffer : mSamples ) {
-        if( currReadPos != buffer.size() ) {
-            LOG_V << "resizing buffer from " << buffer.size() << " to " << currReadPos << endl;
-            buffer.resize( currReadPos );
-        }
-    }
+//    for( vector<float> &buffer : mBuffer ) {
+//        if( currReadPos != buffer.size() ) {
+//            LOG_V << "resizing buffer from " << buffer.size() << " to " << currReadPos << endl;
+//            buffer.resize( currReadPos );
+//        }
+//    }
 
 	LOG_V << "load complete.\n";
-//	LOG_V << "num samples per channel: " << mSamples[0].size() << endl;
+//	LOG_V << "num samples per channel: " << mBuffer[0].size() << endl;
 
-	mWaveformPlot.load( mSamples, getWindowBounds() );
+	mWaveformPlot.load( mBuffer, getWindowBounds() );
 }
 
 void CAFileLoadingTestApp::mouseDown( MouseEvent event )
 {
-    int step = mSamples[0].size() / getWindowWidth();
-    float xLoc = event.getX() * step;
+    size_t step = mBuffer.getNumFrames() / getWindowWidth();
+    size_t xLoc = event.getX() * step;
     LOG_V << "samples starting at " << xLoc << ":\n";
     for( int i = 0; i < 100; i++ ) {
         if( mNumChannels == 1 ) {
-            console() << mSamples[0][xLoc + i] << ", ";
+            console() << mBuffer.getChannel( 0 )[xLoc + i] << ", ";
         } else {
-            console() << "[" << mSamples[0][xLoc + i] << ", " << mSamples[1][xLoc + i] << "], ";
+            console() << "[" << mBuffer.getChannel( 0 )[xLoc + i] << ", " << mBuffer.getChannel( 0 )[xLoc + i] << "], ";
         }
     }
     console() << endl;

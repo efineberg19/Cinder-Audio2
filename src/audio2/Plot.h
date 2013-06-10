@@ -1,5 +1,7 @@
 #pragma once
 
+#include "audio2/Buffer.h"
+
 #include "cinder/Vector.h"
 #include "cinder/PolyLine.h"
 #include "cinder/TriMesh.h"
@@ -12,7 +14,10 @@ class Waveform {
   public:
 	enum CalcMode { MinMax, Average };
     Waveform() {}
-    Waveform( const std::vector<float> &samples, const ci::Vec2i &screenDimensions, int pixelsPerVertex = 2, CalcMode mode = MinMax );
+    Waveform( const std::vector<float> &samples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MinMax )	{ load( samples.data(), samples.size(), waveSize, pixelsPerVertex, mode ); }
+    Waveform( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MinMax )	{ load( samples, numSamples, waveSize, pixelsPerVertex, mode ); }
+
+	void load( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MinMax );
 
     const ci::PolyLine2f& getOutline() const	{ return mOutline; }
 	const ci::TriMesh2d& getMesh() const		{ return mMesh; };
@@ -28,8 +33,10 @@ class WaveformPlot {
 public:
 	WaveformPlot()	{}
 
-	void load( const std::vector<float> &channels, const ci::Rectf &bounds, int pixelsPerVertex = 2 );
-	void load( const std::vector<std::vector<float> > &channels, const ci::Rectf &bounds, int pixelsPerVertex = 2 );
+	void load( const std::vector<float> &samples, const ci::Rectf &bounds, size_t pixelsPerVertex = 2 );
+//	void load( const std::vector<std::vector<float> > &channels, const ci::Rectf &bounds, int pixelsPerVertex = 2 );
+
+	void load( const Buffer &buffer, const ci::Rectf &bounds, size_t pixelsPerVertex = 2 );
 
 	const std::vector<Waveform>& getWaveforms() const	{ return mWaveforms; }
 	const ci::Rectf& getBounds() const					{ return mBounds; }
