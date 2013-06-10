@@ -5,16 +5,21 @@
 // TODO: is it worth combining Url streaming into this stuff as one I/O set of base classes?
 
 namespace audio2 {
+	
+typedef std::shared_ptr<class SourceFile> SourceFileRef;
+typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
-	// ???: InputFile / TargetFile?
+// ???: InputFile / TargetFile?
 
-	class SourceFile {
-		SourceFile( ci::DataSourceRef dataSource );
-	};
+class SourceFile {
+  public:
+	SourceFile( ci::DataSourceRef dataSource );
+  private:
+};
 
-	class TargetFile {
+class TargetFile {
 
-	};
+};
 
 
 } // namespace audio2
