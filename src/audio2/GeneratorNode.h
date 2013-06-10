@@ -38,9 +38,9 @@ struct UGenNode : public GeneratorNode {
 		mGen.setSampleRate( mFormat.getSampleRate() );
 	}
 
-	virtual void render( Buffer *buffer ) override {
+	virtual void process( Buffer *buffer ) override {
 		size_t count = buffer->getNumFrames();
-		mGen.render( buffer->getChannel( 0 ), count );
+		mGen.process( buffer->getChannel( 0 ), count );
 		for( size_t ch = 1; ch < buffer->getNumChannels(); ch++ )
 			memcpy( buffer->getChannel( ch ), buffer->getChannel( 0 ), count * sizeof( float ) );
 	}

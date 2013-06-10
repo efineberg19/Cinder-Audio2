@@ -231,7 +231,7 @@ DeviceRef InputAudioUnit::getDevice()
 	return mDevice->getComponentInstance();
 }
 
-void InputAudioUnit::render( Buffer *buffer )
+void InputAudioUnit::process( Buffer *buffer )
 {
 	CI_ASSERT( mRingBuffer );
 
@@ -615,7 +615,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 	connectRenderCallback( node );
 }
 
-// TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic render()
+// TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
 void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive )
 {
 	AudioUnitNode *nodeAU = dynamic_cast<AudioUnitNode *>( node.get() );
@@ -717,7 +717,7 @@ OSStatus ContextAudioUnit::renderCallback( void *context, ::AudioUnitRenderActio
 			}
 		}
 		
-		source->render( &renderContext->buffer );
+		source->process( &renderContext->buffer );
 
 		// now copy samples back to the output buffer
 		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {

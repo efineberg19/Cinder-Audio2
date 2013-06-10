@@ -64,7 +64,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Default implementation returns true if samplerate and numChannels match our format
 	virtual bool supportsSourceFormat( const Format &sourceFormat ) const;
 
-	virtual void render( Buffer *buffer )	{}
+	virtual void process( Buffer *buffer )	{}
 
 	std::vector<NodeRef>& getSources()			{ return mSources; }
 	NodeRef getParent()							{ return mParent.lock(); }
@@ -130,7 +130,7 @@ class TapNode : public Node {
 	const Buffer& getBuffer();
 
 	virtual void initialize() override;
-	virtual void render( Buffer *buffer ) override;
+	virtual void process( Buffer *buffer ) override;
 
   private:
 	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: make this one continuous buffer so it better matches audio::Buffer

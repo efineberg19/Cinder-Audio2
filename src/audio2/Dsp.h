@@ -16,9 +16,9 @@ struct UGen {
 	virtual void setSampleRate( size_t sr )	{ mSampleRate = sr; }
 	virtual size_t getSampleRate() const	{ return mSampleRate; }
 
-	virtual void render( float *channel, size_t count ) {}
+	virtual void process( float *channel, size_t count ) {}
 
-	void render( std::vector<float> *channel )	{ render( channel->data(), channel->size() ); }
+	void process( std::vector<float> *channel )	{ process( channel->data(), channel->size() ); }
 
   protected:
 	size_t mSampleRate;
@@ -29,8 +29,8 @@ struct NoiseGen : public UGen {
 
 	void setAmp( float amp )	{ mAmp = amp; }
 
-	using UGen::render;
-	void render( float *channel, size_t count ) override {
+	using UGen::process;
+	void process( float *channel, size_t count ) override {
 		float amp = mAmp;
 		for( size_t i = 0; i < count; i++ )
 			channel[i] = ci::randFloat( -amp, amp );
@@ -48,8 +48,8 @@ struct SineGen : public UGen {
 	void setFreq( float freq )		{ mFreq = freq; computePhaseIncr(); }
 	void setAmp( float amp )		{ mAmp = amp; }
 
-	using UGen::render;
-	void render( float *channel, size_t count ) override {
+	using UGen::process;
+	void process( float *channel, size_t count ) override {
 		float amp = mAmp;
 		for( size_t i = 0; i < count; i++ ) {
 			channel[i] = std::sin( mPhase ) * amp;

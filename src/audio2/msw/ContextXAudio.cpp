@@ -240,7 +240,7 @@ void SourceVoiceXAudio::renderNode( NodeRef node )
 	if( ! node->getSources().empty() )
 		renderNode( node->getSources()[0] );
 
-	node->render( &mBuffer );
+	node->process( &mBuffer );
 }
 
 // ----------------------------------------------------------------------------------------------------

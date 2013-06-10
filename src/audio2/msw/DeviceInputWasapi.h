@@ -40,7 +40,7 @@ class InputWasapi : public InputNode {
 
 	DeviceRef getDevice() override;
 
-	void render( Buffer *buffer ) override;
+	void process( Buffer *buffer ) override;
 
   private:
 

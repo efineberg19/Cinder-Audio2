@@ -24,11 +24,11 @@ namespace audio2 {
 			mSineGen.setSampleRate( mFormat.getSampleRate() );
 		}
 
-		virtual void render( Buffer *buffer ) override {
+		virtual void process( Buffer *buffer ) override {
 			size_t numFrames = buffer->getNumFrames();
 			if( mSineBuffer.size() < numFrames )
 				mSineBuffer.resize( numFrames );
-			mSineGen.render( &mSineBuffer );
+			mSineGen.process( &mSineBuffer );
 
 			for ( size_t c = 0; c < buffer->getNumChannels(); c++ ) {
 				float *channel = buffer->getChannel( c );

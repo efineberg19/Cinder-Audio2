@@ -121,7 +121,7 @@ const float *TapNode::getChannel( size_t channel )
 	return buf;
 }
 
-void TapNode::render( Buffer *buffer )
+void TapNode::process( Buffer *buffer )
 {
 	for( size_t ch = 0; ch < mFormat.getNumChannels(); ch++ )
 		mRingBuffers[ch]->write( buffer->getChannel( ch ), buffer->getNumFrames() );

@@ -195,7 +195,7 @@ DeviceRef InputWasapi::getDevice()
 }
 
 // TODO: decide what to do when there is a buffer under/over run. LOG_V / app::console() is not thread-safe..
-void InputWasapi::render( Buffer *buffer )
+void InputWasapi::process( Buffer *buffer )
 {
 	mImpl->captureAudio();
 
