@@ -55,7 +55,11 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void start()		{}
 	virtual void stop()			{}
 
-	virtual NodeRef connect( NodeRef source );
+	NodeRef connect( NodeRef dest );
+	NodeRef connect( NodeRef dest, size_t bus );
+
+	virtual void setSource( NodeRef source );
+	virtual void setSource( NodeRef source, size_t bus );
 
 	//! Default implementation returns true if samplerate and numChannels match our format
 	virtual bool supportsSourceFormat( const Format &sourceFormat ) const;
@@ -96,6 +100,11 @@ class RootNode : public Node {
 	virtual ~RootNode() {}
 
 	virtual size_t getBlockSize() const = 0;
+
+	// TODO: consider how to best inform the user you cannot connect anything after a RootNode.
+	// - could make this private, but it can still be called by typecasting to Node first, and that may also be more confusing than throwing
+//	NodeRef setSource( NodeRef source ) override	{ throw AudioContextExc( "RootNode's cannot connect" ); }
+
 };
 
 class OutputNode : public RootNode {
@@ -129,13 +138,20 @@ class TapNode : public Node {
 	size_t mBufferSize;
 };
 
+// TODO: Because busses can be expanded, the naming is off:
+//		- mMaxNumBusses should be mNumBusses, there is no max
+//			- so there is getNumBusses() / setNumBusses()
+//		- there can be 'holes', slots in mSources that are not used
+//		- getNumActiveBusses() returns number of used slots
+
 class MixerNode : public Node {
   public:
 	MixerNode() : Node(), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
 
-	virtual NodeRef connect( NodeRef source ) override;
-	virtual NodeRef connect( NodeRef source, size_t bus );
+	using Node::setSource;
+	//! Mixers will append the node if setSource() is called without a bus number.
+	virtual void setSource( NodeRef source ) override;
 
 	//! returns the number of connected busses.
 	virtual size_t getNumBusses() = 0;

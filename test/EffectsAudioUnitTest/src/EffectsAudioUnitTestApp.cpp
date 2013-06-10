@@ -74,9 +74,7 @@ void EffectsAudioUnitTestApp::setup()
 void EffectsAudioUnitTestApp::setupOne()
 {
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-
-	mEffect->connect( mSource );
-	mContext->getRoot()->connect( mEffect );
+	mSource->connect( mEffect )->connect( mContext->getRoot() );
 }
 
 void EffectsAudioUnitTestApp::setupTwo()
@@ -86,9 +84,7 @@ void EffectsAudioUnitTestApp::setupTwo()
 
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
-	mEffect->connect( mSource );
-	mEffect2->connect( mEffect );
-	mContext->getRoot()->connect( mEffect2 );
+	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
 }
 
 void EffectsAudioUnitTestApp::setupNativeThenGeneric()

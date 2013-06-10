@@ -23,13 +23,35 @@ Node::~Node()
 
 }
 
-NodeRef Node::connect( NodeRef source )
+NodeRef Node::connect( NodeRef dest )
 {
-	mSources[0] = source;
-	mSources[0]->setParent( shared_from_this() );
-
-	return source;
+	dest->setSource( shared_from_this() );
+	return dest;
 }
+
+NodeRef Node::connect( NodeRef dest, size_t bus )
+{
+	dest->setSource( shared_from_this(), 0 );
+	return dest;
+}
+
+void Node::setSource( NodeRef source )
+{
+	setSource( source, 0 );
+}
+
+// TODO: figure out how to best handle node replacements
+void Node::setSource( NodeRef source, size_t bus )
+{
+	if( bus > mSources.size() )
+		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mSources.size() ) + ")" );
+//	if( sources[bus] )
+//		throw AudioExc(  string( "bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." );
+
+	mSources[bus] = source;
+	source->setParent( shared_from_this() );
+}
+
 
 bool Node::supportsSourceFormat( const Node::Format &sourceFormat ) const
 {
@@ -42,41 +64,18 @@ const Node::Format& Node::getSourceFormat()
 	return mSources[0]->mFormat;
 }
 
-// TODO: Mixer connections need to be thought about more. Notes from discussion with Andrew:
-// - connect( node ):
-//		- will add node to next available unnused slot
-//		- it always succeeds - increase mMaxNumBusses if necessary
-//
-// - connect( node, bus ):
-//		- will throw if bus >= mMaxNumBusses
-//		- if bus >= mSources.size(), resize mSources
-//		- replaces any existing node at that spot
-//			- what happens to it's connections?
-// - Because of this functionality, the naming seems off:
-//		- mMaxNumBusses should be mNumBusses, there is no max
-//			- so there is getNumBusses() / setNumBusses()
-//		- there can be 'holes', slots in mSources that are not used
-//		- getNumActiveBusses() returns number of used slots
-
-NodeRef MixerNode::connect( NodeRef source )
+void MixerNode::setSource( NodeRef source )
 {
+	source->setParent( shared_from_this() );
+
+	for( size_t i = 0; i < mSources.size(); i++ ) {
+		if( ! mSources[i] ) {
+			mSources[i] = source;
+			return;
+		}
+	}
+	// all slots full, append
 	mSources.push_back( source );
-	source->setParent( shared_from_this() );
-
-	return source;
-}
-
-NodeRef MixerNode::connect( NodeRef source, size_t bus )
-{
-	if( bus > mSources.size() )
-		throw AudioExc( string( "Mixer bus " ) + ci::toString( bus ) + " out of range (max: " + ci::toString( mSources.size() ) + ")" );
-	if( mSources[bus] )
-		throw AudioExc(  string( "Mixer bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." ); // ???: replace?
-
-	mSources[bus] = source;
-	source->setParent( shared_from_this() );
-
-	return source;
 }
 
 // TODO: bufferSize is ambigious, rename to numFrames

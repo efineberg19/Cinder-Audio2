@@ -77,7 +77,7 @@ void BasicTestApp::setupSine()
 	genNode->mGen.setAmp( 0.2f );
 	genNode->mGen.setFreq( 440.0f );
 
-	mContext->getRoot()->connect( genNode );
+	genNode->connect( mContext->getRoot() );
 
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
 }
@@ -87,7 +87,7 @@ void BasicTestApp::setupNoise()
 	auto genNode = make_shared<UGenNode<NoiseGen> >();
 	genNode->mGen.setAmp( 0.2f );
 
-	mContext->getRoot()->connect( genNode );
+	genNode->connect( mContext->getRoot() );
 
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
 }
@@ -104,14 +104,12 @@ void BasicTestApp::setupMixer()
 	mMixer = Context::instance()->createMixer();
 
 	// connect by appending
-//	mMixer->connect( noise );
-//	mMixer->connect( sine );
+//	noise->connect( mMixer );
+//	sine->connect( mMixer )->connect( mContext->getRoot() );
 
 	// or connect by index
-	mMixer->connect( noise, Bus::Noise );
-	mMixer->connect( sine, Bus::Sine );
-
-	mContext->getRoot()->connect( mMixer );
+	noise->connect( mMixer, Bus::Noise );
+	sine->connect( mMixer, Bus::Sine )->connect( mContext->getRoot() );
 
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = false;
 }

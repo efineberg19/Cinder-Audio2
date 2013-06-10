@@ -71,30 +71,26 @@ void InputTestApp::setup()
 
 void InputTestApp::setupPassThrough()
 {
-	mContext->getRoot()->connect( mInput );
+	mInput->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInProcessOut()
 {
 	auto ringMod = make_shared<RingMod>();
-	ringMod->connect( mInput );
-	mContext->getRoot()->connect( ringMod );
+	mInput->connect( ringMod )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInTapOut()
 {
 	mTap = make_shared<TapNode>();
-	mTap->connect( mInput );
-	mContext->getRoot()->connect( mTap );
+	mInput->connect( mTap )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInTapProcessOut()
 {
 	mTap = make_shared<TapNode>();
 	auto ringMod = make_shared<RingMod>();
-	mTap->connect( mInput );
-	ringMod->connect( mTap );
-	mContext->getRoot()->connect( ringMod );
+	mInput->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::logDevices( DeviceRef i, DeviceRef o )

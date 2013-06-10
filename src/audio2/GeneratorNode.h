@@ -11,10 +11,6 @@ class GeneratorNode : public Node {
 public:
 	GeneratorNode() : Node() {}
 	virtual ~GeneratorNode() {}
-
-	// TODO: consider making this private.
-	// - it can still be called by typecasting to Node first, and that may also be more confusing than throwing
-	NodeRef connect( NodeRef source ) override	{ throw AudioContextExc( "cannot connect a source to Node of type Generator" ); }
 };
 
 class InputNode : public GeneratorNode {
