@@ -38,4 +38,9 @@ public:
 	AudioParamExc( const std::string &description ) : AudioExc( description )	{}
 };
 
+class AudioFileExc : public AudioExc {
+public:
+	AudioFileExc( const std::string &description ) : AudioExc( description )	{}
+};
+
 } // namespace audio2

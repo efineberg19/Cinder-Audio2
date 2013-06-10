@@ -1,8 +1,8 @@
 #pragma once
 
-#include "cinder/DataSource.h"
+#include "audio2/Buffer.h"
 
-// TODO: is it worth combining Url streaming into this stuff as one I/O set of base classes?
+#include "cinder/DataSource.h"
 
 namespace audio2 {
 	
@@ -13,13 +13,28 @@ typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
 class SourceFile {
   public:
-	SourceFile( ci::DataSourceRef dataSource );
-  private:
+	SourceFile( ci::DataSourceRef dataSource ) : mSampleRate( 0 ), mNumChannels( 0 ), mNumFrames( 0 ), mOutputSampleRate( 0 ), mOutputNumChannels( 0 ), mNumFramesPerRead( 4096 )
+	{}
+
+	virtual size_t getOutputSampleRate() const				{ return mOutputSampleRate; }
+	virtual void setOutputSampleRate( size_t sampleRate )	{ mOutputSampleRate = sampleRate; }
+	virtual size_t getOutputNumChannels() const				{ return mOutputNumChannels; }
+	virtual void setOutputNumChannels( size_t channels )	{ mOutputNumChannels = channels; }
+	virtual size_t getNumFramesPerRead() const				{ return mNumFramesPerRead; }
+	virtual void setNumFramesPerRead( size_t count )		{ mNumFramesPerRead = count; }
+
+	size_t getNumFrames() const				{ return mNumFrames; }
+
+	virtual void load( SourceBufferRef target ) = 0;
+
+  protected:
+	size_t mSampleRate, mNumChannels, mNumFrames, mOutputSampleRate, mOutputNumChannels, mNumFramesPerRead;
 };
 
 class TargetFile {
 
 };
 
+//BufferRef loadAudio( SourceFileRef sourcefile );
 
 } // namespace audio2

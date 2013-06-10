@@ -82,17 +82,14 @@ protected:
 };
 
 //! SourceBuffer is meant to be read from as a source (Generator)
+// TODO: consider naming DynamicBuffer
 template <typename T>
 class SourceBufferT : public BufferT<T> {
   public:
 
-//	void setNumFrames( size_t numFrames ) {
-//		mNumFrames = numFrames;
-//		mData.resize( mNumFrames * mNumChannels );
-//	}
-
-	void setNumFrames( size_t numFrames ) {
+	void resize( size_t numChannels, size_t numFrames ) {
 		BufferT<T>::mNumFrames = numFrames;
+		BufferT<T>::mNumChannels = numChannels;
 		BufferT<T>::mData.resize( BufferT<T>::mNumFrames * BufferT<T>::mNumChannels );
 	}
 };
