@@ -14,6 +14,7 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		08019EE3AC7E44BDAC280CDF /* FileNodeTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 87979270473A48D48B99601B /* FileNodeTestApp.cpp */; };
 		11B8562317659D1700E19E8C /* FileCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B8562117659D1700E19E8C /* FileCoreAudio.cpp */; };
+		11D097F31766D99A008464AD /* tone440L220R.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11D097F21766D99A008464AD /* tone440L220R.wav */; };
 		143C256417662A2A0063DFDA /* tone440.wav in Resources */ = {isa = PBXBuildFile; fileRef = 143C256317662A2A0063DFDA /* tone440.wav */; };
 		143C2570176657050063DFDA /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 143C256F176657040063DFDA /* GeneratorNode.cpp */; };
 		15AF16BA8C294C3CA07164ED /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9465B9B79C7B42F6A202CDFA /* Context.cpp */; };
@@ -41,6 +42,7 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		11B8562117659D1700E19E8C /* FileCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileCoreAudio.cpp; path = ../../../src/audio2/cocoa/FileCoreAudio.cpp; sourceTree = "<group>"; };
 		11B8562217659D1700E19E8C /* FileCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileCoreAudio.h; path = ../../../src/audio2/cocoa/FileCoreAudio.h; sourceTree = "<group>"; };
+		11D097F21766D99A008464AD /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
 		143C256317662A2A0063DFDA /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		143C256F176657040063DFDA /* GeneratorNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GeneratorNode.cpp; path = ../../../src/audio2/GeneratorNode.cpp; sourceTree = "<group>"; };
 		19DA0C0956534B90B30E0C18 /* Plot.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Plot.cpp; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/Plot.cpp"; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				143C256317662A2A0063DFDA /* tone440.wav */,
+				11D097F21766D99A008464AD /* tone440L220R.wav */,
 				D0284626492C415EAD4B5B9E /* CinderApp.icns */,
 				459C1BCAC77D495892F10286 /* Info.plist */,
 			);
@@ -304,6 +307,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				337FF33799D84569B0AC76C8 /* CinderApp.icns in Resources */,
+				11D097F31766D99A008464AD /* tone440L220R.wav in Resources */,
 				143C256417662A2A0063DFDA /* tone440.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

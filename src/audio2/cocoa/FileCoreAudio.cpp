@@ -89,18 +89,14 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 	BufferRef result( new Buffer( mNumChannels, mNumFrames ) );
 	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, mNumFramesPerRead ); // TODO: make this an ivar
 
-//	target->resize( mNumChannels, mNumFrames );
 	size_t currReadPos = 0;
 	while( true ) {
 		size_t framesLeft = mNumFrames - currReadPos;
 		if( framesLeft <= 0 ) {
-			LOG_V << "read done, framesLeft: " << framesLeft << endl;
 			break;
 		}
 
 		UInt32 frameCount = std::min( framesLeft, mNumFramesPerRead );
-		LOG_V << "frameCount: " << frameCount << endl;
-
         for( int i = 0; i < mNumChannels; i++ ) {
             bufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
             bufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];

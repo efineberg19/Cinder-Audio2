@@ -4,8 +4,11 @@
 #include "audio2/audio.h"
 #include "audio2/Device.h"
 #include "audio2/Dsp.h"
+#include "audio2/Atomic.h"
 
 #include "cinder/DataSource.h"
+
+//#include "audio2/Debug.h"
 
 namespace audio2 {
 
@@ -14,13 +17,22 @@ namespace audio2 {
 //	 to mean upstream (children) nodes
 // - would like to use Input / Output for that, but those terms are already used for device input / output
 
+// - possible: DeviceInputNode : public InputNode, DeviceOutputNode : public OutputNode
+//		- this is still confusing if you have Node::mOutput / Node::mInputs
+
 typedef std::shared_ptr<class BufferInputNode> BufferInputNodeRef;
 
 class GeneratorNode : public Node {
 public:
-	GeneratorNode() : Node() {
-		mFormat.setWantsDefaultFormatFromParent();
-	}
+	GeneratorNode();
+
+	// TODO: think I found another compiler bug...
+	// GeneratorNode() is not called from BufferInputNode's constructor unless it is in the cpp.
+	//	- but then maybe this is one of those libc++ hokey rules. check on vc11 to verify
+//	GeneratorNode() : Node() {
+//		LOG_V << "SHHHAAAAZZAAMMM!!!" << std::endl;
+//		mFormat.setWantsDefaultFormatFromParent();
+//	}
 	virtual ~GeneratorNode() {}
 };
 
@@ -32,15 +44,21 @@ public:
 	virtual DeviceRef getDevice() = 0;
 };
 
+// TODO: rename BufferPlayerNode / FilePlayerNode ?
 class BufferInputNode : public GeneratorNode {
 public:
 	BufferInputNode() : GeneratorNode() {}
 	BufferInputNode( BufferRef inputBuffer );
 	virtual ~BufferInputNode() {}
 
+	virtual void start() override;
+	virtual void stop() override;
 	virtual void process( Buffer *buffer );
 private:
 	BufferRef mBuffer;
+	size_t mNumFrames;
+	std::atomic<size_t> mReadPos;
+	std::atomic<bool>	mRunning;
 };
 
 

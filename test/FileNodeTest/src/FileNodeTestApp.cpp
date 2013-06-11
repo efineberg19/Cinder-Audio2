@@ -7,6 +7,11 @@
 #include "audio2/Plot.h"
 #include "audio2/Debug.h"
 
+#include "Gui.h"
+
+// FIXME: ConverterNode is not getting in there when it should, when audioBuffer is mono and we need stereo out
+// - or, output form should be stereo, but that means loading the buffer after the graph is initialized. may be necessary.
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -24,10 +29,16 @@ class FileNodeTestApp : public AppNative {
 
 	void initContext();
 	void toggleGraph();
+	void setupUI();
+	void processDrag( Vec2i pos );
+	void processTap( Vec2i pos );
 
 	ContextRef mContext;
 	BufferInputNodeRef mBufferInputNode;
 	WaveformPlot mWaveformPlot;
+
+	vector<TestWidget *> mWidgets;
+	Button mEnableGraphButton, mStartPlaybackButton;
 };
 
 void FileNodeTestApp::prepareSettings( Settings *settings )
@@ -41,7 +52,7 @@ void FileNodeTestApp::setup()
 	OutputNodeRef output = Context::instance()->createOutput();
 	mContext->setRoot( output );
 
-	auto sourceFile = SourceFileCoreAudio( loadResource( "tone440.wav" ) );
+	auto sourceFile = SourceFileCoreAudio( loadResource( "tone440L220R.wav" ) );
 	LOG_V << "output samplerate: " << sourceFile.getOutputSampleRate() << endl;
 
 	auto audioBuffer = sourceFile.loadBuffer();
@@ -50,12 +61,11 @@ void FileNodeTestApp::setup()
 
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
-	return;
-	
 	mBufferInputNode = make_shared<BufferInputNode>( audioBuffer );
 	mBufferInputNode->connect( output );
 
 	initContext();
+	setupUI();
 }
 
 void FileNodeTestApp::initContext()
@@ -77,6 +87,43 @@ void FileNodeTestApp::toggleGraph()
 		mContext->start();
 	else
 		mContext->stop();
+}
+
+void FileNodeTestApp::setupUI()
+{
+	mEnableGraphButton.isToggle = true;
+	mEnableGraphButton.titleNormal = "graph off";
+	mEnableGraphButton.titleEnabled = "graph on";
+	mEnableGraphButton.bounds = Rectf( 0, 0, 200, 60 );
+	mWidgets.push_back( &mEnableGraphButton );
+
+//	mStartPlaybackButton.isToggle = true;
+	mStartPlaybackButton.titleNormal = "sample playing";
+	mStartPlaybackButton.titleEnabled = "sample stopped";
+	mStartPlaybackButton.bounds = mEnableGraphButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
+	mWidgets.push_back( &mStartPlaybackButton );
+
+	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
+	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
+	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
+	getWindow()->getSignalTouchesMoved().connect( [this] ( TouchEvent &event ) {
+		for( const TouchEvent::Touch &touch : getActiveTouches() )
+			processDrag( touch.getPos() );
+	} );
+
+	gl::enableAlphaBlending();
+}
+
+void FileNodeTestApp::processDrag( Vec2i pos )
+{
+}
+
+void FileNodeTestApp::processTap( Vec2i pos )
+{
+	if( mEnableGraphButton.hitTest( pos ) )
+		toggleGraph();
+	if( mStartPlaybackButton.hitTest( pos ) )
+		mBufferInputNode->start();
 }
 
 void FileNodeTestApp::mouseDown( MouseEvent event )
@@ -104,6 +151,8 @@ void FileNodeTestApp::draw()
 {
 	gl::clear();
 	gl::draw( mWaveformPlot );
+
+	drawWidgets( mWidgets );
 }
 
 CINDER_APP_NATIVE( FileNodeTestApp, RendererGl )
