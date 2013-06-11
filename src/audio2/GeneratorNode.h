@@ -18,7 +18,9 @@ typedef std::shared_ptr<class BufferInputNode> BufferInputNodeRef;
 
 class GeneratorNode : public Node {
 public:
-	GeneratorNode() : Node() {}
+	GeneratorNode() : Node() {
+		mFormat.setWantsDefaultFormatFromParent();
+	}
 	virtual ~GeneratorNode() {}
 };
 
@@ -50,9 +52,8 @@ public:
 
 template <typename UGenT>
 struct UGenNode : public GeneratorNode {
-	UGenNode()	{
+	UGenNode() : GeneratorNode()	{
 		mTag = "UGenNode";
-		mFormat.setWantsDefaultFormatFromParent();
 	}
 
 	virtual void initialize() override {
