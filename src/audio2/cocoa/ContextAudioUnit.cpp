@@ -671,6 +671,9 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 }
 
 // TODO: try to avoid multiple copies when generic nodes are chained together
+// FIXME NEXT: crash from FileNodeTestApp:
+// - play the sound by enabling graph.
+// - then close app via x without disabling first.
 OSStatus ContextAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *renderContext = static_cast<RenderContext *>( context );

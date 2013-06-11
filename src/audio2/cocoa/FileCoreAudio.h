@@ -19,7 +19,7 @@ namespace audio2 { namespace cocoa {
 
 class SourceFileCoreAudio : public SourceFile {
   public:
-	SourceFileCoreAudio( ci::DataSourceRef dataSource );
+	SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t outputNumChannels = 0, size_t outputSampleRate = 0 );
 
 	BufferRef loadBuffer() override;
 

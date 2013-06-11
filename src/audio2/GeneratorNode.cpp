@@ -18,6 +18,7 @@ BufferInputNode::BufferInputNode( BufferRef inputBuffer )
 {
 	mTag = "BufferInputNode";
 	mNumFrames = mBuffer->getNumFrames();
+	mFormat.setNumChannels( mBuffer->getNumChannels() );
 }
 
 void BufferInputNode::start()

@@ -36,8 +36,8 @@ void printExtensions()
 // MARK: - SourceFileCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource )
-: SourceFile( dataSource )
+SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t outputNumChannels, size_t outputSampleRate )
+: SourceFile( dataSource, outputNumChannels, outputSampleRate )
 {
 	printExtensions();
 
@@ -86,18 +86,17 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource )
 
 BufferRef SourceFileCoreAudio::loadBuffer()
 {
-	BufferRef result( new Buffer( mNumChannels, mNumFrames ) );
-	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, mNumFramesPerRead ); // TODO: make this an ivar
+	BufferRef result( new Buffer( mOutputNumChannels, mNumFrames ) );
+	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mOutputNumChannels, mNumFramesPerRead ); // TODO: make this an ivar
 
 	size_t currReadPos = 0;
 	while( true ) {
 		size_t framesLeft = mNumFrames - currReadPos;
-		if( framesLeft <= 0 ) {
+		if( framesLeft <= 0 )
 			break;
-		}
 
 		UInt32 frameCount = std::min( framesLeft, mNumFramesPerRead );
-        for( int i = 0; i < mNumChannels; i++ ) {
+        for( int i = 0; i < mOutputNumChannels; i++ ) {
             bufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
             bufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
         }

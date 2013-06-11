@@ -9,8 +9,8 @@
 
 #include "Gui.h"
 
-// FIXME: ConverterNode is not getting in there when it should, when audioBuffer is mono and we need stereo out
-// - or, output form should be stereo, but that means loading the buffer after the graph is initialized. may be necessary.
+#define SOUND_FILE "tone440.wav"
+//#define SOUND_FILE "tone440L220R.wav"
 
 using namespace ci;
 using namespace ci::app;
@@ -52,7 +52,7 @@ void FileNodeTestApp::setup()
 	OutputNodeRef output = Context::instance()->createOutput();
 	mContext->setRoot( output );
 
-	auto sourceFile = SourceFileCoreAudio( loadResource( "tone440L220R.wav" ) );
+	auto sourceFile = SourceFileCoreAudio( loadResource( SOUND_FILE ), 0, 44100 );
 	LOG_V << "output samplerate: " << sourceFile.getOutputSampleRate() << endl;
 
 	auto audioBuffer = sourceFile.loadBuffer();
