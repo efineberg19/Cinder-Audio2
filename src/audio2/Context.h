@@ -187,8 +187,11 @@ class Context {
 	virtual void start();
 	virtual void stop();
 
+
 	bool isInitialized() const	{ return mInitialized; }
 	bool isRunning() const		{ return mRunning; }
+
+	void setRunning( bool running = true )	{ mRunning = running; }
 
   protected:
 	Context() : mInitialized( false ), mRunning( false ) {}

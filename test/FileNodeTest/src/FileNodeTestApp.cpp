@@ -33,7 +33,6 @@ class FileNodeTestApp : public AppNative {
 	void draw();
 
 	void initContext();
-	void toggleGraph();
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
@@ -86,14 +85,6 @@ void FileNodeTestApp::initContext()
 	printGraph( mContext );
 }
 
-void FileNodeTestApp::toggleGraph()
-{
-	if( ! mContext->isRunning() )
-		mContext->start();
-	else
-		mContext->stop();
-}
-
 void FileNodeTestApp::setupUI()
 {
 	mEnableGraphButton.isToggle = true;
@@ -126,7 +117,7 @@ void FileNodeTestApp::processDrag( Vec2i pos )
 void FileNodeTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
-		toggleGraph();
+		mContext->setRunning( ! mContext->isRunning() );
 	if( mStartPlaybackButton.hitTest( pos ) )
 		mBufferInputNode->start();
 }
