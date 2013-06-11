@@ -11,7 +11,7 @@ using namespace ci;
 namespace audio2 { namespace cocoa {
 
 // some private helpers, not sure yet how widely useful these are
-AudioObjectPropertyAddress audioObjectProperty( AudioObjectPropertySelector propertySelector, AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
+::AudioObjectPropertyAddress audioObjectProperty( ::AudioObjectPropertySelector propertySelector, ::AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
 UInt32 audioObjectPropertyDataSize( ::AudioObjectID objectId, const AudioObjectPropertyAddress& address, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
 string audioObjectPropertyString( ::AudioObjectID objectId, AudioObjectPropertySelector propertySelector );
 void audioObjectPropertyData( ::AudioObjectID objectId, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );

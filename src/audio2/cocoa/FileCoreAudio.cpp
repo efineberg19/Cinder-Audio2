@@ -61,7 +61,7 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t o
 
     SInt64 numFrames;
     propSize = sizeof( numFrames );
-    status = ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileLengthFrames, &propSize, &numFrames );
+    status = ::ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileLengthFrames, &propSize, &numFrames );
 	CI_ASSERT( status == noErr );
 	mNumFrames = static_cast<size_t>( numFrames );
 
@@ -71,7 +71,7 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t o
 		mOutputSampleRate = mSampleRate;
 
 
-	AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mOutputNumChannels, mOutputSampleRate );
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mOutputNumChannels, mOutputSampleRate );
 
     LOG_V << "file format:\n";
 	audio2::cocoa::printASBD( fileFormat );

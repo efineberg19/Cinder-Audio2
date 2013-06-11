@@ -7,8 +7,6 @@
 using namespace std;
 using namespace ci;
 
-// TODO: place all AudioUnit funciton calls in global namespace
-
 namespace audio2 { namespace cocoa {
 
 // ----------------------------------------------------------------------------------------------------
@@ -32,16 +30,16 @@ void DeviceAudioUnit::initialize()
 	}
 
 	UInt32 enableInput = static_cast<UInt32>( mInputConnected );
-	AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, Bus::Input, &enableInput, sizeof( enableInput ) );
+	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, Bus::Input, &enableInput, sizeof( enableInput ) );
 	LOG_V << "input enabled: " << enableInput << endl;
 
 	UInt32 enableOutput = static_cast<UInt32>( mOutputConnected );
-	AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, Bus::Output, &enableOutput, sizeof( enableOutput ) );
+	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, Bus::Output, &enableOutput, sizeof( enableOutput ) );
 	LOG_V << "output enabled: " << enableOutput << endl;
 
 	DeviceManager::instance()->setActiveDevice( mKey );
 
-	OSStatus status = AudioUnitInitialize( getComponentInstance() );
+	OSStatus status = ::AudioUnitInitialize( getComponentInstance() );
 	CI_ASSERT( status == noErr );
 
 	LOG_V << "success initializing device: " << getName() << endl;
@@ -58,9 +56,9 @@ void DeviceAudioUnit::uninitialize()
 	LOG_V << "unitinializing device: " << getName() << endl;
 
 	if( mComponentInstance ) {
-		OSStatus status = AudioUnitUninitialize( mComponentInstance );
+		OSStatus status = ::AudioUnitUninitialize( mComponentInstance );
 		CI_ASSERT( status == noErr );
-		status = AudioComponentInstanceDispose( mComponentInstance );
+		status = ::AudioComponentInstanceDispose( mComponentInstance );
 		CI_ASSERT( status == noErr );
 
 		mComponentInstance = NULL;
@@ -76,7 +74,7 @@ void DeviceAudioUnit::start()
 	}
 
 	mRunning = true;
-	OSStatus status = AudioOutputUnitStart( mComponentInstance );
+	OSStatus status = ::AudioOutputUnitStart( mComponentInstance );
 	CI_ASSERT( status == noErr );
 }
 
@@ -88,7 +86,7 @@ void DeviceAudioUnit::stop()
 	}
 
 	mRunning = false;
-	OSStatus status = AudioOutputUnitStop( mComponentInstance );
+	OSStatus status = ::AudioOutputUnitStop( mComponentInstance );
 	CI_ASSERT( status == noErr );
 }
 

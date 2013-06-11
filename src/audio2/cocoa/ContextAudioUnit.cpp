@@ -37,7 +37,7 @@ inline void audioUnitSetParam( ::AudioUnit audioUnit, ::AudioUnitParameterID pro
 inline ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
 	::AudioStreamBasicDescription result;
 	UInt32 resultSize = sizeof( result );
-	OSStatus status = AudioUnitGetProperty( audioUnit, kAudioUnitProperty_StreamFormat, scope, bus, &result,  &resultSize );
+	OSStatus status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_StreamFormat, scope, bus, &result,  &resultSize );
 	CI_ASSERT( status == noErr );
 	return result;
 }
@@ -66,7 +66,7 @@ inline vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, :
 AudioUnitNode::~AudioUnitNode()
 {
 	if( mAudioUnit ) {
-		OSStatus status = AudioComponentInstanceDispose( mAudioUnit );
+		OSStatus status = ::AudioComponentInstanceDispose( mAudioUnit );
 		CI_ASSERT( status == noErr );
 	}
 }
@@ -478,7 +478,7 @@ ConverterAudioUnit::~ConverterAudioUnit()
 
 void ConverterAudioUnit::initialize()
 {
-	AudioComponentDescription comp{ 0 };
+	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_FormatConverter;
 	comp.componentSubType = kAudioUnitSubType_AUConverter;
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -675,10 +675,10 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 	node->uninitialize();
 }
 
+// TODO: adhere to node's buffer format (interleaved / non-interleaved ) and convert if necessary
+//	- should just be a bool?
+//  - to test: pd node that wants interleaved
 // TODO: try to avoid multiple copies when generic nodes are chained together
-// FIXME NEXT: crash from FileNodeTestApp:
-// - play the sound by enabling graph.
-// - then close app via x without disabling first.
 OSStatus ContextAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *renderContext = static_cast<RenderContext *>( context );

@@ -48,7 +48,7 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 ::AudioStreamBasicDescription interleavedFloatABSD( size_t numChannels, size_t sampleRate )
 {
 	const size_t kBytesPerSample = sizeof( float );
-	AudioStreamBasicDescription asbd = { 0 };
+	::AudioStreamBasicDescription asbd{ 0 };
 	asbd.mSampleRate = 44100.0;
 	asbd.mFormatID = kAudioFormatLinearPCM;
     asbd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kLinearPCMFormatFlagIsPacked;
