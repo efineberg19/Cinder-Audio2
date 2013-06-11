@@ -163,7 +163,9 @@ void Context::start()
 		return;
 	CI_ASSERT( mRoot );
 	mRunning = true;
-	start( mRoot );
+	
+//	start( mRoot );
+	mRoot->start();
 }
 
 void Context::stop()
@@ -171,7 +173,10 @@ void Context::stop()
 	if( ! mRunning )
 		return;
 	mRunning = false;
-	stop( mRoot );
+
+//	stop( mRoot );
+	mRoot->stop();
+}
 
 void Context::setRunning( bool running )
 {
