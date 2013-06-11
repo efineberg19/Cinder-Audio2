@@ -258,9 +258,7 @@ void BasicTestApp::update()
 void BasicTestApp::draw()
 {
 	gl::clear();
-
-	for( auto w : mWidgets )
-		w->draw();
+	drawWidgets( mWidgets );
 }
 
 CINDER_APP_NATIVE( BasicTestApp, RendererGl )

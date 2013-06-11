@@ -22,6 +22,11 @@ struct TestWidget {
 	bool hidden, textIsCentered;
 };
 
+void drawWidgets( const std::vector<TestWidget *> &widgets ) {
+	for( auto w : widgets )
+		w->draw();
+}
+
 struct Button : public TestWidget {
 	Button( bool isToggle = false, const std::string& titleNormal = "", const std::string& titleEnabled = "" )
 	: TestWidget(), isToggle( isToggle ), titleNormal( titleNormal ), titleEnabled( titleEnabled )
