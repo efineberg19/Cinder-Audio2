@@ -22,7 +22,7 @@ struct TestWidget {
 	bool hidden, textIsCentered;
 };
 
-void drawWidgets( const std::vector<TestWidget *> &widgets ) {
+inline void drawWidgets( const std::vector<TestWidget *> &widgets ) {
 	for( auto w : widgets )
 		w->draw();
 }

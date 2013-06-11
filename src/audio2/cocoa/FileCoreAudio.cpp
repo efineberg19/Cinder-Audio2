@@ -12,7 +12,7 @@ using namespace ci;
 
 namespace audio2 { namespace cocoa {
 
-void printExtensions()
+static void printExtensions()
 {
 	::CFArrayRef extensionsCF;
 	UInt32 propSize = sizeof( extensionsCF );
