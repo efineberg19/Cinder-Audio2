@@ -3,6 +3,8 @@
 #include "audio2/Context.h"
 #include "audio2/Dsp.h"
 
+// TODO: all EffectNode's should have n enabled param - it does not use the regular start/stop
+
 namespace audio2 {
 
 	typedef std::shared_ptr<class EffectNode> EffectNodeRef;
