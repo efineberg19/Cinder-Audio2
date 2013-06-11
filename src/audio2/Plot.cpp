@@ -4,6 +4,9 @@
 #include "cinder/Triangulate.h"
 #include "cinder/gl/gl.h"
 
+// FIXME: only the second have of the waveform is visible when built for 64-bit arch... fun.
+// - PolygonBoolean sample has same issues.  May be Triangulator or it may be gl::draw
+
 using namespace std;
 using namespace ci;
 
