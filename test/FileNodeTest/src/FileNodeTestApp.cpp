@@ -97,7 +97,7 @@ void FileNodeTestApp::setupUI()
 	mEnableGraphButton.bounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mEnableGraphButton );
 
-//	mStartPlaybackButton.isToggle = true;
+	mStartPlaybackButton.isToggle = false;
 	mStartPlaybackButton.titleNormal = "sample playing";
 	mStartPlaybackButton.titleEnabled = "sample stopped";
 	mStartPlaybackButton.bounds = mEnableGraphButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );

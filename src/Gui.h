@@ -31,15 +31,19 @@ struct Button : public TestWidget {
 	Button( bool isToggle = false, const std::string& titleNormal = "", const std::string& titleEnabled = "" )
 	: TestWidget(), isToggle( isToggle ), titleNormal( titleNormal ), titleEnabled( titleEnabled )
 	{
-		setEnabled( false );
 		textColor = Color::white();
+		normalColor = Color( 0.3f, 0.3f, 0.3f );
+		enabledColor = Color( 0.0f, 0.0f, 0.7f );
+		setEnabled( false );
+		timeout = 30;
+		fadeFrames = 0;
 	}
 
 	void setEnabled( bool b ) {
 		if( b ) {
-			backgroundColor = Color( 0.0f, 0.0f, 0.7f );
+			backgroundColor = enabledColor;
 		} else {
-			backgroundColor = Color( 0.3f, 0.3f, 0.3f );
+			backgroundColor = normalColor;
 		}
 		enabled = b;
 	}
@@ -49,8 +53,15 @@ struct Button : public TestWidget {
 			return false;
 
 		bool b = bounds.contains( pos );
-		if( b )
-			setEnabled( ! enabled );
+		if( b ) {
+			if( isToggle )
+				setEnabled( ! enabled );
+			else {
+				setEnabled( true );
+				fadeFrames = timeout;
+			}
+		}
+
 		return b;
 	}
 
@@ -60,7 +71,14 @@ struct Button : public TestWidget {
 		if( ! font )
 			font = Font( Font::getDefault().getName(), FONT_SIZE );
 
-		gl::color( backgroundColor );
+		if( isToggle || ! fadeFrames )
+			gl::color( backgroundColor );
+		else {
+			fadeFrames--;
+			setEnabled( false );
+			gl::color( lerp( normalColor, enabledColor, (float)fadeFrames / (float)timeout ) );
+		}
+
 		gl::drawSolidRoundedRect( bounds, 4 );
 
 		std::string& title = enabled ? titleEnabled : titleNormal;
@@ -73,7 +91,9 @@ struct Button : public TestWidget {
 
 	ColorA textColor;
 	std::string titleNormal, titleEnabled;
+	ColorA normalColor, enabledColor;
 	bool enabled, isToggle;
+	size_t timeout, fadeFrames;
 };
 
 struct HSlider : public TestWidget {
