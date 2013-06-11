@@ -12,6 +12,11 @@
 #define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
 
+// FIXME: sounds like dookie on ipad
+
+// TODO NEXT: figure out each node starting and stopping, independant of graph
+//	- all nodes are actually effects, since there is the idea of each node being 'enabled'
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
