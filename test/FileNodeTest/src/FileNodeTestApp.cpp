@@ -148,6 +148,12 @@ void FileNodeTestApp::draw()
 	gl::clear();
 	gl::draw( mWaveformPlot );
 
+	float readPos = (float)getWindowWidth() * mBufferInputNode->getReadPosition() / mBufferInputNode->getBuffer()->getNumFrames();
+
+	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
+	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );
+
+
 	drawWidgets( mWidgets );
 }
 

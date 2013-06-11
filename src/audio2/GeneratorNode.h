@@ -54,6 +54,11 @@ public:
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void process( Buffer *buffer );
+
+	size_t getReadPosition() const	{ return mReadPos; }
+
+	BufferRef getBuffer() const	{ return mBuffer; }
+	
 private:
 	BufferRef mBuffer;
 	size_t mNumFrames;
