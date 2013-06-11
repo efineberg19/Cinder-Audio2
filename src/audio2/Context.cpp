@@ -172,6 +172,13 @@ void Context::stop()
 		return;
 	mRunning = false;
 	stop( mRoot );
+
+void Context::setRunning( bool running )
+{
+	if( running )
+		start();
+	else
+		stop();
 }
 
 void Context::start( NodeRef node )

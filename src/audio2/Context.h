@@ -191,7 +191,8 @@ class Context {
 	bool isInitialized() const	{ return mInitialized; }
 	bool isRunning() const		{ return mRunning; }
 
-	void setRunning( bool running = true )	{ mRunning = running; }
+	//! convenience method to start / stop the graph via bool
+	void setRunning( bool running = true );
 
   protected:
 	Context() : mInitialized( false ), mRunning( false ) {}
