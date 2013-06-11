@@ -525,7 +525,8 @@ void ConverterAudioUnit::uninitialize()
 
 ContextAudioUnit::~ContextAudioUnit()
 {
-	
+	if( mInitialized )
+		uninitialize();
 }
 
 void ContextAudioUnit::initialize()
@@ -655,9 +656,13 @@ void ContextAudioUnit::uninitialize()
 	if( ! mInitialized )
 		return;
 
+	LOG_V << "uninitializing..." << endl;
+
 	stop();
 	uninitNode( mRoot );
 	mInitialized = false;
+
+	LOG_V << "done." << endl;
 }
 
 void ContextAudioUnit::uninitNode( NodeRef node )

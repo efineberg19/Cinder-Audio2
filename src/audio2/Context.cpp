@@ -145,8 +145,6 @@ Context* Context::instance()
 
 Context::~Context()
 {
-	if( mInitialized )
-		uninitialize();
 }
 
 void Context::initialize()
