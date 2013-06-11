@@ -516,7 +516,7 @@ void ConverterAudioUnit::initialize()
 void ConverterAudioUnit::uninitialize()
 {
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
-	CI_ASSERT( status );
+	CI_ASSERT( status == noErr );
 }
 
 // ----------------------------------------------------------------------------------------------------
