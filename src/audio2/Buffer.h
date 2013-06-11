@@ -81,10 +81,10 @@ protected:
 	Format mFormat;
 };
 
-//! SourceBuffer is meant to be read from as a source (Generator)
-// TODO: consider naming DynamicBuffer
+//! DynamicBufferT is a resizable BufferT
+// TODO: enable move operator to convert BufferT to this
 template <typename T>
-class SourceBufferT : public BufferT<T> {
+class DynamicBufferT : public BufferT<T> {
   public:
 
 	void resize( size_t numChannels, size_t numFrames ) {
@@ -93,8 +93,6 @@ class SourceBufferT : public BufferT<T> {
 		BufferT<T>::mData.resize( BufferT<T>::mNumFrames * BufferT<T>::mNumChannels );
 	}
 };
-
-
 
 template<typename T>
 inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *interleaved )
@@ -134,8 +132,9 @@ inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonIn
 }
 
 typedef BufferT<float> Buffer;
-typedef SourceBufferT<float> SourceBuffer;
+typedef DynamicBufferT<float> DynamicBuffer;
 
-typedef std::shared_ptr<SourceBuffer> SourceBufferRef;
+typedef std::shared_ptr<Buffer> BufferRef;
+typedef std::shared_ptr<DynamicBuffer> DynamicBufferRef;
 
 } // namespace audio2

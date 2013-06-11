@@ -70,17 +70,17 @@ void WaveformPlot::load( const std::vector<float> &samples, const ci::Rectf &bou
 	mWaveforms.push_back( Waveform( samples, waveSize, pixelsPerVertex, Waveform::CalcMode::Average ) );
 }
 
-void WaveformPlot::load( const Buffer &buffer, const ci::Rectf &bounds, size_t pixelsPerVertex )
+void WaveformPlot::load( BufferRef buffer, const ci::Rectf &bounds, size_t pixelsPerVertex )
 {
 	mBounds = bounds;
 	mWaveforms.clear();
 
-	int numChannels = buffer.getNumChannels();
+	int numChannels = buffer->getNumChannels();
 	Vec2i waveSize = bounds.getSize();
 	waveSize.y /= numChannels;
 	for( int ch = 0; ch < numChannels; ch++ ) {
-		mWaveforms.push_back( Waveform( buffer.getChannel( ch ), buffer.getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::MinMax ) );
-		mWaveforms.push_back( Waveform( buffer.getChannel( ch ), buffer.getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::Average ) );
+		mWaveforms.push_back( Waveform( buffer->getChannel( ch ), buffer->getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::MinMax ) );
+		mWaveforms.push_back( Waveform( buffer->getChannel( ch ), buffer->getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::Average ) );
 	}
 }
 

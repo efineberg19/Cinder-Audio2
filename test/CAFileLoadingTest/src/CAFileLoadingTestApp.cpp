@@ -7,8 +7,7 @@
 #include "audio2/cocoa/Util.h"
 #include "audio2/Plot.h"
 
-// TODO finally: play file with custom GeneratorNode
-// - do this in a new test app
+// TODO: put the Audio File services stuff back in here and try to get it working with VBR data
 
 //#define FILE_NAME "tone440.wav"
 //#define FILE_NAME "tone440_float.wav"
@@ -115,7 +114,7 @@ void CAFileLoadingTestApp::setup()
 
 	LOG_V << "load complete.\n";
 
-	mWaveformPlot.load( mBuffer, getWindowBounds() );
+	mWaveformPlot.load( &mBuffer, getWindowBounds() );
 }
 
 void CAFileLoadingTestApp::mouseDown( MouseEvent event )

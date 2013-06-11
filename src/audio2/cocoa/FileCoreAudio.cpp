@@ -84,11 +84,12 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource )
 
 }
 
-void SourceFileCoreAudio::load( SourceBufferRef target )
+BufferRef SourceFileCoreAudio::loadBuffer()
 {
+	BufferRef result( new Buffer( mNumChannels, mNumFrames ) );
 	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, mNumFramesPerRead ); // TODO: make this an ivar
 
-	target->resize( mNumChannels, mNumFrames );
+//	target->resize( mNumChannels, mNumFrames );
 	size_t currReadPos = 0;
 	while( true ) {
 		size_t framesLeft = mNumFrames - currReadPos;
@@ -102,7 +103,7 @@ void SourceFileCoreAudio::load( SourceBufferRef target )
 
         for( int i = 0; i < mNumChannels; i++ ) {
             bufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
-            bufferList->mBuffers[i].mData = &target->getChannel( i )[currReadPos];
+            bufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
         }
 
 		// read from the extaudiofile
@@ -111,7 +112,7 @@ void SourceFileCoreAudio::load( SourceBufferRef target )
 
         currReadPos += frameCount;
 	}
-
+	return result;
 }
 
 // ----------------------------------------------------------------------------------------------------

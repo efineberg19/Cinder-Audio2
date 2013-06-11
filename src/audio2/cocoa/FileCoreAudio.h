@@ -21,7 +21,7 @@ class SourceFileCoreAudio : public SourceFile {
   public:
 	SourceFileCoreAudio( ci::DataSourceRef dataSource );
 
-	void load( SourceBufferRef target ) override;
+	BufferRef loadBuffer() override;
 
 	// TODO: need a method that fills chunks
 //	void read( );

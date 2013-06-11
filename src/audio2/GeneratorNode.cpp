@@ -4,15 +4,15 @@ using namespace ci;
 
 namespace audio2 {
 
-BufferInputNode::BufferInputNode( SourceBufferRef sourceBuffer )
-: mSourceBuffer( sourceBuffer )
+BufferInputNode::BufferInputNode( BufferRef inputBuffer )
+: mBuffer( inputBuffer )
 {
 	mTag = "BufferInputNode";
 }
 
 void BufferInputNode::process( Buffer *buffer )
 {
-
+	// TODO NEXT
 }
 
 } // namespace audio2

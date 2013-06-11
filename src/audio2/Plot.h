@@ -34,9 +34,8 @@ public:
 	WaveformPlot()	{}
 
 	void load( const std::vector<float> &samples, const ci::Rectf &bounds, size_t pixelsPerVertex = 2 );
-//	void load( const std::vector<std::vector<float> > &channels, const ci::Rectf &bounds, int pixelsPerVertex = 2 );
 
-	void load( const Buffer &buffer, const ci::Rectf &bounds, size_t pixelsPerVertex = 2 );
+	void load( BufferRef buffer, const ci::Rectf &bounds, size_t pixelsPerVertex = 2 );
 
 	const std::vector<Waveform>& getWaveforms() const	{ return mWaveforms; }
 	const ci::Rectf& getBounds() const					{ return mBounds; }

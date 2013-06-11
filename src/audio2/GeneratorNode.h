@@ -14,6 +14,8 @@ namespace audio2 {
 //	 to mean upstream (children) nodes
 // - would like to use Input / Output for that, but those terms are already used for device input / output
 
+typedef std::shared_ptr<class BufferInputNode> BufferInputNodeRef;
+
 class GeneratorNode : public Node {
 public:
 	GeneratorNode() : Node() {}
@@ -31,12 +33,12 @@ public:
 class BufferInputNode : public GeneratorNode {
 public:
 	BufferInputNode() : GeneratorNode() {}
-	BufferInputNode( SourceBufferRef sourceBuffer );
+	BufferInputNode( BufferRef inputBuffer );
 	virtual ~BufferInputNode() {}
 
 	virtual void process( Buffer *buffer );
 private:
-	SourceBufferRef mSourceBuffer;
+	BufferRef mBuffer;
 };
 
 

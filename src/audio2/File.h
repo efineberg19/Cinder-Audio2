@@ -25,7 +25,7 @@ class SourceFile {
 
 	size_t getNumFrames() const				{ return mNumFrames; }
 
-	virtual void load( SourceBufferRef target ) = 0;
+	virtual BufferRef loadBuffer() = 0;
 
   protected:
 	size_t mSampleRate, mNumChannels, mNumFrames, mOutputSampleRate, mOutputNumChannels, mNumFramesPerRead;
