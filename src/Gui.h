@@ -3,23 +3,32 @@
 #pragma once
 
 #include "cinder/gl/gl.h"
+//#include "cinder/app/App.h"
+#include "cinder/gl/TextureFont.h"
 #include <boost/format.hpp>
 
 #include <vector>
 
-#define FONT_SIZE 22
-
 using namespace ci;
 
+static gl::TextureFontRef getTestWidgetTexFont() {
+	static gl::TextureFontRef sTestWidgetTexFont;
+	if( ! sTestWidgetTexFont )
+		sTestWidgetTexFont = gl::TextureFont::create( Font( Font::getDefault().getName(), 22 ) );
+	return sTestWidgetTexFont;
+}
+
 struct TestWidget {
-	TestWidget() : hidden( false ), textIsCentered( true ) {}
+	TestWidget() : hidden( false ), padding( 10.0f ) {}
 
 	virtual void draw() {}
 
 	Rectf bounds;
 	ColorA backgroundColor;
-	Font font;
-	bool hidden, textIsCentered;
+
+	gl::TextureFontRef texFont;
+	bool hidden;
+	float padding;
 };
 
 inline void drawWidgets( const std::vector<TestWidget *> &widgets ) {
@@ -68,8 +77,8 @@ struct Button : public TestWidget {
 	void draw() {
 		if( hidden )
 			return;
-		if( ! font )
-			font = Font( Font::getDefault().getName(), FONT_SIZE );
+		if( ! texFont )
+			texFont = getTestWidgetTexFont();
 
 		if( isToggle || ! fadeFrames )
 			gl::color( backgroundColor );
@@ -83,10 +92,8 @@ struct Button : public TestWidget {
 
 		std::string& title = enabled ? titleEnabled : titleNormal;
 
-		if( textIsCentered )
-			gl::drawStringCentered( title, bounds.getCenter(), textColor, font );
-		else
-			gl::drawString( title, Vec2f( bounds.x1 + 10.0f, bounds.getCenter().y ), textColor, font );
+		gl::color( textColor );
+		texFont->drawString( title, Vec2f( bounds.x1 + padding, bounds.getCenter().y + texFont->getFont().getDescent() ) );
 	}
 
 	ColorA textColor;
@@ -126,8 +133,8 @@ struct HSlider : public TestWidget {
 	void draw() {
 		if( hidden )
 			return;
-		if( ! font )
-			font = Font( Font::getDefault().getName(), FONT_SIZE );
+		if( ! texFont )
+			texFont = getTestWidgetTexFont();
 
 		gl::color( backgroundColor );
 		gl::drawSolidRect( bounds );
@@ -135,7 +142,8 @@ struct HSlider : public TestWidget {
 		auto valFormatted = boost::format( "%0.3f" ) % valueScaled;
 
 		std::string str = title + ": " + valFormatted.str();
-		gl::drawString( str, Vec2f( bounds.x1 + 10.0f, bounds.getCenter().y ), textColor, font );
+		gl::color( textColor );
+		texFont->drawString( str, Vec2f( bounds.x1 + padding, bounds.getCenter().y + texFont->getFont().getDescent() ) );
 
 		gl::color( valueColor );
 		gl::drawStrokedRect( bounds );
@@ -179,9 +187,9 @@ struct VSelector : public TestWidget {
 		if( hidden )
 			return;
 
-		if( ! font )
-			font = Font( Font::getDefault().getName(), FONT_SIZE );
-		
+		if( ! texFont )
+			texFont = getTestWidgetTexFont();
+
 		gl::color( backgroundColor );
 		gl::drawSolidRect( bounds );
 
@@ -191,10 +199,8 @@ struct VSelector : public TestWidget {
 		for( size_t i = 0; i < segments.size(); i++ ) {
 			if( i != currentSectionIndex ) {
 				gl::drawStrokedRect( section );
-				if( textIsCentered )
-					gl::drawStringCentered( segments[i], section.getCenter(), unselectedColor, font );
-				else
-					gl::drawString( segments[i], Vec2f( section.x1 + 10.0f, section.getCenter().y ), unselectedColor, font );
+				gl::color( unselectedColor );
+				texFont->drawString( segments[i], Vec2f( section.x1 + padding, section.getCenter().y + texFont->getFont().getDescent() ) );
 			}
 			section += Vec2f( 0.0f, sectionHeight );
 		}
@@ -204,11 +210,9 @@ struct VSelector : public TestWidget {
 		section.y1 = currentSectionIndex * sectionHeight;
 		section.y2 = section.y1 + sectionHeight;
 		gl::drawStrokedRect( section );
-//		gl::drawStringCentered( segments[currentSectionIndex], section.getCenter(), selectedColor, font );
-		if( textIsCentered )
-			gl::drawStringCentered( segments[currentSectionIndex], section.getCenter(), selectedColor, font );
-		else
-			gl::drawString( segments[currentSectionIndex], Vec2f( section.x1 + 10.0f, section.getCenter().y ), selectedColor, font );
+
+		gl::color( selectedColor );
+		texFont->drawString( segments[currentSectionIndex], Vec2f( section.x1 + padding, section.getCenter().y + texFont->getFont().getDescent() ) );
 	}
 
 	std::vector<std::string> segments;
