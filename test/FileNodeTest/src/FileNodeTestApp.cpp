@@ -13,10 +13,9 @@
 //#define SOUND_FILE "tone440L220R.wav"
 #define SOUND_FILE "tone440L220R.mp3"
 
-// FIXME: sounds like dookie on ipad
+// TODO NEXT: looping
 
-// TODO NEXT: figure out each node starting and stopping, independant of graph
-//	- effects nodes will get an 'enabled' setting
+// TOOD: add seek
 
 using namespace ci;
 using namespace ci::app;
@@ -118,7 +117,7 @@ void FileNodeTestApp::processDrag( Vec2i pos )
 void FileNodeTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
-		mContext->setRunning( ! mContext->isRunning() );
+		mContext->setEnabled( ! mContext->isEnabled() );
 	if( mStartPlaybackButton.hitTest( pos ) )
 		mBufferInputNode->start();
 }

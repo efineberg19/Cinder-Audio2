@@ -67,7 +67,6 @@ private:
 	BufferRef mBuffer;
 	size_t mNumFrames;
 	std::atomic<size_t> mReadPos;
-	std::atomic<bool>	mRunning;
 };
 
 
@@ -88,6 +87,9 @@ struct UGenNode : public GeneratorNode {
 	}
 
 	virtual void process( Buffer *buffer ) override {
+		if( ! mEnabled )
+			return;
+		
 		size_t count = buffer->getNumFrames();
 		mGen.process( buffer->getChannel( 0 ), count );
 		for( size_t ch = 1; ch < buffer->getNumChannels(); ch++ )

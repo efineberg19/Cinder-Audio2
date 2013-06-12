@@ -26,14 +26,14 @@ void BufferInputNode::start()
 	CI_ASSERT( mBuffer );
 
 	mReadPos = 0;
-	mRunning = true;
+	mEnabled = true;
 
 	LOG_V << "started" << endl;
 }
 
 void BufferInputNode::stop()
 {
-	mRunning = false;
+	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
 }
@@ -41,7 +41,7 @@ void BufferInputNode::stop()
 // TODO: consider moving the copy to a Buffer method?
 void BufferInputNode::process( Buffer *buffer )
 {
-	if( ! mRunning )
+	if( ! mEnabled )
 		return;
 
 	size_t readPos = mReadPos;
@@ -57,7 +57,7 @@ void BufferInputNode::process( Buffer *buffer )
 			std::memset( &buffer->getChannel( ch )[readCount], 0, numLeft * sizeof( float ) );
 
 		// TODO: check for loop and restart if yes
-		mRunning = false;
+		mEnabled = false;
 	}
 
 	mReadPos += readCount;

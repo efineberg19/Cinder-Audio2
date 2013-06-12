@@ -33,7 +33,6 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 	void initContext();
-	void toggleGraph();
 
 	ContextRef mContext;
 	GeneratorNodeRef mSource;
@@ -61,6 +60,7 @@ void EffectsAudioUnitTestApp::setup()
 
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->getFormat().setAutoEnabled();
 	noise->mGen.setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
@@ -90,14 +90,6 @@ void EffectsAudioUnitTestApp::setupTwo()
 void EffectsAudioUnitTestApp::setupNativeThenGeneric()
 {
 	LOG_V << "TODO: implement test" << endl;
-}
-
-void EffectsAudioUnitTestApp::toggleGraph()
-{
-	if( ! mContext->isRunning() )
-		mContext->start();
-	else
-		mContext->stop();
 }
 
 void EffectsAudioUnitTestApp::initContext()
@@ -179,14 +171,14 @@ void EffectsAudioUnitTestApp::processDrag( Vec2i pos )
 void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		toggleGraph();
+		mContext->setEnabled( ! mContext->isEnabled() );
 
 	size_t currentIndex = mTestSelector.currentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isRunning();
+		bool running = mContext->isEnabled();
 		mContext->uninitialize();
 
 		if( currentTest == "one" ) {

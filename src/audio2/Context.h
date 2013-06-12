@@ -2,6 +2,7 @@
 
 #include "audio2/Device.h"
 #include "audio2/Buffer.h"
+#include "audio2/Atomic.h"
 //#include "audio2/GeneratorNode.h"
 
 #include <memory>
@@ -58,8 +59,8 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual void initialize()	{ mInitialized = true; }
 	virtual void uninitialize()	{ mInitialized = false; }
-	virtual void start()		{}
-	virtual void stop()			{}
+	virtual void start()		{ mEnabled = true; }
+	virtual void stop()			{ mEnabled = false; }
 
 	NodeRef connect( NodeRef dest );
 	NodeRef connect( NodeRef dest, size_t bus );
@@ -93,6 +94,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	NodeWeakRef				mParent;
 	Format					mFormat;
 	bool					mInitialized;
+	std::atomic<bool>		mEnabled;
 	std::string				mTag;
 
   private:
@@ -200,21 +202,20 @@ class Context {
 
 	bool isInitialized() const	{ return mInitialized; }
 
-	// TODO: rename isEnabled() / setEnabled() ?
-	bool isRunning() const		{ return mRunning; }
+	bool isEnabled() const		{ return mEnabled; }
 
 	//! convenience method to start / stop the graph via bool
-	void setRunning( bool running = true );
+	void setEnabled( bool enabled = true );
 
   protected:
-	Context() : mInitialized( false ), mRunning( false ) {}
+	Context() : mInitialized( false ), mEnabled( false ) {}
 
 	virtual void start( NodeRef node );
 	virtual void stop( NodeRef node );
 
 
 	RootNodeRef		mRoot;
-	bool			mInitialized, mRunning;
+	bool			mInitialized, mEnabled;
 };
 
 } // namespace audio2

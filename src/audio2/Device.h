@@ -27,9 +27,9 @@ class Device {
 	size_t getBlockSize();
 
   protected:
-	Device( const std::string &key ) : mKey( key ), mInitialized( false ), mRunning( false ) {}
+	Device( const std::string &key ) : mKey( key ), mInitialized( false ), mEnabled( false ) {}
 
-	bool mInitialized, mRunning;
+	bool mInitialized, mEnabled;
 	std::string mKey, mName;
 };
 

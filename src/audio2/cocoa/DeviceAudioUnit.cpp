@@ -68,24 +68,24 @@ void DeviceAudioUnit::uninitialize()
 
 void DeviceAudioUnit::start()
 {
-	if( ! mInitialized || mRunning ) {
-		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mRunning: " << mRunning << dec << endl;
+	if( ! mInitialized || mEnabled ) {
+		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mEnabled: " << mEnabled << dec << endl;
 		return;
 	}
 
-	mRunning = true;
+	mEnabled = true;
 	OSStatus status = ::AudioOutputUnitStart( mComponentInstance );
 	CI_ASSERT( status == noErr );
 }
 
 void DeviceAudioUnit::stop()
 {
-	if( ! mInitialized || ! mRunning ) {
-		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mRunning: " << mRunning << dec << endl;
+	if( ! mInitialized || ! mEnabled ) {
+		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mEnabled: " << mEnabled << dec << endl;
 		return;
 	}
 
-	mRunning = false;
+	mEnabled = false;
 	OSStatus status = ::AudioOutputUnitStop( mComponentInstance );
 	CI_ASSERT( status == noErr );
 }

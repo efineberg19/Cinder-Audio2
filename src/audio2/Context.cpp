@@ -159,21 +159,29 @@ void Context::uninitialize()
 
 void Context::start()
 {
-	if( mRunning )
+	if( mEnabled )
 		return;
 	CI_ASSERT( mRoot );
-	mRunning = true;
+	mEnabled = true;
 	
 	start( mRoot );
 }
 
 void Context::stop()
 {
-	if( ! mRunning )
+	if( ! mEnabled )
 		return;
-	mRunning = false;
+	mEnabled = false;
 
 	stop( mRoot );
+}
+
+void Context::setEnabled( bool enabled )
+{
+	if( enabled )
+		start();
+	else
+		stop();
 }
 
 RootNodeRef Context::getRoot()
@@ -181,14 +189,6 @@ RootNodeRef Context::getRoot()
 	if( ! mRoot )
 		mRoot = createOutput();
 	return mRoot;
-}
-
-void Context::setRunning( bool running )
-{
-	if( running )
-		start();
-	else
-		stop();
 }
 
 void Context::start( NodeRef node )

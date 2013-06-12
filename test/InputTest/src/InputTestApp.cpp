@@ -147,7 +147,7 @@ void InputTestApp::setupUI()
 void InputTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setRunning( ! mContext->isRunning() );
+		mContext->setEnabled( ! mContext->isRunning() );
 
 	size_t currentIndex = mTestSelector.currentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
