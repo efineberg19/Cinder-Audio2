@@ -73,6 +73,7 @@ void BasicTestApp::setup()
 void BasicTestApp::setupSine()
 {
 	auto genNode = make_shared<UGenNode<SineGen> >();
+	genNode->getFormat().setAutoEnabled();
 	genNode->mGen.setAmp( 0.2f );
 	genNode->mGen.setFreq( 440.0f );
 
@@ -84,6 +85,7 @@ void BasicTestApp::setupSine()
 void BasicTestApp::setupNoise()
 {
 	auto genNode = make_shared<UGenNode<NoiseGen> >();
+	genNode->getFormat().setAutoEnabled();
 	genNode->mGen.setAmp( 0.2f );
 
 	genNode->connect( mContext->getRoot() );
@@ -94,9 +96,11 @@ void BasicTestApp::setupNoise()
 void BasicTestApp::setupMixer()
 {
 	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->getFormat().setAutoEnabled();
 	noise->mGen.setAmp( 0.25f );
 
 	auto sine = make_shared<UGenNode<SineGen> >();
+	sine->getFormat().setAutoEnabled();
 	sine->mGen.setAmp( 0.25f );
 	sine->mGen.setFreq( 440.0f );
 
@@ -216,14 +220,14 @@ void BasicTestApp::processDrag( Vec2i pos )
 void BasicTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setRunning( ! mContext->isRunning() );
+		mContext->setEnabled( ! mContext->isEnabled() );
 
 	size_t currentIndex = mTestSelector.currentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isRunning();
+		bool running = mContext->isEnabled();
 		mContext->uninitialize();
 
 		if( currentTest == "sine" ) {
