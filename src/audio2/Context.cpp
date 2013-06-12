@@ -178,6 +178,13 @@ void Context::stop()
 	mRoot->stop();
 }
 
+RootNodeRef Context::getRoot()
+{
+	if( ! mRoot )
+		mRoot = createOutput();
+	return mRoot;
+}
+
 void Context::setRunning( bool running )
 {
 	if( running )

@@ -183,7 +183,9 @@ class Context {
 	virtual void initialize();
 	virtual void uninitialize();
 	virtual void setRoot( RootNodeRef root )	{ mRoot = root; }
-	virtual RootNodeRef getRoot() const	{ return mRoot; }
+
+	//! If the root has not already been set, it is the default OutputNode
+	virtual RootNodeRef getRoot();
 	virtual void start();
 	virtual void stop();
 
