@@ -9,7 +9,7 @@ namespace audio2 {
 
 GeneratorNode::GeneratorNode() : Node()
 {
-	LOG_V << "bang" << std::endl;
+	mSources.clear();
 	mFormat.setWantsDefaultFormatFromParent();
 }
 
@@ -38,7 +38,7 @@ void BufferInputNode::stop()
 	LOG_V << "stopped" << endl;
 }
 
-// TODO: consider moving the copy to a Buffer method?
+// TODO: consider moving the copy to a Buffer method
 void BufferInputNode::process( Buffer *buffer )
 {
 	if( ! mEnabled )

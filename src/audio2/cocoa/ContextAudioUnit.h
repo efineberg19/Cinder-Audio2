@@ -76,6 +76,7 @@ class InputAudioUnit : public InputNode, public AudioUnitNode {
 	cocoa::AudioBufferListRef mBufferList;
 };
 
+// TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used
 class EffectAudioUnit : public EffectNode, public AudioUnitNode {
   public:
 	EffectAudioUnit( UInt32 subType );

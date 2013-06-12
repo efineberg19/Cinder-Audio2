@@ -87,9 +87,6 @@ struct UGenNode : public GeneratorNode {
 	}
 
 	virtual void process( Buffer *buffer ) override {
-		if( ! mEnabled )
-			return;
-		
 		size_t count = buffer->getNumFrames();
 		mGen.process( buffer->getChannel( 0 ), count );
 		for( size_t ch = 1; ch < buffer->getNumChannels(); ch++ )

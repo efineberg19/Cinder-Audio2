@@ -719,17 +719,16 @@ OSStatus ContextAudioUnit::renderCallback( void *context, ::AudioUnitRenderActio
 
 		if( didRenderChildren ) {
 			// copy samples from AudioBufferList to the generic buffer before generic render
-			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
+			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
 				memcpy( renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
-			}
 		}
-		
-		source->process( &renderContext->buffer );
 
-		// now copy samples back to the output buffer
-		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ ) {
+		if( source->isEnabled() )
+			source->process( &renderContext->buffer );
+
+		// copy samples back to the output buffer
+		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
 			memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
-		}
 	}
 	
 	return noErr;
