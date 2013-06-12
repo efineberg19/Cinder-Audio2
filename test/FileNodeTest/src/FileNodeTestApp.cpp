@@ -13,8 +13,6 @@
 //#define SOUND_FILE "tone440L220R.wav"
 #define SOUND_FILE "tone440L220R.mp3"
 
-// TODO NEXT: looping
-
 // TOOD: add seek
 
 using namespace ci;
@@ -42,7 +40,7 @@ class FileNodeTestApp : public AppNative {
 	WaveformPlot mWaveformPlot;
 
 	vector<TestWidget *> mWidgets;
-	Button mEnableGraphButton, mStartPlaybackButton;
+	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
 };
 
 void FileNodeTestApp::prepareSettings( Settings *settings )
@@ -99,6 +97,12 @@ void FileNodeTestApp::setupUI()
 	mStartPlaybackButton.bounds = mEnableGraphButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
 	mWidgets.push_back( &mStartPlaybackButton );
 
+	mLoopButton.isToggle = true;
+	mLoopButton.titleNormal = "loop off";
+	mLoopButton.titleEnabled = "loop on";
+	mLoopButton.bounds = mStartPlaybackButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
+	mWidgets.push_back( &mLoopButton );
+
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
@@ -120,6 +124,8 @@ void FileNodeTestApp::processTap( Vec2i pos )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	if( mStartPlaybackButton.hitTest( pos ) )
 		mBufferInputNode->start();
+	if( mLoopButton.hitTest( pos ) )
+		mBufferInputNode->setLoop( ! mBufferInputNode->getLoop() );
 }
 
 void FileNodeTestApp::mouseDown( MouseEvent event )

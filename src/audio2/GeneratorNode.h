@@ -62,11 +62,15 @@ public:
 	size_t getReadPosition() const	{ return mReadPos; }
 
 	BufferRef getBuffer() const	{ return mBuffer; }
+
+	void setLoop( bool b = true )	{ mLoop = b; }
+	bool getLoop() const			{ return mLoop; }
 	
 private:
 	BufferRef mBuffer;
 	size_t mNumFrames;
 	std::atomic<size_t> mReadPos;
+	std::atomic<bool>	mLoop;
 };
 
 

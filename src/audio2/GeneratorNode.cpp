@@ -41,9 +41,6 @@ void BufferInputNode::stop()
 // TODO: consider moving the copy to a Buffer method
 void BufferInputNode::process( Buffer *buffer )
 {
-	if( ! mEnabled )
-		return;
-
 	size_t readPos = mReadPos;
 	size_t numFrames = buffer->getNumFrames();
 	size_t readCount = std::min( mNumFrames - readPos, numFrames );
@@ -56,8 +53,11 @@ void BufferInputNode::process( Buffer *buffer )
 		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
 			std::memset( &buffer->getChannel( ch )[readCount], 0, numLeft * sizeof( float ) );
 
-		// TODO: check for loop and restart if yes
-		mEnabled = false;
+		if( mLoop ) {
+			mReadPos = 0;
+			return;
+		} else
+			mEnabled = false;
 	}
 
 	mReadPos += readCount;
