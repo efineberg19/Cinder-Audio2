@@ -31,7 +31,7 @@ NodeRef Node::connect( NodeRef dest )
 
 NodeRef Node::connect( NodeRef dest, size_t bus )
 {
-	dest->setSource( shared_from_this(), 0 );
+	dest->setSource( shared_from_this(), bus );
 	return dest;
 }
 
