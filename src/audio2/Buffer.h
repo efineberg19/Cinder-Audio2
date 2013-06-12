@@ -56,12 +56,12 @@ public:
 	size_t getNumChannels() const	{ return mNumChannels; }
 	size_t getSize() const	{ return mData.size(); }
 
-	void asFormat( Format fmt ) {
-		if( fmt == NonInterleaved && mFormat == Interleaved )
-			deinterleaveInplacePow2( mData.data(), mData.size() );
-		else if( fmt == Interleaved && mFormat == NonInterleaved )
-			CI_ASSERT( false ); // TODO: interleave
-	}
+//	void asFormat( Format fmt ) {
+//		if( fmt == NonInterleaved && mFormat == Interleaved )
+//			deinterleaveInplacePow2( mData.data(), mData.size() );
+//		else if( fmt == Interleaved && mFormat == NonInterleaved )
+//			CI_ASSERT( false ); // TODO: interleave
+//	}
 
 	T* getData() { return mData.data(); }
 
