@@ -19,6 +19,8 @@ namespace audio2 {
 
 // - possible: DeviceInputNode : public InputNode, DeviceOutputNode : public OutputNode
 //		- this is still confusing if you have Node::mOutput / Node::mInputs
+// - webaudio uses LiveInput - use that and LiveOutput? I think I prefer MicInput / SpeakerOutput, even though that isn't always the case
+// - pd uses DAC / ADC, which is confusing for some
 
 typedef std::shared_ptr<class BufferInputNode> BufferInputNodeRef;
 

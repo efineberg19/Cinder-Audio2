@@ -29,7 +29,6 @@ public:
 	void setupNoise();
 	void setupMixer();
 	void initContext();
-	void toggleGraph();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -150,14 +149,6 @@ void BasicTestApp::initContext()
 	}
 }
 
-void BasicTestApp::toggleGraph()
-{
-	if( ! mContext->isRunning() )
-		mContext->start();
-	else
-		mContext->stop();
-}
-
 void BasicTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
@@ -225,7 +216,7 @@ void BasicTestApp::processDrag( Vec2i pos )
 void BasicTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		toggleGraph();
+		mContext->setRunning( ! mContext->isRunning() );
 
 	size_t currentIndex = mTestSelector.currentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {

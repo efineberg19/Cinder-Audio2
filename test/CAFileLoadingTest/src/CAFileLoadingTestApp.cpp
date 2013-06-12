@@ -114,7 +114,7 @@ void CAFileLoadingTestApp::setup()
 
 	LOG_V << "load complete.\n";
 
-	mWaveformPlot.load( &mBuffer, getWindowBounds() );
+//	mWaveformPlot.load( &mBuffer, getWindowBounds() );
 }
 
 void CAFileLoadingTestApp::mouseDown( MouseEvent event )

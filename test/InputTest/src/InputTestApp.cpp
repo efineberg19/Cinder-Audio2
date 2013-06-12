@@ -31,7 +31,6 @@ class InputTestApp : public AppNative {
 	void initGraph();
 
 	void setupUI();
-	void toggleGraph();
 	void processTap( Vec2i pos );
 
 	void setupPassThrough();
@@ -145,18 +144,10 @@ void InputTestApp::setupUI()
 	gl::enableAlphaBlending();
 }
 
-void InputTestApp::toggleGraph()
-{
-	if( ! mContext->isRunning() )
-		mContext->start();
-	else
-		mContext->stop();
-}
-
 void InputTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		toggleGraph();
+		mContext->setRunning( ! mContext->isRunning() );
 
 	size_t currentIndex = mTestSelector.currentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {

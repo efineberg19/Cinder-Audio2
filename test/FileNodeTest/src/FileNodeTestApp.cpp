@@ -9,13 +9,14 @@
 
 #include "Gui.h"
 
-#define SOUND_FILE "tone440.wav"
+//#define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
+#define SOUND_FILE "tone440L220R.mp3"
 
 // FIXME: sounds like dookie on ipad
 
 // TODO NEXT: figure out each node starting and stopping, independant of graph
-//	- all nodes are actually effects, since there is the idea of each node being 'enabled'
+//	- effects nodes will get an 'enabled' setting
 
 using namespace ci;
 using namespace ci::app;
