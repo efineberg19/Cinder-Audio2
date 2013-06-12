@@ -38,23 +38,27 @@ void BufferInputNode::stop()
 	LOG_V << "stopped" << endl;
 }
 
-// TODO: silence when we have nothing to play
+// TODO: consider moving the copy to a Buffer method?
 void BufferInputNode::process( Buffer *buffer )
 {
 	if( ! mRunning )
 		return;
 
 	size_t readPos = mReadPos;
-	size_t readCount = std::min( mNumFrames - readPos, buffer->getNumFrames() );
-
-	if( ! readCount ) {
-		LOG_V << "read finished, stopping." << endl;
-		mRunning = false;
-		return;
-	}
+	size_t numFrames = buffer->getNumFrames();
+	size_t readCount = std::min( mNumFrames - readPos, numFrames );
 
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
 		std::memcpy( buffer->getChannel( ch ), &mBuffer->getChannel( ch )[readPos], readCount * sizeof( float ) );
+
+	if( readCount < numFrames  ) {
+		size_t numLeft = numFrames - readCount;
+		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
+			std::memset( &buffer->getChannel( ch )[readCount], 0, numLeft * sizeof( float ) );
+
+		// TODO: check for loop and restart if yes
+		mRunning = false;
+	}
 
 	mReadPos += readCount;
 }
