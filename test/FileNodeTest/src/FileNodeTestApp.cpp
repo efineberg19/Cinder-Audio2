@@ -10,10 +10,9 @@
 #include "Gui.h"
 
 //#define SOUND_FILE "tone440.wav"
-//#define SOUND_FILE "tone440L220R.wav"
-#define SOUND_FILE "tone440L220R.mp3"
-
-// TOOD: add seek
+#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "tone440L220R.mp3"
+//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 using namespace ci;
 using namespace ci::app;
@@ -34,6 +33,8 @@ class FileNodeTestApp : public AppNative {
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
+
+	void seek( size_t xPos );
 
 	ContextRef mContext;
 	BufferInputNodeRef mBufferInputNode;
@@ -116,16 +117,25 @@ void FileNodeTestApp::setupUI()
 
 void FileNodeTestApp::processDrag( Vec2i pos )
 {
+	seek( pos.x );
 }
 
 void FileNodeTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-	if( mStartPlaybackButton.hitTest( pos ) )
+	else if( mStartPlaybackButton.hitTest( pos ) )
 		mBufferInputNode->start();
-	if( mLoopButton.hitTest( pos ) )
+	else if( mLoopButton.hitTest( pos ) )
 		mBufferInputNode->setLoop( ! mBufferInputNode->getLoop() );
+	else
+		seek( pos.x );
+}
+
+void FileNodeTestApp::seek( size_t xPos )
+{
+	size_t seek = mBufferInputNode->getBuffer()->getNumFrames() * xPos / getWindowWidth();
+	mBufferInputNode->setReadPosition( seek );
 }
 
 void FileNodeTestApp::mouseDown( MouseEvent event )

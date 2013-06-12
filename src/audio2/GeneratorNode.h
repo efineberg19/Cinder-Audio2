@@ -59,6 +59,7 @@ public:
 	virtual void stop() override;
 	virtual void process( Buffer *buffer );
 
+	void setReadPosition( size_t pos )	{ mReadPos = pos; }
 	size_t getReadPosition() const	{ return mReadPos; }
 
 	BufferRef getBuffer() const	{ return mBuffer; }
