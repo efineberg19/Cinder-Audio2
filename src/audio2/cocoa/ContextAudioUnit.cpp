@@ -466,7 +466,6 @@ ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest, size_t out
 	mTag = "ConverterAudioUnit";
 	mFormat = dest->getFormat();
 	mSourceFormat = source->getFormat();
-	mSources.resize( 1 );
 
 	mRenderContext.currentNode = this;
 	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), outputBlockSize, Buffer::Format::NonInterleaved );

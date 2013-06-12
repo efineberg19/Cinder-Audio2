@@ -18,6 +18,12 @@ using namespace std;
 
 namespace audio2 {
 
+Node::Node()
+: mInitialized( false ), mEnabled( false )
+{
+	mSources.resize( 1 );
+}
+
 Node::~Node()
 {
 
@@ -83,7 +89,6 @@ TapNode::TapNode( size_t bufferSize )
 : Node(), mBufferSize( bufferSize )
 {
 	mTag = "BufferTap";
-	mSources.resize( 1 );
 }
 
 TapNode::~TapNode()

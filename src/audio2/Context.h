@@ -3,7 +3,6 @@
 #include "audio2/Device.h"
 #include "audio2/Buffer.h"
 #include "audio2/Atomic.h"
-//#include "audio2/GeneratorNode.h"
 
 #include <memory>
 #include <vector>
@@ -87,8 +86,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	bool isInitialized() const	{ return mInitialized; }
 
   protected:
-	Node() : mInitialized( false )
-	{}
+	Node();
 
 	std::vector<NodeRef>	mSources;
 	NodeWeakRef				mParent;
@@ -104,7 +102,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
 class RootNode : public Node {
   public:
-	RootNode() : Node() { mSources.resize( 1 ); }
+	RootNode() : Node() {}
 	virtual ~RootNode() {}
 
 	virtual size_t getBlockSize() const = 0;
