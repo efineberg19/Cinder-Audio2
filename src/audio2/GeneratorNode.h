@@ -22,14 +22,14 @@ namespace audio2 {
 // - webaudio uses LiveInput - use that and LiveOutput? I think I prefer MicInput / SpeakerOutput, even though that isn't always the case
 // - pd uses DAC / ADC, which is confusing for some
 
-typedef std::shared_ptr<class BufferInputNode> BufferInputNodeRef;
+typedef std::shared_ptr<class BufferPlayerNode> BufferPlayerNodeRef;
 
 class GeneratorNode : public Node {
 public:
 	GeneratorNode();
 
 	// TODO: think I found another compiler bug...
-	// GeneratorNode() is not called from BufferInputNode's constructor unless it is in the cpp.
+	// GeneratorNode() is not called from BufferPlayerNode's constructor unless it is in the cpp.
 	//	- but then maybe this is one of those libc++ hokey rules. check on vc11 to verify
 //	GeneratorNode() : Node() {
 //		LOG_V << "SHHHAAAAZZAAMMM!!!" << std::endl;
@@ -48,12 +48,11 @@ public:
 	virtual DeviceRef getDevice() = 0;
 };
 
-// TODO: rename BufferPlayerNode / FilePlayerNode ?
-class BufferInputNode : public GeneratorNode {
+class BufferPlayerNode : public GeneratorNode {
 public:
-	BufferInputNode() : GeneratorNode() {}
-	BufferInputNode( BufferRef inputBuffer );
-	virtual ~BufferInputNode() {}
+	BufferPlayerNode() : GeneratorNode() {}
+	BufferPlayerNode( BufferRef inputBuffer );
+	virtual ~BufferPlayerNode() {}
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -75,10 +74,10 @@ private:
 };
 
 
-class FileInputNode : public GeneratorNode {
+class FilePlayerNode : public GeneratorNode {
 public:
-	FileInputNode() : GeneratorNode() {}
-	virtual ~FileInputNode() {}
+	FilePlayerNode() : GeneratorNode() {}
+	virtual ~FilePlayerNode() {}
 };
 
 template <typename UGenT>

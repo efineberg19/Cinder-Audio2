@@ -37,7 +37,7 @@ class FileNodeTestApp : public AppNative {
 	void seek( size_t xPos );
 
 	ContextRef mContext;
-	BufferInputNodeRef mBufferInputNode;
+	BufferPlayerNodeRef mBufferPlayerNode;
 	WaveformPlot mWaveformPlot;
 
 	vector<TestWidget *> mWidgets;
@@ -64,8 +64,8 @@ void FileNodeTestApp::setup()
 
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
-	mBufferInputNode = make_shared<BufferInputNode>( audioBuffer );
-	mBufferInputNode->connect( output );
+	mBufferPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
+	mBufferPlayerNode->connect( output );
 
 	initContext();
 	setupUI();
@@ -125,22 +125,22 @@ void FileNodeTestApp::processTap( Vec2i pos )
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	else if( mStartPlaybackButton.hitTest( pos ) )
-		mBufferInputNode->start();
+		mBufferPlayerNode->start();
 	else if( mLoopButton.hitTest( pos ) )
-		mBufferInputNode->setLoop( ! mBufferInputNode->getLoop() );
+		mBufferPlayerNode->setLoop( ! mBufferPlayerNode->getLoop() );
 	else
 		seek( pos.x );
 }
 
 void FileNodeTestApp::seek( size_t xPos )
 {
-	size_t seek = mBufferInputNode->getBuffer()->getNumFrames() * xPos / getWindowWidth();
-	mBufferInputNode->setReadPosition( seek );
+	size_t seek = mBufferPlayerNode->getBuffer()->getNumFrames() * xPos / getWindowWidth();
+	mBufferPlayerNode->setReadPosition( seek );
 }
 
 void FileNodeTestApp::mouseDown( MouseEvent event )
 {
-//	mBufferInputNode->start();
+//	mBufferPlayerNode->start();
 
 //	size_t step = mBuffer.getNumFrames() / getWindowWidth();
 //    size_t xLoc = event.getX() * step;
@@ -164,7 +164,7 @@ void FileNodeTestApp::draw()
 	gl::clear();
 	gl::draw( mWaveformPlot );
 
-	float readPos = (float)getWindowWidth() * mBufferInputNode->getReadPosition() / mBufferInputNode->getBuffer()->getNumFrames();
+	float readPos = (float)getWindowWidth() * mBufferPlayerNode->getReadPosition() / mBufferPlayerNode->getBuffer()->getNumFrames();
 
 	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
 	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );

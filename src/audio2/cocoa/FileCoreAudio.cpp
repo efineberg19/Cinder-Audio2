@@ -111,16 +111,16 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - FileInputNodeCoreAudio
+// MARK: - FilePlayerNodeCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-FileInputNodeCoreAudio::FileInputNodeCoreAudio( ci::DataSourceRef dataSource )
-: FileInputNode(), mSourceFile( new SourceFileCoreAudio( dataSource ) )
+FilePlayerNodeCoreAudio::FilePlayerNodeCoreAudio( ci::DataSourceRef dataSource )
+: FilePlayerNode(), mSourceFile( new SourceFileCoreAudio( dataSource ) )
 {
 }
 
 
-void FileInputNodeCoreAudio::process( Buffer *buffer )
+void FilePlayerNodeCoreAudio::process( Buffer *buffer )
 {
 
 }

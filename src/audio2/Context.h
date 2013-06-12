@@ -22,7 +22,7 @@ typedef std::shared_ptr<class TapNode> TapNodeRef;
 
 typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
 typedef std::shared_ptr<class InputNode> InputNodeRef;
-typedef std::shared_ptr<class FileInputNode> FileInputNodeRef;
+typedef std::shared_ptr<class FilePlayerNode> FilePlayerNodeRef;
 
 class Node : public std::enable_shared_from_this<Node> {
   public:

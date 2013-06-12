@@ -13,15 +13,15 @@ GeneratorNode::GeneratorNode() : Node()
 	mFormat.setWantsDefaultFormatFromParent();
 }
 
-BufferInputNode::BufferInputNode( BufferRef inputBuffer )
+BufferPlayerNode::BufferPlayerNode( BufferRef inputBuffer )
 : GeneratorNode(), mBuffer( inputBuffer )
 {
-	mTag = "BufferInputNode";
+	mTag = "BufferPlayerNode";
 	mNumFrames = mBuffer->getNumFrames();
 	mFormat.setNumChannels( mBuffer->getNumChannels() );
 }
 
-void BufferInputNode::start()
+void BufferPlayerNode::start()
 {
 	CI_ASSERT( mBuffer );
 
@@ -31,7 +31,7 @@ void BufferInputNode::start()
 	LOG_V << "started" << endl;
 }
 
-void BufferInputNode::stop()
+void BufferPlayerNode::stop()
 {
 	mEnabled = false;
 
@@ -39,7 +39,7 @@ void BufferInputNode::stop()
 }
 
 // TODO: consider moving the copy to a Buffer method
-void BufferInputNode::process( Buffer *buffer )
+void BufferPlayerNode::process( Buffer *buffer )
 {
 	size_t readPos = mReadPos;
 	size_t numFrames = buffer->getNumFrames();
