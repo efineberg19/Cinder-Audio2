@@ -164,8 +164,7 @@ void Context::start()
 	CI_ASSERT( mRoot );
 	mRunning = true;
 	
-//	start( mRoot );
-	mRoot->start();
+	start( mRoot );
 }
 
 void Context::stop()
@@ -174,8 +173,7 @@ void Context::stop()
 		return;
 	mRunning = false;
 
-//	stop( mRoot );
-	mRoot->stop();
+	stop( mRoot );
 }
 
 RootNodeRef Context::getRoot()
@@ -200,7 +198,8 @@ void Context::start( NodeRef node )
 	for( auto& source : node->getSources() )
 		start( source );
 
-	node->start();
+	if( node->getFormat().isAutoEnabled() )
+		node->start();
 }
 
 void Context::stop( NodeRef node )

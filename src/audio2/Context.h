@@ -29,7 +29,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual ~Node();
 
 	struct Format {
-		Format() : mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ) // TODO: decide how to properly set this format per platform
+		Format()
+		: mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
 		{}
 
 		virtual bool isComplete() const	{ return ( mSampleRate && mNumChannels ); }
@@ -43,10 +44,15 @@ class Node : public std::enable_shared_from_this<Node> {
 
 		const Buffer::Format& getBufferFormat() const { return mBufferFormat; }
 		void	setBufferFormat( const Buffer::Format& format )	{ mBufferFormat = format; }
-		
+
+		//! controls whether the graph automatically enables / disables this Node
+		bool	isAutoEnabled() const				{ return mAutoEnabled; }
+		void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
+
   private:
 		size_t mSampleRate, mNumChannels;
 		bool mWantsDefaultFormatFromParent;
+		bool mAutoEnabled;
 		Buffer::Format			mBufferFormat;
 	};
 
@@ -111,7 +117,9 @@ class OutputNode : public RootNode {
   public:
 
 	// ???: device param here necessary?
-	OutputNode( DeviceRef device ) : RootNode() {}
+	OutputNode( DeviceRef device ) : RootNode() {
+		mFormat.setAutoEnabled();
+	}
 	virtual ~OutputNode() {}
 
 	virtual DeviceRef getDevice() = 0;
@@ -191,6 +199,8 @@ class Context {
 
 
 	bool isInitialized() const	{ return mInitialized; }
+
+	// TODO: rename isEnabled() / setEnabled() ?
 	bool isRunning() const		{ return mRunning; }
 
 	//! convenience method to start / stop the graph via bool

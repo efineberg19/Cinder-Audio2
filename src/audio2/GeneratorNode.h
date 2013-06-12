@@ -38,7 +38,9 @@ public:
 
 class InputNode : public GeneratorNode {
 public:
-	InputNode( DeviceRef device ) : GeneratorNode() {}
+	InputNode( DeviceRef device ) : GeneratorNode() {
+		mFormat.setAutoEnabled();
+	}
 	virtual ~InputNode() {}
 
 	virtual DeviceRef getDevice() = 0;
