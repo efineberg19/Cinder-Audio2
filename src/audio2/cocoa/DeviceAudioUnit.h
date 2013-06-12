@@ -23,10 +23,9 @@ class DeviceAudioUnit : public Device {
 	void setInputConnected()	{ mInputConnected = true; }
 	void setOutputConnected()	{ mOutputConnected = true; }
 
-	// FIXME: friendship isn't working since moving to namespaceaudio2::cocoa - sort it out, should be protected or private
-	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key ); // TODO: swap these two for consistency
-
   private:
+
+	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key ); // TODO: swap these two for consistency
 
 	::AudioComponentDescription mComponentDescription;
 	::AudioComponentInstance	mComponentInstance;
