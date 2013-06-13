@@ -56,7 +56,7 @@ void FileNodeTestApp::setup()
 	mContext->setRoot( output );
 
 	auto sourceFile = SourceFileCoreAudio( loadResource( SOUND_FILE ), 0, 44100 );
-	LOG_V << "output samplerate: " << sourceFile.getOutputSampleRate() << endl;
+	LOG_V << "output samplerate: " << sourceFile.getSampleRate() << endl;
 
 	auto audioBuffer = sourceFile.loadBuffer();
 

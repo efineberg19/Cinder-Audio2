@@ -79,7 +79,7 @@ FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile )
 : PlayerNode(), mSourceFile( sourceFile )
 {
 	mNumFrames = mSourceFile->getNumFrames();
-	mFormat.setNumChannels( mSourceFile->getOutputNumChannels() );
+	mFormat.setNumChannels( mSourceFile->getNumChannels() );
 }
 
 void FilePlayerNode::initialize()

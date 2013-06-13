@@ -56,8 +56,8 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t o
     status = ::ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileDataFormat, &propSize, &fileFormat );
 	CI_ASSERT( status == noErr );
 
-    mNumChannels = fileFormat.mChannelsPerFrame;
-	mSampleRate = fileFormat.mSampleRate;
+    mFileNumChannels = fileFormat.mChannelsPerFrame;
+	mFileSampleRate = fileFormat.mSampleRate;
 
     SInt64 numFrames;
     propSize = sizeof( numFrames );
@@ -65,13 +65,13 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t o
 	CI_ASSERT( status == noErr );
 	mNumFrames = static_cast<size_t>( numFrames );
 
-	if( ! mOutputNumChannels )
-		mOutputNumChannels = mNumChannels;
-	if( ! mOutputSampleRate )
-		mOutputSampleRate = mSampleRate;
+	if( ! mNumChannels )
+		mNumChannels = mFileNumChannels;
+	if( ! mSampleRate )
+		mSampleRate = mFileSampleRate;
 
 
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mOutputNumChannels, mOutputSampleRate );
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mNumChannels, mSampleRate );
 
     LOG_V << "file format:\n";
 	audio2::cocoa::printASBD( fileFormat );
@@ -86,8 +86,8 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t o
 
 BufferRef SourceFileCoreAudio::loadBuffer()
 {
-	BufferRef result( new Buffer( mOutputNumChannels, mNumFrames ) );
-	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mOutputNumChannels, mNumFramesPerRead ); // TODO: make this an ivar
+	BufferRef result( new Buffer( mNumChannels, mNumFrames ) );
+	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, mNumFramesPerRead ); // TODO: make this an ivar
 
 	size_t currReadPos = 0;
 	while( true ) {
@@ -96,7 +96,7 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 			break;
 
 		UInt32 frameCount = std::min( framesLeft, mNumFramesPerRead );
-        for( int i = 0; i < mOutputNumChannels; i++ ) {
+        for( int i = 0; i < mNumChannels; i++ ) {
             bufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
             bufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
         }
@@ -108,21 +108,6 @@ BufferRef SourceFileCoreAudio::loadBuffer()
         currReadPos += frameCount;
 	}
 	return result;
-}
-
-// ----------------------------------------------------------------------------------------------------
-// MARK: - FilePlayerNodeCoreAudio
-// ----------------------------------------------------------------------------------------------------
-
-FilePlayerNodeCoreAudio::FilePlayerNodeCoreAudio( ci::DataSourceRef dataSource )
-: FilePlayerNode(), mSourceFile( new SourceFileCoreAudio( dataSource ) )
-{
-}
-
-
-void FilePlayerNodeCoreAudio::process( Buffer *buffer )
-{
-
 }
 
 } } // namespace audio2::cocoa

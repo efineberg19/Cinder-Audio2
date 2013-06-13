@@ -11,22 +11,25 @@ typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
 class SourceFile {
   public:
-	SourceFile( ci::DataSourceRef dataSource, size_t outputNumChannels, size_t outputSampleRate ) : mSampleRate( 0 ), mNumChannels( 0 ), mNumFrames( 0 ), mOutputNumChannels( outputNumChannels ), mOutputSampleRate( outputSampleRate ), mNumFramesPerRead( 4096 )
+	SourceFile( ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
+	: mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mNumChannels( numChannels ), mSampleRate( sampleRate ), mNumFramesPerRead( 4096 )
 	{}
 
-	virtual size_t getOutputSampleRate() const				{ return mOutputSampleRate; }
-	virtual void setOutputSampleRate( size_t sampleRate )	{ mOutputSampleRate = sampleRate; }
-	virtual size_t getOutputNumChannels() const				{ return mOutputNumChannels; }
-	virtual void setOutputNumChannels( size_t channels )	{ mOutputNumChannels = channels; }
-	virtual size_t getNumFramesPerRead() const				{ return mNumFramesPerRead; }
-	virtual void setNumFramesPerRead( size_t count )		{ mNumFramesPerRead = count; }
+	virtual size_t	getSampleRate() const				{ return mSampleRate; }
+	virtual void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
+	virtual size_t	getNumChannels() const				{ return mNumChannels; }
+	virtual void	setNumChannels( size_t channels )	{ mNumChannels = channels; }
+	virtual size_t	getNumFramesPerRead() const			{ return mNumFramesPerRead; }
+	virtual void	setNumFramesPerRead( size_t count )	{ mNumFramesPerRead = count; }
 
-	size_t getNumFrames() const				{ return mNumFrames; }
+	virtual size_t	getNumFrames() const					{ return mNumFrames; }
+	virtual size_t	getFileNumChannels() const				{ return mFileNumChannels; }
+	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
 
 	virtual BufferRef loadBuffer() = 0;
 
   protected:
-	size_t mSampleRate, mNumChannels, mNumFrames, mOutputSampleRate, mOutputNumChannels, mNumFramesPerRead;
+	size_t mSampleRate, mNumChannels, mNumFrames, mFileSampleRate, mFileNumChannels, mNumFramesPerRead;
 };
 
 class TargetFile {
