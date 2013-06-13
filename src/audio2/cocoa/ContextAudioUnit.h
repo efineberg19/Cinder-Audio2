@@ -69,7 +69,7 @@ class InputAudioUnit : public InputNode, public AudioUnitNode {
 	void process( Buffer *buffer ) override;
 
   private:
-	static OSStatus inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
+	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 	std::unique_ptr<RingBuffer> mRingBuffer;
@@ -142,7 +142,7 @@ class ContextAudioUnit : public Context {
 	void uninitialize() override;
 
   private:
-	static OSStatus renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );

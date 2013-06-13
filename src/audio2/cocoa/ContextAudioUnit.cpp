@@ -243,9 +243,9 @@ void InputAudioUnit::process( Buffer *buffer )
 	}
 }
 
-OSStatus InputAudioUnit::inputCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus InputAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	InputAudioUnit *inputNode = static_cast<InputAudioUnit *>( context );
+	InputAudioUnit *inputNode = static_cast<InputAudioUnit *>( data );
 	CI_ASSERT( inputNode->mRingBuffer );
 	
 	::AudioBufferList *nodeBufferList = inputNode->mBufferList.get();
@@ -678,16 +678,16 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 //	- should just be a bool?
 //  - to test: pd node that wants interleaved
 // TODO: try to avoid multiple copies when generic nodes are chained together
-OSStatus ContextAudioUnit::renderCallback( void *context, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	RenderContext *renderContext = static_cast<RenderContext *>( context );
+	RenderContext *renderContext = static_cast<RenderContext *>( data );
 
 	CI_ASSERT( renderContext->currentNode );
 	CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
 	CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.getNumChannels() );
 
 	// note: if samplerate conversion is allowed, this size may need to vary
-	CI_ASSERT( numFrames <= renderContext->buffer.getNumFrames() ); // assumes non-interleaved
+	CI_ASSERT( numFrames <= renderContext->buffer.getNumFrames() );
 
 	NodeRef source = renderContext->currentNode->getSources()[bus];
 
