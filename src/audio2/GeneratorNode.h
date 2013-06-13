@@ -6,7 +6,6 @@
 #include "audio2/Atomic.h"
 
 #include "cinder/DataSource.h"
-#include "cinder/Thread.h"
 
 namespace audio2 {
 
@@ -38,7 +37,7 @@ public:
 	virtual DeviceRef getDevice() = 0;
 };
 
-//! Abstract Node class for recorded audio playback
+//! \brief Abstract Node class for recorded audio playback
 class PlayerNode : public GeneratorNode {
 public:
 	PlayerNode() : GeneratorNode() {}
@@ -82,9 +81,9 @@ protected:
 
 class FilePlayerNode : public PlayerNode {
 public:
-	FilePlayerNode() : PlayerNode() {}
+	FilePlayerNode();
 	FilePlayerNode( SourceFileRef sourceFile );
-	virtual ~FilePlayerNode() {}
+	virtual ~FilePlayerNode();
 
 	void initialize() override;
 
@@ -93,7 +92,9 @@ public:
 	virtual void process( Buffer *buffer );
   protected:
 
-	std::unique_ptr<std::thread> mReadThread;
+	struct Impl;
+	std::unique_ptr<Impl> mImpl;
+
 	SourceFileRef mSourceFile;
 };
 
@@ -114,6 +115,10 @@ struct UGenNode : public GeneratorNode {
 			memcpy( buffer->getChannel( ch ), buffer->getChannel( 0 ), count * sizeof( float ) );
 	}
 
+	UGenT& getUGen()				{ return mGen; }
+	const UGenT& getUGen() const	{ return mGen; }
+
+protected:
 	UGenT mGen;
 };
 

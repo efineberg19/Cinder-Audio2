@@ -252,8 +252,8 @@ OSStatus InputAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags
 	OSStatus status = ::AudioUnitRender( inputNode->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::Input, numFrames, nodeBufferList );
 	CI_ASSERT( status == noErr );
 
-	for( size_t c = 0; c < nodeBufferList->mNumberBuffers; c++ ) {
-		float *channel = static_cast<float *>( nodeBufferList->mBuffers[c].mData );
+	for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {
+		float *channel = static_cast<float *>( nodeBufferList->mBuffers[ch].mData );
 		inputNode->mRingBuffer->write( channel, numFrames );
 	}
 	return status;

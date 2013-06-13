@@ -73,12 +73,15 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t n
 	updateOutputFormat();
 }
 
-size_t SourceFileCoreAudio::read( BufferRef buffer, size_t readPosition )
+size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
 	CI_ASSERT( buffer->getNumFrames() >= mNumFrames );
 
-	UInt32 frameCount = static_cast<UInt32>( buffer->getNumFrames() );
+	if( readPosition > mNumFrames )
+		return 0;
+
+	UInt32 frameCount = std::min( mNumFrames - readPosition, mNumFramesPerRead );
 
 	for( int i = 0; i < mNumChannels; i++ ) {
 		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
@@ -88,7 +91,6 @@ size_t SourceFileCoreAudio::read( BufferRef buffer, size_t readPosition )
 	// read from the extaudiofile
 	OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 	CI_ASSERT( status == noErr );
-
 
 	return frameCount;
 }

@@ -10,9 +10,9 @@
 #include "Gui.h"
 
 //#define SOUND_FILE "tone440.wav"
-#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "tone440L220R.mp3"
-//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 using namespace ci;
 using namespace ci::app;
@@ -29,6 +29,9 @@ class FileNodeTestApp : public AppNative {
 	void update();
 	void draw();
 
+	void setupBufferPlayer();
+	void setupFilePlayer();
+
 	void initContext();
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -38,6 +41,7 @@ class FileNodeTestApp : public AppNative {
 
 	ContextRef mContext;
 	BufferPlayerNodeRef mBufferPlayerNode;
+	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
 
 	vector<TestWidget *> mWidgets;
@@ -52,20 +56,11 @@ void FileNodeTestApp::prepareSettings( Settings *settings )
 void FileNodeTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
-	OutputNodeRef output = Context::instance()->createOutput();
-	mContext->setRoot( output );
 
-	auto sourceFile = SourceFileCoreAudio( loadResource( SOUND_FILE ), 0, 44100 );
-	LOG_V << "output samplerate: " << sourceFile.getSampleRate() << endl;
+	mSourceFile = SourceFileRef( new SourceFileCoreAudio( loadResource( SOUND_FILE ), 0, 44100 ) );
+	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
-	auto audioBuffer = sourceFile.loadBuffer();
-
-	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
-
-	mWaveformPlot.load( audioBuffer, getWindowBounds() );
-
-	mBufferPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
-	mBufferPlayerNode->connect( output );
+	setupBufferPlayer();
 
 	initContext();
 	setupUI();
@@ -82,6 +77,23 @@ void FileNodeTestApp::initContext()
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (after)" << endl;
 	printGraph( mContext );
+}
+
+void FileNodeTestApp::setupBufferPlayer()
+{
+	auto audioBuffer = mSourceFile->loadBuffer();
+
+	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
+
+	mWaveformPlot.load( audioBuffer, getWindowBounds() );
+
+	mBufferPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
+	mBufferPlayerNode->connect( mContext->getRoot() );
+}
+
+void FileNodeTestApp::setupFilePlayer()
+{
+
 }
 
 void FileNodeTestApp::setupUI()
@@ -168,7 +180,6 @@ void FileNodeTestApp::draw()
 
 	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
 	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );
-
 
 	drawWidgets( mWidgets );
 }
