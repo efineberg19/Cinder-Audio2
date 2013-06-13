@@ -26,6 +26,9 @@ class SourceFile {
 	virtual size_t	getFileNumChannels() const				{ return mFileNumChannels; }
 	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
 
+	//! \note buffer must be large enough to hold \a getNumFramesPerRead()
+	virtual size_t read( BufferRef buffer, size_t readPosition ) = 0;
+
 	virtual BufferRef loadBuffer() = 0;
 
   protected:

@@ -36,8 +36,8 @@ static void printExtensions()
 // MARK: - SourceFileCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t outputNumChannels, size_t outputSampleRate )
-: SourceFile( dataSource, outputNumChannels, outputSampleRate )
+SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
+: SourceFile( dataSource, numChannels, sampleRate )
 {
 	printExtensions();
 
@@ -70,44 +70,70 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t o
 	if( ! mSampleRate )
 		mSampleRate = mFileSampleRate;
 
+	updateOutputFormat();
+}
 
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mNumChannels, mSampleRate );
+size_t SourceFileCoreAudio::read( BufferRef buffer, size_t readPosition )
+{
+	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
+	CI_ASSERT( buffer->getNumFrames() >= mNumFrames );
 
-    LOG_V << "file format:\n";
-	audio2::cocoa::printASBD( fileFormat );
-    LOG_V << "output format:\n";
-	audio2::cocoa::printASBD( outputFormat );
-    LOG_V << "number of frames: " << numFrames << endl;
+	UInt32 frameCount = static_cast<UInt32>( buffer->getNumFrames() );
 
-	status = ::ExtAudioFileSetProperty( audioFile, kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
+	for( int i = 0; i < mNumChannels; i++ ) {
+		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
+		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[readPosition];
+	}
+
+	// read from the extaudiofile
+	OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 	CI_ASSERT( status == noErr );
 
+
+	return frameCount;
 }
 
 BufferRef SourceFileCoreAudio::loadBuffer()
 {
 	BufferRef result( new Buffer( mNumChannels, mNumFrames ) );
-	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, mNumFramesPerRead ); // TODO: make this an ivar
 
 	size_t currReadPos = 0;
-	while( true ) {
-		size_t framesLeft = mNumFrames - currReadPos;
-		if( framesLeft <= 0 )
-			break;
+	while( currReadPos < mNumFrames ) {
+		UInt32 frameCount = std::min( mNumFrames - currReadPos, mNumFramesPerRead );
 
-		UInt32 frameCount = std::min( framesLeft, mNumFramesPerRead );
         for( int i = 0; i < mNumChannels; i++ ) {
-            bufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
-            bufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
+            mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
+            mBufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
         }
 
 		// read from the extaudiofile
-		OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, bufferList.get() );
+		OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 		CI_ASSERT( status == noErr );
 
         currReadPos += frameCount;
 	}
 	return result;
+}
+
+void SourceFileCoreAudio::setSampleRate( size_t sampleRate )
+{
+	mSampleRate = sampleRate;
+	updateOutputFormat();
+}
+
+void SourceFileCoreAudio::setNumChannels( size_t numChannels )
+{
+	mNumChannels = numChannels;
+	updateOutputFormat();
+}
+
+void SourceFileCoreAudio::updateOutputFormat()
+{
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mNumChannels, mSampleRate );
+	OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
+	CI_ASSERT( status == noErr );
+
+	mBufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, mNumFramesPerRead );
 }
 
 } } // namespace audio2::cocoa
