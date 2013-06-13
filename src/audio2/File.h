@@ -9,8 +9,6 @@ namespace audio2 {
 typedef std::shared_ptr<class SourceFile> SourceFileRef;
 typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
-// ???: InputFile / TargetFile?
-
 class SourceFile {
   public:
 	SourceFile( ci::DataSourceRef dataSource, size_t outputNumChannels, size_t outputSampleRate ) : mSampleRate( 0 ), mNumChannels( 0 ), mNumFrames( 0 ), mOutputNumChannels( outputNumChannels ), mOutputSampleRate( outputSampleRate ), mNumFramesPerRead( 4096 )

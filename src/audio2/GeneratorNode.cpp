@@ -7,14 +7,22 @@ using namespace std;
 
 namespace audio2 {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - GeneratorNode
+// ----------------------------------------------------------------------------------------------------
+
 GeneratorNode::GeneratorNode() : Node()
 {
 	mSources.clear();
 	mFormat.setWantsDefaultFormatFromParent();
 }
 
-BufferPlayerNode::BufferPlayerNode( BufferRef inputBuffer )
-: GeneratorNode(), mBuffer( inputBuffer )
+// ----------------------------------------------------------------------------------------------------
+// MARK: - BufferPlayerNode
+// ----------------------------------------------------------------------------------------------------
+
+BufferPlayerNode::BufferPlayerNode( BufferRef buffer )
+: PlayerNode(), mBuffer( buffer )
 {
 	mTag = "BufferPlayerNode";
 	mNumFrames = mBuffer->getNumFrames();
@@ -61,6 +69,37 @@ void BufferPlayerNode::process( Buffer *buffer )
 	}
 
 	mReadPos += readCount;
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - FilePlayerNode
+// ----------------------------------------------------------------------------------------------------
+
+FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile )
+: PlayerNode(), mSourceFile( sourceFile )
+{
+	mNumFrames = mSourceFile->getNumFrames();
+	mFormat.setNumChannels( mSourceFile->getOutputNumChannels() );
+}
+
+void FilePlayerNode::initialize()
+{
+
+}
+
+void FilePlayerNode::start()
+{
+
+}
+
+void FilePlayerNode::stop()
+{
+
+}
+
+void FilePlayerNode::process( Buffer *buffer )
+{
+
 }
 
 } // namespace audio2

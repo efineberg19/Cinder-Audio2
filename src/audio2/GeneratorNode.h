@@ -1,14 +1,12 @@
 #pragma once
 
-#include "audio2/Context.h"
 #include "audio2/audio.h"
-#include "audio2/Device.h"
+#include "audio2/File.h"
 #include "audio2/Dsp.h"
 #include "audio2/Atomic.h"
 
 #include "cinder/DataSource.h"
-
-//#include "audio2/Debug.h"
+#include "cinder/Thread.h"
 
 namespace audio2 {
 
@@ -27,14 +25,6 @@ typedef std::shared_ptr<class BufferPlayerNode> BufferPlayerNodeRef;
 class GeneratorNode : public Node {
 public:
 	GeneratorNode();
-
-	// TODO: think I found another compiler bug...
-	// GeneratorNode() is not called from BufferPlayerNode's constructor unless it is in the cpp.
-	//	- but then maybe this is one of those libc++ hokey rules. check on vc11 to verify
-//	GeneratorNode() : Node() {
-//		LOG_V << "SHHHAAAAZZAAMMM!!!" << std::endl;
-//		mFormat.setWantsDefaultFormatFromParent();
-//	}
 	virtual ~GeneratorNode() {}
 };
 
@@ -48,36 +38,63 @@ public:
 	virtual DeviceRef getDevice() = 0;
 };
 
-class BufferPlayerNode : public GeneratorNode {
+//! Abstract Node class for recorded audio playback
+class PlayerNode : public GeneratorNode {
 public:
-	BufferPlayerNode() : GeneratorNode() {}
-	BufferPlayerNode( BufferRef inputBuffer );
+	PlayerNode() : GeneratorNode() {}
+	virtual ~PlayerNode() {}
+
+	void setReadPosition( size_t pos )	{ mReadPos = pos; }
+	size_t getReadPosition() const	{ return mReadPos; }
+
+	void setLoop( bool b = true )	{ mLoop = b; }
+	bool getLoop() const			{ return mLoop; }
+
+protected:
+	size_t mNumFrames;
+	std::atomic<size_t> mReadPos;
+	std::atomic<bool>	mLoop;
+};
+
+class BufferPlayerNode : public PlayerNode {
+public:
+	BufferPlayerNode() : PlayerNode() {}
+	BufferPlayerNode( BufferRef buffer );
 	virtual ~BufferPlayerNode() {}
 
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void process( Buffer *buffer );
 
-	void setReadPosition( size_t pos )	{ mReadPos = pos; }
-	size_t getReadPosition() const	{ return mReadPos; }
-
 	BufferRef getBuffer() const	{ return mBuffer; }
 
-	void setLoop( bool b = true )	{ mLoop = b; }
-	bool getLoop() const			{ return mLoop; }
-	
-private:
+protected:
 	BufferRef mBuffer;
-	size_t mNumFrames;
-	std::atomic<size_t> mReadPos;
-	std::atomic<bool>	mLoop;
 };
 
+// TODO NEXT: implement FilePlayerNode
+//		- decodes and writes samples to ringbuffer on background thread
+//		- pulls samples from ringbuffer in process()
+//		- in a real-time graph, file reading needs to be done on a non-audio thread.
+//        But in processing mode, the same thread should be used as the one that process is called from
 
-class FilePlayerNode : public GeneratorNode {
+// TODO: use a thread pool to keep the overrall number of read threads to a minimum.
+
+class FilePlayerNode : public PlayerNode {
 public:
-	FilePlayerNode() : GeneratorNode() {}
+	FilePlayerNode() : PlayerNode() {}
+	FilePlayerNode( SourceFileRef sourceFile );
 	virtual ~FilePlayerNode() {}
+
+	void initialize() override;
+
+	virtual void start() override;
+	virtual void stop() override;
+	virtual void process( Buffer *buffer );
+  protected:
+
+	std::unique_ptr<std::thread> mReadThread;
+	SourceFileRef mSourceFile;
 };
 
 template <typename UGenT>
