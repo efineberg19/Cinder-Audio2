@@ -19,7 +19,9 @@ namespace audio2 {
 // - webaudio uses LiveInput - use that and LiveOutput? I think I prefer MicInput / SpeakerOutput, even though that isn't always the case
 // - pd uses DAC / ADC, which is confusing for some
 
+typedef std::shared_ptr<class PlayerNode>		PlayerNodeRef;
 typedef std::shared_ptr<class BufferPlayerNode> BufferPlayerNodeRef;
+typedef std::shared_ptr<class FilePlayerNode>	FilePlayerNodeRef;
 
 class GeneratorNode : public Node {
 public:
@@ -48,6 +50,8 @@ public:
 
 	void setLoop( bool b = true )	{ mLoop = b; }
 	bool getLoop() const			{ return mLoop; }
+
+	size_t getNumFrames() const	{ return mNumFrames; }
 
 protected:
 	size_t mNumFrames;

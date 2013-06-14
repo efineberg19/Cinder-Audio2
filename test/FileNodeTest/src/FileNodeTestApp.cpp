@@ -40,7 +40,7 @@ class FileNodeTestApp : public AppNative {
 	void seek( size_t xPos );
 
 	ContextRef mContext;
-	BufferPlayerNodeRef mBufferPlayerNode;
+	PlayerNodeRef mPlayerNode;
 	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
 
@@ -60,10 +60,12 @@ void FileNodeTestApp::setup()
 	mSourceFile = SourceFileRef( new SourceFileCoreAudio( loadResource( SOUND_FILE ), 0, 44100 ) );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
-	setupBufferPlayer();
+//	setupBufferPlayer();
+	setupFilePlayer();
 
 	initContext();
 	setupUI();
+
 }
 
 void FileNodeTestApp::initContext()
@@ -87,13 +89,14 @@ void FileNodeTestApp::setupBufferPlayer()
 
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
-	mBufferPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
-	mBufferPlayerNode->connect( mContext->getRoot() );
+	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
+	mPlayerNode->connect( mContext->getRoot() );
 }
 
 void FileNodeTestApp::setupFilePlayer()
 {
-
+	mPlayerNode = make_shared<FilePlayerNode>( mSourceFile );
+	mPlayerNode->connect( mContext->getRoot() );
 }
 
 void FileNodeTestApp::setupUI()
@@ -137,22 +140,22 @@ void FileNodeTestApp::processTap( Vec2i pos )
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	else if( mStartPlaybackButton.hitTest( pos ) )
-		mBufferPlayerNode->start();
+		mPlayerNode->start();
 	else if( mLoopButton.hitTest( pos ) )
-		mBufferPlayerNode->setLoop( ! mBufferPlayerNode->getLoop() );
+		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
 	else
 		seek( pos.x );
 }
 
 void FileNodeTestApp::seek( size_t xPos )
 {
-	size_t seek = mBufferPlayerNode->getBuffer()->getNumFrames() * xPos / getWindowWidth();
-	mBufferPlayerNode->setReadPosition( seek );
+	size_t seek = mPlayerNode->getNumFrames() * xPos / getWindowWidth();
+	mPlayerNode->setReadPosition( seek );
 }
 
 void FileNodeTestApp::mouseDown( MouseEvent event )
 {
-//	mBufferPlayerNode->start();
+//	mPlayerNode->start();
 
 //	size_t step = mBuffer.getNumFrames() / getWindowWidth();
 //    size_t xLoc = event.getX() * step;
@@ -176,7 +179,7 @@ void FileNodeTestApp::draw()
 	gl::clear();
 	gl::draw( mWaveformPlot );
 
-	float readPos = (float)getWindowWidth() * mBufferPlayerNode->getReadPosition() / mBufferPlayerNode->getBuffer()->getNumFrames();
+	float readPos = (float)getWindowWidth() * mPlayerNode->getReadPosition() / mPlayerNode->getNumFrames();
 
 	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
 	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );
