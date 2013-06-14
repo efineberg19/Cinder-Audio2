@@ -13,6 +13,7 @@
 		11CF3CD61765408C00C2DA62 /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CCF1765408C00C2DA62 /* DeviceAudioUnit.cpp */; };
 		11CF3CD71765408C00C2DA62 /* DeviceManagerAudioSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CD11765408C00C2DA62 /* DeviceManagerAudioSession.cpp */; };
 		11CF3CDB1765409700C2DA62 /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CD91765409700C2DA62 /* Context.cpp */; };
+		11D097F5176AD2C3008464AD /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11D097F4176AD2C3008464AD /* GeneratorNode.cpp */; };
 		144855561742F68800C27AD5 /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 144855541742F68800C27AD5 /* Util.cpp */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
@@ -45,6 +46,7 @@
 		11CF3CD21765408C00C2DA62 /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
 		11CF3CD91765409700C2DA62 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = ../../../src/audio2/Context.cpp; sourceTree = "<group>"; };
 		11CF3CDA1765409700C2DA62 /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Context.h; path = ../../../src/audio2/Context.h; sourceTree = "<group>"; };
+		11D097F4176AD2C3008464AD /* GeneratorNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GeneratorNode.cpp; path = ../../../src/audio2/GeneratorNode.cpp; sourceTree = "<group>"; };
 		11D679E41759767700E96E0D /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dsp.h; path = ../../../src/audio2/Dsp.h; sourceTree = "<group>"; };
 		11D679E51759767700E96E0D /* EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffectNode.h; path = ../../../src/audio2/EffectNode.h; sourceTree = "<group>"; };
 		11D679E61759767700E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GeneratorNode.h; path = ../../../src/audio2/GeneratorNode.h; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 				11D679E41759767700E96E0D /* Dsp.h */,
 				11D679E51759767700E96E0D /* EffectNode.h */,
 				11D679E61759767700E96E0D /* GeneratorNode.h */,
+				11D097F4176AD2C3008464AD /* GeneratorNode.cpp */,
 				E9663B875A7542F5B634755A /* assert.h */,
 				C747026CDC5E42AC90503B0C /* Atomic.h */,
 				B9EF42EB921449238A222CF8 /* audio.h */,
@@ -295,6 +298,7 @@
 				11CF3CD51765408C00C2DA62 /* ContextAudioUnit.cpp in Sources */,
 				11CF3CD61765408C00C2DA62 /* DeviceAudioUnit.cpp in Sources */,
 				11CF3CD71765408C00C2DA62 /* DeviceManagerAudioSession.cpp in Sources */,
+				11D097F5176AD2C3008464AD /* GeneratorNode.cpp in Sources */,
 				11CF3CDB1765409700C2DA62 /* Context.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

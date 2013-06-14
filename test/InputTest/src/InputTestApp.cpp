@@ -147,14 +147,14 @@ void InputTestApp::setupUI()
 void InputTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isRunning() );
+		mContext->setEnabled( ! mContext->isEnabled() );
 
 	size_t currentIndex = mTestSelector.currentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isRunning();
+		bool running = mContext->isEnabled();
 		mContext->uninitialize();
 
 		if( currentTest == "pass through" ) {
