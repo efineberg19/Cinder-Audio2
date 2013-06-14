@@ -214,7 +214,8 @@ void Context::stop( NodeRef node )
 	for( auto& source : node->getSources() )
 		stop( source );
 
-	node->stop();
+	if( node->getFormat().isAutoEnabled() )
+		node->stop();
 }
 
 } // namespace audio2
