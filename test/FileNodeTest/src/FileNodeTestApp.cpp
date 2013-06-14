@@ -9,10 +9,10 @@
 
 #include "Gui.h"
 
-//#define SOUND_FILE "tone440.wav"
+#define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "tone440L220R.mp3"
-#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 using namespace ci;
 using namespace ci::app;
@@ -66,6 +66,9 @@ void FileNodeTestApp::setup()
 	initContext();
 	setupUI();
 
+
+	mContext->start();
+	mEnableGraphButton.setEnabled( true );
 }
 
 void FileNodeTestApp::initContext()

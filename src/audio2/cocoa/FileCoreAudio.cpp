@@ -76,7 +76,7 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t n
 size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
-	CI_ASSERT( buffer->getNumFrames() >= mNumFrames );
+	CI_ASSERT( buffer->getNumFrames() >= mNumFramesPerRead );
 
 	if( readPosition > mNumFrames )
 		return 0;
@@ -85,7 +85,7 @@ size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 
 	for( int i = 0; i < mNumChannels; i++ ) {
 		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
-		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[readPosition];
+		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
 	}
 
 	// read from the extaudiofile

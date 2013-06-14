@@ -42,7 +42,7 @@ public:
 //! \brief Abstract Node class for recorded audio playback
 class PlayerNode : public GeneratorNode {
 public:
-	PlayerNode() : GeneratorNode() {}
+	PlayerNode() : GeneratorNode() { mTag = "PlayerNode"; }
 	virtual ~PlayerNode() {}
 
 	void setReadPosition( size_t pos )	{ mReadPos = pos; }
@@ -61,7 +61,7 @@ protected:
 
 class BufferPlayerNode : public PlayerNode {
 public:
-	BufferPlayerNode() : PlayerNode() {}
+	BufferPlayerNode() : PlayerNode() { mTag = "BufferPlayerNode"; }
 	BufferPlayerNode( BufferRef buffer );
 	virtual ~BufferPlayerNode() {}
 
@@ -100,6 +100,7 @@ public:
 	std::unique_ptr<Impl> mImpl;
 
 	SourceFileRef mSourceFile;
+	size_t mBufferFramesThreshold;
 };
 
 template <typename UGenT>
