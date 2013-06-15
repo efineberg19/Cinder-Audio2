@@ -89,6 +89,7 @@ TapNode::TapNode( size_t bufferSize )
 : Node(), mBufferSize( bufferSize )
 {
 	mTag = "BufferTap";
+	mFormat.setAutoEnabled();
 }
 
 TapNode::~TapNode()
