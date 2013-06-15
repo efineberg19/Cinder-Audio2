@@ -56,9 +56,7 @@ void BufferPlayerNode::process( Buffer *buffer )
 		std::memcpy( buffer->getChannel( ch ), &mBuffer->getChannel( ch )[readPos], readCount * sizeof( float ) );
 
 	if( readCount < numFrames  ) {
-		size_t numLeft = numFrames - readCount;
-		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
-			std::memset( &buffer->getChannel( ch )[readCount], 0, numLeft * sizeof( float ) );
+		buffer->zero( readCount, numFrames - readCount );
 
 		if( mLoop ) {
 			mReadPos = 0;
@@ -125,6 +123,7 @@ void FilePlayerNode::stop()
 
 void FilePlayerNode::process( Buffer *buffer )
 {
+
 	size_t numFrames = buffer->getNumFrames();
 	readFile( numFrames );
 
@@ -132,18 +131,14 @@ void FilePlayerNode::process( Buffer *buffer )
 
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
 		size_t count = mRingBuffer->read( buffer->getChannel( ch ), readCount );
-		if( count != numFrames )
-			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (ch = " << ch << ")" << endl;
+		if( count != readCount )
+			LOG_V << "unexpected read count: " << count << ", expected: " << readCount << " (ch = " << ch << ")" << endl;
 	}
 	mNumFramesBuffered -= readCount;
 
 	// check if end of file
-	if( readCount < numFrames  ) {
-		size_t numLeft = numFrames - readCount;
-		
-		// TODO: move this memset to method on buffer, use also in BufferPlayerNode
-		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
-			std::memset( &buffer->getChannel( ch )[readCount], 0, numLeft * sizeof( float ) );
+	if( readCount < numFrames ) {
+		buffer->zero( readCount, numFrames - readCount );
 
 		if( mLoop ) {
 			mReadPos = 0;
@@ -163,8 +158,9 @@ void FilePlayerNode::readFile( size_t numFramesPerBlock )
 {
 	size_t readPos = mReadPos;
 
-	if( mNumFramesBuffered > mBufferFramesThreshold || readPos >= mNumFrames )
+	if( mNumFramesBuffered >= mBufferFramesThreshold || readPos >= mNumFrames )
 		return;
+
 
 	size_t numRead = mSourceFile->read( &mReadBuffer, readPos );
 

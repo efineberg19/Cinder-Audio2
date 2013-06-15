@@ -52,6 +52,20 @@ public:
 		return &mData[ch * mNumFrames];
 	}
 
+	void zero() {
+		std::memset( mData.data(), 0, mData.size() * sizeof( T ) );
+	}
+	
+	void zero( size_t startFrame, size_t numFrames ) {
+		CI_ASSERT( startFrame + numFrames <= mNumFrames );
+		if( mFormat == Interleaved )
+			std::memset( &mData[startFrame * mNumChannels], 0, numFrames * mNumChannels * sizeof( T ) );
+		else {
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
+		}
+	}
+
 	size_t getNumFrames() const	{ return mNumFrames; }
 	size_t getNumChannels() const	{ return mNumChannels; }
 	size_t getSize() const	{ return mData.size(); }
