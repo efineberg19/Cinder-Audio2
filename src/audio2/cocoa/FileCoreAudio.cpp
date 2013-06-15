@@ -73,6 +73,7 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t n
 	updateOutputFormat();
 }
 
+// TODO: need to store a local read position - compare with the one passed in and if different call ExtAudioFileSeek
 size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
@@ -93,6 +94,15 @@ size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 	CI_ASSERT( status == noErr );
 
 	return frameCount;
+}
+
+void SourceFileCoreAudio::seek( size_t readPosition )
+{
+	if( readPosition >= mNumFrames )
+		return;
+
+	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPosition );
+	CI_ASSERT( status == noErr );
 }
 
 BufferRef SourceFileCoreAudio::loadBuffer()

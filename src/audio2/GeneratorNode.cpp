@@ -109,6 +109,7 @@ void FilePlayerNode::start()
 {
 	CI_ASSERT( mSourceFile );
 
+	mSourceFile->seek( 0 );
 	mReadPos = 0;
 	mEnabled = true;
 

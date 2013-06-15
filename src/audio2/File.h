@@ -29,6 +29,8 @@ class SourceFile {
 	//! \note buffer must be large enough to hold \a getNumFramesPerRead()
 	virtual size_t read( Buffer *buffer, size_t readPosition ) = 0;
 
+	virtual void seek( size_t readPosition ) = 0;
+
 	virtual BufferRef loadBuffer() = 0;
 
   protected:

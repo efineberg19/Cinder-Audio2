@@ -12,8 +12,9 @@ class SourceFileCoreAudio : public SourceFile {
   public:
 	SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
 
-	size_t read( Buffer *buffer, size_t readPosition ) override;
-	BufferRef loadBuffer() override;
+	size_t		read( Buffer *buffer, size_t readPosition ) override;
+	void		seek( size_t readPosition ) override;
+	BufferRef	loadBuffer() override;
 
 	void	setSampleRate( size_t sampleRate ) override;
 	void	setNumChannels( size_t channels ) override;
