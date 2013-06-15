@@ -46,7 +46,6 @@ void BufferPlayerNode::stop()
 	LOG_V << "stopped" << endl;
 }
 
-// TODO: consider moving the copy to a Buffer method
 void BufferPlayerNode::process( Buffer *buffer )
 {
 	size_t readPos = mReadPos;
@@ -98,8 +97,12 @@ void FilePlayerNode::initialize()
 	mSourceFile->setNumChannels( mFormat.getNumChannels() );
 	mSourceFile->setSampleRate( mFormat.getSampleRate() );
 
+	// FIXME: numFramesPerRead > block size is broken
+	mSourceFile->setNumFramesPerRead( 512 );
+	size_t paddingMultiplier = 2;
+
 	mReadBuffer = Buffer( mFormat.getNumChannels(), mSourceFile->getNumFramesPerRead() );
-	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * 2 ) );
+	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * paddingMultiplier ) );
 }
 
 void FilePlayerNode::start()
@@ -131,12 +134,22 @@ void FilePlayerNode::process( Buffer *buffer )
 		if( count != numFrames )
 			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (ch = " << ch << ")" << endl;
 	}
+	mNumFramesBuffered -= readCount;
 
 	// check if end of file
-	if( readCount < numFrames  )
-		mEnabled = false;
+	if( readCount < numFrames  ) {
+		size_t numLeft = numFrames - readCount;
+		
+		// TODO: move this memset to method on buffer, use also in BufferPlayerNode
+		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
+			std::memset( &buffer->getChannel( ch )[readCount], 0, numLeft * sizeof( float ) );
 
-	mNumFramesBuffered -= readCount;
+		if( mLoop ) {
+			mReadPos = 0;
+			return;
+		} else
+			mEnabled = false;
+	}
 }
 
 // FIXME: this copy is really janky
