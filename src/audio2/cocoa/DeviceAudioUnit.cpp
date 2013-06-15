@@ -13,7 +13,7 @@ namespace audio2 { namespace cocoa {
 // MARK: - DeviceAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-DeviceAudioUnit::DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key )
+DeviceAudioUnit::DeviceAudioUnit( const std::string &key, const ::AudioComponentDescription &component )
 : Device( key ), mComponentDescription( component ), mComponentInstance( NULL ), mInputConnected( false ), mOutputConnected( false )
 {
 }

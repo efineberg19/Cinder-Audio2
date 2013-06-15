@@ -27,7 +27,7 @@ class DeviceAudioUnit : public Device {
 
   private:
 
-	DeviceAudioUnit( const ::AudioComponentDescription &component, const std::string &key ); // TODO: swap these two for consistency
+	DeviceAudioUnit( const std::string &key, const ::AudioComponentDescription &component );
 
 	::AudioComponentDescription mComponentDescription;
 	::AudioComponentInstance	mComponentInstance;

@@ -137,7 +137,7 @@ DeviceManagerCoreAudio::DeviceContainerT& DeviceManagerCoreAudio::getDevices()
 
 		for ( ::AudioDeviceID &deviceId : deviceIds ) {
 			string key = keyForDeviceId( deviceId );
-			auto device = DeviceRef( new DeviceAudioUnit( component, key ) );
+			auto device = DeviceRef( new DeviceAudioUnit( key, component ) );
 			mDevices.push_back( { key, deviceId, device } );
 		}
 	}
