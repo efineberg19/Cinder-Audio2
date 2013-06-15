@@ -8,7 +8,6 @@
 
 #include "Gui.h"
 
-
 // FIXME: (msw) mixer crashed on shutdown while dsp was on
 // - I think it is because the buffers aren't flushed
 
@@ -36,9 +35,10 @@ public:
 
 	ContextRef mContext;
 	MixerNodeRef mMixer;
+	GeneratorNodeRef mSine, mNoise;
 
 	vector<TestWidget *> mWidgets;
-	Button mPlayButton;
+	Button mPlayButton, mEnableNoiseButton, mEnableSineButton;
 	VSelector mTestSelector;
 	HSlider mNoisePanSlider, mSinePanSlider, mNoiseVolumeSlider, mFreqVolumeSlider;
 
@@ -78,8 +78,11 @@ void BasicTestApp::setupSine()
 	genNode->getUGen().setFreq( 440.0f );
 
 	genNode->connect( mContext->getRoot() );
+	mSine = genNode;
 
-	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
+	mEnableSineButton.setEnabled( true );
+	mEnableSineButton.hidden = false;
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableNoiseButton.hidden = true;
 }
 
 void BasicTestApp::setupNoise()
@@ -89,8 +92,11 @@ void BasicTestApp::setupNoise()
 	genNode->getUGen().setAmp( 0.2f );
 
 	genNode->connect( mContext->getRoot() );
+	mNoise = genNode;
 
-	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = true;
+	mEnableNoiseButton.setEnabled( true );
+	mEnableNoiseButton.hidden = false;
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableSineButton.hidden = true;
 }
 
 void BasicTestApp::setupMixer()
@@ -98,12 +104,14 @@ void BasicTestApp::setupMixer()
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->getFormat().setAutoEnabled();
 	noise->getUGen().setAmp( 0.25f );
+	mNoise = noise;
 
 	auto sine = make_shared<UGenNode<SineGen> >();
 	sine->getFormat().setAutoEnabled();
 	sine->getUGen().setAmp( 0.25f );
 	sine->getUGen().setFreq( 440.0f );
-
+	mSine = sine;
+	
 	mMixer = Context::instance()->createMixer();
 
 	// connect by appending
@@ -114,7 +122,9 @@ void BasicTestApp::setupMixer()
 	noise->connect( mMixer, Bus::Noise );
 	sine->connect( mMixer, Bus::Sine )->connect( mContext->getRoot() );
 
-	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = false;
+	mEnableSineButton.setEnabled( true );
+	mEnableNoiseButton.setEnabled( true );
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableSineButton.hidden = mEnableNoiseButton.hidden = false;
 }
 
 void BasicTestApp::initContext()
@@ -192,6 +202,20 @@ void BasicTestApp::setupUI()
 	mFreqVolumeSlider.max = 1.0f;
 	mWidgets.push_back( &mFreqVolumeSlider );
 
+
+	mEnableSineButton.isToggle = true;
+	mEnableSineButton.titleNormal = "sine disabled";
+	mEnableSineButton.titleEnabled = "sine enabled";
+	mEnableSineButton.bounds = Rectf( 0, 70, 200, 120 );
+	mWidgets.push_back( &mEnableSineButton );
+
+	mEnableNoiseButton.isToggle = true;
+	mEnableNoiseButton.titleNormal = "noise disabled";
+	mEnableNoiseButton.titleEnabled = "noise enabled";
+	mEnableNoiseButton.bounds = mEnableSineButton.bounds + Vec2f( 0.0f, mEnableSineButton.bounds.getHeight() + 10.0f );
+	mWidgets.push_back( &mEnableNoiseButton );
+
+
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
@@ -221,6 +245,10 @@ void BasicTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
+	if( mSine && mEnableSineButton.hitTest( pos ) )
+		mSine->setEnabled( ! mSine->isEnabled() );
+	if( mNoise && mEnableNoiseButton.hitTest( pos ) )
+		mNoise->setEnabled( ! mNoise->isEnabled() );
 
 	size_t currentIndex = mTestSelector.currentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
@@ -230,15 +258,12 @@ void BasicTestApp::processTap( Vec2i pos )
 		bool running = mContext->isEnabled();
 		mContext->uninitialize();
 
-		if( currentTest == "sine" ) {
+		if( currentTest == "sine" )
 			setupSine();
-		}
-		if( currentTest == "noise" ) {
+		if( currentTest == "noise" )
 			setupNoise();
-		}
-		if( currentTest == "mixer" ) {
+		if( currentTest == "mixer" )
 			setupMixer();
-		}
 		initContext();
 
 		if( running )

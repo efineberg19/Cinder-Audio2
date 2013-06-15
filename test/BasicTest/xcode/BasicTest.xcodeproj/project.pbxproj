@@ -43,7 +43,7 @@
 		11CF3C811761553800C2DA62 /* Buffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		11CF3C821762ABA300C2DA62 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Context.cpp; sourceTree = "<group>"; };
 		11CF3C831762ABA300C2DA62 /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Context.h; sourceTree = "<group>"; };
-		11CF3C851762ABBB00C2DA62 /* ContextAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextAudioUnit.cpp; sourceTree = "<group>"; };
+		11CF3C851762ABBB00C2DA62 /* ContextAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextAudioUnit.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		11CF3C861762ABBB00C2DA62 /* ContextAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContextAudioUnit.h; sourceTree = "<group>"; };
 		11CF3C871762ABBB00C2DA62 /* DeviceAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceAudioUnit.cpp; sourceTree = "<group>"; };
 		11CF3C881762ABBB00C2DA62 /* DeviceAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceAudioUnit.h; sourceTree = "<group>"; };
@@ -247,8 +247,6 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
-			attributes = {
-			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "BasicTest" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
