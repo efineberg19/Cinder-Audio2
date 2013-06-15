@@ -73,19 +73,15 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t n
 	updateOutputFormat();
 }
 
-size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
+size_t SourceFileCoreAudio::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
 	CI_ASSERT( buffer->getNumFrames() >= mNumFramesPerRead );
 
-	if( readPosition > mNumFrames )
+	if( mReadPos >= mNumFrames )
 		return 0;
 
-	if( readPosition != mReadPos )
-		seek( readPosition );
-	
-	UInt32 frameCount = std::min( mNumFrames - readPosition, mNumFramesPerRead );
-
+	UInt32 frameCount = std::min( mNumFrames - mReadPos, mNumFramesPerRead );
 	for( int i = 0; i < mNumChannels; i++ ) {
 		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
 		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
@@ -98,19 +94,11 @@ size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 	return frameCount;
 }
 
-void SourceFileCoreAudio::seek( size_t readPosition )
-{
-	if( readPosition >= mNumFrames )
-		return;
-
-	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPosition );
-	CI_ASSERT( status == noErr );
-
-	mReadPos = readPosition;
-}
-
 BufferRef SourceFileCoreAudio::loadBuffer()
 {
+	if( mReadPos != 0 )
+		seek( 0 );
+	
 	BufferRef result( new Buffer( mNumChannels, mNumFrames ) );
 
 	size_t currReadPos = 0;
@@ -128,6 +116,17 @@ BufferRef SourceFileCoreAudio::loadBuffer()
         currReadPos += frameCount;
 	}
 	return result;
+}
+
+void SourceFileCoreAudio::seek( size_t readPosition )
+{
+	if( readPosition >= mNumFrames )
+		return;
+
+	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPosition );
+	CI_ASSERT( status == noErr );
+
+	mReadPos = readPosition;
 }
 
 void SourceFileCoreAudio::setSampleRate( size_t sampleRate )

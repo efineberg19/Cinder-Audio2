@@ -42,19 +42,22 @@ public:
 	virtual DeviceRef getDevice() = 0;
 };
 
-//! \brief Abstract Node class for recorded audio playback
+//! \brief Base Node class for recorded audio playback
+//! \note PlayerNode itself doesn't process any audio.
+//! \see BufferPlayerNode
+//! \see FilePlayerNode
 class PlayerNode : public GeneratorNode {
 public:
 	PlayerNode() : GeneratorNode() { mTag = "PlayerNode"; }
 	virtual ~PlayerNode() {}
 
-	void setReadPosition( size_t pos )	{ mReadPos = pos; }
-	size_t getReadPosition() const	{ return mReadPos; }
+	virtual void setReadPosition( size_t pos )	{ mReadPos = pos; }
+	virtual size_t getReadPosition() const	{ return mReadPos; }
 
-	void setLoop( bool b = true )	{ mLoop = b; }
-	bool getLoop() const			{ return mLoop; }
+	virtual void setLoop( bool b = true )	{ mLoop = b; }
+	virtual bool getLoop() const			{ return mLoop; }
 
-	size_t getNumFrames() const	{ return mNumFrames; }
+	virtual size_t getNumFrames() const	{ return mNumFrames; }
 
 protected:
 	size_t mNumFrames;
@@ -78,7 +81,7 @@ protected:
 	BufferRef mBuffer;
 };
 
-// TODO NEXT: implement FilePlayerNode
+// TODO NEXT: implement threading
 //		- decodes and writes samples to ringbuffer on background thread
 //		- pulls samples from ringbuffer in process()
 //		- in a real-time graph, file reading needs to be done on a non-audio thread.
@@ -96,7 +99,10 @@ public:
 
 	virtual void start() override;
 	virtual void stop() override;
-	virtual void process( Buffer *buffer );
+	virtual void process( Buffer *buffer ) override;
+
+	virtual void setReadPosition( size_t pos ) override;
+
   protected:
 
 	void readFile( size_t numFramesPerBlock );

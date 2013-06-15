@@ -100,12 +100,19 @@ void FilePlayerNode::initialize()
 	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * paddingMultiplier ) );
 }
 
+void FilePlayerNode::setReadPosition( size_t pos )
+{
+	CI_ASSERT( mSourceFile );
+
+	mSourceFile->seek( pos );
+	mReadPos = pos;
+}
+
 void FilePlayerNode::start()
 {
 	CI_ASSERT( mSourceFile );
 
-	mSourceFile->seek( 0 );
-	mReadPos = 0;
+	setReadPosition( 0 );
 	mEnabled = true;
 
 	LOG_V << "started" << endl;
@@ -158,7 +165,7 @@ void FilePlayerNode::readFile( size_t numFramesPerBlock )
 	if( mNumFramesBuffered >= mBufferFramesThreshold || readPos >= mNumFrames )
 		return;
 
-	size_t numRead = mSourceFile->read( &mReadBuffer, readPos );
+	size_t numRead = mSourceFile->read( &mReadBuffer );
 	mReadPos += numRead;
 
 	size_t channelOffset = 0;

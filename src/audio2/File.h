@@ -27,11 +27,13 @@ class SourceFile {
 	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
 
 	//! \note buffer must be large enough to hold \a getNumFramesPerRead()
-	virtual size_t read( Buffer *buffer, size_t readPosition ) = 0;
+	// TODO: consider just reading buffer->getNumFrames() samples out. loadBuffer() can take a param that specifices frames per read, with a default
+	virtual size_t read( Buffer *buffer ) = 0;
+
+	virtual BufferRef loadBuffer() = 0;
 
 	virtual void seek( size_t readPosition ) = 0;
 
-	virtual BufferRef loadBuffer() = 0;
 
   protected:
 	size_t mSampleRate, mNumChannels, mNumFrames, mFileSampleRate, mFileNumChannels, mNumFramesPerRead;
