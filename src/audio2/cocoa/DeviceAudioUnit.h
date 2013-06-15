@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cinder/Cinder.h"
+
 #include "audio2/Device.h"
 #include <AudioUnit/AudioUnit.h>
 
