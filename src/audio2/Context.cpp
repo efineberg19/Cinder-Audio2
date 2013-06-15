@@ -70,6 +70,14 @@ const Node::Format& Node::getSourceFormat()
 	return mSources[0]->mFormat;
 }
 
+void Node::setEnabled( bool enabled )
+{
+	if( enabled )
+		start();
+	else
+		stop();
+}
+
 void MixerNode::setSource( NodeRef source )
 {
 	source->setParent( shared_from_this() );

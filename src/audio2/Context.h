@@ -86,6 +86,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	bool isInitialized() const	{ return mInitialized; }
 	bool isEnabled() const		{ return mEnabled; }
 
+	void setEnabled( bool b = true );
+
   protected:
 	Node();
 
