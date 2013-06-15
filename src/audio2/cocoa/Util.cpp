@@ -19,13 +19,13 @@ void printASBD( const ::AudioStreamBasicDescription &asbd ) {
 	printf( "  Bits per Channel:    %10d\n",    (unsigned int)asbd.mBitsPerChannel );
 }
 
-AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t blockSize )
+AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t numFrames )
 {
 	::AudioBufferList *bufferList = static_cast<::AudioBufferList *>( calloc( 1, sizeof( ::AudioBufferList ) + sizeof( ::AudioBuffer ) * (numChannels - 1) ) );
 	bufferList->mNumberBuffers = numChannels;
 	for( size_t i = 0; i < numChannels; i++ ) {
 		bufferList->mBuffers[i].mNumberChannels = 1;
-		bufferList->mBuffers[i].mDataByteSize = blockSize;
+		bufferList->mBuffers[i].mDataByteSize = numFrames;
 	}
 
 	return AudioBufferListRef( bufferList );

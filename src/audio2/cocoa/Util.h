@@ -16,7 +16,7 @@ struct AudioBufferListDeleter {
 typedef std::unique_ptr<::AudioBufferList, AudioBufferListDeleter> AudioBufferListRef;
 
 // TODO: consider adopting the CAPublicUitility way of doing this (I think it does it on the stack)
-AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t blockSize );
+AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t numFrames );
 
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance );
