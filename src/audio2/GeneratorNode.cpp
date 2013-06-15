@@ -145,7 +145,7 @@ void FilePlayerNode::process( Buffer *buffer )
 		buffer->zero( readCount, numFrames - readCount );
 
 		if( mLoop ) {
-			mReadPos = 0;
+			setReadPosition( 0 );
 			return;
 		} else
 			mEnabled = false;

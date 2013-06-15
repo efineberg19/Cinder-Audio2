@@ -48,7 +48,7 @@ public:
 //! \see FilePlayerNode
 class PlayerNode : public GeneratorNode {
 public:
-	PlayerNode() : GeneratorNode() { mTag = "PlayerNode"; }
+	PlayerNode() : GeneratorNode(), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) { mTag = "PlayerNode"; }
 	virtual ~PlayerNode() {}
 
 	virtual void setReadPosition( size_t pos )	{ mReadPos = pos; }
