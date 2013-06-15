@@ -82,8 +82,12 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device )
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
+	// RootNode gets a special callback
+	mShouldUseGraphRenderCallback = false;
+
 	mFormat.setSampleRate( mDevice->getSampleRate() );
 	mFormat.setNumChannels( 2 );
+	
 
 	CI_ASSERT( ! mDevice->isOutputConnected() );
 	mDevice->setOutputConnected();
@@ -538,11 +542,18 @@ void ContextAudioUnit::initialize()
 
 	size_t blockSize = mRoot->getBlockSize();
 	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), blockSize, Buffer::Format::NonInterleaved );
-
-//	mRenderContext.buffer.resize( mRoot->getFormat().getNumChannels() );
-//	for( auto& channel : mRenderContext.buffer )
-//		channel.resize( blockSize );
 	mRenderContext.currentNode = mRoot.get();
+
+	// register the root callback separately
+	::AURenderCallbackStruct callbackStruct;
+	callbackStruct.inputProc = ContextAudioUnit::renderCallbackRoot;
+	callbackStruct.inputProcRefCon = &mRenderContext;
+
+	AudioUnitNode *rootAU = dynamic_cast<AudioUnitNode *>( mRoot.get() );
+	CI_ASSERT( rootAU );
+
+	OSStatus status = ::AudioUnitSetProperty( rootAU->getAudioUnit(), kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+	CI_ASSERT( status == noErr );
 
 	mInitialized = true;
 	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", blocksize: " << blockSize << endl;
@@ -642,8 +653,8 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *conte
 		if( ! source )
 			continue;
 		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
-		LOG_V << "connected render callback to: " << source->getTag() << endl;
 		CI_ASSERT( status == noErr );
+		LOG_V << "connected render callback to: " << source->getTag() << endl;
 
 		if( recursive )
 			connectRenderCallback( source, context, true );
@@ -672,6 +683,16 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 		uninitNode( source );
 
 	node->uninitialize();
+}
+
+// TODO: consider adding a volume param here
+// - OS X output unit has kHALOutputParam_Volume, but need to check if this works on iOS
+OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+{
+	RenderContext *renderContext = static_cast<RenderContext *>( data );
+	renderContext->buffer.zero();
+
+	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
 
 // TODO: adhere to node's buffer format (interleaved / non-interleaved ) and convert if necessary
