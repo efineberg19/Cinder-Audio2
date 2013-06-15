@@ -24,6 +24,7 @@ class SourceFileCoreAudio : public SourceFile {
 	
 	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
 	AudioBufferListRef mBufferList;
+	size_t mReadPos;
 };
 
 } } // namespace audio2::cocoa

@@ -37,7 +37,7 @@ static void printExtensions()
 // ----------------------------------------------------------------------------------------------------
 
 SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
-: SourceFile( dataSource, numChannels, sampleRate )
+: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 )
 {
 	printExtensions();
 
@@ -73,7 +73,6 @@ SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t n
 	updateOutputFormat();
 }
 
-// TODO: need to store a local read position - compare with the one passed in and if different call ExtAudioFileSeek
 size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
@@ -82,6 +81,9 @@ size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 	if( readPosition > mNumFrames )
 		return 0;
 
+	if( readPosition != mReadPos )
+		seek( readPosition );
+	
 	UInt32 frameCount = std::min( mNumFrames - readPosition, mNumFramesPerRead );
 
 	for( int i = 0; i < mNumChannels; i++ ) {
@@ -92,6 +94,7 @@ size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 	OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 	CI_ASSERT( status == noErr );
 
+	mReadPos += frameCount;
 	return frameCount;
 }
 
@@ -102,6 +105,8 @@ void SourceFileCoreAudio::seek( size_t readPosition )
 
 	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPosition );
 	CI_ASSERT( status == noErr );
+
+	mReadPos = readPosition;
 }
 
 BufferRef SourceFileCoreAudio::loadBuffer()
