@@ -87,7 +87,7 @@ FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile )
 {
 	mTag = "FilePlayerNode";
 	mNumFrames = mSourceFile->getNumFrames();
-	mBufferFramesThreshold = 1024; // TODO: expose
+	mBufferFramesThreshold = 512; // TODO: expose
 }
 
 void FilePlayerNode::initialize()
@@ -95,10 +95,7 @@ void FilePlayerNode::initialize()
 	mSourceFile->setNumChannels( mFormat.getNumChannels() );
 	mSourceFile->setSampleRate( mFormat.getSampleRate() );
 
-	// FIXME: numFramesPerRead > block size is broken
-	mSourceFile->setNumFramesPerRead( 512 );
-	size_t paddingMultiplier = 2;
-
+	size_t paddingMultiplier = 2; // TODO: expose
 	mReadBuffer = Buffer( mFormat.getNumChannels(), mSourceFile->getNumFramesPerRead() );
 	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * paddingMultiplier ) );
 }
@@ -161,19 +158,20 @@ void FilePlayerNode::readFile( size_t numFramesPerBlock )
 	if( mNumFramesBuffered >= mBufferFramesThreshold || readPos >= mNumFrames )
 		return;
 
-
 	size_t numRead = mSourceFile->read( &mReadBuffer, readPos );
+	mReadPos += numRead;
 
-//	app::console() << "BUFFER (" << numRead << ")" << endl;
+	size_t channelOffset = 0;
 	while( numRead > 0 ) {
 		size_t writeCount = std::min( numFramesPerBlock, numRead );
 		for( size_t ch = 0; ch < mReadBuffer.getNumChannels(); ch++ )
-			mRingBuffer->write( mReadBuffer.getChannel( ch ), numFramesPerBlock );
+			mRingBuffer->write( mReadBuffer.getChannel( ch ) + channelOffset, numFramesPerBlock );
+
+		channelOffset += numFramesPerBlock;
 
 		numRead -= writeCount;
 		CI_ASSERT( numRead < mReadBuffer.getSize() );
 		mNumFramesBuffered += writeCount;
-		mReadPos += writeCount;
 	}
 }
 

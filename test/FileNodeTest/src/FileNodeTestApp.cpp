@@ -99,6 +99,10 @@ void FileNodeTestApp::setupBufferPlayer()
 
 void FileNodeTestApp::setupFilePlayer()
 {
+	// TODO: read count should currently always be a multiple of the current block size.
+	// - make sure this is enforced or make it unnecessary
+	mSourceFile->setNumFramesPerRead( 4096 );
+
 	mPlayerNode = make_shared<FilePlayerNode>( mSourceFile );
 	mTap = make_shared<TapNode>( 512 );
 
