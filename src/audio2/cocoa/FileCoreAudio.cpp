@@ -89,7 +89,6 @@ size_t SourceFileCoreAudio::read( Buffer *buffer, size_t readPosition )
 		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
 	}
 
-	// read from the extaudiofile
 	OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 	CI_ASSERT( status == noErr );
 
@@ -118,7 +117,6 @@ BufferRef SourceFileCoreAudio::loadBuffer()
             mBufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
         }
 
-		// read from the extaudiofile
 		OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 		CI_ASSERT( status == noErr );
 
@@ -145,7 +143,8 @@ void SourceFileCoreAudio::updateOutputFormat()
 	OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
 	CI_ASSERT( status == noErr );
 
-	mBufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, mNumFramesPerRead );
+	// numFrames will be updated at read time
+	mBufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, 0 );
 }
 
 } } // namespace audio2::cocoa
