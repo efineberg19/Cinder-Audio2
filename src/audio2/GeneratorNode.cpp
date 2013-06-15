@@ -165,9 +165,9 @@ void FilePlayerNode::readFile( size_t numFramesPerBlock )
 	while( numRead > 0 ) {
 		size_t writeCount = std::min( numFramesPerBlock, numRead );
 		for( size_t ch = 0; ch < mReadBuffer.getNumChannels(); ch++ )
-			mRingBuffer->write( mReadBuffer.getChannel( ch ) + channelOffset, numFramesPerBlock );
+			mRingBuffer->write( mReadBuffer.getChannel( ch ) + channelOffset, writeCount );
 
-		channelOffset += numFramesPerBlock;
+		channelOffset += writeCount;
 
 		numRead -= writeCount;
 		CI_ASSERT( numRead < mReadBuffer.getSize() );
