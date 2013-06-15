@@ -9,8 +9,8 @@
 
 #include "Gui.h"
 
-#define SOUND_FILE "tone440.wav"
-//#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "tone440.wav"
+#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "tone440L220R.mp3"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
@@ -43,6 +43,7 @@ class FileNodeTestApp : public AppNative {
 	PlayerNodeRef mPlayerNode;
 	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
+	TapNodeRef mTap;
 
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
@@ -99,7 +100,9 @@ void FileNodeTestApp::setupBufferPlayer()
 void FileNodeTestApp::setupFilePlayer()
 {
 	mPlayerNode = make_shared<FilePlayerNode>( mSourceFile );
-	mPlayerNode->connect( mContext->getRoot() );
+	mTap = make_shared<TapNode>( 512 );
+
+	mPlayerNode->connect( mTap )->connect( mContext->getRoot() );
 }
 
 void FileNodeTestApp::setupUI()
@@ -186,6 +189,29 @@ void FileNodeTestApp::draw()
 
 	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
 	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );
+
+	if( mTap && mTap->isInitialized() ) {
+		const audio2::Buffer &buffer = mTap->getBuffer();
+
+		float padding = 20.0f;
+		float waveHeight = ((float)getWindowHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();
+
+		float yOffset = padding;
+		float xScale = (float)getWindowWidth() / (float)buffer.getNumFrames();
+		for( size_t ch = 0; ch < buffer.getNumChannels(); ch++ ) {
+			PolyLine2f waveform;
+			const float *channel = buffer.getChannel( ch );
+			for( size_t i = 0; i < buffer.getNumFrames(); i++ ) {
+				float x = i * xScale;
+				float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
+				waveform.push_back( Vec2f( x, y ) );
+			}
+			gl::color( 0.0f, 0.9f, 0.0f );
+			gl::draw( waveform );
+			yOffset += waveHeight + padding;
+		}
+	}
+
 
 	drawWidgets( mWidgets );
 }
