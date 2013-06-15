@@ -6,6 +6,7 @@
 #include "audio2/Atomic.h"
 
 #include "cinder/DataSource.h"
+#include "cinder/Thread.h"
 
 namespace audio2 {
 
@@ -22,6 +23,8 @@ namespace audio2 {
 typedef std::shared_ptr<class PlayerNode>		PlayerNodeRef;
 typedef std::shared_ptr<class BufferPlayerNode> BufferPlayerNodeRef;
 typedef std::shared_ptr<class FilePlayerNode>	FilePlayerNodeRef;
+
+class RingBuffer;
 
 class GeneratorNode : public Node {
 public:
@@ -96,8 +99,12 @@ public:
 	virtual void process( Buffer *buffer );
   protected:
 
-	struct Impl;
-	std::unique_ptr<Impl> mImpl;
+	void readFile( size_t numFramesPerBlock );
+
+	std::unique_ptr<std::thread> mReadThread;
+	std::unique_ptr<RingBuffer> mRingBuffer;
+	Buffer mReadBuffer;
+	size_t mNumFramesBuffered;
 
 	SourceFileRef mSourceFile;
 	size_t mBufferFramesThreshold;
@@ -105,7 +112,7 @@ public:
 
 template <typename UGenT>
 struct UGenNode : public GeneratorNode {
-	UGenNode() : GeneratorNode()	{
+	UGenNode() : GeneratorNode() {
 		mTag = "UGenNode";
 	}
 

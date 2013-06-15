@@ -1,6 +1,5 @@
 #include "audio2/GeneratorNode.h"
 #include "audio2/RingBuffer.h"
-#include "cinder/Thread.h"
 #include "audio2/Debug.h"
 
 using namespace ci;
@@ -76,27 +75,9 @@ void BufferPlayerNode::process( Buffer *buffer )
 // MARK: - FilePlayerNode
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: make it possible to do the file read with just one buffer.
-// - currently reading to mReadBuffer first, then copying that to mRingBuffer. This is required because
-//   there is no way to move RingBuffer's write head forward without a write forward (write comes from
-//   platform audio I/O)
-
-struct FilePlayerNode::Impl {
-
-	Impl() : mNumFramesBuffered( 0 ) {}
-
-	void readFile( size_t readPosition, size_t numFramesPerBlock );
-
-	std::unique_ptr<std::thread> mReadThread;
-	std::unique_ptr<RingBuffer> mRingBuffer;
-	Buffer mReadBuffer;
-	size_t mNumFramesBuffered;
-
-	SourceFileRef mSourceFile;
-};
 
 FilePlayerNode::FilePlayerNode()
-: PlayerNode()
+: PlayerNode(), mNumFramesBuffered( 0 )
 {
 }
 
@@ -105,7 +86,7 @@ FilePlayerNode::~FilePlayerNode()
 }
 
 FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile )
-: PlayerNode(), mSourceFile( sourceFile ), mImpl( new Impl )
+: PlayerNode(), mSourceFile( sourceFile ), mNumFramesBuffered( 0 )
 {
 	mTag = "FilePlayerNode";
 	mNumFrames = mSourceFile->getNumFrames();
@@ -117,9 +98,8 @@ void FilePlayerNode::initialize()
 	mSourceFile->setNumChannels( mFormat.getNumChannels() );
 	mSourceFile->setSampleRate( mFormat.getSampleRate() );
 
-	mImpl->mReadBuffer = Buffer( mFormat.getNumChannels(), mSourceFile->getNumFramesPerRead() );
-	mImpl->mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * 2 ) );
-	mImpl->mSourceFile = mSourceFile;
+	mReadBuffer = Buffer( mFormat.getNumChannels(), mSourceFile->getNumFramesPerRead() );
+	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * 2 ) );
 }
 
 void FilePlayerNode::start()
@@ -141,24 +121,13 @@ void FilePlayerNode::stop()
 
 void FilePlayerNode::process( Buffer *buffer )
 {
-	size_t readPos = mReadPos;
 	size_t numFrames = buffer->getNumFrames();
-	size_t numFramesLeft = mNumFrames - readPos;
-//	app::console() << "------------- readPos: " << readPos << " -----------------" << endl;
-	if( mImpl->mNumFramesBuffered < mBufferFramesThreshold )
-		mImpl->readFile( readPos + mImpl->mNumFramesBuffered, numFrames );
+	readFile( numFrames );
 
-	size_t numBuffered = mImpl->mNumFramesBuffered;
-	size_t readCount = std::min( mNumFrames - readPos, numFrames );
-
-//	app::console() << "numBuffered: " << numBuffered << ", readCount: " << readCount << endl;
-
-	// check if we just don't have enough samples buffer to play
-	if( numBuffered < numFrames && readCount > numFrames )
-		return;
+	size_t readCount = std::min( mNumFramesBuffered, numFrames );
 
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
-		size_t count = mImpl->mRingBuffer->read( buffer->getChannel( ch ), readCount );
+		size_t count = mRingBuffer->read( buffer->getChannel( ch ), readCount );
 		if( count != numFrames )
 			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (ch = " << ch << ")" << endl;
 	}
@@ -167,22 +136,25 @@ void FilePlayerNode::process( Buffer *buffer )
 	if( readCount < numFrames  )
 		mEnabled = false;
 
-	mReadPos += readCount;
-	mImpl->mNumFramesBuffered -= readCount;
+	mNumFramesBuffered -= readCount;
 }
 
 // FIXME: this copy is really janky
 // - mReadBuffer and mRingBuffer are much bigger than the block size
 // - since they are non-interleaved, need to pack them in sections = numFramesPerBlock so stereo channels can be
 //   pulled out appropriately.
-// - Ideally, there would only be one buffer copied to on the background thread and then one copy/consume in process()
-void FilePlayerNode::Impl::readFile( size_t readPosition, size_t numFramesPerBlock )
+// - Ideally, there would only be one buffer copied to on the background thread and then one copy/consume in process()	
+
+void FilePlayerNode::readFile( size_t numFramesPerBlock )
 {
-	size_t numRead = mSourceFile->read( &mReadBuffer, readPosition );
-	CI_ASSERT( numRead < mReadBuffer.getSize() );
-	app::console() << "BUFFER (" << numRead << ")" << endl;
-	if( numRead == 272 )
-		int blarg = 0;
+	size_t readPos = mReadPos;
+
+	if( mNumFramesBuffered > mBufferFramesThreshold || readPos >= mNumFrames )
+		return;
+
+	size_t numRead = mSourceFile->read( &mReadBuffer, readPos );
+
+//	app::console() << "BUFFER (" << numRead << ")" << endl;
 	while( numRead > 0 ) {
 		size_t writeCount = std::min( numFramesPerBlock, numRead );
 		for( size_t ch = 0; ch < mReadBuffer.getNumChannels(); ch++ )
@@ -191,6 +163,7 @@ void FilePlayerNode::Impl::readFile( size_t readPosition, size_t numFramesPerBlo
 		numRead -= writeCount;
 		CI_ASSERT( numRead < mReadBuffer.getSize() );
 		mNumFramesBuffered += writeCount;
+		mReadPos += writeCount;
 	}
 }
 
