@@ -155,8 +155,7 @@ void FilePlayerNode::process( Buffer *buffer )
 
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
 		size_t count = mRingBuffer->read( buffer->getChannel( ch ), readCount );
-		if( count != readCount )
-			LOG_V << "unexpected read count: " << count << ", expected: " << readCount << " (ch = " << ch << ")" << endl;
+		CI_ASSERT( count == readCount );
 	}
 	mNumFramesBuffered -= readCount;
 
@@ -172,8 +171,8 @@ void FilePlayerNode::process( Buffer *buffer )
 
 			mEnabled = false;
 		}
-		else
-			LOG_V << "BUFFER UNDERRUN" << endl;
+//		else
+//			LOG_V << "BUFFER UNDERRUN" << endl;
 	}
 }
 
