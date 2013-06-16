@@ -35,8 +35,6 @@ public:
 	void setupFilterDelay();
 	void setupNativeThenGeneric();
 
-	void toggleGraph();
-
 	void setupUI();
 	void processEvent( Vec2i pos );
 	void updateLowpass();
@@ -71,7 +69,8 @@ void EffectXAudioTestApp::setup()
 	mContext->setRoot( output );
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->mGen.setAmp( 0.25f );
+	noise->getUGen().setAmp( 0.25f );
+	noise->getFormat().setAutoEnabled();
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
@@ -127,8 +126,7 @@ void EffectXAudioTestApp::setupOne()
 	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
 	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
 
-	mEffect->connect( mSource );
-	mContext->getRoot()->connect( mEffect );
+	mSource->connect( mEffect )->connect( mContext->getRoot() );
 }
 
 void EffectXAudioTestApp::setupTwo()
@@ -138,17 +136,14 @@ void EffectXAudioTestApp::setupTwo()
 
 	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
-	mEffect->connect( mSource );
-	mEffect2->connect( mEffect );
-	mContext->getRoot()->connect( mEffect2 );
+	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
 }
 
 void EffectXAudioTestApp::setupFilter()
 {
 	mFilterEffect = make_shared<EffectXAudioFilter>();
 
-	mFilterEffect->connect( mSource );
-	mContext->getRoot()->connect( mFilterEffect );
+	mSource->connect( mFilterEffect )->connect( mContext->getRoot() );
 }
 
 void EffectXAudioTestApp::setupFilterDelay()
@@ -156,9 +151,7 @@ void EffectXAudioTestApp::setupFilterDelay()
 	mFilterEffect = make_shared<EffectXAudioFilter>();
 	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
 
-	mFilterEffect->connect( mSource );
-	mEffect2->connect( mFilterEffect );
-	mContext->getRoot()->connect( mEffect2 );
+	mSource->connect( mFilterEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
 }
 
 void EffectXAudioTestApp::setupNativeThenGeneric()
@@ -166,18 +159,7 @@ void EffectXAudioTestApp::setupNativeThenGeneric()
 	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
 	auto ringMod = make_shared<RingMod>();
 
-	mEffect->connect( mSource );
-	ringMod->connect( mEffect );
-
-	mContext->getRoot()->connect( ringMod );
-}
-
-void EffectXAudioTestApp::toggleGraph()
-{
-	if( ! mContext->isRunning() )
-		mContext->start();
-	else
-		mContext->stop();
+	mSource->connect( mEffect )->connect( ringMod )->connect( mContext->getRoot() );
 }
 
 void EffectXAudioTestApp::setupUI()
@@ -244,7 +226,7 @@ void EffectXAudioTestApp::updateEcho()
 void EffectXAudioTestApp::mouseDown( MouseEvent event )
 {
 	if( mPlayButton.hitTest( event.getPos() ) )
-		toggleGraph();
+		mContext->setEnabled( ! mContext->isEnabled() );
 }
 
 void EffectXAudioTestApp::mouseDrag( MouseEvent event )
@@ -255,7 +237,7 @@ void EffectXAudioTestApp::mouseDrag( MouseEvent event )
 void EffectXAudioTestApp::touchesBegan( TouchEvent event )
 {
 	if( mPlayButton.hitTest( event.getTouches().front().getPos() ) )
-		toggleGraph();
+		mContext->setEnabled( ! mContext->isEnabled() );
 }
 
 void EffectXAudioTestApp::touchesMoved( TouchEvent event )
