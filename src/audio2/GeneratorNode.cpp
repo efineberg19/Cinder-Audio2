@@ -200,6 +200,7 @@ void FilePlayerNode::readFromBackgroundThread()
 			mSourceFile->seek( readPos );
 
 		readFile();
+		lastReadPos = mReadPos;
 	}
 }
 
