@@ -1,28 +1,24 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
+#include "Resources.h"
 
 #include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
-#include "audio2/cocoa/FileCoreAudio.h"
 #include "audio2/Plot.h"
 #include "audio2/Debug.h"
 
 #include "Gui.h"
 
-// FIXME: (mac) FilePlayerNode crash with heavy seeking
+// FIXME: (mac) FilePlayerNode crash with heavy seeking, non-multithreaded
 // - it's happening in SourceFileCoreAudio's read call - buffer ends might be overlapping
 
-#define SOUND_FILE "tone440.wav"
-//#define SOUND_FILE "tone440L220R.wav"
-//#define SOUND_FILE "tone440L220R.mp3"
-//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+// TODO NEXT: implement SourceFileMediaFoundation
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 using namespace audio2;
-using namespace audio2::cocoa;
 
 class FileNodeTestApp : public AppNative {
   public:
@@ -61,7 +57,8 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
 
-	mSourceFile = SourceFileRef( new SourceFileCoreAudio( loadResource( SOUND_FILE ), 0, 44100 ) );
+	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
 //	setupBufferPlayer();

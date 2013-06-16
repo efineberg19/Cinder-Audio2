@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -25,7 +26,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v110_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -50,7 +51,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\cinder-dev\include";"..\..\..\..\..\cinder-dev\boost";..\..\..\..\..\cinder-dev\blocks\audio2\src;$(DXSDK_DIR)\include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=0x0502;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -106,6 +107,8 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\audio2\GeneratorNode.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\msw\FileMediaFoundation.cpp" />
     <ClCompile Include="..\src\FileNodeTestApp.cpp" />
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.cpp" />
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Context.cpp" />
@@ -119,6 +122,7 @@
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\audio2\msw\FileMediaFoundation.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\Gui.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Assert.h" />
