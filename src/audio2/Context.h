@@ -134,7 +134,7 @@ class RingBuffer;
 
 class TapNode : public Node {
   public:
-	TapNode( size_t bufferSize = 1024 );
+	TapNode( size_t numBufferedFrames = 1024 );
 	virtual ~TapNode();
 
 	const float* getChannel( size_t ch = 0 );
@@ -146,7 +146,7 @@ class TapNode : public Node {
   private:
 	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: make this one continuous buffer so it better matches audio::Buffer
 	Buffer mCopiedBuffer;
-	size_t mBufferSize;
+	size_t mNumBufferedFrames;
 };
 
 // TODO: Because busses can be expanded, the naming is off:
