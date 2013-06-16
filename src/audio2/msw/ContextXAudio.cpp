@@ -157,7 +157,7 @@ bool OutputXAudio::supportsSourceFormat( const Node::Format &sourceFormat ) cons
 SourceVoiceXAudio::SourceVoiceXAudio()
 {
 	mTag = "SourceVoiceXAudio";
-	mSources.resize( 1 );
+	mFormat.setAutoEnabled( true );
 	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &SourceVoiceXAudio::submitNextBuffer, this ) ) );
 }
 
