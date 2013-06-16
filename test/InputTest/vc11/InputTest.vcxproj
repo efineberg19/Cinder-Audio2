@@ -107,6 +107,7 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\audio2\GeneratorNode.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\ContextXAudio.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\DeviceInputWasapi.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\DeviceManagerWasapi.cpp" />

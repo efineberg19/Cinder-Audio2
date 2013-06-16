@@ -90,6 +90,9 @@
     <ClCompile Include="..\..\..\src\audio2\msw\DeviceOutputXAudio.cpp">
       <Filter>Blocks\Audio2\src\audio2\msw</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\audio2\GeneratorNode.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">

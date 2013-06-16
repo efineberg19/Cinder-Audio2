@@ -174,8 +174,8 @@ struct VSelector : public TestWidget {
 
 		bool b = bounds.contains( pos );
 		if( b ) {
-			int offset = pos.y - bounds.y1;
-			int sectionHeight = bounds.getHeight() / segments.size();
+			int offset = pos.y - (int)bounds.y1;
+			int sectionHeight = (int)bounds.getHeight() / segments.size();
 			currentSectionIndex = offset / sectionHeight;
 		}
 		return b;
