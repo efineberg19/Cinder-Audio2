@@ -173,6 +173,7 @@ void InputWasapi::start()
 	HRESULT hr = mImpl->mAudioClient->Start();
 	CI_ASSERT( hr == S_OK );
 
+	mEnabled = true;
 	LOG_V << "started " << mDevice->getName() << endl;
 }
 
@@ -186,6 +187,7 @@ void InputWasapi::stop()
 	HRESULT hr = mImpl->mAudioClient->Stop();
 	CI_ASSERT( hr == S_OK );
 
+	mEnabled = false;
 	LOG_V << "stopped " << mDevice->getName() << endl;
 }
 

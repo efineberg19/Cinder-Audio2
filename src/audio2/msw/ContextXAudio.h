@@ -85,8 +85,6 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	void stop() override;
 
 	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSourceVoice ), this ); }
-  
-	bool isRunning() const	{ return mIsRunning; }
 
   private:
 	void submitNextBuffer();
@@ -97,7 +95,6 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
 	Buffer										mBuffer, mBufferInterleaved;
 	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
-	bool										mIsRunning;
 };
 
 class EffectXAudioXapo : public EffectNode, public NodeXAudio {

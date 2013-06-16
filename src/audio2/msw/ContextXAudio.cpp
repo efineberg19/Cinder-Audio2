@@ -121,12 +121,14 @@ void OutputXAudio::uninitialize()
 void OutputXAudio::start()
 {
 	mDevice->start();
+	mEnabled = true;
 	LOG_V << "started: " << mDevice->getName() << endl;
 }
 
 void OutputXAudio::stop()
 {
 	mDevice->stop();
+	mEnabled = false;
 	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
@@ -208,7 +210,7 @@ void SourceVoiceXAudio::uninitialize()
 void SourceVoiceXAudio::start()
 {
 	CI_ASSERT( mSourceVoice );
-	mIsRunning = true;
+	mEnabled = true;
 	mSourceVoice->Start();
 	submitNextBuffer();
 
@@ -218,7 +220,7 @@ void SourceVoiceXAudio::start()
 void SourceVoiceXAudio::stop()
 {
 	CI_ASSERT( mSourceVoice );
-	mIsRunning = false;
+	mEnabled = false;
 	mSourceVoice->Stop();
 	LOG_V << "stopped." << endl;
 }
@@ -443,8 +445,6 @@ void MixerXAudio::setMaxNumBusses( size_t count )
 	mMaxNumBusses = count;
 }
 
-// TODO: test the way getSourceVoice is now implemented in BasicTest
-
 bool MixerXAudio::isBusEnabled( size_t bus )
 {
 	checkBusIsValid( bus );
@@ -452,7 +452,7 @@ bool MixerXAudio::isBusEnabled( size_t bus )
 	NodeRef node = mSources[bus];
 	auto sourceVoice = getSourceVoice( node );
 
-	return sourceVoice->isRunning();
+	return sourceVoice->isEnabled();
 }
 
 void MixerXAudio::setBusEnabled( size_t bus, bool enabled )
