@@ -680,7 +680,7 @@ void ContextXAudio::initNode( NodeRef node )
 				sourceVoice = make_shared<SourceVoiceXAudio>();
 				node->getSources()[i] = sourceVoice;
 				sourceVoice->setParent( node );
-				sourceVoice->connect( source );
+				sourceVoice->setSource( source );
 			}
 		}
 
