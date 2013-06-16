@@ -3,6 +3,7 @@
 #include "audio2/assert.h"
 
 #include <vector>
+#include <memory>
 
 namespace audio2 {
 
