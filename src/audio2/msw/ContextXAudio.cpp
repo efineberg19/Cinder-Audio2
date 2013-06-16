@@ -17,8 +17,6 @@ static bool isNodeNativeXAudio( NodeRef node ) {
 	return dynamic_pointer_cast<NodeXAudio>( node );
 }
 
-// TODO: consider making these two methods recursive - they don't need the while loop, assert at top
-
 static shared_ptr<NodeXAudio> getXAudioNode( NodeRef node )
 {
 	while( node ) {
@@ -200,6 +198,9 @@ void SourceVoiceXAudio::initialize()
 void SourceVoiceXAudio::uninitialize()
 {
 	mInitialized = false;
+
+	if( mSourceVoice )
+		mSourceVoice->DestroyVoice();
 }
 
 // TODO: source voice must be made during initialize() pass, so there is a chance start/stop can be called
@@ -614,7 +615,8 @@ void ConverterXAudio::uninitialize()
 
 ContextXAudio::~ContextXAudio()
 {
-	
+	if( mInitialized )
+		uninitialize();
 }
 
 InputNodeRef ContextXAudio::createInput( DeviceRef device )
@@ -715,13 +717,11 @@ void ContextXAudio::initNode( NodeRef node )
 
 		if( ! node->supportsSourceFormat( sourceNode->getFormat() ) ) {
 			CI_ASSERT( 0 && "ConverterXAudio not yet implemented" );
+
 			bool needsConverter = false;
 			if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
-#if 0
-				needsConverter = true;
-#else
+				//needsConverter = true;
 				throw AudioFormatExc( "non-matching samplerates not supported" );
-#endif
 			if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
 				LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
 				needsConverter = true;
