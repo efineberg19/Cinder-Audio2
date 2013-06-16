@@ -226,6 +226,7 @@ void SourceVoiceXAudio::submitNextBuffer()
 {
 	CI_ASSERT( mSourceVoice );
 
+	mBuffer.zero();
 	renderNode( mSources[0] );
 
 	if( mFormat.getNumChannels() == 2 )
@@ -240,7 +241,8 @@ void SourceVoiceXAudio::renderNode( NodeRef node )
 	if( ! node->getSources().empty() )
 		renderNode( node->getSources()[0] );
 
-	node->process( &mBuffer );
+	if( node->isEnabled() )
+		node->process( &mBuffer );
 }
 
 // ----------------------------------------------------------------------------------------------------
