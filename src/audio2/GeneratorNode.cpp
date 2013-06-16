@@ -188,7 +188,10 @@ void FilePlayerNode::readFromBackgroundThread()
 	size_t lastReadPos = mReadPos;
 	while( mReadOnBackground ) {
 		if( ! moreFramesNeeded() ) {
-			ci::sleep( readMilliseconds );
+			// FIXME: this is still causing underruns. need either:
+			// a) a higher resolution timer
+			// b) condition + mutex
+			ci::sleep( readMilliseconds / 2 );
 			continue;
 		}
 
