@@ -81,21 +81,15 @@ protected:
 	BufferRef mBuffer;
 };
 
-// TODO NEXT: implement threading
-//		- decodes and writes samples to ringbuffer on background thread
-//		- pulls samples from ringbuffer in process()
-//		- in a real-time graph, file reading needs to be done on a non-audio thread.
-//        But in processing mode, the same thread should be used as the one that process is called from
-
 // TODO: use a thread pool to keep the overrall number of read threads to a minimum.
-
 class FilePlayerNode : public PlayerNode {
 public:
 	FilePlayerNode();
-	FilePlayerNode( SourceFileRef sourceFile );
+	FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded = true );
 	virtual ~FilePlayerNode();
 
 	void initialize() override;
+	void uninitialize() override;
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -103,9 +97,13 @@ public:
 
 	virtual void setReadPosition( size_t pos ) override;
 
+	bool isMultiThreaded() const	{ return mMultiThreaded; }
+
   protected:
 
-	void readFile( size_t numFramesPerBlock );
+	void readFromBackgroundThread();
+	void readFile();
+	bool moreFramesNeeded();
 
 	std::unique_ptr<std::thread> mReadThread;
 	std::unique_ptr<RingBuffer> mRingBuffer;
@@ -114,6 +112,10 @@ public:
 
 	SourceFileRef mSourceFile;
 	size_t mBufferFramesThreshold;
+	bool mMultiThreaded;
+	std::atomic<bool> mReadOnBackground;
+
+	std::atomic<size_t> mFramesPerBlock; // TODO: this is a kludge, remove once Node::Format has a blocksize
 };
 
 template <typename UGenT>

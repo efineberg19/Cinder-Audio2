@@ -2,6 +2,8 @@
 #include "audio2/RingBuffer.h"
 #include "audio2/Debug.h"
 
+#include "cinder/Utilities.h"
+
 using namespace ci;
 using namespace std;
 
@@ -82,12 +84,14 @@ FilePlayerNode::~FilePlayerNode()
 {
 }
 
-FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile )
-: PlayerNode(), mSourceFile( sourceFile ), mNumFramesBuffered( 0 )
+FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded )
+: PlayerNode(), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 )
 {
 	mTag = "FilePlayerNode";
 	mNumFrames = mSourceFile->getNumFrames();
-	mBufferFramesThreshold = 512; // TODO: expose
+	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
+
+	mFramesPerBlock = 512; // kludge #2..
 }
 
 void FilePlayerNode::initialize()
@@ -98,13 +102,28 @@ void FilePlayerNode::initialize()
 	size_t paddingMultiplier = 2; // TODO: expose
 	mReadBuffer = Buffer( mFormat.getNumChannels(), mSourceFile->getNumFramesPerRead() );
 	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * paddingMultiplier ) );
+
+	if( mMultiThreaded ) {
+		mReadOnBackground = true;
+		mReadThread = unique_ptr<thread>( new thread( bind( &FilePlayerNode::readFromBackgroundThread, this ) ) );
+	}
+}
+
+void FilePlayerNode::uninitialize()
+{
+	if( mMultiThreaded ) {
+		mReadOnBackground = false;
+		mReadThread->detach();
+	}
 }
 
 void FilePlayerNode::setReadPosition( size_t pos )
 {
 	CI_ASSERT( mSourceFile );
 
-	mSourceFile->seek( pos );
+	if( ! mMultiThreaded )
+		mSourceFile->seek( pos );
+	
 	mReadPos = pos;
 }
 
@@ -127,9 +146,10 @@ void FilePlayerNode::stop()
 
 void FilePlayerNode::process( Buffer *buffer )
 {
-
 	size_t numFrames = buffer->getNumFrames();
-	readFile( numFrames );
+
+	if( ! mMultiThreaded && moreFramesNeeded() )
+		readFile();
 
 	size_t readCount = std::min( mNumFramesBuffered, numFrames );
 
@@ -144,11 +164,39 @@ void FilePlayerNode::process( Buffer *buffer )
 	if( readCount < numFrames ) {
 		buffer->zero( readCount, numFrames - readCount );
 
-		if( mLoop ) {
-			setReadPosition( 0 );
-			return;
-		} else
+		if( mReadPos >= mNumFrames ) {
+			if( mLoop ) {
+				setReadPosition( 0 );
+				return;
+			}
+
 			mEnabled = false;
+		}
+		else
+			LOG_V << "BUFFER UNDERRUN" << endl;
+	}
+}
+
+bool FilePlayerNode::moreFramesNeeded()
+{
+	return ( mNumFramesBuffered < mBufferFramesThreshold && mReadPos < mNumFrames ) ? true : false;
+}
+
+void FilePlayerNode::readFromBackgroundThread()
+{
+	size_t readMilliseconds = ( 1000 * mSourceFile->getNumFramesPerRead() ) / mFormat.getSampleRate();
+	size_t lastReadPos = mReadPos;
+	while( mReadOnBackground ) {
+		if( ! moreFramesNeeded() ) {
+			ci::sleep( readMilliseconds );
+			continue;
+		}
+
+		size_t readPos = mReadPos;
+		if( readPos != lastReadPos )
+			mSourceFile->seek( readPos );
+
+		readFile();
 	}
 }
 
@@ -158,18 +206,16 @@ void FilePlayerNode::process( Buffer *buffer )
 //   pulled out appropriately.
 // - Ideally, there would only be one buffer copied to on the background thread and then one copy/consume in process()	
 
-void FilePlayerNode::readFile( size_t numFramesPerBlock )
+void FilePlayerNode::readFile()
 {
-	size_t readPos = mReadPos;
-
-	if( mNumFramesBuffered >= mBufferFramesThreshold || readPos >= mNumFrames )
-		return;
-
 	size_t numRead = mSourceFile->read( &mReadBuffer );
 	mReadPos += numRead;
 
+	size_t numFramesPerBlock = mFramesPerBlock;
 	size_t channelOffset = 0;
-	while( numRead > 0 ) {
+	while( numRead ) {
+		CI_ASSERT( numRead <= mNumFrames );
+
 		size_t writeCount = std::min( numFramesPerBlock, numRead );
 		for( size_t ch = 0; ch < mReadBuffer.getNumChannels(); ch++ )
 			mRingBuffer->write( mReadBuffer.getChannel( ch ) + channelOffset, writeCount );
@@ -177,7 +223,6 @@ void FilePlayerNode::readFile( size_t numFramesPerBlock )
 		channelOffset += writeCount;
 
 		numRead -= writeCount;
-		CI_ASSERT( numRead < mReadBuffer.getSize() );
 		mNumFramesBuffered += writeCount;
 	}
 }
