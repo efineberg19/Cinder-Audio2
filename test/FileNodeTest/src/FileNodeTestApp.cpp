@@ -12,7 +12,7 @@
 // FIXME: (mac) FilePlayerNode crash with heavy seeking, non-multithreaded
 // - it's happening in SourceFileCoreAudio's read call - buffer ends might be overlapping
 
-// TODO NEXT: implement SourceFileMediaFoundation
+// TODO NEXT: finish implementing SourceFileMediaFoundation
 
 using namespace ci;
 using namespace ci::app;
@@ -61,8 +61,8 @@ void FileNodeTestApp::setup()
 	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
-//	setupBufferPlayer();
-	setupFilePlayer();
+	setupBufferPlayer();
+	//setupFilePlayer();
 
 	initContext();
 	setupUI();

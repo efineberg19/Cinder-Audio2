@@ -2,15 +2,18 @@
 
 #include "audio2/File.h"
 #include "audio2/GeneratorNode.h"
-#include "audio2/cocoa/Util.h"
+#include "audio2/msw/util.h"
 
-#include <AudioToolbox/ExtendedAudioFile.h>
+struct IMFSourceReader;
 
-namespace audio2 { namespace cocoa {
+namespace audio2 { namespace msw {
 
-class SourceFileCoreAudio : public SourceFile {
+class SourceFileMediaFoundation : public SourceFile {
   public:
-	SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
+	enum Format { INT_16, FLOAT_32 };
+
+	SourceFileMediaFoundation( ci::DataSourceRef dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
+	virtual ~SourceFileMediaFoundation();
 
 	size_t		read( Buffer *buffer ) override;
 	BufferRef	loadBuffer() override;
@@ -21,10 +24,14 @@ class SourceFileCoreAudio : public SourceFile {
 
   private:
 	void updateOutputFormat();
+	void storeAttributes();
 	
-	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
-	AudioBufferListRef mBufferList;
-	size_t mReadPos;
+	std::unique_ptr<::IMFSourceReader, ComReleaser> mSourceReader;
+	Format mSampleFormat;
+
+	size_t mReadPos; // TODO: remove if not needed
+	float mSeconds;
+	bool mCanSeek;
 };
 
-} } // namespace audio2::cocoa
+} } // namespace audio2::msw

@@ -24,12 +24,13 @@ class SourceFile {
 	virtual size_t	getFileNumChannels() const				{ return mFileNumChannels; }
 	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
 
-	//! \note buffer must be large enough to hold \a getNumFramesPerRead()
-	// TODO: consider just reading buffer->getNumFrames() samples out. loadBuffer() can take a param that specifices frames per read, with a default
+	//! \brief loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
 	virtual size_t read( Buffer *buffer ) = 0;
 
 	virtual BufferRef loadBuffer() = 0;
 
+	// TODO: should be able to seek by both frames and milliseconds - find the best way to allow this
+	// - overloading would be easy to make mistakes, should use different method names
 	virtual void seek( size_t readPosition ) = 0;
 
 
