@@ -61,8 +61,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void start()		{ mEnabled = true; }
 	virtual void stop()			{ mEnabled = false; }
 
-	NodeRef connect( NodeRef dest );
-	NodeRef connect( NodeRef dest, size_t bus );
+	virtual NodeRef connect( NodeRef dest );
+	virtual NodeRef connect( NodeRef dest, size_t bus );
 
 	virtual void setSource( NodeRef source );
 	virtual void setSource( NodeRef source, size_t bus );
@@ -110,10 +110,10 @@ class RootNode : public Node {
 
 	virtual size_t getBlockSize() const = 0;
 
-	// TODO: consider how to best inform the user you cannot connect anything after a RootNode.
-	// - could make this private, but it can still be called by typecasting to Node first, and that may also be more confusing than throwing
-//	NodeRef setSource( NodeRef source ) override	{ throw AudioContextExc( "RootNode's cannot connect" ); }
-
+  private:
+	// RootNode subclasses cannot connect to anything else
+	NodeRef connect( NodeRef dest ) override				{ return NodeRef(); }
+	NodeRef connect( NodeRef dest, size_t bus ) override	{ return NodeRef(); }
 };
 
 class OutputNode : public RootNode {

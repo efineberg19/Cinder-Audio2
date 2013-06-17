@@ -30,6 +30,11 @@ class GeneratorNode : public Node {
 public:
 	GeneratorNode();
 	virtual ~GeneratorNode() {}
+
+private:
+	// note: GeneratorNode's cannot have any sources
+	void setSource( NodeRef source ) override {}
+	void setSource( NodeRef source, size_t bus ) override {}
 };
 
 class InputNode : public GeneratorNode {
