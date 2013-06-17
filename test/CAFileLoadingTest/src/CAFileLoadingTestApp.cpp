@@ -3,16 +3,21 @@
 #include "cinder/cocoa/CinderCocoa.h"
 
 #include "audio2/audio.h"
+#include "audio2/GeneratorNode.h"
 #include "audio2/Debug.h"
 #include "audio2/cocoa/Util.h"
 #include "audio2/Plot.h"
 
-// TODO: put the Audio File services stuff back in here and try to get it working with VBR data
+// Note: this was an attempt at using Core Audio's Audio File + Audio Converter Services api's. Currently SourceFileCoreAudio uses
+// Extended Audio File Services because it is easier to handle the many different types of audio files with confidence.
+// But, in the end we'll already need to use Audio Converter Services for ogg files and other various things..
+
+// FIXME: load VBR mp3
+// - the 'packetCount' is throwing it off - 155 frames, when it is really 155 packes and each packet is many frames
 
 //#define FILE_NAME "tone440.wav"
 //#define FILE_NAME "tone440_float.wav"
-//#define FILE_NAME "tone440.mp3"
-#define FILE_NAME "tone440L220R.mp3"
+#define FILE_NAME "tone440.mp3"
 
 using namespace ci;
 using namespace ci::app;
@@ -21,10 +26,10 @@ using namespace std;
 using namespace audio2;
 
 class CAFileLoadingTestApp : public AppNative {
-  public:
+public:
 	void prepareSettings( Settings *settings );
 	void setup();
-	void mouseDown( MouseEvent event );	
+	void mouseDown( MouseEvent event );
 	void update();
 	void draw();
 
@@ -32,7 +37,7 @@ class CAFileLoadingTestApp : public AppNative {
 
 	ContextRef mContext;
 
-	audio2::Buffer mBuffer;
+	vector<float> mSamples;
 	size_t mNumChannels, mNumSamples;
 
 	WaveformPlot mWaveformPlot;
@@ -43,6 +48,16 @@ void CAFileLoadingTestApp::prepareSettings( Settings *settings )
     settings->setWindowSize( 1000, 500 );
 }
 
+//OSStatus converterCallback(	AudioConverterRef audioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData );
+OSStatus converterCallback(AudioConverterRef audioConverter, UInt32 *ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData );
+
+struct ConverterInfo {
+	size_t readIndex;
+	AudioFileID inputFile;
+	vector<float> readBuffer;
+	AudioStreamPacketDescription *inputFilePacketDescriptions;
+};
+
 void CAFileLoadingTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
@@ -51,82 +66,180 @@ void CAFileLoadingTestApp::setup()
 
 	DataSourceRef dataSource = loadResource( FILE_NAME );
 
-	Url url( dataSource->getFilePath().string() );
-	CFURLRef audioFileUrl = ci::cocoa::createCfUrl( url );
+	CFURLRef audioFileUrl = ci::cocoa::createCfUrl( Url( dataSource->getFilePath().string() ) ); // FIXME: broken for .wma sample (check again)
+	//	CFStringRef pathString = cocoa::createCfString( sample->getFilePath().string() );
+	//  CFURLRef urlRef = CFURLCreateWithFileSystemPath( kCFAllocatorDefault, pathString, kCFURLPOSIXPathStyle, false );
 
-	ExtAudioFileRef inputFile;
-	OSStatus status = ExtAudioFileOpenURL( audioFileUrl, &inputFile );
+	ConverterInfo converterInfo = { 0 };
+	converterInfo.readIndex = 0;
+	converterInfo.inputFilePacketDescriptions = NULL;
+
+	LOG_V << "opening audio file: " << dataSource->getFilePath() << endl;
+
+	OSStatus status = AudioFileOpenURL( audioFileUrl, kAudioFileReadPermission, 0, &converterInfo.inputFile );
 	CI_ASSERT( status == noErr );
 
 	CFRelease( audioFileUrl );
 
-    AudioStreamBasicDescription fileStreamFormat;
-	UInt32 propSize = sizeof( fileStreamFormat );
-    status = ExtAudioFileGetProperty( inputFile, kExtAudioFileProperty_FileDataFormat, &propSize, &fileStreamFormat );
-	CI_ASSERT( status == noErr );
-    LOG_V << "File stream format:\n";
-	audio2::cocoa::printASBD( fileStreamFormat );
+	AudioStreamBasicDescription inputAsbd;
+	UInt32 asbdSize = sizeof( inputAsbd );
 
-    mNumChannels = fileStreamFormat.mChannelsPerFrame;
-
-    SInt64 numFrames;
-    propSize = sizeof( numFrames );
-    status = ExtAudioFileGetProperty( inputFile, kExtAudioFileProperty_FileLengthFrames, &propSize, &numFrames );
-	CI_ASSERT( status == noErr );
-    LOG_V << "number of frames: " << numFrames << endl;
-
-	AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mNumChannels, 44100 );
-
-	LOG_V << "setting client data format to:\n";
-	audio2::cocoa::printASBD( outputFormat );
-	status = ExtAudioFileSetProperty( inputFile, kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
+    status = AudioFileGetProperty( converterInfo.inputFile, kAudioFilePropertyDataFormat, &asbdSize, &inputAsbd );
 	CI_ASSERT( status == noErr );
 
-	UInt32 outputBufferSize = 32 * 1024; // 32 KB is a good starting point
-	UInt32 sizePerPacket = outputFormat.mBytesPerPacket;
-	UInt32 packetsPerBuffer = outputBufferSize / sizePerPacket;
-    int currReadPos = 0;
+	LOG_V << "input ABSD: " << endl;
+	audio2::cocoa::printASBD( inputAsbd );
 
-	mBuffer = audio2::Buffer( mNumChannels, numFrames );
-	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, outputBufferSize );
+	mNumChannels = inputAsbd.mChannelsPerFrame;
 
-	while( true ) {
-		size_t framesLeft = numFrames - currReadPos;
-		if( framesLeft <= 0 ) {
-			LOG_V << "read done, framesLeft: " << framesLeft << endl;
-			break;
-		}
+	UInt64 packetCount;
+	UInt32 packetCountSize = sizeof( packetCount );
 
-		UInt32 frameCount = std::min( framesLeft, packetsPerBuffer );
-		LOG_V << "frameCount: " << frameCount << endl;
+    status = AudioFileGetProperty( converterInfo.inputFile, kAudioFilePropertyAudioDataPacketCount, &packetCountSize, &packetCount );
+	CI_ASSERT( status == noErr );
 
-        for( int i = 0; i < mNumChannels; i++ ) {
-            bufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
-            bufferList->mBuffers[i].mData = &mBuffer.getChannel( i )[currReadPos];
-        }
+	LOG_V << "packet count: " << packetCount << endl;
 
-		// read from the extaudiofile
-		status = ExtAudioFileRead( inputFile, &frameCount, bufferList.get() );
+	UInt32 isVbr;
+	UInt32 propSize = sizeof( isVbr );
+	status = AudioFormatGetProperty( kAudioFormatProperty_FormatIsVBR, asbdSize, &inputAsbd, &propSize, &isVbr );
+	CI_ASSERT( status == noErr );
+
+	//	AudioStreamBasicDescription outputAbsd = audio2::cocoa::nonInterleavedFloatABSD( 2, output->getDevice()->getSampleRate() );
+
+	const size_t kBytesPerSample = sizeof( float );
+
+	AudioStreamBasicDescription outputAbsd = { 0 };
+	outputAbsd.mSampleRate = 44100.0;
+	outputAbsd.mFormatID = kAudioFormatLinearPCM;
+    outputAbsd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kLinearPCMFormatFlagIsPacked;
+	outputAbsd.mBytesPerPacket = kBytesPerSample * mNumChannels;
+	outputAbsd.mFramesPerPacket = 1;
+	outputAbsd.mBytesPerFrame = kBytesPerSample * mNumChannels;
+	outputAbsd.mChannelsPerFrame = mNumChannels;
+	outputAbsd.mBitsPerChannel = 8 * kBytesPerSample;
+
+	LOG_V << "output ABSD: " << endl;
+	audio2::cocoa::printASBD( outputAbsd );
+
+	AudioConverterRef audioConverter;
+	status = AudioConverterNew( &inputAsbd, &outputAbsd, &audioConverter );
+	CI_ASSERT( status == noErr );
+
+
+
+	// allocate packet descriptions if the input file is VBR
+	// TODO: rename this back to packets, since that is actually a more useful generalization
+
+	UInt32 framesPerRead = 1000;
+	UInt32 outputBufferSize = framesPerRead * sizeof( float );
+	converterInfo.readBuffer.resize( framesPerRead );
+
+
+	UInt32 packetsPerRead;
+	if( ! isVbr ) {
+		packetsPerRead = framesPerRead;
+
+		mSamples.resize( packetCount );
+	}
+	else {
+		LOG_V << "file is VBR." << endl;
+
+		UInt32 maxPacketSize;
+		UInt32 size = sizeof( maxPacketSize );
+		status = AudioConverterGetProperty( audioConverter, kAudioConverterPropertyMaximumOutputPacketSize, &size, &maxPacketSize );
 		CI_ASSERT( status == noErr );
 
-        currReadPos += frameCount;
+		packetsPerRead = framesPerRead / maxPacketSize;
+
+		converterInfo.inputFilePacketDescriptions = (AudioStreamPacketDescription *)malloc(sizeof(AudioStreamPacketDescription) * packetsPerRead);
+
 	}
 
-	LOG_V << "load complete.\n";
+	//	UInt32 sizePerFrame = inputAsbd.mBytesPerPacket;
 
-//	mWaveformPlot.load( &mBuffer, getWindowBounds() );
+	//    for( int i = 0; i < mNumChannels; i++ ) {
+	//		// added outputBufferSize for the last frame, CoreAudio expects that the entire size of the buffer is valid even if it isn't going to write to it.
+	//        mSamples[i].resize( packetCount + framesPerRead );
+	//    }
+
+	//	audio2::cocoa::AudioBufferListRef bufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, framesPerRead );
+
+	LOG_V << "reading..." << endl;
+	while( converterInfo.readIndex < ( packetCount - 1 ) ) {
+
+		//		for( int i = 0; i < mSamples.size(); i++ ) {
+		//            bufferList->mBuffers[i].mData = &mSamples[i][converterInfo.readIndex];
+		//        }
+
+		if( mSamples.size() < converterInfo.readIndex + framesPerRead )
+			mSamples.resize( converterInfo.readIndex + framesPerRead );
+
+		AudioBufferList bufferList;
+		bufferList.mNumberBuffers = 1;
+		bufferList.mBuffers[0].mNumberChannels = mNumChannels;
+		bufferList.mBuffers[0].mDataByteSize = outputBufferSize;
+		bufferList.mBuffers[0].mData = &mSamples[converterInfo.readIndex];
+
+		UInt32 ioOutputDataPackets = std::min( packetsPerRead, (uint32_t)packetCount - converterInfo.readIndex );
+		status = AudioConverterFillComplexBuffer( audioConverter, converterCallback, &converterInfo, &ioOutputDataPackets, &bufferList, converterInfo.inputFilePacketDescriptions );
+		CI_ASSERT( status == noErr );
+
+		if( ! ioOutputDataPackets )
+			break;
+
+	}
+
+	LOG_V << "read finished, readIndex: " << converterInfo.readIndex << endl;
+
+	LOG_V << "plotting..." << endl;
+	mWaveformPlot.load( mSamples, getWindowBounds() );
+	LOG_V << "plot finished" << endl;
+
+
+	status = AudioConverterDispose( audioConverter );
+	CI_ASSERT( status == noErr );
+
+	free( converterInfo.inputFilePacketDescriptions );
+}
+
+
+OSStatus converterCallback( AudioConverterRef audioConverter, UInt32 *ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData )
+{
+	ConverterInfo *converterInfo = (ConverterInfo *)inUserData;
+
+	UInt32 readBlockSize = *ioNumberDataPackets;
+	UInt32 outByteCount = readBlockSize * sizeof( float );
+	SInt64 inStartingPacket = converterInfo->readIndex;
+	//	OSStatus status = AudioFileReadPacketData( converterInfo->inputFile, true, &outByteCount, converterInfo->inputFilePacketDescriptions, inStartingPacket, &readBlockSize, converterInfo->readBuffer.data() ); // FIXME: doesn't work with mp3
+	OSStatus status = AudioFileReadPackets( converterInfo->inputFile, true, &outByteCount, converterInfo->inputFilePacketDescriptions, inStartingPacket, &readBlockSize, converterInfo->readBuffer.data() );
+	if( status == kAudioFileEndOfFileError )
+		LOG_V << "kAudioFileEndOfFileError" << endl;
+	else
+		CI_ASSERT( status == noErr );
+	converterInfo->readIndex += readBlockSize;
+
+	CI_ASSERT( ioData->mNumberBuffers == 1 );
+	ioData->mBuffers[0].mData = converterInfo->readBuffer.data();
+	//	memcpy( ioData->mBuffers[0].mData, converterInfo->readBuffer.data(), outByteCount );
+	ioData->mBuffers[0].mDataByteSize = outByteCount;
+
+	if( outDataPacketDescription )
+        *outDataPacketDescription = converterInfo->inputFilePacketDescriptions;
+
+	return noErr;
 }
 
 void CAFileLoadingTestApp::mouseDown( MouseEvent event )
 {
-    size_t step = mBuffer.getNumFrames() / getWindowWidth();
-    size_t xLoc = event.getX() * step;
+	int step = mSamples.size() / getWindowWidth();
+    float xLoc = event.getX() * step;
     LOG_V << "samples starting at " << xLoc << ":\n";
     for( int i = 0; i < 100; i++ ) {
         if( mNumChannels == 1 ) {
-            console() << mBuffer.getChannel( 0 )[xLoc + i] << ", ";
+            console() << mSamples[xLoc + i] << ", ";
         } else {
-            console() << "[" << mBuffer.getChannel( 0 )[xLoc + i] << ", " << mBuffer.getChannel( 0 )[xLoc + i] << "], ";
+			LOG_V << "TODO" << endl;
         }
     }
     console() << endl;
@@ -158,7 +271,7 @@ void CAFileLoadingTestApp::printErrorCodes()
 	console() << "kAudioConverterErr_HardwareInUse : " << kAudioConverterErr_HardwareInUse << endl;
 	console() << "kAudioConverterErr_NoHardwarePermission : " << kAudioConverterErr_NoHardwarePermission << endl;
 #endif
-
+	
 }
 
 CINDER_APP_NATIVE( CAFileLoadingTestApp, RendererGl )
