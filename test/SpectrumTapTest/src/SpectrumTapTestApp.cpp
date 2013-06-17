@@ -1,5 +1,6 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
+#include "cinder/Utilities.h"
 
 #include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
@@ -9,6 +10,12 @@
 
 #include <Accelerate/Accelerate.h>
 
+#define SOUND_FILE "tone440.wav"
+//#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+
+// TODO NEXT: decide what to do when we want less bins.
+// - first try out webaudio's analyzer and see how it handles this
 
 using namespace ci;
 using namespace ci::app;
@@ -16,45 +23,102 @@ using namespace std;
 
 using namespace audio2;
 
-// TODO NEXT: simpl impl ala https://github.com/hoddez/FFTAccelerate/blob/master/FFTAccelerate/FFTAccelerate.cpp
-// - but, I really just want the magnitude component, which is shown at:
+// impl references:
 // - http://stackoverflow.com/a/3534926/506584
-// - and http://gerrybeauregard.wordpress.com/2013/01/28/using-apples-vdspaccelerate-fft/
+// - http://gerrybeauregard.wordpress.com/2013/01/28/using-apples-vdspaccelerate-fft/
+// - WebAudio's impl is in core/platform/audio/FFTFrame.h/cpp and audio/mac/FFTFrameMac.cpp
+
+typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
 
 class SpectrumTapNode : public Node {
 public:
 	// TODO: there should be multiple params, such as window size, fft size (so there can be padding)
-	//! \note num FFT bins is half fftSize
-	SpectrumTapNode( size_t fftSize = 512 ) {
+	SpectrumTapNode( size_t fftSize = 512 )
+	{
+		if( fftSize & ( fftSize - 1 ) ) {
+			LOG_V << "Warning: " << fftSize << " is not a power of 2, rounding up." << endl;
+			size_t p = 1;
+			while( p < fftSize )
+				p *= 2;
+			fftSize = p;
+		}
 
-		vDSP_Length log2n = log2f( fftSize );
-		mFftSetup = vDSP_create_fftsetup( log2n, FFT_RADIX2 );
-		CI_ASSERT( mFftSetup );
-		
+		mFFTSize = fftSize;
+		mLog2FFTSize = log2f( fftSize );
+		LOG_V << "fftSize: " << fftSize << ", log2n: " << mLog2FFTSize << endl;
+
 	}
 	virtual ~SpectrumTapNode() {
-		vDSP_destroy_fftsetup( mFftSetup );
+		vDSP_destroy_fftsetup( mFFTSetup );
 	}
 
 	virtual void initialize() override {
+		mFFTSetup = vDSP_create_fftsetup( mLog2FFTSize, FFT_RADIX2 );
+		CI_ASSERT( mFFTSetup );
 
+		mReal.resize( mFFTSize );
+		mImag.resize( mFFTSize );
+		mSplitComplexFrame.realp = mReal.data();
+		mSplitComplexFrame.imagp = mImag.data();
+
+		mBuffer = audio2::Buffer( 1, mFFTSize );
+		mMagSpectrum.resize( mFFTSize / 2 );
+		LOG_V << "complete" << endl;
 	}
 
 	virtual void process( audio2::Buffer *buffer ) override {
+		CI_ASSERT( mBuffer.getNumFrames() >= buffer->getNumFrames() );
+		
+		mBuffer.zero();
 
+		// TODO: if stereo, first mix to mono
+		memcpy( mBuffer.getData(), buffer->getChannel( 0 ), buffer->getNumFrames() * sizeof( float ) );
+
+		vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFFTSize / 2 );
+		vDSP_fft_zrip( mFFTSetup, &mSplitComplexFrame, 1, mLog2FFTSize, FFT_FORWARD );
+
+		// TODO: window
+ 
+		// Blow away the packed nyquist component.
+		mImag[0] = 0.0f;
+
+		lock_guard<mutex> lock( mMutex );
+
+		// compute normalized magnitude spectrum
+		const float kMagScale = 1.0 / mFFTSize;
+		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
+			complex<float> c( mReal[i], mImag[i] );
+			mMagSpectrum[i] = abs( c ) * kMagScale;
+		}
+
+//		int blarg = 2;
+	}
+
+	const vector<float>& getMagSpectrum() {
+		lock_guard<mutex> lock( mMutex );
+		return mMagSpectrum;
 	}
 
 private:
 //	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: layout this out flat
-	audio2::Buffer mCopiedBuffer;
-	size_t mNumBufferedFrames;
+//	size_t mNumBufferedFrames;
 
-	FFTSetup mFftSetup;
+	mutex mMutex;
+
+	audio2::Buffer mBuffer;
+	std::vector<float> mMagSpectrum;
+
+	size_t mFFTSize, mLog2FFTSize;
+	std::vector<float> mReal, mImag;
+
+	FFTSetup mFFTSetup;
+	DSPSplitComplex mSplitComplexFrame;
 };
 
 
 class SpectrumTapTestApp : public AppNative {
   public:
+	void prepareSettings( Settings *settings );
 	void setup();
 	void update();
 	void draw();
@@ -69,16 +133,24 @@ class SpectrumTapTestApp : public AppNative {
 	PlayerNodeRef mPlayerNode;
 	SourceFileRef mSourceFile;
 
+	SpectrumTapNodeRef mSpectrumTap;
+
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
 
 };
 
+
+void SpectrumTapTestApp::prepareSettings( Settings *settings )
+{
+    settings->setWindowSize( 1200, 500 );
+}
+
 void SpectrumTapTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
 
-	DataSourceRef dataSource = loadResource( "tone440.wav" );
+	DataSourceRef dataSource = loadResource( SOUND_FILE );
 	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
@@ -89,9 +161,9 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	// TODO: create SpectrumTapNode here
+	mSpectrumTap = make_shared<SpectrumTapNode>( 512 );
 
-	mPlayerNode->connect( mContext->getRoot() );
+	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
 	initContext();
 	setupUI();
@@ -157,12 +229,15 @@ void SpectrumTapTestApp::processDrag( Vec2i pos )
 	seek( pos.x );
 }
 
+// TODO: currently makes sense to enable processor + tap together - consider making these enabled together.
 void SpectrumTapTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-	else if( mStartPlaybackButton.hitTest( pos ) )
+	else if( mStartPlaybackButton.hitTest( pos ) ) {
+		mSpectrumTap->start();
 		mPlayerNode->start();
+	}
 	else if( mLoopButton.hitTest( pos ) )
 		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
 	else
@@ -176,6 +251,32 @@ void SpectrumTapTestApp::update()
 void SpectrumTapTestApp::draw()
 {
 	gl::clear();
+
+	// draw magnitude spectrum bins
+
+	auto& mag = mSpectrumTap->getMagSpectrum();
+	size_t numBins = mag.size();
+	float padding = 40.0f;
+	float binWidth = floor( ( (float)getWindowWidth() - padding * 2.0f ) / (float)numBins );
+	float binYScaler = ( (float)getWindowHeight() - padding * 2.0f );
+
+	Rectf bin( padding, getWindowHeight() - padding, padding + binWidth, getWindowHeight() - padding );
+	for( size_t i = 0; i < numBins; i++ ) {
+		float h = mag[i] * binYScaler;
+		bin.y1 = bin.y2 - h;
+		gl::color( 0.0f, 0.9f, 0.0f );
+		gl::drawSolidRect( bin );
+		gl::color( 0.0f, 0.4f, 0.0f );
+		gl::drawStrokedRect( bin );
+
+		bin += Vec2f( binWidth, 0.0f );
+	}
+
+	auto min = min_element( mag.begin(), mag.end() );
+	auto max = max_element( mag.begin(), mag.end() );
+
+	string info = string( "min: " ) + toString( *min ) + string( ", max: " ) + toString( *max );
+	gl::drawString( info, Vec2f( padding, getWindowHeight() - 30.0f ) );
 
 	drawWidgets( mWidgets );
 }
