@@ -11,6 +11,9 @@ namespace audio2 {
 // - http://arxiv.org/abs/0805.1598
 // - also explained in: http://cs.stackexchange.com/q/332
 
+// TODO: can also do optimized de-interleaving with apple's vDSP:
+// - http://stackoverflow.com/questions/10361974/de-interleave-and-interleave-buffer-with-vdsp-ctoz-and-vdsp-ztoz
+
 // http://stackoverflow.com/q/7780279/506584
 template<typename T>
 void deinterleaveInplacePow2( T* arr, int length ) {
