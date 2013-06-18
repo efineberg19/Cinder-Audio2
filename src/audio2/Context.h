@@ -28,17 +28,23 @@ class Node : public std::enable_shared_from_this<Node> {
   public:
 	virtual ~Node();
 
+	//! \note setting a Format parameter has no effect until initialize() is called
 	struct Format {
 		Format()
-		: mSampleRate( 0 ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
+		: mSampleRate( 0 ), mNumChannels( 0 ), mNumFramesPerBlock( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
 		{}
 
-		virtual bool isComplete() const	{ return ( mSampleRate && mNumChannels ); }
+		virtual bool isComplete() const	{ return ( mSampleRate && mNumChannels && mNumFramesPerBlock ); }
 
 		size_t	getSampleRate() const	{ return mSampleRate; }
 		void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
+
 		size_t	getNumChannels() const	{ return mNumChannels; }
 		void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; }
+
+		size_t	getNumFramesPerBlock() const	{ return mNumFramesPerBlock; }
+		void	setNumFramesPerBlock( size_t numFrames )	{ mNumFramesPerBlock = numFrames; }
+
 		bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
 		void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
 
@@ -50,7 +56,7 @@ class Node : public std::enable_shared_from_this<Node> {
 		void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
 
   private:
-		size_t mSampleRate, mNumChannels;
+		size_t mSampleRate, mNumChannels, mNumFramesPerBlock;
 		bool mWantsDefaultFormatFromParent;
 		bool mAutoEnabled;
 		Buffer::Format			mBufferFormat;
@@ -70,6 +76,12 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Default implementation returns true if samplerate and numChannels match our format
 	virtual bool supportsSourceFormat( const Format &sourceFormat ) const;
 
+	//! If required Format properties are missing, fill in params from parent tree
+	virtual void fillFormatParamsFromParent();
+
+	//! If required Format properties are missing, fill in params from first source
+	virtual void fillFormatParamsFromSource();
+
 	virtual void process( Buffer *buffer )	{}
 
 	std::vector<NodeRef>& getSources()			{ return mSources; }
@@ -79,7 +91,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	Format& getFormat()	{ return mFormat; }
 
 	//! Default implementation returns the format for the first source
-	virtual const Format& getSourceFormat();
+//	virtual const Format& getSourceFormat();
 
 	const std::string& getTag()	const	{ return mTag; }
 
@@ -90,6 +102,10 @@ class Node : public std::enable_shared_from_this<Node> {
 
   protected:
 	Node();
+
+	//! If required Format properties are missing, fill in from \a otherFormat
+	virtual void fillFormatParamsFromFormat( const Format &otherFormat );
+
 
 	std::vector<NodeRef>	mSources;
 	NodeWeakRef				mParent;
@@ -107,8 +123,6 @@ class RootNode : public Node {
   public:
 	RootNode() : Node() {}
 	virtual ~RootNode() {}
-
-	virtual size_t getBlockSize() const = 0;
 
   private:
 	// RootNode subclasses cannot connect to anything else

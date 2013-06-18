@@ -33,7 +33,7 @@ template <typename T>
 class BufferT {
 public:
 	typedef T SampleType;
-	enum Format { Interleaved, NonInterleaved };
+	enum Format { Interleaved, NonInterleaved }; // TODO: remove this and use a bool isInterleaved (default = false)
 
 	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::NonInterleaved ) : mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat )
 	{

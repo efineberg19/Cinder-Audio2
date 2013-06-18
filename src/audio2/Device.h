@@ -24,7 +24,7 @@ class Device {
 	size_t getNumInputChannels();
 	size_t getNumOutputChannels();
 	size_t getSampleRate();
-	size_t getBlockSize();
+	size_t getNumFramesPerBlock();
 
   protected:
 	Device( const std::string &key ) : mKey( key ), mInitialized( false ), mEnabled( false ) {}
@@ -43,7 +43,7 @@ class DeviceManager {
 	virtual size_t getNumInputChannels( const std::string &key ) = 0;
 	virtual size_t getNumOutputChannels( const std::string &key ) = 0;
 	virtual size_t getSampleRate( const std::string &key ) = 0;
-	virtual size_t getBlockSize( const std::string &key ) = 0;
+	virtual size_t getNumFramesPerBlock( const std::string &key ) = 0;
 
 	// TODO: the functionality in this method feels awkward, consider doing it in device
 	// - for iOS audio session activating, can just do that in DeviceManager's constructor

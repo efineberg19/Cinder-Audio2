@@ -64,11 +64,47 @@ bool Node::supportsSourceFormat( const Node::Format &sourceFormat ) const
 	return ( mFormat.getNumChannels() == sourceFormat.getNumChannels() && mFormat.getSampleRate() == sourceFormat.getSampleRate() );
 }
 
-const Node::Format& Node::getSourceFormat()
+void Node::fillFormatParamsFromParent()
 {
-	CI_ASSERT( ! mSources.empty() );
-	return mSources[0]->mFormat;
+	NodeRef parent = getParent();
+	CI_ASSERT( parent );
+
+	while( parent ) {
+		fillFormatParamsFromFormat( parent->getFormat() );
+		if( mFormat.isComplete() )
+			break;
+		parent = parent->getParent();
+	}
+	
+	CI_ASSERT( mFormat.isComplete() );
 }
+
+void Node::fillFormatParamsFromSource()
+{
+	CI_ASSERT( ! mSources.empty() && mSources[0] );
+
+	auto firstSource = mSources[0];
+	fillFormatParamsFromFormat( firstSource->getFormat() );
+
+	CI_ASSERT( mFormat.isComplete() );
+}
+
+void Node::fillFormatParamsFromFormat( const Format &otherFormat )
+{
+	if( ! mFormat.getSampleRate() )
+		mFormat.setSampleRate( otherFormat.getSampleRate() );
+	if( ! mFormat.getNumChannels() )
+		mFormat.setNumChannels( otherFormat.getNumChannels() );
+	if( ! mFormat.getNumFramesPerBlock() )
+		mFormat.setNumFramesPerBlock( otherFormat.getNumFramesPerBlock() );
+}
+
+
+//const Node::Format& Node::getSourceFormat()
+//{
+//	CI_ASSERT( ! mSources.empty() );
+//	return mSources[0]->mFormat;
+//}
 
 void Node::setEnabled( bool enabled )
 {

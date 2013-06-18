@@ -55,7 +55,7 @@ void BasicTestApp::setup()
 	console() << "\t input channels: " << device->getNumInputChannels() << endl;
 	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t block size: " << device->getBlockSize() << endl;
+	console() << "\t frames per block: " << device->getNumFramesPerBlock() << endl;
 
 	auto output = Context::instance()->createOutput( device );
 	mContext = Context::instance()->createContext();

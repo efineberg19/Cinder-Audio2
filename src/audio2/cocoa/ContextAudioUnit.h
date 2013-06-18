@@ -46,8 +46,6 @@ class OutputAudioUnit : public OutputNode, public AudioUnitNode {
 	::AudioUnit getAudioUnit() const override;
 	DeviceRef getDevice() override;
 
-	size_t getBlockSize() const override;
-
   private:
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
@@ -116,7 +114,7 @@ class MixerAudioUnit : public MixerNode, public AudioUnitNode {
 
 class ConverterAudioUnit : public Node, public AudioUnitNode {
   public:
-	ConverterAudioUnit( NodeRef source, NodeRef dest, size_t outputBlockSize );
+	ConverterAudioUnit( NodeRef source, NodeRef dest );
 	virtual ~ConverterAudioUnit();
 
 	void initialize() override;

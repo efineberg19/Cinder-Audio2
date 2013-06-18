@@ -87,6 +87,7 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device )
 
 	mFormat.setSampleRate( mDevice->getSampleRate() );
 	mFormat.setNumChannels( 2 );
+	mFormat.setNumFramesPerBlock( mDevice->getNumFramesPerBlock() );
 	
 
 	CI_ASSERT( ! mDevice->isOutputConnected() );
@@ -136,11 +137,6 @@ DeviceRef OutputAudioUnit::getDevice()
 	return mDevice->getComponentInstance();
 }
 
-size_t OutputAudioUnit::getBlockSize() const
-{
-	return mDevice->getBlockSize();
-}
-
 // ----------------------------------------------------------------------------------------------------
 // MARK: - InputAudioUnit
 // ----------------------------------------------------------------------------------------------------
@@ -188,8 +184,8 @@ void InputAudioUnit::initialize()
 		LOG_V << "Path B. initiate ringbuffer" << endl;
 		mShouldUseGraphRenderCallback = false;
 
-		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getBlockSize() * mFormat.getNumChannels() ) );
-		mBufferList = cocoa::createNonInterleavedBufferList( mFormat.getNumChannels(), mDevice->getBlockSize() * sizeof( float ) );
+		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * mFormat.getNumChannels() ) );
+		mBufferList = cocoa::createNonInterleavedBufferList( mFormat.getNumChannels(), mDevice->getNumFramesPerBlock() * sizeof( float ) );
 
 		::AURenderCallbackStruct callbackStruct;
 		callbackStruct.inputProc = InputAudioUnit::inputCallback;
@@ -465,14 +461,14 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 
 // TODO: outputBlockSize seems obscure. rename outputNumFrames?
 //	- this is in the Graph's render context too
-ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest, size_t outputBlockSize )
+ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
 {
 	mTag = "ConverterAudioUnit";
 	mFormat = dest->getFormat();
 	mSourceFormat = source->getFormat();
 
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), outputBlockSize, Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), mFormat.getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
 }
 
 ConverterAudioUnit::~ConverterAudioUnit()
@@ -540,8 +536,7 @@ void ContextAudioUnit::initialize()
 
 	initNode( mRoot );
 
-	size_t blockSize = mRoot->getBlockSize();
-	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), blockSize, Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), mRoot->getFormat().getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
 	mRenderContext.currentNode = mRoot.get();
 
 	// register the root callback separately
@@ -556,7 +551,7 @@ void ContextAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	mInitialized = true;
-	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", blocksize: " << blockSize << endl;
+	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", frames per block: " << mRenderContext.buffer.getNumFrames() << endl;
 }
 
 void ContextAudioUnit::initNode( NodeRef node )
@@ -565,32 +560,16 @@ void ContextAudioUnit::initNode( NodeRef node )
 		return;
 	Node::Format& format = node->getFormat();
 
-	// set default params from parent if requested
-	if( ! format.isComplete() && format.wantsDefaultFormatFromParent() ) {
-		NodeRef parent = node->getParent();
-		while( parent ) {
-			if( ! format.getSampleRate() )
-				format.setSampleRate( parent->getFormat().getSampleRate() );
-			if( ! format.getNumChannels() )
-				format.setNumChannels( parent->getFormat().getNumChannels() );
-			if( format.isComplete() )
-				break;
-			parent = parent->getParent();
-		}
-		CI_ASSERT( format.isComplete() );
-	}
+	if( ! format.isComplete() && format.wantsDefaultFormatFromParent() )
+		node->fillFormatParamsFromParent();
 
 	// recurse through sources
 	for( NodeRef& sourceNode : node->getSources() )
 		initNode( sourceNode );
 
 	// set default params from source
-	if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() ) {
-		if( ! format.getSampleRate() )
-			format.setSampleRate( node->getSourceFormat().getSampleRate() );
-		if( ! format.getNumChannels() )
-			format.setNumChannels( node->getSourceFormat().getNumChannels() );
-	}
+	if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() )
+		node->fillFormatParamsFromSource();
 
 	CI_ASSERT( format.isComplete() );
 
@@ -612,7 +591,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 			needsConverter = true;
 		}
 		if( needsConverter ) {
-			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node, mRoot->getBlockSize() );
+			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
 			converter->getSources()[0] = sourceNode;
 			node->getSources()[bus] = converter;
 			converter->setParent( node->getSources()[bus] );
@@ -698,6 +677,7 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 // TODO: adhere to node's buffer format (interleaved / non-interleaved ) and convert if necessary
 //	- should just be a bool?
 //  - to test: pd node that wants interleaved
+// TODO: if node wants more samples, give collect samples for it here?
 // TODO: try to avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {

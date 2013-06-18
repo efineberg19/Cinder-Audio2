@@ -18,7 +18,7 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	size_t getNumInputChannels( const std::string &key ) override;
 	size_t getNumOutputChannels( const std::string &key ) override;
 	size_t getSampleRate( const std::string &key ) override;
-	size_t getBlockSize( const std::string &key ) override;
+	size_t getNumFramesPerBlock( const std::string &key ) override;
 
 	void setActiveDevice( const std::string &key ) override;
 

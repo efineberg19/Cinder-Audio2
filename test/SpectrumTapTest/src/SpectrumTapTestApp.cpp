@@ -15,7 +15,10 @@
 #define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 
-// FIXME: fftSize = 1024 is broken, sort of crucial
+// TODO NEXT: only window mFormat.getNumFramesPerBlock() samples of copied buffer - the rest should be zero padded
+// should also probably be testing with no zero padding to start (512 frames)
+
+// TODO: mFormat.getFramesPerBlock should set the default fft size
 
 using namespace ci;
 using namespace ci::app;
@@ -31,7 +34,8 @@ using namespace audio2;
 typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
 
 const float GAIN_THRESH = 0.00001f;			//! threshold for decibel conversion (-100db)
-const float GAIN_THRESH_INV = 100000.0f;	//! (1 / GAIN_THRESH)
+//const float GAIN_THRESH = 0.00004f;
+const float GAIN_THRESH_INV = 1 / GAIN_THRESH;
 
 // TODO: double check how to set the minimum of the linear->db conversion
 // - maybe provide an optional second param of the lowest value db
@@ -246,7 +250,7 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	mSpectrumTap = make_shared<SpectrumTapNode>( 2048 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( 1024 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
@@ -368,13 +372,18 @@ void SpectrumTapTestApp::draw()
 	auto &mag = mSpectrumTap->getMagSpectrum();
 	size_t numBins = mag.size();
 	float margin = 40.0f;
-	float padding = 2.0f;
-	float binWidth = floorf( ( (float)getWindowWidth() - margin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins );
+	float padding = 0.0f;
+	float binWidth = ( (float)getWindowWidth() - margin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins;
 	float binYScaler = ( (float)getWindowHeight() - margin * 2.0f );
 
 	Rectf bin( margin, getWindowHeight() - margin, margin + binWidth, getWindowHeight() - margin );
 	for( size_t i = 0; i < numBins; i++ ) {
-		float h = ( mScaleDecibels ? toDecibels( mag[i] ) / 100.0f : mag[i] );
+		float h = mag[i];
+		if( mScaleDecibels ) {
+			h = toDecibels( h ) / 100.0f;
+//			if( h < 0.3f )
+//				h = 0.0f;
+		}
 		bin.y1 = bin.y2 - h * binYScaler;
 		gl::color( 0.0f, 0.9f, 0.0f );
 		gl::drawSolidRect( bin );

@@ -57,9 +57,9 @@ size_t Device::getSampleRate()
 	return DeviceManager::instance()->getSampleRate( mKey );
 }
 
-size_t Device::getBlockSize()
+size_t Device::getNumFramesPerBlock()
 {
-	return DeviceManager::instance()->getBlockSize( mKey );
+	return DeviceManager::instance()->getNumFramesPerBlock( mKey );
 }
 
 // ----------------------------------------------------------------------------------------------------
