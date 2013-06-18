@@ -11,11 +11,8 @@
 #include <Accelerate/Accelerate.h>
 
 //#define SOUND_FILE "tone440.wav"
-//#define SOUND_FILE "tone440L220R.wav"
-#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
-
-// TODO NEXT: decide what to do when we want less bins.
-// - first try out webaudio's analyzer and see how it handles this
+#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 using namespace ci;
 using namespace ci::app;
@@ -66,13 +63,17 @@ public:
 		LOG_V << "complete" << endl;
 	}
 
+	// if mBuffer size is smaller than buffer, only copy enough for mBuffer
+	// if buffer size is smaller than mBuffer, just leave the rest as a pad
+	// - so, copy the smaller of the two
+	// TODO: specify pad, accumulate the required number of samples
 	virtual void process( audio2::Buffer *buffer ) override {
-		CI_ASSERT( mBuffer.getNumFrames() >= buffer->getNumFrames() );
-		
+
 		mBuffer.zero();
 
 		// TODO: if stereo, first mix to mono
-		memcpy( mBuffer.getData(), buffer->getChannel( 0 ), buffer->getNumFrames() * sizeof( float ) );
+		size_t numCopySamples = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() );
+		memcpy( mBuffer.getData(), buffer->getChannel( 0 ), numCopySamples * sizeof( float ) );
 
 		vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
 		vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
@@ -162,7 +163,7 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	mSpectrumTap = make_shared<SpectrumTapNode>( 512 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( 124 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
