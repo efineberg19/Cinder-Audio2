@@ -10,9 +10,9 @@
 
 #include <Accelerate/Accelerate.h>
 
-#define SOUND_FILE "tone440.wav"
+//#define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
-//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 // TODO NEXT: decide what to do when we want less bins.
 // - first try out webaudio's analyzer and see how it handles this
@@ -43,26 +43,26 @@ public:
 			fftSize = p;
 		}
 
-		mFFTSize = fftSize;
-		mLog2FFTSize = log2f( fftSize );
-		LOG_V << "fftSize: " << fftSize << ", log2n: " << mLog2FFTSize << endl;
+		mFftSize = fftSize;
+		mLog2FftSize = log2f( fftSize );
+		LOG_V << "fftSize: " << fftSize << ", log2n: " << mLog2FftSize << endl;
 
 	}
 	virtual ~SpectrumTapNode() {
-		vDSP_destroy_fftsetup( mFFTSetup );
+		vDSP_destroy_fftsetup( mFftSetup );
 	}
 
 	virtual void initialize() override {
-		mFFTSetup = vDSP_create_fftsetup( mLog2FFTSize, FFT_RADIX2 );
-		CI_ASSERT( mFFTSetup );
+		mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
+		CI_ASSERT( mFftSetup );
 
-		mReal.resize( mFFTSize );
-		mImag.resize( mFFTSize );
+		mReal.resize( mFftSize );
+		mImag.resize( mFftSize );
 		mSplitComplexFrame.realp = mReal.data();
 		mSplitComplexFrame.imagp = mImag.data();
 
-		mBuffer = audio2::Buffer( 1, mFFTSize );
-		mMagSpectrum.resize( mFFTSize / 2 );
+		mBuffer = audio2::Buffer( 1, mFftSize );
+		mMagSpectrum.resize( mFftSize / 2 );
 		LOG_V << "complete" << endl;
 	}
 
@@ -74,8 +74,8 @@ public:
 		// TODO: if stereo, first mix to mono
 		memcpy( mBuffer.getData(), buffer->getChannel( 0 ), buffer->getNumFrames() * sizeof( float ) );
 
-		vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFFTSize / 2 );
-		vDSP_fft_zrip( mFFTSetup, &mSplitComplexFrame, 1, mLog2FFTSize, FFT_FORWARD );
+		vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
+		vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 
 		// TODO: window
  
@@ -85,7 +85,8 @@ public:
 		lock_guard<mutex> lock( mMutex );
 
 		// compute normalized magnitude spectrum
-		const float kMagScale = 1.0 / mFFTSize;
+		// TODO: try using vDSP_zvabs for this, see if it's any faster (scaling would have to be a different step, but then so is convert to db)
+		const float kMagScale = 1.0 / mFftSize;
 		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
 			complex<float> c( mReal[i], mImag[i] );
 			mMagSpectrum[i] = abs( c ) * kMagScale;
@@ -108,10 +109,10 @@ private:
 	audio2::Buffer mBuffer;
 	std::vector<float> mMagSpectrum;
 
-	size_t mFFTSize, mLog2FFTSize;
+	size_t mFftSize, mLog2FftSize;
 	std::vector<float> mReal, mImag;
 
-	FFTSetup mFFTSetup;
+	FFTSetup mFftSetup;
 	DSPSplitComplex mSplitComplexFrame;
 };
 
@@ -256,27 +257,26 @@ void SpectrumTapTestApp::draw()
 
 	auto& mag = mSpectrumTap->getMagSpectrum();
 	size_t numBins = mag.size();
-	float padding = 40.0f;
-	float binWidth = floor( ( (float)getWindowWidth() - padding * 2.0f ) / (float)numBins );
-	float binYScaler = ( (float)getWindowHeight() - padding * 2.0f );
+	float margin = 40.0f;
+	float padding = 2.0f;
+	float binWidth = floorf( ( (float)getWindowWidth() - margin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins );
+	float binYScaler = ( (float)getWindowHeight() - margin * 2.0f );
 
-	Rectf bin( padding, getWindowHeight() - padding, padding + binWidth, getWindowHeight() - padding );
+	Rectf bin( margin, getWindowHeight() - margin, margin + binWidth, getWindowHeight() - margin );
 	for( size_t i = 0; i < numBins; i++ ) {
 		float h = mag[i] * binYScaler;
 		bin.y1 = bin.y2 - h;
 		gl::color( 0.0f, 0.9f, 0.0f );
 		gl::drawSolidRect( bin );
-		gl::color( 0.0f, 0.4f, 0.0f );
-		gl::drawStrokedRect( bin );
 
-		bin += Vec2f( binWidth, 0.0f );
+		bin += Vec2f( binWidth + padding, 0.0f );
 	}
 
 	auto min = min_element( mag.begin(), mag.end() );
 	auto max = max_element( mag.begin(), mag.end() );
 
 	string info = string( "min: " ) + toString( *min ) + string( ", max: " ) + toString( *max );
-	gl::drawString( info, Vec2f( padding, getWindowHeight() - 30.0f ) );
+	gl::drawString( info, Vec2f( margin, getWindowHeight() - 30.0f ) );
 
 	drawWidgets( mWidgets );
 }
