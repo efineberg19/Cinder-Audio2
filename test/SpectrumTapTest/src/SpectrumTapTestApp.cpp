@@ -14,6 +14,8 @@
 #define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
+// FIXME: fftSize = 1024 is broken
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -69,11 +71,7 @@ public:
 	// TODO: specify pad, accumulate the required number of samples
 	virtual void process( audio2::Buffer *buffer ) override {
 
-		mBuffer.zero();
-
-		// TODO: if stereo, first mix to mono
-		size_t numCopySamples = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() );
-		memcpy( mBuffer.getData(), buffer->getChannel( 0 ), numCopySamples * sizeof( float ) );
+		copyToInternalBuffer( buffer );
 
 		vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
 		vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
@@ -102,10 +100,34 @@ public:
 	}
 
 private:
-//	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: layout this out flat
-//	size_t mNumBufferedFrames;
+
+	// TODO: when stereo, should really be using a Converter to go stereo -> mono
+	// - a good implementation will use equal-power scaling as if the mono signal was two stereo channels panned to center
+	void copyToInternalBuffer( audio2::Buffer *buffer ) {
+		mBuffer.zero();
+
+		size_t numCopyFrames = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() );
+		size_t numSourceChannels = buffer->getNumChannels();
+		if( numSourceChannels == 1 ) {
+			memcpy( mBuffer.getData(), buffer->getData(), numCopyFrames * sizeof( float ) );
+		}
+		else {
+			// naive average of all channels
+			for( size_t ch = 0; ch < numSourceChannels; ch++ ) {
+				for( size_t i = 0; i < numCopyFrames; i++ )
+					mBuffer[i] += buffer->getChannel( ch )[i];
+			}
+
+			float scale = 1.0f / numSourceChannels;
+			vDSP_vsmul( mBuffer.getData(), 1 , &scale, mBuffer.getData(), 1, numCopyFrames );
+		}
+
+	}
 
 	mutex mMutex;
+
+	//	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: layout this out flat
+	//	size_t mNumBufferedFrames;
 
 	audio2::Buffer mBuffer;
 	std::vector<float> mMagSpectrum;
@@ -163,7 +185,7 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	mSpectrumTap = make_shared<SpectrumTapNode>( 124 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( 512 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
@@ -232,6 +254,7 @@ void SpectrumTapTestApp::processDrag( Vec2i pos )
 }
 
 // TODO: currently makes sense to enable processor + tap together - consider making these enabled together.
+// - possible solution: add a silent flag that is settable by client
 void SpectrumTapTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
