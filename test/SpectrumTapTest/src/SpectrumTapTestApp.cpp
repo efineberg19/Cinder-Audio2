@@ -59,7 +59,7 @@ public:
 	SpectrumTapNode( size_t fftSize = 512 )
 	{
 		mBufferIsDirty = false;
-		mApplyWindow = true;
+		mApplyWindow = false;
 		mFftSize = forcePow2( fftSize );
 		mLog2FftSize = log2f( mFftSize );
 		LOG_V << "fftSize: " << mFftSize << ", log2n: " << mLog2FftSize << endl;
@@ -97,12 +97,13 @@ public:
 		if( mBufferIsDirty ) {
 			lock_guard<mutex> lock( mMutex );
 
+			if( mApplyWindow )
+				applyWindow();
+
 			vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
 			vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 
-			if( mApplyWindow )
-				applyWindow();
-			
+
 			// Blow away the packed nyquist component.
 			mImag[0] = 0.0f;
 
@@ -119,7 +120,7 @@ public:
 	}
 
 	void setWindowingEnabled( bool b = true )	{ mApplyWindow = b; }
-	bool isWindowingenabled() const				{ return mApplyWindow; }
+	bool isWindowingEnabled() const				{ return mApplyWindow; }
 
 private:
 
@@ -209,8 +210,8 @@ class SpectrumTapTestApp : public AppNative {
 	SpectrumTapNodeRef mSpectrumTap;
 
 	vector<TestWidget *> mWidgets;
-	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton, mApplyWindowButton;
-
+	Button mEnableGraphButton, mPlaybackButton, mLoopButton, mApplyWindowButton, mScaleDecibelsButton;
+	bool mScaleDecibels;
 };
 
 
@@ -221,6 +222,8 @@ void SpectrumTapTestApp::prepareSettings( Settings *settings )
 
 void SpectrumTapTestApp::setup()
 {
+	mScaleDecibels = true;
+	
 	// TODO: convert to unit tests
 	LOG_V << "toDecibels( 0 ) = " << toDecibels( 0.0f ) << endl;
 	LOG_V << "toDecibels( 0.5 ) = " << toDecibels( 0.5f ) << endl;
@@ -243,17 +246,19 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	mSpectrumTap = make_shared<SpectrumTapNode>( 512 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( 2048 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
 	initContext();
 	setupUI();
 
-
+	mSpectrumTap->start();
 	mContext->start();
 	mEnableGraphButton.setEnabled( true );
 
+	mApplyWindowButton.setEnabled( mSpectrumTap->isWindowingEnabled() );
+	mScaleDecibelsButton.setEnabled( mScaleDecibels );
 }
 
 void SpectrumTapTestApp::initContext()
@@ -271,29 +276,41 @@ void SpectrumTapTestApp::initContext()
 
 void SpectrumTapTestApp::setupUI()
 {
+	Rectf buttonRect( 0.0f, 0.0f, 200.0f, 60.0f );
+	float padding = 10.0f;
 	mEnableGraphButton.isToggle = true;
 	mEnableGraphButton.titleNormal = "graph off";
 	mEnableGraphButton.titleEnabled = "graph on";
-	mEnableGraphButton.bounds = Rectf( 0, 0, 200, 60 );
+	mEnableGraphButton.bounds = buttonRect;
 	mWidgets.push_back( &mEnableGraphButton );
 
-	mStartPlaybackButton.isToggle = false;
-	mStartPlaybackButton.titleNormal = "sample playing";
-	mStartPlaybackButton.titleEnabled = "sample stopped";
-	mStartPlaybackButton.bounds = mEnableGraphButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
-	mWidgets.push_back( &mStartPlaybackButton );
+	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
+	mPlaybackButton.isToggle = true;
+	mPlaybackButton.titleNormal = "play sample";
+	mPlaybackButton.titleEnabled = "stop sample";
+	mPlaybackButton.bounds = buttonRect;
+	mWidgets.push_back( &mPlaybackButton );
 
+	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
 	mLoopButton.isToggle = true;
 	mLoopButton.titleNormal = "loop off";
 	mLoopButton.titleEnabled = "loop on";
-	mLoopButton.bounds = mStartPlaybackButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
+	mLoopButton.bounds = buttonRect;
 	mWidgets.push_back( &mLoopButton );
 
+	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
 	mApplyWindowButton.isToggle = true;
 	mApplyWindowButton.titleNormal = "apply window";
 	mApplyWindowButton.titleEnabled = "apply window";
-	mApplyWindowButton.bounds = mStartPlaybackButton.bounds + Vec2f( mStartPlaybackButton.bounds.getWidth() + 10.0f, 0.0f );
+	mApplyWindowButton.bounds = buttonRect;
 	mWidgets.push_back( &mApplyWindowButton );
+
+	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
+	mScaleDecibelsButton.isToggle = true;
+	mScaleDecibelsButton.titleNormal = "linear";
+	mScaleDecibelsButton.titleEnabled = "decibels";
+	mScaleDecibelsButton.bounds = buttonRect;
+	mWidgets.push_back( &mScaleDecibelsButton );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -306,12 +323,12 @@ void SpectrumTapTestApp::setupUI()
 	gl::enableAlphaBlending();
 }
 
-
 void SpectrumTapTestApp::seek( size_t xPos )
 {
 	size_t seek = mPlayerNode->getNumFrames() * xPos / getWindowWidth();
 	mPlayerNode->setReadPosition( seek );
 }
+
 void SpectrumTapTestApp::processDrag( Vec2i pos )
 {
 	seek( pos.x );
@@ -323,20 +340,23 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-	else if( mStartPlaybackButton.hitTest( pos ) ) {
-		mSpectrumTap->start();
-		mPlayerNode->start();
-	}
+	else if( mPlaybackButton.hitTest( pos ) )
+		mPlayerNode->setEnabled( ! mPlayerNode->isEnabled() );
 	else if( mLoopButton.hitTest( pos ) )
 		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
 	else if( mApplyWindowButton.hitTest( pos ) )
-		mSpectrumTap->setWindowingEnabled( ! mSpectrumTap->isWindowingenabled() );
+		mSpectrumTap->setWindowingEnabled( ! mSpectrumTap->isWindowingEnabled() );
+	else if( mScaleDecibelsButton.hitTest( pos ) )
+		mScaleDecibels = ! mScaleDecibels;
 	else
 		seek( pos.x );
 }
 
 void SpectrumTapTestApp::update()
 {
+	// update playback button, since the player node may stop itself at the end of a file.
+	if( ! mPlayerNode->isEnabled() )
+		mPlaybackButton.setEnabled( false );
 }
 
 void SpectrumTapTestApp::draw()
@@ -350,13 +370,12 @@ void SpectrumTapTestApp::draw()
 	float margin = 40.0f;
 	float padding = 2.0f;
 	float binWidth = floorf( ( (float)getWindowWidth() - margin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins );
-	float binYScaler = ( (float)getWindowHeight() - margin * 2.0f ) / 100.0f;
+	float binYScaler = ( (float)getWindowHeight() - margin * 2.0f );
 
 	Rectf bin( margin, getWindowHeight() - margin, margin + binWidth, getWindowHeight() - margin );
 	for( size_t i = 0; i < numBins; i++ ) {
-		float db = toDecibels( mag[i] ); // TODO: scale this to look purdy
-		float h = db * binYScaler;
-		bin.y1 = bin.y2 - h;
+		float h = ( mScaleDecibels ? toDecibels( mag[i] ) / 100.0f : mag[i] );
+		bin.y1 = bin.y2 - h * binYScaler;
 		gl::color( 0.0f, 0.9f, 0.0f );
 		gl::drawSolidRect( bin );
 
