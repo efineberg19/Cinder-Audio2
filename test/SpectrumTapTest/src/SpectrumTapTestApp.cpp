@@ -11,11 +11,11 @@
 #include <Accelerate/Accelerate.h>
 
 //#define SOUND_FILE "tone440.wav"
-#define SOUND_FILE "tone440L220R.wav"
-//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+//#define SOUND_FILE "tone440L220R.wav"
+#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 
-// FIXME: fftSize = 1024 is broken
+// FIXME: fftSize = 1024 is broken, sort of crucial
 
 using namespace ci;
 using namespace ci::app;
@@ -42,7 +42,7 @@ inline float toDecibels( float gainLinear )
     if( gainLinear < GAIN_THRESH )
         return 0.0f;
     else
-        return 20.0f * log10( gainLinear * GAIN_THRESH_INV );
+        return 20.0f * log10f( gainLinear * GAIN_THRESH_INV );
 }
 
 inline float toLinear( float gainDecibels )
@@ -50,7 +50,7 @@ inline float toLinear( float gainDecibels )
     if( gainDecibels < GAIN_THRESH )
         return 0.0f;
     else
-        return( GAIN_THRESH * pow( 10., gainDecibels * 0.05f ) );
+        return( GAIN_THRESH * powf( 10.0f, gainDecibels * 0.05f ) );
 }
 
 class SpectrumTapNode : public Node {
@@ -59,6 +59,7 @@ public:
 	SpectrumTapNode( size_t fftSize = 512 )
 	{
 		mBufferIsDirty = false;
+		mApplyWindow = true;
 		mFftSize = forcePow2( fftSize );
 		mLog2FftSize = log2f( mFftSize );
 		LOG_V << "fftSize: " << mFftSize << ", log2n: " << mLog2FftSize << endl;
@@ -99,9 +100,9 @@ public:
 			vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
 			vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 
-
-			// TODO: window buffer
-
+			if( mApplyWindow )
+				applyWindow();
+			
 			// Blow away the packed nyquist component.
 			mImag[0] = 0.0f;
 
@@ -117,7 +118,8 @@ public:
 		return mMagSpectrum;
 	}
 
-
+	void setWindowingEnabled( bool b = true )	{ mApplyWindow = b; }
+	bool isWindowingenabled() const				{ return mApplyWindow; }
 
 private:
 
@@ -155,22 +157,35 @@ private:
 
 	}
 
-	mutex mMutex;
+	// TODO: replace this with table lookup
+	void applyWindow() {
 
-	//	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: layout this out flat
-	//	size_t mNumBufferedFrames;
+		// Blackman window
+		double alpha = 0.16;
+		double a0 = 0.5 * (1 - alpha);
+		double a1 = 0.5;
+		double a2 = 0.5 * alpha;
+		size_t n = mFftSize;
+
+		for( size_t i = 0; i < n; ++i ) {
+			double x = static_cast<double>(i) / static_cast<double>(n);
+			double window = a0 - a1 * cos(2 * M_PI * x) + a2 * cos(4 * M_PI * x);
+			mBuffer[i] *= float(window);
+		}
+	}
+
+
+	mutex mMutex;
 
 	audio2::Buffer mBuffer;
 	std::vector<float> mMagSpectrum;
 
-	atomic<bool> mBufferIsDirty;
+	atomic<bool> mBufferIsDirty, mApplyWindow;
 	size_t mFftSize, mLog2FftSize;
 	std::vector<float> mReal, mImag;
 
 	FFTSetup mFftSetup;
 	DSPSplitComplex mSplitComplexFrame;
-
-	bool mApplyWindow;
 };
 
 
@@ -194,7 +209,7 @@ class SpectrumTapTestApp : public AppNative {
 	SpectrumTapNodeRef mSpectrumTap;
 
 	vector<TestWidget *> mWidgets;
-	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
+	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton, mApplyWindowButton;
 
 };
 
@@ -228,7 +243,7 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	mSpectrumTap = make_shared<SpectrumTapNode>( 2048 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( 512 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
@@ -274,6 +289,12 @@ void SpectrumTapTestApp::setupUI()
 	mLoopButton.bounds = mStartPlaybackButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
 	mWidgets.push_back( &mLoopButton );
 
+	mApplyWindowButton.isToggle = true;
+	mApplyWindowButton.titleNormal = "apply window";
+	mApplyWindowButton.titleEnabled = "apply window";
+	mApplyWindowButton.bounds = mStartPlaybackButton.bounds + Vec2f( mStartPlaybackButton.bounds.getWidth() + 10.0f, 0.0f );
+	mWidgets.push_back( &mApplyWindowButton );
+
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
@@ -308,6 +329,8 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 	}
 	else if( mLoopButton.hitTest( pos ) )
 		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
+	else if( mApplyWindowButton.hitTest( pos ) )
+		mSpectrumTap->setWindowingEnabled( ! mSpectrumTap->isWindowingenabled() );
 	else
 		seek( pos.x );
 }
@@ -331,7 +354,8 @@ void SpectrumTapTestApp::draw()
 
 	Rectf bin( margin, getWindowHeight() - margin, margin + binWidth, getWindowHeight() - margin );
 	for( size_t i = 0; i < numBins; i++ ) {
-		float h = toDecibels( mag[i] ) * binYScaler;
+		float db = toDecibels( mag[i] ); // TODO: scale this to look purdy
+		float h = db * binYScaler;
 		bin.y1 = bin.y2 - h;
 		gl::color( 0.0f, 0.9f, 0.0f );
 		gl::drawSolidRect( bin );
