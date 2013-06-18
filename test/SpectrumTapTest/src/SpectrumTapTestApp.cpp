@@ -14,6 +14,7 @@
 #define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
+
 // FIXME: fftSize = 1024 is broken
 
 using namespace ci;
@@ -29,22 +30,38 @@ using namespace audio2;
 
 typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
 
+const float GAIN_THRESH = 0.00001f;			//! threshold for decibel conversion (-100db)
+const float GAIN_THRESH_INV = 100000.0f;	//! (1 / GAIN_THRESH)
+
+// TODO: double check how to set the minimum of the linear->db conversion
+// - maybe provide an optional second param of the lowest value db
+
+//! convert linear (0-1) gain to decibel (0-100) scale
+inline float toDecibels( float gainLinear )
+{
+    if( gainLinear < GAIN_THRESH )
+        return 0.0f;
+    else
+        return 20.0f * log10( gainLinear * GAIN_THRESH_INV );
+}
+
+inline float toLinear( float gainDecibels )
+{
+    if( gainDecibels < GAIN_THRESH )
+        return 0.0f;
+    else
+        return( GAIN_THRESH * pow( 10., gainDecibels * 0.05f ) );
+}
+
 class SpectrumTapNode : public Node {
 public:
 	// TODO: there should be multiple params, such as window size, fft size (so there can be padding)
 	SpectrumTapNode( size_t fftSize = 512 )
 	{
-		if( fftSize & ( fftSize - 1 ) ) {
-			LOG_V << "Warning: " << fftSize << " is not a power of 2, rounding up." << endl;
-			size_t p = 1;
-			while( p < fftSize )
-				p *= 2;
-			fftSize = p;
-		}
-
-		mFftSize = fftSize;
-		mLog2FftSize = log2f( fftSize );
-		LOG_V << "fftSize: " << fftSize << ", log2n: " << mLog2FftSize << endl;
+		mBufferIsDirty = false;
+		mFftSize = forcePow2( fftSize );
+		mLog2FftSize = log2f( mFftSize );
+		LOG_V << "fftSize: " << mFftSize << ", log2n: " << mLog2FftSize << endl;
 
 	}
 	virtual ~SpectrumTapNode() {
@@ -70,38 +87,52 @@ public:
 	// - so, copy the smaller of the two
 	// TODO: specify pad, accumulate the required number of samples
 	virtual void process( audio2::Buffer *buffer ) override {
-
-		copyToInternalBuffer( buffer );
-
-		vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
-		vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
-
-		// TODO: window
- 
-		// Blow away the packed nyquist component.
-		mImag[0] = 0.0f;
-
 		lock_guard<mutex> lock( mMutex );
-
-		// compute normalized magnitude spectrum
-		// TODO: try using vDSP_zvabs for this, see if it's any faster (scaling would have to be a different step, but then so is convert to db)
-		const float kMagScale = 1.0 / mFftSize;
-		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
-			complex<float> c( mReal[i], mImag[i] );
-			mMagSpectrum[i] = abs( c ) * kMagScale;
-		}
-
-//		int blarg = 2;
+		copyToInternalBuffer( buffer );
+		mBufferIsDirty = true;
 	}
 
 	const vector<float>& getMagSpectrum() {
-		lock_guard<mutex> lock( mMutex );
+		if( mBufferIsDirty ) {
+			lock_guard<mutex> lock( mMutex );
+
+			vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
+			vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
+
+
+			// TODO: window buffer
+
+			// Blow away the packed nyquist component.
+			mImag[0] = 0.0f;
+
+			// compute normalized magnitude spectrum
+			// TODO: try using vDSP_zvabs for this, see if it's any faster (scaling would have to be a different step, but then so is convert to db)
+			const float kMagScale = 1.0 / mFftSize;
+			for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
+				complex<float> c( mReal[i], mImag[i] );
+				mMagSpectrum[i] = abs( c ) * kMagScale;
+			}
+			mBufferIsDirty = false;
+		}
 		return mMagSpectrum;
 	}
 
+
+
 private:
 
-	// TODO: when stereo, should really be using a Converter to go stereo -> mono
+	size_t forcePow2( size_t val ) {
+		if( val & ( val - 1 ) ) {
+			LOG_V << "Warning: " << val << " is not a power of 2, rounding up." << endl;
+			size_t p = 1;
+			while( p < val )
+				p *= 2;
+			return p;
+		}
+		return val;
+	}
+
+	// TODO: should really be using a Converter to go stereo (or more) -> mono
 	// - a good implementation will use equal-power scaling as if the mono signal was two stereo channels panned to center
 	void copyToInternalBuffer( audio2::Buffer *buffer ) {
 		mBuffer.zero();
@@ -132,11 +163,14 @@ private:
 	audio2::Buffer mBuffer;
 	std::vector<float> mMagSpectrum;
 
+	atomic<bool> mBufferIsDirty;
 	size_t mFftSize, mLog2FftSize;
 	std::vector<float> mReal, mImag;
 
 	FFTSetup mFftSetup;
 	DSPSplitComplex mSplitComplexFrame;
+
+	bool mApplyWindow;
 };
 
 
@@ -172,6 +206,15 @@ void SpectrumTapTestApp::prepareSettings( Settings *settings )
 
 void SpectrumTapTestApp::setup()
 {
+	// TODO: convert to unit tests
+	LOG_V << "toDecibels( 0 ) = " << toDecibels( 0.0f ) << endl;
+	LOG_V << "toDecibels( 0.5 ) = " << toDecibels( 0.5f ) << endl;
+	LOG_V << "toDecibels( 1.0 ) = " << toDecibels( 1.0f ) << endl;
+
+	LOG_V << "toLinear( 0 ) = " << toLinear( 0.0f ) << endl;
+	LOG_V << "toLinear( 90.0f ) = " << toLinear( 90.0f ) << endl;
+	LOG_V << "toLinear( 100.0f ) = " << toLinear( 100.0f ) << endl;
+
 	mContext = Context::instance()->createContext();
 
 	DataSourceRef dataSource = loadResource( SOUND_FILE );
@@ -185,7 +228,7 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	mSpectrumTap = make_shared<SpectrumTapNode>( 512 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( 2048 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
@@ -279,16 +322,16 @@ void SpectrumTapTestApp::draw()
 
 	// draw magnitude spectrum bins
 
-	auto& mag = mSpectrumTap->getMagSpectrum();
+	auto &mag = mSpectrumTap->getMagSpectrum();
 	size_t numBins = mag.size();
 	float margin = 40.0f;
 	float padding = 2.0f;
 	float binWidth = floorf( ( (float)getWindowWidth() - margin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins );
-	float binYScaler = ( (float)getWindowHeight() - margin * 2.0f );
+	float binYScaler = ( (float)getWindowHeight() - margin * 2.0f ) / 100.0f;
 
 	Rectf bin( margin, getWindowHeight() - margin, margin + binWidth, getWindowHeight() - margin );
 	for( size_t i = 0; i < numBins; i++ ) {
-		float h = mag[i] * binYScaler;
+		float h = toDecibels( mag[i] ) * binYScaler;
 		bin.y1 = bin.y2 - h;
 		gl::color( 0.0f, 0.9f, 0.0f );
 		gl::drawSolidRect( bin );
