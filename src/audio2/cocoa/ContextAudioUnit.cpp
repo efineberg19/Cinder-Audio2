@@ -205,6 +205,7 @@ void InputAudioUnit::start()
 {
 
 	if( ! mDevice->isOutputConnected() ) {
+		mEnabled = true;
 		mDevice->start();
 		LOG_V << "started: " << mDevice->getName() << endl;
 	}
@@ -213,6 +214,7 @@ void InputAudioUnit::start()
 void InputAudioUnit::stop()
 {
 	if( ! mDevice->isOutputConnected() ) {
+		mEnabled = false;
 		mDevice->stop();
 		LOG_V << "stopped: " << mDevice->getName() << endl;
 	}
