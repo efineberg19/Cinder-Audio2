@@ -17,7 +17,6 @@ typedef std::shared_ptr<class Node> NodeRef;
 typedef std::shared_ptr<class MixerNode> MixerNodeRef;
 typedef std::shared_ptr<class RootNode> RootNodeRef;
 typedef std::shared_ptr<class OutputNode> OutputNodeRef;
-typedef std::shared_ptr<class TapNode> TapNodeRef;
 
 typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
 typedef std::shared_ptr<class InputNode> InputNodeRef;
@@ -146,25 +145,6 @@ class OutputNode : public RootNode {
 	size_t getNumFramesPerBlock()	{ return getDevice()->getNumFramesPerBlock(); }
 
   protected:
-};
-
-class RingBuffer;
-
-class TapNode : public Node {
-  public:
-	TapNode( size_t numBufferedFrames = 1024 );
-	virtual ~TapNode();
-
-	const float* getChannel( size_t ch = 0 );
-	const Buffer& getBuffer();
-
-	virtual void initialize() override;
-	virtual void process( Buffer *buffer ) override;
-
-  private:
-	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: make this one continuous buffer so it better matches audio::Buffer
-	Buffer mCopiedBuffer;
-	size_t mNumBufferedFrames;
 };
 
 // TODO: Because busses can be expanded, the naming is off:
