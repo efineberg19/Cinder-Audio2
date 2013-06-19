@@ -464,9 +464,6 @@ ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
 	mTag = "ConverterAudioUnit";
 	mFormat = dest->getFormat();
 	mSourceFormat = source->getFormat();
-
-	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getContext()->getSampleRate(), Buffer::Format::NonInterleaved );
 }
 
 ConverterAudioUnit::~ConverterAudioUnit()
@@ -475,6 +472,9 @@ ConverterAudioUnit::~ConverterAudioUnit()
 
 void ConverterAudioUnit::initialize()
 {
+	mRenderContext.currentNode = this;
+	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getContext()->getSampleRate(), Buffer::Format::NonInterleaved );
+
 	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_FormatConverter;
 	comp.componentSubType = kAudioUnitSubType_AUConverter;
@@ -590,6 +590,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 		}
 		if( needsConverter ) {
 			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
+			converter->setContext( shared_from_this() );
 			converter->getSources()[0] = sourceNode;
 			node->getSources()[bus] = converter;
 			converter->setParent( node->getSources()[bus] );
