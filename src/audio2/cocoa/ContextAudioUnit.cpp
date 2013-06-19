@@ -98,7 +98,7 @@ void OutputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getContext()->getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -168,7 +168,7 @@ void InputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getContext()->getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::Input, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -281,7 +281,7 @@ void EffectAudioUnit::initialize()
 	auto source = mSources.front();
 	CI_ASSERT( source );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getContext()->getSampleRate() );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
@@ -333,7 +333,7 @@ void MixerAudioUnit::initialize()
 
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	size_t sampleRate = getSampleRate();
+	size_t sampleRate = getContext()->getSampleRate();
 	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), sampleRate );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -466,7 +466,7 @@ ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
 	mSourceFormat = source->getFormat();
 
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getSampleRate(), Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getContext()->getSampleRate(), Buffer::Format::NonInterleaved );
 }
 
 ConverterAudioUnit::~ConverterAudioUnit()
@@ -482,7 +482,7 @@ void ConverterAudioUnit::initialize()
 
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	size_t sampleRate = getSampleRate();
+	size_t sampleRate = getContext()->getSampleRate();
 	::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceFormat.getNumChannels(), sampleRate );
 	::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), sampleRate );
 
@@ -533,6 +533,9 @@ void ContextAudioUnit::initialize()
 		return;
 	CI_ASSERT( mRoot );
 
+	mSampleRate = mRoot->getSampleRate();
+	mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
+
 	initNode( mRoot );
 
 	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
@@ -557,6 +560,8 @@ void ContextAudioUnit::initNode( NodeRef node )
 {
 	if( ! node )
 		return;
+
+	node->setContext( shared_from_this() );
 	Node::Format& format = node->getFormat();
 
 	if( ! format.isComplete() && format.wantsDefaultFormatFromParent() )

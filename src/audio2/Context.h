@@ -94,11 +94,6 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	void setEnabled( bool b = true );
 
-	//! Returns the samplerate of this Node's Context
-	size_t getSampleRate() const;
-	//! Returns the frames-per-block of this Node's Context
-	size_t getNumFramesPerBlock() const;
-
   protected:
 	Node();
 
@@ -124,6 +119,12 @@ class RootNode : public Node {
 	RootNode() : Node() {}
 	virtual ~RootNode() {}
 
+	// TODO: need to decide where user sets the samplerate / blocksize - on RootNode or Context?
+	// - this is still needed to determine a default
+	// - also RootNode has to agree with the sampleate - be it output out, file out, whatever
+	virtual size_t getSampleRate() = 0;
+	virtual size_t getNumFramesPerBlock() = 0;
+
   private:
 	// RootNode subclasses cannot connect to anything else
 	NodeRef connect( NodeRef dest ) override				{ return NodeRef(); }
@@ -140,6 +141,9 @@ class OutputNode : public RootNode {
 	virtual ~OutputNode() {}
 
 	virtual DeviceRef getDevice() = 0;
+
+	size_t getSampleRate()			{ return getDevice()->getSampleRate(); }
+	size_t getNumFramesPerBlock()	{ return getDevice()->getNumFramesPerBlock(); }
 
   protected:
 };
@@ -194,7 +198,7 @@ protected:
 	size_t mMaxNumBusses;
 };
 
-class Context {
+class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 

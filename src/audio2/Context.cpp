@@ -64,16 +64,6 @@ bool Node::supportsSourceFormat( const Node::Format &sourceFormat ) const
 	return ( mFormat.getNumChannels() == sourceFormat.getNumChannels() );
 }
 
-size_t Node::getSampleRate() const
-{
-	return getContext()->getSampleRate();
-}
-
-size_t Node::getNumFramesPerBlock() const
-{
-	return getContext()->getNumFramesPerBlock();
-}
-
 void Node::fillFormatParamsFromParent()
 {
 	NodeRef parent = getParent();

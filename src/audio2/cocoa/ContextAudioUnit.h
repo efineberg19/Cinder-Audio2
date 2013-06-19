@@ -143,8 +143,11 @@ class ContextAudioUnit : public Context {
 	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
+	// TODO: consider making these abstract methods in Context
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );
+
+	
 	void connectRenderCallback( NodeRef node, RenderContext *context = nullptr, bool recursive = false );
 
 	RenderContext mRenderContext;

@@ -117,10 +117,11 @@ public:
 
 	SourceFileRef mSourceFile;
 	size_t mBufferFramesThreshold;
+	size_t mSampleRate;
 	bool mMultiThreaded;
 	std::atomic<bool> mReadOnBackground;
 
-	std::atomic<size_t> mFramesPerBlock; // TODO: this is a kludge, remove once Node::Format has a blocksize
+	std::atomic<size_t> mFramesPerBlock;
 };
 
 template <typename UGenT>
@@ -130,7 +131,7 @@ struct UGenNode : public GeneratorNode {
 	}
 
 	virtual void initialize() override {
-		mGen.setSampleRate( getSampleRate() );
+		mGen.setSampleRate( getContext()->getSampleRate() );
 	}
 
 	virtual void process( Buffer *buffer ) override {
