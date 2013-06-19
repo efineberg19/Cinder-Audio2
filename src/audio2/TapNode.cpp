@@ -64,7 +64,7 @@ void TapNode::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 SpectrumTapNode::SpectrumTapNode( size_t fftSize )
-: mBufferIsDirty( false ), mApplyWindow( true ), mFft( new Fft( fftSize ) )
+: mNumFramesCopied( 0 ), mApplyWindow( true ), mFft( new Fft( fftSize ) )
 {
 }
 
@@ -88,15 +88,13 @@ void SpectrumTapNode::initialize()
 // Currently copies the smaller of the two
 void SpectrumTapNode::process( audio2::Buffer *buffer )
 {
-	lock_guard<mutex> lock( mMutex );
 	copyToInternalBuffer( buffer );
-	mBufferIsDirty = true;
 }
 
 const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 {
-	if( mBufferIsDirty ) {
-		lock_guard<mutex> lock( mMutex );
+	lock_guard<mutex> lock( mMutex );
+	if( mNumFramesCopied == mBuffer.getNumFrames() ) {
 
 		if( mApplyWindow )
 			applyWindow();
@@ -117,7 +115,7 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 			complex<float> c( real[i], imag[i] );
 			mMagSpectrum[i] = abs( c ) * kMagScale;
 		}
-		mBufferIsDirty = false;
+		mNumFramesCopied = 0;
 	}
 	return mMagSpectrum;
 }
@@ -126,12 +124,17 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 // - a good implementation will use equal-power scaling as if the mono signal was two stereo channels panned to center
 void SpectrumTapNode::copyToInternalBuffer( Buffer *buffer )
 {
+	lock_guard<mutex> lock( mMutex );
+
+	if( mBuffer.getNumFrames() == mNumFramesCopied )
+		return;
+
 	mBuffer.zero();
 
-	size_t numCopyFrames = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() );
+	size_t numCopyFrames = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() - mNumFramesCopied ); // TODO: return if zero
 	size_t numSourceChannels = buffer->getNumChannels();
 	if( numSourceChannels == 1 ) {
-		memcpy( mBuffer.getData(), buffer->getData(), numCopyFrames * sizeof( float ) );
+		memcpy( mBuffer.getData() + mNumFramesCopied, buffer->getData(), numCopyFrames * sizeof( float ) );
 	}
 	else {
 		// naive average of all channels
@@ -143,6 +146,8 @@ void SpectrumTapNode::copyToInternalBuffer( Buffer *buffer )
 		float scale = 1.0f / numSourceChannels;
 		vDSP_vsmul( mBuffer.getData(), 1 , &scale, mBuffer.getData(), 1, numCopyFrames ); // TODO: replace with generic
 	}
+	
+	mNumFramesCopied += numCopyFrames;
 }
 
 // TODO: replace this with table lookup

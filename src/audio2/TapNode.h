@@ -49,9 +49,10 @@ private:
 
 	std::unique_ptr<Fft> mFft;
 	std::mutex mMutex;
-	audio2::Buffer mBuffer;
+	audio2::Buffer mBuffer; // TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
 	std::vector<float> mMagSpectrum;
-	std::atomic<bool> mBufferIsDirty, mApplyWindow;
+	std::atomic<bool> mApplyWindow;
+	std::atomic<size_t> mNumFramesCopied;
 	size_t mFramesPerBlock;
 };
 
