@@ -69,4 +69,27 @@ struct SineGen : public UGen {
 	float mPhase, mPhaseIncr;
 };
 
+//! linear gain equal to -100db
+const float kGainNegative100Decibels = 0.00001f;
+const float kGainNegative100DecibelsInverse = 1.0f / kGainNegative100Decibels;
+
+//! convert linear (0-1) gain to decibel (0-100) scale
+inline float toDecibels( float gainLinear )
+{
+	if( gainLinear < kGainNegative100Decibels )
+		return 0.0f;
+	else
+		return 20.0f * log10f( gainLinear * kGainNegative100DecibelsInverse );
+}
+
+inline float toLinear( float gainDecibels )
+{
+	if( gainDecibels < kGainNegative100Decibels )
+		return 0.0f;
+	else
+		return( kGainNegative100Decibels * powf( 10.0f, gainDecibels * 0.05f ) );
+}
+
+
+
 } // namespace audio2

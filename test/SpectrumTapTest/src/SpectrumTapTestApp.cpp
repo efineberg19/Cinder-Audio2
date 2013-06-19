@@ -5,14 +5,15 @@
 #include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/Debug.h"
+#include "audio2/Dsp.h"
 
 #include "Gui.h"
 
 #include <Accelerate/Accelerate.h>
 
 //#define SOUND_FILE "tone440.wav"
-#define SOUND_FILE "tone440L220R.wav"
-//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+//#define SOUND_FILE "tone440L220R.wav"
+#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 // TODO: mFormat.getFramesPerBlock should set the default fft size
 
@@ -22,36 +23,7 @@ using namespace std;
 
 using namespace audio2;
 
-// impl references:
-// - http://stackoverflow.com/a/3534926/506584
-// - http://gerrybeauregard.wordpress.com/2013/01/28/using-apples-vdspaccelerate-fft/
-// - WebAudio's impl is in core/platform/audio/FFTFrame.h/cpp and audio/mac/FFTFrameMac.cpp
-
 typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
-
-const float GAIN_THRESH = 0.00001f;			//! threshold for decibel conversion (-100db)
-//const float GAIN_THRESH = 0.00004f;
-const float GAIN_THRESH_INV = 1 / GAIN_THRESH;
-
-// TODO: double check how to set the minimum of the linear->db conversion
-// - maybe provide an optional second param of the lowest value db
-
-//! convert linear (0-1) gain to decibel (0-100) scale
-inline float toDecibels( float gainLinear )
-{
-    if( gainLinear < GAIN_THRESH )
-        return 0.0f;
-    else
-        return 20.0f * log10f( gainLinear * GAIN_THRESH_INV );
-}
-
-inline float toLinear( float gainDecibels )
-{
-    if( gainDecibels < GAIN_THRESH )
-        return 0.0f;
-    else
-        return( GAIN_THRESH * powf( 10.0f, gainDecibels * 0.05f ) );
-}
 
 class SpectrumTapNode : public Node {
 public:
