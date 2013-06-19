@@ -3,6 +3,7 @@
 #include "cinder/Utilities.h"
 
 #include "audio2/audio.h"
+#include "audio2/TapNode.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/Debug.h"
 #include "audio2/Dsp.h"
@@ -11,158 +12,16 @@
 
 #include <Accelerate/Accelerate.h>
 
-//#define SOUND_FILE "tone440.wav"
+#define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
-#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
-// TODO: mFormat.getFramesPerBlock should set the default fft size
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 using namespace audio2;
-
-typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
-
-class SpectrumTapNode : public Node {
-public:
-	SpectrumTapNode( size_t fftSize = 512 )
-	{
-		mBufferIsDirty = false;
-		mApplyWindow = false;
-		mFftSize = forcePow2( fftSize );
-		mLog2FftSize = log2f( mFftSize );
-		LOG_V << "fftSize: " << mFftSize << ", log2n: " << mLog2FftSize << endl;
-	}
-
-	virtual ~SpectrumTapNode() {
-		vDSP_destroy_fftsetup( mFftSetup );
-	}
-
-	virtual void initialize() override {
-		mFramesPerBlock = getContext()->getNumFramesPerBlock();
-
-		mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
-		CI_ASSERT( mFftSetup );
-
-		mReal.resize( mFftSize );
-		mImag.resize( mFftSize );
-		mSplitComplexFrame.realp = mReal.data();
-		mSplitComplexFrame.imagp = mImag.data();
-
-		mBuffer = audio2::Buffer( 1, mFftSize );
-		mMagSpectrum.resize( mFftSize / 2 );
-		LOG_V << "complete" << endl;
-	}
-
-	// if mBuffer size is smaller than buffer, only copy enough for mBuffer
-	// if buffer size is smaller than mBuffer, just leave the rest as a pad
-	// - so, copy the smaller of the two
-	// TODO: specify pad, accumulate the required number of samples
-	virtual void process( audio2::Buffer *buffer ) override {
-		lock_guard<mutex> lock( mMutex );
-		copyToInternalBuffer( buffer );
-		mBufferIsDirty = true;
-	}
-
-	const vector<float>& getMagSpectrum() {
-		if( mBufferIsDirty ) {
-			lock_guard<mutex> lock( mMutex );
-
-			if( mApplyWindow )
-				applyWindow();
-
-			vDSP_ctoz( ( DSPComplex *)mBuffer.getData(), 2, &mSplitComplexFrame, 1, mFftSize / 2 );
-			vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
-
-
-			// Blow away the packed nyquist component.
-			mImag[0] = 0.0f;
-
-			// compute normalized magnitude spectrum
-			// TODO: try using vDSP_zvabs for this, see if it's any faster (scaling would have to be a different step, but then so is convert to db)
-			const float kMagScale = 1.0 / mFftSize;
-			for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
-				complex<float> c( mReal[i], mImag[i] );
-				mMagSpectrum[i] = abs( c ) * kMagScale;
-			}
-			mBufferIsDirty = false;
-		}
-		return mMagSpectrum;
-	}
-
-	void setWindowingEnabled( bool b = true )	{ mApplyWindow = b; }
-	bool isWindowingEnabled() const				{ return mApplyWindow; }
-
-private:
-
-	size_t forcePow2( size_t val ) {
-		if( val & ( val - 1 ) ) {
-			LOG_V << "Warning: " << val << " is not a power of 2, rounding up." << endl;
-			size_t p = 1;
-			while( p < val )
-				p *= 2;
-			return p;
-		}
-		return val;
-	}
-
-	// TODO: should really be using a Converter to go stereo (or more) -> mono
-	// - a good implementation will use equal-power scaling as if the mono signal was two stereo channels panned to center
-	void copyToInternalBuffer( audio2::Buffer *buffer ) {
-		mBuffer.zero();
-
-		size_t numCopyFrames = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() );
-		size_t numSourceChannels = buffer->getNumChannels();
-		if( numSourceChannels == 1 ) {
-			memcpy( mBuffer.getData(), buffer->getData(), numCopyFrames * sizeof( float ) );
-		}
-		else {
-			// naive average of all channels
-			for( size_t ch = 0; ch < numSourceChannels; ch++ ) {
-				for( size_t i = 0; i < numCopyFrames; i++ )
-					mBuffer[i] += buffer->getChannel( ch )[i];
-			}
-
-			float scale = 1.0f / numSourceChannels;
-			vDSP_vsmul( mBuffer.getData(), 1 , &scale, mBuffer.getData(), 1, numCopyFrames );
-		}
-
-	}
-
-	// TODO: replace this with table lookup
-	void applyWindow() {
-
-		// Blackman window
-		double alpha = 0.16;
-		double a0 = 0.5 * (1 - alpha);
-		double a1 = 0.5;
-		double a2 = 0.5 * alpha;
-		size_t windowSize = std::min( mFftSize, mFramesPerBlock );
-		double oneOverN = 1.0 / static_cast<double>( windowSize );
-
-		for( size_t i = 0; i < windowSize; ++i ) {
-			double x = static_cast<double>(i) * oneOverN;
-			double window = a0 - a1 * cos( 2.0 * M_PI * x ) + a2 * cos( 4.0 * M_PI * x );
-			mBuffer[i] *= float(window);
-		}
-	}
-
-
-	mutex mMutex;
-
-	audio2::Buffer mBuffer;
-	std::vector<float> mMagSpectrum;
-
-	atomic<bool> mBufferIsDirty, mApplyWindow;
-	size_t mFftSize, mLog2FftSize, mFramesPerBlock;
-	std::vector<float> mReal, mImag;
-
-	FFTSetup mFftSetup;
-	DSPSplitComplex mSplitComplexFrame;
-};
-
 
 class SpectrumTapTestApp : public AppNative {
   public:

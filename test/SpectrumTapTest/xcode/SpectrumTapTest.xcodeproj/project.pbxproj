@@ -14,6 +14,8 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		0933A883BD734B5DAC509302 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 34CDAC9EB02A41D9B9683341 /* CinderApp.icns */; };
 		09E646E16F4D41999837B36A /* SpectrumTapTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D57A454C16451CB8A6608A /* SpectrumTapTestApp.cpp */; };
+		113D06BC177159F60095AA35 /* Fft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 113D06BA177159F60095AA35 /* Fft.cpp */; };
+		113D06BF17715DDE0095AA35 /* TapNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 113D06BD17715DDE0095AA35 /* TapNode.cpp */; };
 		11F978EE176E965F00E2C7D0 /* tone440.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978ED176E965E00E2C7D0 /* tone440.wav */; };
 		11F978F0176E966700E2C7D0 /* tone440L220R.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978EF176E966700E2C7D0 /* tone440L220R.wav */; };
 		11F978F2176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */; };
@@ -45,6 +47,10 @@
 		08B17B66AAB8407CBAFD98B6 /* File.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = File.cpp; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/File.cpp"; sourceTree = "<group>"; };
 		0C116A5339F74C6BA288F2C0 /* SpectrumTapTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = SpectrumTapTest_Prefix.pch; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		113D06BA177159F60095AA35 /* Fft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fft.cpp; path = ../../../src/audio2/Fft.cpp; sourceTree = "<group>"; };
+		113D06BB177159F60095AA35 /* Fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fft.h; path = ../../../src/audio2/Fft.h; sourceTree = "<group>"; };
+		113D06BD17715DDE0095AA35 /* TapNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TapNode.cpp; path = ../../../src/audio2/TapNode.cpp; sourceTree = "<group>"; };
+		113D06BE17715DDE0095AA35 /* TapNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TapNode.h; path = ../../../src/audio2/TapNode.h; sourceTree = "<group>"; };
 		11F978ED176E965E00E2C7D0 /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11F978EF176E966700E2C7D0 /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
 		11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Blank__Kytt_-_08_-_RSPN.mp3"; path = "../../../assets/Blank__Kytt_-_08_-_RSPN.mp3"; sourceTree = "<group>"; };
@@ -232,6 +238,7 @@
 		C1BCF8A27A5F464483AEFD22 /* audio2 */ = {
 			isa = PBXGroup;
 			children = (
+				798ADECE5E294D30BD54D8F1 /* cocoa */,
 				7B66ED80695C4E6D955C6FE1 /* Assert.h */,
 				BE0E25A6D7DA456AB2FA431E /* Atomic.h */,
 				9890818C30664163A65277DD /* audio.h */,
@@ -241,6 +248,8 @@
 				277DC96F35B6426780B63153 /* Device.h */,
 				37DFE08ABDC54691977B0EC2 /* Dsp.h */,
 				B725708CFE8845A3A93E58AD /* EffectNode.h */,
+				113D06BA177159F60095AA35 /* Fft.cpp */,
+				113D06BB177159F60095AA35 /* Fft.h */,
 				ECC44C380A0E424DA1A02516 /* File.h */,
 				9FEDBECCBD0E4F9EB1C0D2AB /* GeneratorNode.h */,
 				203B6B7CA3734B238B62BC07 /* Plot.h */,
@@ -251,7 +260,8 @@
 				08B17B66AAB8407CBAFD98B6 /* File.cpp */,
 				00D7781C2070452485E21F87 /* GeneratorNode.cpp */,
 				41107A080CC64FB9AD110DA4 /* Plot.cpp */,
-				798ADECE5E294D30BD54D8F1 /* cocoa */,
+				113D06BD17715DDE0095AA35 /* TapNode.cpp */,
+				113D06BE17715DDE0095AA35 /* TapNode.h */,
 			);
 			name = audio2;
 			sourceTree = "<group>";
@@ -328,6 +338,8 @@
 				3A22D1F84B2C4E5CBD31ACAD /* Device.cpp in Sources */,
 				E47699CCA8F74DB2A3D1F240 /* File.cpp in Sources */,
 				BD4717ADEE704020B443CA36 /* GeneratorNode.cpp in Sources */,
+				113D06BC177159F60095AA35 /* Fft.cpp in Sources */,
+				113D06BF17715DDE0095AA35 /* TapNode.cpp in Sources */,
 				441E74963A1348BCA81634BB /* Plot.cpp in Sources */,
 				48C97337E28B4650A3A8090F /* ContextAudioUnit.cpp in Sources */,
 				DBAE96F99799401EA1B57131 /* DeviceAudioUnit.cpp in Sources */,

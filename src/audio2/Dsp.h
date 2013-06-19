@@ -90,6 +90,15 @@ inline float toLinear( float gainDecibels )
 		return( kGainNegative100Decibels * powf( 10.0f, gainDecibels * 0.05f ) );
 }
 
+inline size_t forcePow2( size_t val ) {
+	if( val & ( val - 1 ) ) {
+		size_t p = 1;
+		while( p < val )
+			p *= 2;
+		return p;
+	}
+	return val;
+}
 
 
 } // namespace audio2
