@@ -170,9 +170,10 @@ private:
 		double a0 = 0.5 * (1 - alpha);
 		double a1 = 0.5;
 		double a2 = 0.5 * alpha;
-		double oneOverN = 1.0 / static_cast<double>( mFftSize );
+		size_t windowSize = std::min( mFftSize, mFormat.getNumFramesPerBlock() );
+		double oneOverN = 1.0 / static_cast<double>( windowSize );
 
-		for( size_t i = 0; i < mFftSize; ++i ) {
+		for( size_t i = 0; i < windowSize; ++i ) {
 			double x = static_cast<double>(i) * oneOverN;
 			double window = a0 - a1 * cos( 2.0 * M_PI * x ) + a2 * cos( 4.0 * M_PI * x );
 			mBuffer[i] *= float(window);
