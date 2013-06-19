@@ -1,8 +1,9 @@
 #pragma once
 
 // note: as of boost 1.53, lockfree requires Boost.Atomic on iOS - so libboost_atomic.a is linked in for that arch
-// - this is also true on vc2010
-// TODO: submit patch that checks for libc++ and enable std::atomic
+// - while lockfree::spsc_queue works fine with the current version of libc++, other data structs in the lib don't
+//   yet due to a known bug, so boost::atomic will be used until then
+// - vc2010 also requires boost::atomic
 
 #include "audio2/assert.h"
 #include <boost/lockfree/spsc_queue.hpp>
