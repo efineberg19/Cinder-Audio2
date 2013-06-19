@@ -61,7 +61,17 @@ void Node::setSource( NodeRef source, size_t bus )
 
 bool Node::supportsSourceFormat( const Node::Format &sourceFormat ) const
 {
-	return ( mFormat.getNumChannels() == sourceFormat.getNumChannels() && mFormat.getSampleRate() == sourceFormat.getSampleRate() );
+	return ( mFormat.getNumChannels() == sourceFormat.getNumChannels() );
+}
+
+size_t Node::getSampleRate() const
+{
+	return getContext()->getSampleRate();
+}
+
+size_t Node::getNumFramesPerBlock() const
+{
+	return getContext()->getNumFramesPerBlock();
 }
 
 void Node::fillFormatParamsFromParent()
@@ -91,20 +101,9 @@ void Node::fillFormatParamsFromSource()
 
 void Node::fillFormatParamsFromFormat( const Format &otherFormat )
 {
-	if( ! mFormat.getSampleRate() )
-		mFormat.setSampleRate( otherFormat.getSampleRate() );
 	if( ! mFormat.getNumChannels() )
 		mFormat.setNumChannels( otherFormat.getNumChannels() );
-	if( ! mFormat.getNumFramesPerBlock() )
-		mFormat.setNumFramesPerBlock( otherFormat.getNumFramesPerBlock() );
 }
-
-
-//const Node::Format& Node::getSourceFormat()
-//{
-//	CI_ASSERT( ! mSources.empty() );
-//	return mSources[0]->mFormat;
-//}
 
 void Node::setEnabled( bool enabled )
 {

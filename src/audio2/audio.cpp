@@ -14,7 +14,7 @@ void printGraph( ContextRef graph )
 			return;
 		for( size_t i = 0; i < depth; i++ )
 			app::console() << "-- ";
-		app::console() << node->getTag() << "\t[ sr: " << node->getFormat().getSampleRate() << ", ch: " << node->getFormat().getNumChannels() << " ]" << endl;
+		app::console() << node->getTag() << "\t[ ch: " << node->getFormat().getNumChannels() << " ]" << endl;
 		for( auto &source : node->getSources() )
 			printNode( source, depth + 1 );
 	};

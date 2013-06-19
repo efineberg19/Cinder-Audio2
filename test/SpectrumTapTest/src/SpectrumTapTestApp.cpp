@@ -11,12 +11,8 @@
 #include <Accelerate/Accelerate.h>
 
 //#define SOUND_FILE "tone440.wav"
-//#define SOUND_FILE "tone440L220R.wav"
-#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
-
-
-// TODO NEXT: only window mFormat.getNumFramesPerBlock() samples of copied buffer - the rest should be zero padded
-// should also probably be testing with no zero padding to start (512 frames)
+#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 
 // TODO: mFormat.getFramesPerBlock should set the default fft size
 
@@ -170,7 +166,7 @@ private:
 		double a0 = 0.5 * (1 - alpha);
 		double a1 = 0.5;
 		double a2 = 0.5 * alpha;
-		size_t windowSize = std::min( mFftSize, mFormat.getNumFramesPerBlock() );
+		size_t windowSize = std::min( mFftSize, getNumFramesPerBlock() );
 		double oneOverN = 1.0 / static_cast<double>( windowSize );
 
 		for( size_t i = 0; i < windowSize; ++i ) {

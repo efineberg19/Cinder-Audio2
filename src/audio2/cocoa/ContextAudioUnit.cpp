@@ -85,10 +85,8 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device )
 	// RootNode gets a special callback
 	mShouldUseGraphRenderCallback = false;
 
-	mFormat.setSampleRate( mDevice->getSampleRate() );
 	mFormat.setNumChannels( 2 );
-	mFormat.setNumFramesPerBlock( mDevice->getNumFramesPerBlock() );
-	
+
 
 	CI_ASSERT( ! mDevice->isOutputConnected() );
 	mDevice->setOutputConnected();
@@ -100,7 +98,7 @@ void OutputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -155,7 +153,6 @@ InputAudioUnit::InputAudioUnit( DeviceRef device )
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
-	mFormat.setSampleRate( mDevice->getSampleRate() );
 	mFormat.setNumChannels( 2 );
 
 	CI_ASSERT( ! mDevice->isInputConnected() );
@@ -171,7 +168,7 @@ void InputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::Input, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -284,7 +281,7 @@ void EffectAudioUnit::initialize()
 	auto source = mSources.front();
 	CI_ASSERT( source );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getSampleRate() );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
@@ -336,7 +333,8 @@ void MixerAudioUnit::initialize()
 
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+	size_t sampleRate = getSampleRate();
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), sampleRate );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
@@ -353,7 +351,7 @@ void MixerAudioUnit::initialize()
 			continue;
 
 		Node::Format& sourceFormat = mSources[bus]->getFormat();
-		::AudioStreamBasicDescription busAsbd = cocoa::nonInterleavedFloatABSD( sourceFormat.getNumChannels(), sourceFormat.getSampleRate() );
+		::AudioStreamBasicDescription busAsbd = cocoa::nonInterleavedFloatABSD( sourceFormat.getNumChannels(), sampleRate );
 
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &busAsbd, sizeof( busAsbd ) );
 		CI_ASSERT( status == noErr );
@@ -468,7 +466,7 @@ ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
 	mSourceFormat = source->getFormat();
 
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), mFormat.getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getSampleRate(), Buffer::Format::NonInterleaved );
 }
 
 ConverterAudioUnit::~ConverterAudioUnit()
@@ -484,8 +482,9 @@ void ConverterAudioUnit::initialize()
 
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceFormat.getNumChannels(), mSourceFormat.getSampleRate() );
-	::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), mFormat.getSampleRate() );
+	size_t sampleRate = getSampleRate();
+	::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceFormat.getNumChannels(), sampleRate );
+	::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), sampleRate );
 
 	LOG_V << "input ASBD:" << endl;
 	cocoa::printASBD( inputAsbd );
@@ -536,7 +535,7 @@ void ContextAudioUnit::initialize()
 
 	initNode( mRoot );
 
-	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), mRoot->getFormat().getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
 	mRenderContext.currentNode = mRoot.get();
 
 	// register the root callback separately
@@ -579,12 +578,6 @@ void ContextAudioUnit::initNode( NodeRef node )
 			continue;
 
 		bool needsConverter = false;
-		if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
-#if 0
-			needsConverter = true;
-#else
-			throw AudioFormatExc( "non-matching samplerates not supported" );
-#endif
 		if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
 			LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
 			// TODO: if node is an OutputAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
@@ -677,7 +670,6 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 // TODO: adhere to node's buffer format (interleaved / non-interleaved ) and convert if necessary
 //	- should just be a bool?
 //  - to test: pd node that wants interleaved
-// TODO: if node wants more samples, give collect samples for it here?
 // TODO: try to avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {

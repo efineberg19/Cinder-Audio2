@@ -23,7 +23,7 @@ namespace audio2 {
 		}
 
 		virtual void initialize() override {
-			mSineGen.setSampleRate( mFormat.getSampleRate() );
+			mSineGen.setSampleRate( getSampleRate() );
 		}
 
 		virtual void process( Buffer *buffer ) override {

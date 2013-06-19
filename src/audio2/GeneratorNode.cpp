@@ -97,7 +97,7 @@ FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded )
 void FilePlayerNode::initialize()
 {
 	mSourceFile->setNumChannels( mFormat.getNumChannels() );
-	mSourceFile->setSampleRate( mFormat.getSampleRate() );
+	mSourceFile->setSampleRate( getSampleRate() );
 
 	size_t paddingMultiplier = 2; // TODO: expose
 	mReadBuffer = Buffer( mFormat.getNumChannels(), mSourceFile->getNumFramesPerRead() );
@@ -183,7 +183,7 @@ bool FilePlayerNode::moreFramesNeeded()
 
 void FilePlayerNode::readFromBackgroundThread()
 {
-	size_t readMilliseconds = ( 1000 * mSourceFile->getNumFramesPerRead() ) / mFormat.getSampleRate();
+	size_t readMilliseconds = ( 1000 * mSourceFile->getNumFramesPerRead() ) / getSampleRate();
 	size_t lastReadPos = mReadPos;
 	while( mReadOnBackground ) {
 		if( ! moreFramesNeeded() ) {

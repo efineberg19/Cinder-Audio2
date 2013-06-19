@@ -13,7 +13,6 @@ class GeneratorNode;
 
 typedef std::shared_ptr<class Context> ContextRef;
 typedef std::shared_ptr<class Node> NodeRef;
-typedef std::weak_ptr<class Node> NodeWeakRef;
 
 typedef std::shared_ptr<class MixerNode> MixerNodeRef;
 typedef std::shared_ptr<class RootNode> RootNodeRef;
@@ -31,19 +30,13 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! \note setting a Format parameter has no effect until initialize() is called
 	struct Format {
 		Format()
-		: mSampleRate( 0 ), mNumChannels( 0 ), mNumFramesPerBlock( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
+		: mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
 		{}
 
-		virtual bool isComplete() const	{ return ( mSampleRate && mNumChannels && mNumFramesPerBlock ); }
-
-		size_t	getSampleRate() const	{ return mSampleRate; }
-		void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
+		virtual bool isComplete() const	{ return mNumChannels != 0; }
 
 		size_t	getNumChannels() const	{ return mNumChannels; }
 		void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; }
-
-		size_t	getNumFramesPerBlock() const	{ return mNumFramesPerBlock; }
-		void	setNumFramesPerBlock( size_t numFrames )	{ mNumFramesPerBlock = numFrames; }
 
 		bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
 		void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
@@ -52,11 +45,12 @@ class Node : public std::enable_shared_from_this<Node> {
 		void	setBufferFormat( const Buffer::Format& format )	{ mBufferFormat = format; }
 
 		//! controls whether the graph automatically enables / disables this Node
+		// TODO: rename isEnabledByGraph / setEnabledByGraph
 		bool	isAutoEnabled() const				{ return mAutoEnabled; }
 		void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
 
   private:
-		size_t mSampleRate, mNumChannels, mNumFramesPerBlock;
+		size_t mNumChannels;
 		bool mWantsDefaultFormatFromParent;
 		bool mAutoEnabled;
 		Buffer::Format			mBufferFormat;
@@ -85,13 +79,13 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void process( Buffer *buffer )	{}
 
 	std::vector<NodeRef>& getSources()			{ return mSources; }
-	NodeRef getParent()							{ return mParent.lock(); }
+	NodeRef getParent()	const					{ return mParent.lock(); }
 	void setParent( NodeRef parent )			{ mParent = parent; }
 
-	Format& getFormat()	{ return mFormat; }
+	ContextRef getContext() const				{ return mContext.lock(); }
+	void setContext( ContextRef context )		{ mContext = context; }
 
-	//! Default implementation returns the format for the first source
-//	virtual const Format& getSourceFormat();
+	Format& getFormat()	{ return mFormat; }
 
 	const std::string& getTag()	const	{ return mTag; }
 
@@ -99,6 +93,11 @@ class Node : public std::enable_shared_from_this<Node> {
 	bool isEnabled() const		{ return mEnabled; }
 
 	void setEnabled( bool b = true );
+
+	//! Returns the samplerate of this Node's Context
+	size_t getSampleRate() const;
+	//! Returns the frames-per-block of this Node's Context
+	size_t getNumFramesPerBlock() const;
 
   protected:
 	Node();
@@ -108,7 +107,8 @@ class Node : public std::enable_shared_from_this<Node> {
 
 
 	std::vector<NodeRef>	mSources;
-	NodeWeakRef				mParent;
+	std::weak_ptr<Node>		mParent;
+	std::weak_ptr<Context>	mContext;
 	Format					mFormat;
 	bool					mInitialized;
 	std::atomic<bool>		mEnabled;
@@ -222,6 +222,10 @@ class Context {
 	//! convenience method to start / stop the graph via bool
 	void setEnabled( bool enabled = true );
 
+
+	size_t getSampleRate() const			{ return mSampleRate; }
+	size_t getNumFramesPerBlock() const		{ return mNumFramesPerBlock; }
+
   protected:
 	Context() : mInitialized( false ), mEnabled( false ) {}
 
@@ -231,6 +235,7 @@ class Context {
 
 	RootNodeRef		mRoot;
 	bool			mInitialized, mEnabled;
+	size_t			mSampleRate, mNumFramesPerBlock;
 };
 
 } // namespace audio2

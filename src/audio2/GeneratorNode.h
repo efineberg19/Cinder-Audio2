@@ -130,7 +130,7 @@ struct UGenNode : public GeneratorNode {
 	}
 
 	virtual void initialize() override {
-		mGen.setSampleRate( mFormat.getSampleRate() );
+		mGen.setSampleRate( getSampleRate() );
 	}
 
 	virtual void process( Buffer *buffer ) override {
