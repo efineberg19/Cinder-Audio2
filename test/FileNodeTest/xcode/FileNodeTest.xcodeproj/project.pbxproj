@@ -17,11 +17,9 @@
 		143C2570176657050063DFDA /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 143C256F176657040063DFDA /* GeneratorNode.cpp */; };
 		1485FD141768CFFD003BAECF /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD051768CFFD003BAECF /* Blank__Kytt_-_08_-_RSPN.mp3 */; };
 		1485FD151768CFFD003BAECF /* DrainMagic.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD061768CFFD003BAECF /* DrainMagic.ogg */; };
-		1485FD161768CFFD003BAECF /* exp006-003_synplant_utonic_f32.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD071768CFFD003BAECF /* exp006-003_synplant_utonic_f32.wav */; };
 		1485FD171768CFFD003BAECF /* Radiohead_-_Pyramid_Song_(sample).ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD081768CFFD003BAECF /* Radiohead_-_Pyramid_Song_(sample).ogg */; };
 		1485FD181768CFFD003BAECF /* Ringtone 07.wma in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD091768CFFD003BAECF /* Ringtone 07.wma */; };
 		1485FD191768CFFD003BAECF /* Stevie Wonder  For Once In My Life.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD0A1768CFFD003BAECF /* Stevie Wonder  For Once In My Life.ogg */; };
-		1485FD1A1768CFFD003BAECF /* Summertime_sample_10s.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD0B1768CFFD003BAECF /* Summertime_sample_10s.ogg */; };
 		1485FD1B1768CFFD003BAECF /* tone440_float.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD0C1768CFFD003BAECF /* tone440_float.wav */; };
 		1485FD1C1768CFFD003BAECF /* tone440.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD0D1768CFFD003BAECF /* tone440.mp3 */; };
 		1485FD1D1768CFFD003BAECF /* tone440.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD0E1768CFFD003BAECF /* tone440.ogg */; };
@@ -58,11 +56,9 @@
 		143C256F176657040063DFDA /* GeneratorNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GeneratorNode.cpp; path = ../../../src/audio2/GeneratorNode.cpp; sourceTree = "<group>"; };
 		1485FD051768CFFD003BAECF /* Blank__Kytt_-_08_-_RSPN.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Blank__Kytt_-_08_-_RSPN.mp3"; path = "../../../assets/Blank__Kytt_-_08_-_RSPN.mp3"; sourceTree = "<group>"; };
 		1485FD061768CFFD003BAECF /* DrainMagic.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = DrainMagic.ogg; path = ../../../assets/DrainMagic.ogg; sourceTree = "<group>"; };
-		1485FD071768CFFD003BAECF /* exp006-003_synplant_utonic_f32.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = "exp006-003_synplant_utonic_f32.wav"; path = "../../../assets/exp006-003_synplant_utonic_f32.wav"; sourceTree = "<group>"; };
 		1485FD081768CFFD003BAECF /* Radiohead_-_Pyramid_Song_(sample).ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Radiohead_-_Pyramid_Song_(sample).ogg"; path = "../../../assets/Radiohead_-_Pyramid_Song_(sample).ogg"; sourceTree = "<group>"; };
 		1485FD091768CFFD003BAECF /* Ringtone 07.wma */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Ringtone 07.wma"; path = "../../../assets/Ringtone 07.wma"; sourceTree = "<group>"; };
 		1485FD0A1768CFFD003BAECF /* Stevie Wonder  For Once In My Life.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Stevie Wonder  For Once In My Life.ogg"; path = "../../../assets/Stevie Wonder  For Once In My Life.ogg"; sourceTree = "<group>"; };
-		1485FD0B1768CFFD003BAECF /* Summertime_sample_10s.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = Summertime_sample_10s.ogg; path = ../../../assets/Summertime_sample_10s.ogg; sourceTree = "<group>"; };
 		1485FD0C1768CFFD003BAECF /* tone440_float.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440_float.wav; path = ../../../assets/tone440_float.wav; sourceTree = "<group>"; };
 		1485FD0D1768CFFD003BAECF /* tone440.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440.mp3; path = ../../../assets/tone440.mp3; sourceTree = "<group>"; };
 		1485FD0E1768CFFD003BAECF /* tone440.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = tone440.ogg; path = ../../../assets/tone440.ogg; sourceTree = "<group>"; };
@@ -203,11 +199,9 @@
 			children = (
 				1485FD051768CFFD003BAECF /* Blank__Kytt_-_08_-_RSPN.mp3 */,
 				1485FD061768CFFD003BAECF /* DrainMagic.ogg */,
-				1485FD071768CFFD003BAECF /* exp006-003_synplant_utonic_f32.wav */,
 				1485FD081768CFFD003BAECF /* Radiohead_-_Pyramid_Song_(sample).ogg */,
 				1485FD091768CFFD003BAECF /* Ringtone 07.wma */,
 				1485FD0A1768CFFD003BAECF /* Stevie Wonder  For Once In My Life.ogg */,
-				1485FD0B1768CFFD003BAECF /* Summertime_sample_10s.ogg */,
 				1485FD0C1768CFFD003BAECF /* tone440_float.wav */,
 				1485FD0D1768CFFD003BAECF /* tone440.mp3 */,
 				1485FD0E1768CFFD003BAECF /* tone440.ogg */,
@@ -345,11 +339,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1485FD1A1768CFFD003BAECF /* Summertime_sample_10s.ogg in Resources */,
 				1485FD191768CFFD003BAECF /* Stevie Wonder  For Once In My Life.ogg in Resources */,
 				1485FD171768CFFD003BAECF /* Radiohead_-_Pyramid_Song_(sample).ogg in Resources */,
 				1485FD181768CFFD003BAECF /* Ringtone 07.wma in Resources */,
-				1485FD161768CFFD003BAECF /* exp006-003_synplant_utonic_f32.wav in Resources */,
 				1485FD1B1768CFFD003BAECF /* tone440_float.wav in Resources */,
 				1485FD201768CFFD003BAECF /* tone440L220R.mp3 in Resources */,
 				1485FD1F1768CFFD003BAECF /* tone440L220R_float.wav in Resources */,

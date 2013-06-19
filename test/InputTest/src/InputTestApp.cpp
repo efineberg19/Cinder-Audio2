@@ -56,6 +56,7 @@ void InputTestApp::setup()
 	logDevices( inputDevice, outputDevice );
 
 	mInput = Context::instance()->createInput( inputDevice );
+	mInput->start(); // this'll start the input whenever the Context rendering begins
 
 	//mInput->getFormat().setNumChannels( 1 );
 
@@ -97,12 +98,12 @@ void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
 	LOG_V << "input device name: " << i->getName() << endl;
 	console() << "\t channels: " << i->getNumInputChannels() << endl;
 	console() << "\t samplerate: " << i->getSampleRate() << endl;
-	console() << "\t block size: " << i->getBlockSize() << endl;
+	console() << "\t block size: " << i->getNumFramesPerBlock() << endl;
 
 	LOG_V << "output device name: " << o->getName() << endl;
 	console() << "\t channels: " << o->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << o->getSampleRate() << endl;
-	console() << "\t block size: " << o->getBlockSize() << endl;
+	console() << "\t block size: " << o->getNumFramesPerBlock() << endl;
 
 	LOG_V << "input == output: " << boolalpha << (i == o) << dec << endl;
 }

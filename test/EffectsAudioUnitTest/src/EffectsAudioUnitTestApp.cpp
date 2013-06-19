@@ -52,7 +52,7 @@ void EffectsAudioUnitTestApp::setup()
 	console() << "\t input channels: " << device->getNumInputChannels() << endl;
 	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t block size: " << device->getBlockSize() << endl;
+	console() << "\t block size: " << device->getNumFramesPerBlock() << endl;
 
 	auto output = Context::instance()->createOutput( device );
 	mContext = Context::instance()->createContext();
@@ -61,7 +61,7 @@ void EffectsAudioUnitTestApp::setup()
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->getFormat().setAutoEnabled();
-	noise->mGen.setAmp( 0.25f );
+	noise->getUGen().setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 

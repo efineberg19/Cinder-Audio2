@@ -55,7 +55,6 @@ inline float toLinear( float gainDecibels )
 
 class SpectrumTapNode : public Node {
 public:
-	// TODO: there should be multiple params, such as window size, fft size (so there can be padding)
 	SpectrumTapNode( size_t fftSize = 512 )
 	{
 		mBufferIsDirty = false;
@@ -63,13 +62,15 @@ public:
 		mFftSize = forcePow2( fftSize );
 		mLog2FftSize = log2f( mFftSize );
 		LOG_V << "fftSize: " << mFftSize << ", log2n: " << mLog2FftSize << endl;
-
 	}
+
 	virtual ~SpectrumTapNode() {
 		vDSP_destroy_fftsetup( mFftSetup );
 	}
 
 	virtual void initialize() override {
+		mFramesPerBlock = getContext()->getNumFramesPerBlock();
+
 		mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
 		CI_ASSERT( mFftSetup );
 
@@ -166,7 +167,7 @@ private:
 		double a0 = 0.5 * (1 - alpha);
 		double a1 = 0.5;
 		double a2 = 0.5 * alpha;
-		size_t windowSize = std::min( mFftSize, getNumFramesPerBlock() );
+		size_t windowSize = std::min( mFftSize, mFramesPerBlock );
 		double oneOverN = 1.0 / static_cast<double>( windowSize );
 
 		for( size_t i = 0; i < windowSize; ++i ) {
@@ -183,7 +184,7 @@ private:
 	std::vector<float> mMagSpectrum;
 
 	atomic<bool> mBufferIsDirty, mApplyWindow;
-	size_t mFftSize, mLog2FftSize;
+	size_t mFftSize, mLog2FftSize, mFramesPerBlock;
 	std::vector<float> mReal, mImag;
 
 	FFTSetup mFftSetup;

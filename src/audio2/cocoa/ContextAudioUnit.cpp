@@ -475,7 +475,7 @@ ConverterAudioUnit::~ConverterAudioUnit()
 void ConverterAudioUnit::initialize()
 {
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getContext()->getSampleRate(), Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getContext()->getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
 
 	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_FormatConverter;
@@ -540,7 +540,7 @@ void ContextAudioUnit::initialize()
 
 	initNode( mRoot );
 
-	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), mNumFramesPerBlock, Buffer::Format::NonInterleaved );
 	mRenderContext.currentNode = mRoot.get();
 
 	// register the root callback separately
