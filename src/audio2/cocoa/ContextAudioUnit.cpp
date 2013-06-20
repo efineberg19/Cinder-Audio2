@@ -580,7 +580,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 	CI_ASSERT( format.isComplete() );
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
-		NodeRef& sourceNode = node->getSources()[bus];
+		NodeRef sourceNode = node->getSources()[bus];
 		if( ! sourceNode )
 			continue;
 
@@ -593,11 +593,10 @@ void ContextAudioUnit::initNode( NodeRef node )
 		if( needsConverter ) {
 			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
 			converter->setContext( shared_from_this() );
-			converter->getSources()[0] = sourceNode;
-			node->getSources()[bus] = converter;
-			converter->setParent( node->getSources()[bus] );
+			node->setSource( converter, bus );
+			converter->setSource( sourceNode );
 			converter->initialize();
-			connectRenderCallback( converter, &converter->mRenderContext, true, true ); // TODO: make sure this doesn't blow away other converters
+			connectRenderCallback( converter, &converter->mRenderContext, true, true );
 		}
 	}
 
@@ -655,11 +654,19 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 		uninitNode( source );
 
 	node->uninitialize();
+
+	// throw away any ConverterNodes
+	ConverterAudioUnit *converter = dynamic_cast<ConverterAudioUnit *>( node.get() );
+	if( converter ) {
+		converter->getParent()->setSource( converter->getSources()[0] );
+		int blarg = 0;
+	}
 }
 
 // TODO: consider adding a volume param here
 // - OS X output unit has kHALOutputParam_Volume, but need to check if this works on iOS
-// - this is also made difficult because I'm currently connecting the ConverterNode's callback to this - I think that will change.
+// - this is also made difficult because I'm currently connecting the ConverterNode's callback to this
+//		- TODO: switch ConverterAudioNode to a more general ConverterCoreAudio, it shouldn't need to be connected to this after that
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *renderContext = static_cast<RenderContext *>( data );
