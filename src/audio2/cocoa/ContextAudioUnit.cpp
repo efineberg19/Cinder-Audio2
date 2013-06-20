@@ -85,7 +85,7 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device )
 	// RootNode gets a special callback
 	mShouldUseGraphRenderCallback = false;
 
-	mFormat.setNumChannels( 2 );
+	setNumChannels( 2 );
 
 
 	CI_ASSERT( ! mDevice->isOutputConnected() );
@@ -98,7 +98,7 @@ void OutputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), getContext()->getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -153,7 +153,7 @@ InputAudioUnit::InputAudioUnit( DeviceRef device )
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
-	mFormat.setNumChannels( 2 );
+	setNumChannels( 2 );
 
 	CI_ASSERT( ! mDevice->isInputConnected() );
 	mDevice->setInputConnected();
@@ -168,7 +168,7 @@ void InputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), getContext()->getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::Input, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -181,8 +181,8 @@ void InputAudioUnit::initialize()
 		LOG_V << "Path B. initiate ringbuffer" << endl;
 		mShouldUseGraphRenderCallback = false;
 
-		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * mFormat.getNumChannels() ) );
-		mBufferList = cocoa::createNonInterleavedBufferList( mFormat.getNumChannels(), mDevice->getNumFramesPerBlock() * sizeof( float ) );
+		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * getNumChannels() ) );
+		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() * sizeof( float ) );
 
 		::AURenderCallbackStruct callbackStruct;
 		callbackStruct.inputProc = InputAudioUnit::inputCallback;
@@ -283,7 +283,7 @@ void EffectAudioUnit::initialize()
 	auto source = mSources.front();
 	CI_ASSERT( source );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), getContext()->getSampleRate() );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
@@ -314,7 +314,7 @@ void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 MixerAudioUnit::MixerAudioUnit()
 {
 	mTag = "MixerAudioUnit";
-	mFormat.setWantsDefaultFormatFromParent();
+	setWantsDefaultFormatFromParent();
 }
 
 MixerAudioUnit::~MixerAudioUnit()
@@ -324,7 +324,7 @@ MixerAudioUnit::~MixerAudioUnit()
 void MixerAudioUnit::initialize()
 {
 #if defined( CINDER_COCOA_TOUCH )
-	if( mFormat.getNumChannels() > 2 )
+	if( getNumChannels() > 2 )
 		throw AudioParamExc( "iOS mult-channel mixer is limited to two output channels" );
 #endif
 
@@ -336,7 +336,7 @@ void MixerAudioUnit::initialize()
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 	size_t sampleRate = getContext()->getSampleRate();
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), sampleRate );
+	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), sampleRate );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
@@ -352,8 +352,7 @@ void MixerAudioUnit::initialize()
 		if( ! mSources[bus] )
 			continue;
 
-		Node::Format& sourceFormat = mSources[bus]->getFormat();
-		::AudioStreamBasicDescription busAsbd = cocoa::nonInterleavedFloatABSD( sourceFormat.getNumChannels(), sampleRate );
+		::AudioStreamBasicDescription busAsbd = cocoa::nonInterleavedFloatABSD( mSources[bus]->getNumChannels(), sampleRate );
 
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &busAsbd, sizeof( busAsbd ) );
 		CI_ASSERT( status == noErr );
@@ -459,13 +458,11 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 // MARK: - ConverterAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: outputBlockSize seems obscure. rename outputNumFrames?
-//	- this is in the Graph's render context too
 ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
 {
 	mTag = "ConverterAudioUnit";
-	mFormat = dest->getFormat();
-	mSourceFormat = source->getFormat();
+	mNumChannels = dest->getNumChannels();
+	mSourceNumChannels = source->getNumChannels();
 }
 
 ConverterAudioUnit::~ConverterAudioUnit()
@@ -475,7 +472,7 @@ ConverterAudioUnit::~ConverterAudioUnit()
 void ConverterAudioUnit::initialize()
 {
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceFormat.getNumChannels(), getContext()->getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mSourceNumChannels, getContext()->getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
 
 	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_FormatConverter;
@@ -485,8 +482,8 @@ void ConverterAudioUnit::initialize()
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 	size_t sampleRate = getContext()->getSampleRate();
-	::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceFormat.getNumChannels(), sampleRate );
-	::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), sampleRate );
+	::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceNumChannels, sampleRate );
+	::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), sampleRate );
 
 //	LOG_V << "input ASBD:" << endl;
 //	cocoa::printASBD( inputAsbd );
@@ -500,12 +497,13 @@ void ConverterAudioUnit::initialize()
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &inputAsbd, sizeof( inputAsbd ) );
 	CI_ASSERT( status == noErr );
 
-	if( mSourceFormat.getNumChannels() == 1 && mFormat.getNumChannels() == 2 ) {
+	if( mSourceNumChannels == 1 && getNumChannels() == 2 ) {
 		// map mono source to stereo out
 		UInt32 channelMap[2] = { 0, 0 };
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &channelMap, sizeof( channelMap ) );
 		CI_ASSERT( status == noErr );
 	}
+	// TODO: stereo to mono
 
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
@@ -540,7 +538,7 @@ void ContextAudioUnit::initialize()
 
 	initNode( mRoot );
 
-	mRenderContext.buffer = Buffer( mRoot->getFormat().getNumChannels(), mNumFramesPerBlock, Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock, Buffer::Format::NonInterleaved );
 	mRenderContext.currentNode = mRoot.get();
 
 	// register the root callback separately
@@ -564,9 +562,8 @@ void ContextAudioUnit::initNode( NodeRef node )
 		return;
 
 	node->setContext( shared_from_this() );
-	Node::Format& format = node->getFormat();
 
-	if( ! format.isComplete() && format.wantsDefaultFormatFromParent() )
+	if( ! node->getNumChannels() && node->wantsDefaultFormatFromParent() )
 		node->fillFormatParamsFromParent();
 
 	// recurse through sources
@@ -574,10 +571,8 @@ void ContextAudioUnit::initNode( NodeRef node )
 		initNode( sourceNode );
 
 	// set default params from source
-	if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() )
+	if( ! node->getNumChannels() && ! node->wantsDefaultFormatFromParent() )
 		node->fillFormatParamsFromSource();
-
-	CI_ASSERT( format.isComplete() );
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
 		NodeRef sourceNode = node->getSources()[bus];
@@ -585,8 +580,8 @@ void ContextAudioUnit::initNode( NodeRef node )
 			continue;
 
 		bool needsConverter = false;
-		if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
-			LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
+		if( node->getNumChannels() != sourceNode->getNumChannels() ) {
+			LOG_V << "CHANNEL MISMATCH: " << sourceNode->getNumChannels() << " -> " << node->getNumChannels() << endl;
 			// TODO: if node is an OutputAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
 			needsConverter = true;
 		}

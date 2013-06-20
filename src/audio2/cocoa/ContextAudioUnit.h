@@ -121,7 +121,7 @@ class ConverterAudioUnit : public Node, public AudioUnitNode {
 	void uninitialize() override;
 
   private:
-	Node::Format mSourceFormat;
+	size_t mSourceNumChannels;
 	RenderContext mRenderContext;
 
 	friend class ContextAudioUnit;

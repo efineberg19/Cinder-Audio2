@@ -10,7 +10,7 @@ namespace audio2 {
 	class EffectNode : public Node {
 	public:
 		EffectNode() : Node() {
-			mFormat.setAutoEnabled();
+			setAutoEnabled();
 		}
 		virtual ~EffectNode() {}
 	};
@@ -19,7 +19,7 @@ namespace audio2 {
 		RingMod()
 			: mSineGen( 440.0f, 1.0f )	{
 				mTag = "RingMod";
-				mFormat.setBufferFormat( Buffer::Format::NonInterleaved );
+				setBufferFormat( Buffer::Format::NonInterleaved );
 		}
 
 		virtual void initialize() override {

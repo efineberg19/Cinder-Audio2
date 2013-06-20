@@ -18,9 +18,10 @@ using namespace std;
 namespace audio2 {
 
 Node::Node()
-: mInitialized( false ), mEnabled( false )
+: mInitialized( false ), mEnabled( false ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ),
+	mChannelsUnspecified( true ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
 {
-	mSources.resize( 1 );
+	mSources.resize( 1 ); // TODO: call vector constructor that takes 1 as param
 }
 
 Node::~Node()
@@ -72,24 +73,17 @@ void Node::setSource( NodeRef source, size_t bus )
 }
 
 
-bool Node::supportsSourceFormat( const Node::Format &sourceFormat ) const
-{
-	return ( mFormat.getNumChannels() == sourceFormat.getNumChannels() );
-}
-
 void Node::fillFormatParamsFromParent()
 {
 	NodeRef parent = getParent();
 	CI_ASSERT( parent );
 
-	while( parent ) {
-		fillFormatParamsFromFormat( parent->getFormat() );
-		if( mFormat.isComplete() )
-			break;
+	while( parent && ! mNumChannels ) {
+		fillFormatParamsFromNode( parent );
 		parent = parent->getParent();
 	}
 	
-	CI_ASSERT( mFormat.isComplete() );
+	CI_ASSERT( mNumChannels );
 }
 
 void Node::fillFormatParamsFromSource()
@@ -97,15 +91,14 @@ void Node::fillFormatParamsFromSource()
 	CI_ASSERT( ! mSources.empty() && mSources[0] );
 
 	auto firstSource = mSources[0];
-	fillFormatParamsFromFormat( firstSource->getFormat() );
+	fillFormatParamsFromNode( firstSource );
 
-	CI_ASSERT( mFormat.isComplete() );
+	CI_ASSERT( mNumChannels );
 }
 
-void Node::fillFormatParamsFromFormat( const Format &otherFormat )
+void Node::fillFormatParamsFromNode( const NodeRef &otherNode )
 {
-	if( ! mFormat.getNumChannels() )
-		mFormat.setNumChannels( otherFormat.getNumChannels() );
+	mNumChannels = otherNode->getNumChannels();
 }
 
 void Node::setEnabled( bool enabled )
@@ -201,7 +194,7 @@ void Context::start( NodeRef node )
 	for( auto& source : node->getSources() )
 		start( source );
 
-	if( node->getFormat().isAutoEnabled() )
+	if( node->isAutoEnabled() )
 		node->start();
 }
 
@@ -212,7 +205,7 @@ void Context::stop( NodeRef node )
 	for( auto& source : node->getSources() )
 		stop( source );
 
-	if( node->getFormat().isAutoEnabled() )
+	if( node->isAutoEnabled() )
 		node->stop();
 }
 

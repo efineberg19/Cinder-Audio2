@@ -26,34 +26,6 @@ class Node : public std::enable_shared_from_this<Node> {
   public:
 	virtual ~Node();
 
-	//! \note setting a Format parameter has no effect until initialize() is called
-	struct Format {
-		Format()
-		: mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
-		{}
-
-		virtual bool isComplete() const	{ return mNumChannels != 0; }
-
-		size_t	getNumChannels() const	{ return mNumChannels; }
-		void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; }
-
-		bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
-		void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
-
-		const Buffer::Format& getBufferFormat() const { return mBufferFormat; }
-		void	setBufferFormat( const Buffer::Format& format )	{ mBufferFormat = format; }
-
-		//! controls whether the owning Context automatically enables / disables this Node
-		bool	isAutoEnabled() const				{ return mAutoEnabled; }
-		void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
-
-  private:
-		size_t mNumChannels;
-		bool mWantsDefaultFormatFromParent;
-		bool mAutoEnabled;
-		Buffer::Format			mBufferFormat;
-	};
-
 	virtual void initialize()	{ mInitialized = true; }
 	virtual void uninitialize()	{ mInitialized = false; }
 	virtual void start()		{ mEnabled = true; }
@@ -67,8 +39,21 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void setSource( NodeRef source );
 	virtual void setSource( NodeRef source, size_t bus );
 
-	//! Default implementation returns true if samplerate and numChannels match our format
-	virtual bool supportsSourceFormat( const Format &sourceFormat ) const;
+	size_t	getNumChannels() const	{ return mNumChannels; }
+	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; }
+
+	bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
+	void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
+
+	const Buffer::Format& getBufferFormat() const { return mBufferFormat; }
+	void	setBufferFormat( const Buffer::Format& format )	{ mBufferFormat = format; }
+
+	//! controls whether the owning Context automatically enables / disables this Node
+	bool	isAutoEnabled() const				{ return mAutoEnabled; }
+	void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
+
+	//! Default implementation returns true if numChannels match our format
+	virtual bool supportsSourceNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
 
 	//! If required Format properties are missing, fill in params from parent tree
 	virtual void fillFormatParamsFromParent();
@@ -85,8 +70,6 @@ class Node : public std::enable_shared_from_this<Node> {
 	ContextRef getContext() const				{ return mContext.lock(); }
 	void setContext( ContextRef context )		{ mContext = context; }
 
-	Format& getFormat()	{ return mFormat; }
-
 	const std::string& getTag()	const	{ return mTag; }
 
 	bool isInitialized() const	{ return mInitialized; }
@@ -98,16 +81,20 @@ class Node : public std::enable_shared_from_this<Node> {
 	Node();
 
 	//! If required Format properties are missing, fill in from \a otherFormat
-	virtual void fillFormatParamsFromFormat( const Format &otherFormat );
-
+	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
 
 	std::vector<NodeRef>	mSources;
 	std::weak_ptr<Node>		mParent;
 	std::weak_ptr<Context>	mContext;
-	Format					mFormat;
 	bool					mInitialized;
 	std::atomic<bool>		mEnabled;
 	std::string				mTag;
+
+	size_t mNumChannels;
+	bool mWantsDefaultFormatFromParent, mChannelsUnspecified;
+	bool mAutoEnabled;
+	Buffer::Format			mBufferFormat;
+
 
   private:
 	  Node( Node const& );
@@ -136,7 +123,7 @@ class OutputNode : public RootNode {
 
 	// ???: device param here necessary?
 	OutputNode( DeviceRef device ) : RootNode() {
-		mFormat.setAutoEnabled();
+		setAutoEnabled();
 	}
 	virtual ~OutputNode() {}
 

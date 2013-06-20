@@ -15,7 +15,13 @@
 #define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
+//#define SOUND_FILE "cash_satisfied_mind.mp3"
 
+// TODO next: enable drag n drop sound files
+
+// TODO: make fft params runtime settable
+
+// TODO: mouse click should print bin's freq value, not seek
 
 using namespace ci;
 using namespace ci::app;
@@ -26,6 +32,7 @@ using namespace audio2;
 class SpectrumTapTestApp : public AppNative {
   public:
 	void prepareSettings( Settings *settings );
+	void fileDrop( FileDropEvent event );
 	void setup();
 	void update();
 	void draw();
@@ -38,7 +45,7 @@ class SpectrumTapTestApp : public AppNative {
 
 	ContextRef mContext;
 	PlayerNodeRef mPlayerNode;
-	SourceFileRef mSourceFile;
+//	SourceFileRef mSourceFile;
 
 	SpectrumTapNodeRef mSpectrumTap;
 
@@ -69,17 +76,17 @@ void SpectrumTapTestApp::setup()
 	mContext = Context::instance()->createContext();
 
 	DataSourceRef dataSource = loadResource( SOUND_FILE );
-	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
-	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
+	auto sourceFile = SourceFile::create( dataSource, 0, 44100 );
+	LOG_V << "output samplerate: " << sourceFile->getSampleRate() << endl;
 
-	auto audioBuffer = mSourceFile->loadBuffer();
+	auto audioBuffer = sourceFile->loadBuffer();
 
 	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
 
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
-	mSpectrumTap = make_shared<SpectrumTapNode>( 1024 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( 2048, 1024 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
@@ -109,7 +116,7 @@ void SpectrumTapTestApp::initContext()
 
 void SpectrumTapTestApp::setupUI()
 {
-	Rectf buttonRect( 0.0f, 0.0f, 200.0f, 60.0f );
+	Rectf buttonRect( 0.0f, 0.0f, 200.0f, 38.0f );
 	float padding = 10.0f;
 	mEnableGraphButton.isToggle = true;
 	mEnableGraphButton.titleNormal = "graph off";
@@ -185,6 +192,33 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 		seek( pos.x );
 }
 
+
+void SpectrumTapTestApp::fileDrop( FileDropEvent event )
+{
+	const fs::path &filePath = event.getFile( 0 );
+	LOG_V << "File dropped: " << filePath << endl;
+
+	DataSourceRef dataSource = loadFile( filePath );
+	auto sourceFile = SourceFile::create( dataSource, 0, 44100 );
+	LOG_V << "output samplerate: " << sourceFile->getSampleRate() << endl;
+
+	auto audioBuffer = sourceFile->loadBuffer();
+
+	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
+
+
+	bool running = mContext->isEnabled();
+	mContext->uninitialize();
+
+	mPlayerNode->disconnect();
+	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
+	mPlayerNode->connect( mSpectrumTap );
+
+	initContext();
+	if( running )
+		mContext->start();
+}
+
 void SpectrumTapTestApp::update()
 {
 	// update playback button, since the player node may stop itself at the end of a file.
@@ -219,6 +253,10 @@ void SpectrumTapTestApp::draw()
 
 		bin += Vec2f( binWidth + padding, 0.0f );
 	}
+
+	// draw rect around spectrogram boundary
+	gl::color( Color::gray( 0.5 ) );
+	gl::drawStrokedRect( Rectf( margin, margin, getWindowWidth() - margin, getWindowHeight() - margin ) );
 
 	auto min = min_element( mag.begin(), mag.end() );
 	auto max = max_element( mag.begin(), mag.end() );

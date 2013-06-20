@@ -16,7 +16,7 @@ namespace audio2 {
 GeneratorNode::GeneratorNode() : Node()
 {
 	mSources.clear();
-	mFormat.setWantsDefaultFormatFromParent();
+	setWantsDefaultFormatFromParent();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ BufferPlayerNode::BufferPlayerNode( BufferRef buffer )
 {
 	mTag = "BufferPlayerNode";
 	mNumFrames = mBuffer->getNumFrames();
-	mFormat.setNumChannels( mBuffer->getNumChannels() );
+	setNumChannels( mBuffer->getNumChannels() );
 }
 
 void BufferPlayerNode::start()
@@ -97,12 +97,12 @@ FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded )
 void FilePlayerNode::initialize()
 {
 	mSampleRate = getContext()->getSampleRate();
-	mSourceFile->setNumChannels( mFormat.getNumChannels() );
+	mSourceFile->setNumChannels( getNumChannels() );
 	mSourceFile->setSampleRate( mSampleRate );
 
 	size_t paddingMultiplier = 2; // TODO: expose
-	mReadBuffer = Buffer( mFormat.getNumChannels(), mSourceFile->getNumFramesPerRead() );
-	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mFormat.getNumChannels() * mSourceFile->getNumFramesPerRead() * paddingMultiplier ) );
+	mReadBuffer = Buffer( getNumChannels(), mSourceFile->getNumFramesPerRead() );
+	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( getNumChannels() * mSourceFile->getNumFramesPerRead() * paddingMultiplier ) );
 
 	if( mMultiThreaded ) {
 		mReadOnBackground = true;

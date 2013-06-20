@@ -40,7 +40,7 @@ private:
 class InputNode : public GeneratorNode {
 public:
 	InputNode( DeviceRef device ) : GeneratorNode() {
-		mFormat.setAutoEnabled();
+		setAutoEnabled();
 	}
 	virtual ~InputNode() {}
 
