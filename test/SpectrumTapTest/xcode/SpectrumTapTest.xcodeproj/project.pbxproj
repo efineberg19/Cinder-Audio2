@@ -20,6 +20,7 @@
 		11F978EE176E965F00E2C7D0 /* tone440.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978ED176E965E00E2C7D0 /* tone440.wav */; };
 		11F978F0176E966700E2C7D0 /* tone440L220R.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978EF176E966700E2C7D0 /* tone440L220R.wav */; };
 		11F978F2176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */; };
+		14B5DD011773A4C800AD5B75 /* Dsp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14B5DD001773A4C800AD5B75 /* Dsp.cpp */; };
 		3A22D1F84B2C4E5CBD31ACAD /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3BCDBACC60A94CF98B4DBD6B /* Device.cpp */; };
 		441E74963A1348BCA81634BB /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41107A080CC64FB9AD110DA4 /* Plot.cpp */; };
 		48C97337E28B4650A3A8090F /* ContextAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DDA95FC1D73C443CB3B02774 /* ContextAudioUnit.cpp */; };
@@ -56,6 +57,7 @@
 		11F978ED176E965E00E2C7D0 /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11F978EF176E966700E2C7D0 /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
 		11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Blank__Kytt_-_08_-_RSPN.mp3"; path = "../../../assets/Blank__Kytt_-_08_-_RSPN.mp3"; sourceTree = "<group>"; };
+		14B5DD001773A4C800AD5B75 /* Dsp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Dsp.cpp; path = ../../../src/audio2/Dsp.cpp; sourceTree = "<group>"; };
 		203B6B7CA3734B238B62BC07 /* Plot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Plot.h; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/Plot.h"; sourceTree = "<group>"; };
 		277DC96F35B6426780B63153 /* Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Device.h; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/Device.h"; sourceTree = "<group>"; };
 		27E707712ACF46D8A7FA3ED8 /* Context.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Context.cpp; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/Context.cpp"; sourceTree = "<group>"; };
@@ -250,6 +252,7 @@
 				644A8C4B26C84A7B944FE497 /* Debug.h */,
 				277DC96F35B6426780B63153 /* Device.h */,
 				37DFE08ABDC54691977B0EC2 /* Dsp.h */,
+				14B5DD001773A4C800AD5B75 /* Dsp.cpp */,
 				B725708CFE8845A3A93E58AD /* EffectNode.h */,
 				113D06BA177159F60095AA35 /* Fft.cpp */,
 				113D06BB177159F60095AA35 /* Fft.h */,
@@ -342,6 +345,7 @@
 				3A22D1F84B2C4E5CBD31ACAD /* Device.cpp in Sources */,
 				E47699CCA8F74DB2A3D1F240 /* File.cpp in Sources */,
 				BD4717ADEE704020B443CA36 /* GeneratorNode.cpp in Sources */,
+				14B5DD011773A4C800AD5B75 /* Dsp.cpp in Sources */,
 				113D06BC177159F60095AA35 /* Fft.cpp in Sources */,
 				113D06BF17715DDE0095AA35 /* TapNode.cpp in Sources */,
 				441E74963A1348BCA81634BB /* Plot.cpp in Sources */,

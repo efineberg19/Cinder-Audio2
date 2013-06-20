@@ -1,10 +1,14 @@
 #include "audio2/TapNode.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/Fft.h"
+#include "audio2/Dsp.h"
 
 #include "audio2/Debug.h"
 
+#include "cinder/CinderMath.h"
+
 using namespace std;
+using namespace ci;
 
 namespace audio2 {
 
@@ -77,57 +81,29 @@ void SpectrumTapNode::initialize()
 {
 	if( ! mFftSize )
 		mFftSize = getContext()->getNumFramesPerBlock();
+	if( ! isPowerOf2( mFftSize ) )
+		mFftSize = nextPowerOf2( mFftSize );
+		
 
 	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
 
-	if( ! mWindowSize )
-		mWindowSize = mFftSize;
-
 	mBuffer = audio2::Buffer( 1, mFftSize );
 	mMagSpectrum.resize( mFftSize / 2 );
-	
+
+	if( ! mWindowSize  )
+		mWindowSize = mFftSize;
+	else if( ! isPowerOf2( mWindowSize ) )
+		mWindowSize = nextPowerOf2( mWindowSize );
+
+	mWindow = makeAlignedArray<float>( mWindowSize );
+
+	generateBlackmanWindow( mWindow.get(), mWindowSize );
 	LOG_V << "complete. fft size: " << mFftSize << ", window size: " << mWindowSize << endl;
-}
-
-
-// TODO: specify pad, accumulate the required number of samples
-// Currently copies the smaller of the two
-void SpectrumTapNode::process( audio2::Buffer *buffer )
-{
-	copyToInternalBuffer( buffer );
-}
-
-const std::vector<float>& SpectrumTapNode::getMagSpectrum()
-{
-	lock_guard<mutex> lock( mMutex );
-	if( mNumFramesCopied == mWindowSize ) {
-
-		if( mApplyWindow )
-			applyWindow();
-
-		mFft->compute( &mBuffer );
-
-		auto &real = mFft->getReal();
-		auto &imag = mFft->getImag();
-
-		// remove nyquist component.
-		imag[0] = 0.0f;
-
-		// compute normalized magnitude spectrum
-		const float kMagScale = 1.0f / mFft->getSize();
-		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
-			complex<float> c( real[i], imag[i] );
-			mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + abs( c ) * kMagScale * ( 1.0f - mSmoothingFactor );
-		}
-		mNumFramesCopied = 0;
-		mBuffer.zero();
-	}
-	return mMagSpectrum;
 }
 
 // TODO: should really be using a Converter to go stereo (or more) -> mono
 // - a good implementation will use equal-power scaling as if the mono signal was two stereo channels panned to center
-void SpectrumTapNode::copyToInternalBuffer( Buffer *buffer )
+void SpectrumTapNode::process( audio2::Buffer *buffer )
 {
 	lock_guard<mutex> lock( mMutex );
 
@@ -148,25 +124,39 @@ void SpectrumTapNode::copyToInternalBuffer( Buffer *buffer )
 				offsetBuffer[i] += buffer->getChannel( ch )[i] * scale;
 		}
 	}
-	
+
 	mNumFramesCopied += numCopyFrames;
 }
 
-// TODO: replace this with table lookup
-void SpectrumTapNode::applyWindow()
+const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 {
-	// Blackman window
-	double alpha = 0.16;
-	double a0 = 0.5 * (1 - alpha);
-	double a1 = 0.5;
-	double a2 = 0.5 * alpha;
-	double oneOverN = 1.0 / static_cast<double>( mWindowSize );
+	lock_guard<mutex> lock( mMutex );
+	if( mNumFramesCopied == mWindowSize ) {
 
-	for( size_t i = 0; i < mWindowSize; ++i ) {
-		double x = static_cast<double>(i) * oneOverN;
-		double window = a0 - a1 * cos( 2.0 * M_PI * x ) + a2 * cos( 4.0 * M_PI * x );
-		mBuffer[i] *= float(window);
+		if( mApplyWindow ) {
+			float *win = mWindow.get();
+			for( size_t i = 0; i < mWindowSize; ++i )
+				mBuffer[i] *= win[i];
+		}
+
+		mFft->compute( &mBuffer );
+
+		auto &real = mFft->getReal();
+		auto &imag = mFft->getImag();
+
+		// remove nyquist component.
+		imag[0] = 0.0f;
+
+		// compute normalized magnitude spectrum
+		const float kMagScale = 1.0f / mFft->getSize();
+		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
+			complex<float> c( real[i], imag[i] );
+			mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + abs( c ) * kMagScale * ( 1.0f - mSmoothingFactor );
+		}
+		mNumFramesCopied = 0;
+		mBuffer.zero();
 	}
+	return mMagSpectrum;
 }
 
 void SpectrumTapNode::setSmoothingFactor( float factor )

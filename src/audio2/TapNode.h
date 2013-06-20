@@ -47,14 +47,11 @@ public:
 	void setSmoothingFactor( float factor );
 
 private:
-
-	void copyToInternalBuffer( audio2::Buffer *buffer );
-	void applyWindow();
-
 	std::unique_ptr<Fft> mFft;
 	std::mutex mMutex;
 	audio2::Buffer mBuffer; // TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
 	std::vector<float> mMagSpectrum;
+	AlignedArrayPtr mWindow;
 	std::atomic<bool> mApplyWindow;
 	std::atomic<size_t> mNumFramesCopied;
 	size_t mWindowSize, mFftSize;
