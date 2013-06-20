@@ -154,6 +154,19 @@ inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonIn
 	}
 }
 
+template<typename T>
+struct FreeDeleter {
+	void operator()( T *x ) { free( x ); }
+};
+
+template<typename T>
+std::unique_ptr<T, FreeDeleter<T> > makeAlignedArray( size_t size ) {
+	return std::unique_ptr<T, FreeDeleter<T> >( static_cast<float *>( calloc( size, sizeof( T ) ) ) );
+}
+
+typedef std::unique_ptr<float, FreeDeleter<float>> AlignedArrayPtr;
+	
+
 typedef BufferT<float> Buffer;
 typedef DynamicBufferT<float> DynamicBuffer;
 
