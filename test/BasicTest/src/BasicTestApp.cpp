@@ -70,7 +70,7 @@ void BasicTestApp::setup()
 void BasicTestApp::setupSine()
 {
 	auto genNode = make_shared<UGenNode<SineGen> >();
-	genNode->getFormat().setAutoEnabled();
+	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 
@@ -85,7 +85,7 @@ void BasicTestApp::setupSine()
 void BasicTestApp::setupNoise()
 {
 	auto genNode = make_shared<UGenNode<NoiseGen> >();
-	genNode->getFormat().setAutoEnabled();
+	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 
 	genNode->connect( mContext->getRoot() );
@@ -99,12 +99,12 @@ void BasicTestApp::setupNoise()
 void BasicTestApp::setupMixer()
 {
 	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->getFormat().setAutoEnabled();
+	noise->setAutoEnabled();
 	noise->getUGen().setAmp( 0.25f );
 	mNoise = noise;
 
 	auto sine = make_shared<UGenNode<SineGen> >();
-	sine->getFormat().setAutoEnabled();
+	sine->setAutoEnabled();
 	sine->getUGen().setAmp( 0.25f );
 	sine->getUGen().setFreq( 440.0f );
 	mSine = sine;

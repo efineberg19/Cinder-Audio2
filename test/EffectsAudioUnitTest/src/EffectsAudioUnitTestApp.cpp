@@ -60,7 +60,7 @@ void EffectsAudioUnitTestApp::setup()
 
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->getFormat().setAutoEnabled();
+	noise->setAutoEnabled();
 	noise->getUGen().setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;

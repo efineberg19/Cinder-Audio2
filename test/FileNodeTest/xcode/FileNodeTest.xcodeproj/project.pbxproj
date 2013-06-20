@@ -28,6 +28,7 @@
 		1485FD201768CFFD003BAECF /* tone440L220R.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD111768CFFD003BAECF /* tone440L220R.mp3 */; };
 		1485FD211768CFFD003BAECF /* tone440L220R.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD121768CFFD003BAECF /* tone440L220R.ogg */; };
 		1485FD221768CFFD003BAECF /* tone440L220R.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD131768CFFD003BAECF /* tone440L220R.wav */; };
+		14B5DCFD1773974400AD5B75 /* TapNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 14B5DCFB1773974400AD5B75 /* TapNode.cpp */; };
 		15AF16BA8C294C3CA07164ED /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9465B9B79C7B42F6A202CDFA /* Context.cpp */; };
 		1B16366A24B04F48B66E91E3 /* File.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D7C1FE787714675970E56D7 /* File.cpp */; };
 		1C3BC758788348709F9293F7 /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 399441A129B1454B885D6756 /* Device.cpp */; };
@@ -67,6 +68,8 @@
 		1485FD111768CFFD003BAECF /* tone440L220R.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440L220R.mp3; path = ../../../assets/tone440L220R.mp3; sourceTree = "<group>"; };
 		1485FD121768CFFD003BAECF /* tone440L220R.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = tone440L220R.ogg; path = ../../../assets/tone440L220R.ogg; sourceTree = "<group>"; };
 		1485FD131768CFFD003BAECF /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
+		14B5DCFB1773974400AD5B75 /* TapNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TapNode.cpp; path = ../../../src/audio2/TapNode.cpp; sourceTree = "<group>"; };
+		14B5DCFC1773974400AD5B75 /* TapNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TapNode.h; path = ../../../src/audio2/TapNode.h; sourceTree = "<group>"; };
 		19DA0C0956534B90B30E0C18 /* Plot.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Plot.cpp; path = "../../../../../cinder-dev/blocks/audio2/src/audio2/Plot.cpp"; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -240,6 +243,8 @@
 				C7643771631D43E1BDD596C9 /* File.h */,
 				EAC649EE499143BEA64927D4 /* GeneratorNode.h */,
 				143C256F176657040063DFDA /* GeneratorNode.cpp */,
+				14B5DCFB1773974400AD5B75 /* TapNode.cpp */,
+				14B5DCFC1773974400AD5B75 /* TapNode.h */,
 				311B0C8DA1224D40A734EA40 /* Plot.h */,
 				E2EFA8C605C144E387F4CC21 /* RingBuffer.h */,
 				889A748A89F44B4EA1FBA121 /* audio.cpp */,
@@ -374,6 +379,7 @@
 				4D026589D22243019E66CA2B /* DeviceManagerCoreAudio.cpp in Sources */,
 				73C2F1366C1F4BDEAA1DDCC6 /* Util.cpp in Sources */,
 				11B8562317659D1700E19E8C /* FileCoreAudio.cpp in Sources */,
+				14B5DCFD1773974400AD5B75 /* TapNode.cpp in Sources */,
 				143C2570176657050063DFDA /* GeneratorNode.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
