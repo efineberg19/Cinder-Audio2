@@ -63,9 +63,10 @@ void TapNode::process( Buffer *buffer )
 // MARK: - SpectrumTapNode
 // ----------------------------------------------------------------------------------------------------
 
-SpectrumTapNode::SpectrumTapNode( size_t fftSize )
-: mNumFramesCopied( 0 ), mApplyWindow( true ), mFft( new Fft( fftSize ) )
+SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize )
+: mFftSize( fftSize ), mWindowSize( windowSize ), mNumFramesCopied( 0 ), mApplyWindow( true )
 {
+	mTag = "SpectrumTapNode";
 }
 
 SpectrumTapNode::~SpectrumTapNode()
@@ -74,13 +75,18 @@ SpectrumTapNode::~SpectrumTapNode()
 
 void SpectrumTapNode::initialize()
 {
-	mFramesPerBlock = getContext()->getNumFramesPerBlock();
+	if( ! mFftSize )
+		mFftSize = getContext()->getNumFramesPerBlock();
 
-	size_t fftSize = mFft->getSize();
-	mBuffer = audio2::Buffer( 1, fftSize );
-	mMagSpectrum.resize( fftSize / 2 );
+	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
+
+	if( ! mWindowSize )
+		mWindowSize = mFftSize;
+
+	mBuffer = audio2::Buffer( 1, mFftSize );
+	mMagSpectrum.resize( mFftSize / 2 );
 	
-	LOG_V << "complete" << endl;
+	LOG_V << "complete. fft size: " << mFftSize << ", window size: " << mWindowSize << endl;
 }
 
 
@@ -116,6 +122,7 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 			mMagSpectrum[i] = abs( c ) * kMagScale;
 		}
 		mNumFramesCopied = 0;
+		mBuffer.zero();
 	}
 	return mMagSpectrum;
 }
@@ -129,22 +136,20 @@ void SpectrumTapNode::copyToInternalBuffer( Buffer *buffer )
 	if( mBuffer.getNumFrames() == mNumFramesCopied )
 		return;
 
-	mBuffer.zero();
 
 	size_t numCopyFrames = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() - mNumFramesCopied ); // TODO: return if zero
 	size_t numSourceChannels = buffer->getNumChannels();
+	float *offsetBuffer = &mBuffer[mNumFramesCopied];
 	if( numSourceChannels == 1 ) {
-		memcpy( mBuffer.getData() + mNumFramesCopied, buffer->getData(), numCopyFrames * sizeof( float ) );
+		memcpy( offsetBuffer, buffer->getData(), numCopyFrames * sizeof( float ) );
 	}
 	else {
 		// naive average of all channels
+		float scale = 1.0f / numSourceChannels;
 		for( size_t ch = 0; ch < numSourceChannels; ch++ ) {
 			for( size_t i = 0; i < numCopyFrames; i++ )
-				mBuffer[i] += buffer->getChannel( ch )[i];
+				offsetBuffer[i] += buffer->getChannel( ch )[i] * scale;
 		}
-
-		float scale = 1.0f / numSourceChannels;
-		vDSP_vsmul( mBuffer.getData(), 1 , &scale, mBuffer.getData(), 1, numCopyFrames ); // TODO: replace with generic
 	}
 	
 	mNumFramesCopied += numCopyFrames;
@@ -158,10 +163,9 @@ void SpectrumTapNode::applyWindow()
 	double a0 = 0.5 * (1 - alpha);
 	double a1 = 0.5;
 	double a2 = 0.5 * alpha;
-	size_t windowSize = std::min( mFft->getSize(), mFramesPerBlock );
-	double oneOverN = 1.0 / static_cast<double>( windowSize );
+	double oneOverN = 1.0 / static_cast<double>( mWindowSize );
 
-	for( size_t i = 0; i < windowSize; ++i ) {
+	for( size_t i = 0; i < mWindowSize; ++i ) {
 		double x = static_cast<double>(i) * oneOverN;
 		double window = a0 - a1 * cos( 2.0 * M_PI * x ) + a2 * cos( 4.0 * M_PI * x );
 		mBuffer[i] *= float(window);

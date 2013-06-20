@@ -32,6 +32,8 @@ namespace audio2 {
 
 	void Fft::compute( Buffer *buffer )
 	{
+		CI_ASSERT( buffer->getNumFrames() == mSize );
+		
 #if defined( CINDER_AUDIO_FFT_ACCELERATE )
 
 		vDSP_ctoz( ( ::DSPComplex *)buffer->getData(), 2, &mSplitComplexFrame, 1, mSize / 2 );

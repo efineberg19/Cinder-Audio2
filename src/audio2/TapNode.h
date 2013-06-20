@@ -2,8 +2,6 @@
 
 #include "audio2/Context.h"
 
-// TODO: getContext().getFramesPerBlock should set the default tap / fft size
-
 namespace audio2 {
 
 class RingBuffer;
@@ -31,7 +29,8 @@ private:
 
 class SpectrumTapNode : public Node {
 public:
-	SpectrumTapNode( size_t fftSize = 512 );
+	//! If fftSize is not set, defaults to Context::getNumFramesPerBlock(). If window size is not set, defaults to fftSize
+	SpectrumTapNode( size_t fftSize = 0, size_t windowSize = 0 );
 	virtual ~SpectrumTapNode();
 	
 	virtual void initialize() override;
@@ -53,7 +52,7 @@ private:
 	std::vector<float> mMagSpectrum;
 	std::atomic<bool> mApplyWindow;
 	std::atomic<size_t> mNumFramesCopied;
-	size_t mFramesPerBlock;
+	size_t mWindowSize, mFftSize;
 };
 
 } // namespace audio2
