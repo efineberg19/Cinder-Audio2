@@ -35,7 +35,8 @@ public:
 	typedef T SampleType;
 	enum Format { Interleaved, NonInterleaved }; // TODO: remove this and use a bool isInterleaved (default = false)
 
-	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::NonInterleaved ) : mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat )
+	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::NonInterleaved )
+	: mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat ), mSilent( true )
 	{
 		mData.resize( numChannels * numFrames );
 	}
@@ -74,6 +75,9 @@ public:
 	size_t getNumChannels() const	{ return mNumChannels; }
 	size_t getSize() const	{ return mData.size(); }
 
+	void setSilent( bool b = true )	{ mSilent = b; }
+	bool isSilent() const			{ return mSilent; }
+
 //	void asFormat( Format fmt ) {
 //		if( fmt == NonInterleaved && mFormat == Interleaved )
 //			deinterleaveInplacePow2( mData.data(), mData.size() );
@@ -96,6 +100,7 @@ public:
 protected:
 	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
+	bool mSilent;
 	Format mFormat;
 };
 
