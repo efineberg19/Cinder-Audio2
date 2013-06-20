@@ -12,12 +12,10 @@
 
 #include <Accelerate/Accelerate.h>
 
-#define SOUND_FILE "tone440.wav"
-//#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "tone440.wav"
+#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 //#define SOUND_FILE "cash_satisfied_mind.mp3"
-
-// TODO next: enable drag n drop sound files
 
 // TODO: make fft params runtime settable
 
@@ -64,15 +62,6 @@ void SpectrumTapTestApp::setup()
 {
 	mScaleDecibels = true;
 	
-	// TODO: convert to unit tests
-	LOG_V << "toDecibels( 0 ) = " << toDecibels( 0.0f ) << endl;
-	LOG_V << "toDecibels( 0.5 ) = " << toDecibels( 0.5f ) << endl;
-	LOG_V << "toDecibels( 1.0 ) = " << toDecibels( 1.0f ) << endl;
-
-	LOG_V << "toLinear( 0 ) = " << toLinear( 0.0f ) << endl;
-	LOG_V << "toLinear( 90.0f ) = " << toLinear( 90.0f ) << endl;
-	LOG_V << "toLinear( 100.0f ) = " << toLinear( 100.0f ) << endl;
-
 	mContext = Context::instance()->createContext();
 
 	DataSourceRef dataSource = loadResource( SOUND_FILE );
@@ -86,7 +75,10 @@ void SpectrumTapTestApp::setup()
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
 
+//	mSpectrumTap = make_shared<SpectrumTapNode>();
 	mSpectrumTap = make_shared<SpectrumTapNode>( 2048, 1024 );
+//	mSpectrumTap = make_shared<SpectrumTapNode>( 1024, 512 );
+//	mSpectrumTap = make_shared<SpectrumTapNode>( 1024 );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 

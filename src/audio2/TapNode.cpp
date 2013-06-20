@@ -100,7 +100,7 @@ void SpectrumTapNode::process( audio2::Buffer *buffer )
 const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 {
 	lock_guard<mutex> lock( mMutex );
-	if( mNumFramesCopied == mBuffer.getNumFrames() ) {
+	if( mNumFramesCopied == mWindowSize ) {
 
 		if( mApplyWindow )
 			applyWindow();
@@ -133,11 +133,10 @@ void SpectrumTapNode::copyToInternalBuffer( Buffer *buffer )
 {
 	lock_guard<mutex> lock( mMutex );
 
-	if( mBuffer.getNumFrames() == mNumFramesCopied )
+	if( mNumFramesCopied == mWindowSize )
 		return;
 
-
-	size_t numCopyFrames = std::min( buffer->getNumFrames(), mBuffer.getNumFrames() - mNumFramesCopied ); // TODO: return if zero
+	size_t numCopyFrames = std::min( buffer->getNumFrames(), mWindowSize - mNumFramesCopied ); // TODO: return if zero
 	size_t numSourceChannels = buffer->getNumChannels();
 	float *offsetBuffer = &mBuffer[mNumFramesCopied];
 	if( numSourceChannels == 1 ) {
