@@ -563,7 +563,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 
 	node->setContext( shared_from_this() );
 
-	if( ! node->getNumChannels() && node->wantsDefaultFormatFromParent() )
+	if( node->wantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromParent();
 
 	// recurse through sources
@@ -571,7 +571,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 		initNode( sourceNode );
 
 	// set default params from source
-	if( ! node->getNumChannels() && ! node->wantsDefaultFormatFromParent() )
+	if(  ! node->wantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromSource();
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
@@ -652,10 +652,8 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 
 	// throw away any ConverterNodes
 	ConverterAudioUnit *converter = dynamic_cast<ConverterAudioUnit *>( node.get() );
-	if( converter ) {
+	if( converter )
 		converter->getParent()->setSource( converter->getSources()[0] );
-		int blarg = 0;
-	}
 }
 
 // TODO: consider adding a volume param here

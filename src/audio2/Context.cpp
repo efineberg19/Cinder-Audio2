@@ -18,10 +18,9 @@ using namespace std;
 namespace audio2 {
 
 Node::Node()
-: mInitialized( false ), mEnabled( false ), mNumChannels( 0 ), mWantsDefaultFormatFromParent( false ),
-	mChannelsUnspecified( true ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
+: mInitialized( false ), mEnabled( false ), mNumChannels( 0 ), mSources( 1 ), mWantsDefaultFormatFromParent( false ),
+	mNumChannelsUnspecified( true ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
 {
-	mSources.resize( 1 ); // TODO: call vector constructor that takes 1 as param
 }
 
 Node::~Node()

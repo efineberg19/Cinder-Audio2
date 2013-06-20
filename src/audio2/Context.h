@@ -40,7 +40,9 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void setSource( NodeRef source, size_t bus );
 
 	size_t	getNumChannels() const	{ return mNumChannels; }
-	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; }
+	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
+
+	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
 
 	bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
 	void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
@@ -91,7 +93,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	std::string				mTag;
 
 	size_t mNumChannels;
-	bool mWantsDefaultFormatFromParent, mChannelsUnspecified;
+	bool mWantsDefaultFormatFromParent, mNumChannelsUnspecified;
 	bool mAutoEnabled;
 	Buffer::Format			mBufferFormat;
 
