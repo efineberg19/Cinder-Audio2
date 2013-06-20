@@ -16,6 +16,7 @@
 		09E646E16F4D41999837B36A /* SpectrumTapTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D57A454C16451CB8A6608A /* SpectrumTapTestApp.cpp */; };
 		113D06BC177159F60095AA35 /* Fft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 113D06BA177159F60095AA35 /* Fft.cpp */; };
 		113D06BF17715DDE0095AA35 /* TapNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 113D06BD17715DDE0095AA35 /* TapNode.cpp */; };
+		113D06C11772A0F00095AA35 /* cash_satisfied_mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */; };
 		11F978EE176E965F00E2C7D0 /* tone440.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978ED176E965E00E2C7D0 /* tone440.wav */; };
 		11F978F0176E966700E2C7D0 /* tone440L220R.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978EF176E966700E2C7D0 /* tone440L220R.wav */; };
 		11F978F2176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */; };
@@ -51,6 +52,7 @@
 		113D06BB177159F60095AA35 /* Fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fft.h; path = ../../../src/audio2/Fft.h; sourceTree = "<group>"; };
 		113D06BD17715DDE0095AA35 /* TapNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TapNode.cpp; path = ../../../src/audio2/TapNode.cpp; sourceTree = "<group>"; };
 		113D06BE17715DDE0095AA35 /* TapNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TapNode.h; path = ../../../src/audio2/TapNode.h; sourceTree = "<group>"; };
+		113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = cash_satisfied_mind.mp3; path = ../../../assets/cash_satisfied_mind.mp3; sourceTree = "<group>"; };
 		11F978ED176E965E00E2C7D0 /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11F978EF176E966700E2C7D0 /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
 		11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Blank__Kytt_-_08_-_RSPN.mp3"; path = "../../../assets/Blank__Kytt_-_08_-_RSPN.mp3"; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 				11F978ED176E965E00E2C7D0 /* tone440.wav */,
 				11F978EF176E966700E2C7D0 /* tone440L220R.wav */,
 				11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */,
+				113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */,
 				34CDAC9EB02A41D9B9683341 /* CinderApp.icns */,
 				6B81B15D2C044A47A309AA77 /* Info.plist */,
 			);
@@ -321,6 +324,7 @@
 				11F978F2176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */,
 				0933A883BD734B5DAC509302 /* CinderApp.icns in Resources */,
 				11F978F0176E966700E2C7D0 /* tone440L220R.wav in Resources */,
+				113D06C11772A0F00095AA35 /* cash_satisfied_mind.mp3 in Resources */,
 				11F978EE176E965F00E2C7D0 /* tone440.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
