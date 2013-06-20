@@ -148,7 +148,7 @@ class ContextAudioUnit : public Context {
 	void uninitNode( NodeRef node );
 
 	
-	void connectRenderCallback( NodeRef node, RenderContext *context = nullptr, bool recursive = false );
+	void connectRenderCallback( NodeRef node, RenderContext *context = nullptr, bool recursive = false, bool asRoot = false );
 
 	RenderContext mRenderContext;
 };

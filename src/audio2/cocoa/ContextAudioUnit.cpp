@@ -488,10 +488,10 @@ void ConverterAudioUnit::initialize()
 	::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceFormat.getNumChannels(), sampleRate );
 	::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( mFormat.getNumChannels(), sampleRate );
 
-	LOG_V << "input ASBD:" << endl;
-	cocoa::printASBD( inputAsbd );
-	LOG_V << "output ASBD:" << endl;
-	cocoa::printASBD( outputAsbd );
+//	LOG_V << "input ASBD:" << endl;
+//	cocoa::printASBD( inputAsbd );
+//	LOG_V << "output ASBD:" << endl;
+//	cocoa::printASBD( outputAsbd );
 
 
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outputAsbd, sizeof( outputAsbd ) );
@@ -597,7 +597,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 			node->getSources()[bus] = converter;
 			converter->setParent( node->getSources()[bus] );
 			converter->initialize();
-			connectRenderCallback( converter, &converter->mRenderContext, true ); // TODO: make sure this doesn't blow away other converters
+			connectRenderCallback( converter, &converter->mRenderContext, true, true ); // TODO: make sure this doesn't blow away other converters
 		}
 	}
 
@@ -607,7 +607,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 }
 
 // TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
-void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive )
+void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive, bool asRoot )
 {
 	AudioUnitNode *nodeAU = dynamic_cast<AudioUnitNode *>( node.get() );
 	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
@@ -616,16 +616,8 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *conte
 	::AudioUnit audioUnit = nodeAU->getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	// DEBUG: print channel info, although it has always been empty for me so far
-	vector<::AUChannelInfo> channelInfo = getAudioUnitChannelInfo( audioUnit );
-	if( ! channelInfo.empty() ) {
-		LOG_V << "AUChannelInfo: " << endl;
-		for( auto& ch : channelInfo )
-			ci::app::console() << "\t ins: " << ch.inChannels << ", outs: " << ch.outChannels << endl;
-	}
-
 	::AURenderCallbackStruct callbackStruct;
-	callbackStruct.inputProc = ContextAudioUnit::renderCallback;
+	callbackStruct.inputProc = ( asRoot ? &ContextAudioUnit::renderCallbackRoot : &ContextAudioUnit::renderCallback );
 	callbackStruct.inputProcRefCon = ( context ? context : &mRenderContext );
 
 	for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
@@ -667,6 +659,7 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 
 // TODO: consider adding a volume param here
 // - OS X output unit has kHALOutputParam_Volume, but need to check if this works on iOS
+// - this is also made difficult because I'm currently connecting the ConverterNode's callback to this - I think that will change.
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *renderContext = static_cast<RenderContext *>( data );
