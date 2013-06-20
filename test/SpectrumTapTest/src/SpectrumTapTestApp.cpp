@@ -19,8 +19,6 @@
 
 // TODO: make fft params runtime settable
 
-// TODO: mouse click should print bin's freq value, not seek
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -37,19 +35,18 @@ class SpectrumTapTestApp : public AppNative {
 
 	void initContext();
 	void setupUI();
-	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
-	void seek( size_t xPos );
+	void printBinFreq( size_t xPos );
 
 	ContextRef mContext;
 	PlayerNodeRef mPlayerNode;
-//	SourceFileRef mSourceFile;
 
 	SpectrumTapNodeRef mSpectrumTap;
 
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mPlaybackButton, mLoopButton, mApplyWindowButton, mScaleDecibelsButton;
 	bool mScaleDecibels;
+	float mSpectroMargin;
 };
 
 
@@ -61,7 +58,8 @@ void SpectrumTapTestApp::prepareSettings( Settings *settings )
 void SpectrumTapTestApp::setup()
 {
 	mScaleDecibels = true;
-	
+	mSpectroMargin = 40.0f;
+
 	mContext = Context::instance()->createContext();
 
 	DataSourceRef dataSource = loadResource( SOUND_FILE );
@@ -108,7 +106,7 @@ void SpectrumTapTestApp::initContext()
 
 void SpectrumTapTestApp::setupUI()
 {
-	Rectf buttonRect( 0.0f, 0.0f, 200.0f, 38.0f );
+	Rectf buttonRect( 0.0f, 0.0f, 200.0f, mSpectroMargin - 2.0f );
 	float padding = 10.0f;
 	mEnableGraphButton.isToggle = true;
 	mEnableGraphButton.titleNormal = "graph off";
@@ -145,25 +143,24 @@ void SpectrumTapTestApp::setupUI()
 	mWidgets.push_back( &mScaleDecibelsButton );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
-	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
-	getWindow()->getSignalTouchesMoved().connect( [this] ( TouchEvent &event ) {
-		for( const TouchEvent::Touch &touch : getActiveTouches() )
-			processDrag( touch.getPos() );
-	} );
 
 	gl::enableAlphaBlending();
 }
 
-void SpectrumTapTestApp::seek( size_t xPos )
+void SpectrumTapTestApp::printBinFreq( size_t xPos )
 {
-	size_t seek = mPlayerNode->getNumFrames() * xPos / getWindowWidth();
-	mPlayerNode->setReadPosition( seek );
-}
+	if( xPos < mSpectroMargin || xPos > getWindowWidth() - mSpectroMargin )
+		return;
 
-void SpectrumTapTestApp::processDrag( Vec2i pos )
-{
-	seek( pos.x );
+//	freq = bin * samplerate / sizeFft
+
+	size_t numBins = mSpectrumTap->getFftSize() / 2;
+	size_t spectroWidth = getWindowWidth() - mSpectroMargin * 2;
+	size_t bin = ( numBins * ( xPos - mSpectroMargin ) ) / spectroWidth;
+	float freq = bin * mContext->getSampleRate() / float( mSpectrumTap->getFftSize() );
+
+	LOG_V << "bin: " << bin << ", freq: " << freq << endl;
 }
 
 // TODO: currently makes sense to enable processor + tap together - consider making these enabled together.
@@ -181,7 +178,7 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 	else if( mScaleDecibelsButton.hitTest( pos ) )
 		mScaleDecibels = ! mScaleDecibels;
 	else
-		seek( pos.x );
+		printBinFreq( pos.x );
 }
 
 
@@ -226,12 +223,11 @@ void SpectrumTapTestApp::draw()
 
 	auto &mag = mSpectrumTap->getMagSpectrum();
 	size_t numBins = mag.size();
-	float margin = 40.0f;
 	float padding = 0.0f;
-	float binWidth = ( (float)getWindowWidth() - margin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins;
-	float binYScaler = ( (float)getWindowHeight() - margin * 2.0f );
+	float binWidth = ( (float)getWindowWidth() - mSpectroMargin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins;
+	float binYScaler = ( (float)getWindowHeight() - mSpectroMargin * 2.0f );
 
-	Rectf bin( margin, getWindowHeight() - margin, margin + binWidth, getWindowHeight() - margin );
+	Rectf bin( mSpectroMargin, getWindowHeight() - mSpectroMargin, mSpectroMargin + binWidth, getWindowHeight() - mSpectroMargin );
 	for( size_t i = 0; i < numBins; i++ ) {
 		float h = mag[i];
 		if( mScaleDecibels ) {
@@ -248,13 +244,13 @@ void SpectrumTapTestApp::draw()
 
 	// draw rect around spectrogram boundary
 	gl::color( Color::gray( 0.5 ) );
-	gl::drawStrokedRect( Rectf( margin, margin, getWindowWidth() - margin, getWindowHeight() - margin ) );
+	gl::drawStrokedRect( Rectf( mSpectroMargin, mSpectroMargin, getWindowWidth() - mSpectroMargin, getWindowHeight() - mSpectroMargin ) );
 
 	auto min = min_element( mag.begin(), mag.end() );
 	auto max = max_element( mag.begin(), mag.end() );
 
 	string info = string( "min: " ) + toString( *min ) + string( ", max: " ) + toString( *max );
-	gl::drawString( info, Vec2f( margin, getWindowHeight() - 30.0f ) );
+	gl::drawString( info, Vec2f( mSpectroMargin, getWindowHeight() - 30.0f ) );
 
 	drawWidgets( mWidgets );
 }

@@ -110,8 +110,7 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 		auto &real = mFft->getReal();
 		auto &imag = mFft->getImag();
 
-		// Blow away the packed nyquist component.
-		// TODO: verify where I copied this from... is it vDSP specific?
+		// remove nyquist component.
 		imag[0] = 0.0f;
 
 		// compute normalized magnitude spectrum

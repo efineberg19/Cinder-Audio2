@@ -41,6 +41,8 @@ public:
 	void setWindowingEnabled( bool b = true )	{ mApplyWindow = b; }
 	bool isWindowingEnabled() const				{ return mApplyWindow; }
 
+	size_t getFftSize() const	{ return mFftSize; }
+
 private:
 
 	void copyToInternalBuffer( audio2::Buffer *buffer );
