@@ -13,11 +13,12 @@
 #include <Accelerate/Accelerate.h>
 
 //#define SOUND_FILE "tone440.wav"
-#define SOUND_FILE "tone440L220R.wav"
+//#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
-//#define SOUND_FILE "cash_satisfied_mind.mp3"
+#define SOUND_FILE "cash_satisfied_mind.mp3"
 
-// TODO: make fft params runtime settable
+#define FFT_SIZE 2048
+#define WINDOW_SIZE 1024
 
 using namespace ci;
 using namespace ci::app;
@@ -36,6 +37,7 @@ class SpectrumTapTestApp : public AppNative {
 	void initContext();
 	void setupUI();
 	void processTap( Vec2i pos );
+	void processDrag( Vec2i pos );
 	void printBinFreq( size_t xPos );
 
 	ContextRef mContext;
@@ -45,6 +47,7 @@ class SpectrumTapTestApp : public AppNative {
 
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mPlaybackButton, mLoopButton, mApplyWindowButton, mScaleDecibelsButton;
+	HSlider mSmoothingFactorSlider;
 	bool mScaleDecibels;
 	float mSpectroMargin;
 };
@@ -72,11 +75,7 @@ void SpectrumTapTestApp::setup()
 
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
-
-//	mSpectrumTap = make_shared<SpectrumTapNode>();
-	mSpectrumTap = make_shared<SpectrumTapNode>( 2048, 1024 );
-//	mSpectrumTap = make_shared<SpectrumTapNode>( 1024, 512 );
-//	mSpectrumTap = make_shared<SpectrumTapNode>( 1024 );
+	mSpectrumTap = make_shared<SpectrumTapNode>( FFT_SIZE, WINDOW_SIZE );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
@@ -142,8 +141,23 @@ void SpectrumTapTestApp::setupUI()
 	mScaleDecibelsButton.bounds = buttonRect;
 	mWidgets.push_back( &mScaleDecibelsButton );
 
+	Vec2f sliderSize( 200.0f, 30.0f );
+	Rectf sliderRect( getWindowWidth() - sliderSize.x - mSpectroMargin, buttonRect.y2 + padding, getWindowWidth() - mSpectroMargin, buttonRect.y2 + padding + sliderSize.y );
+	mSmoothingFactorSlider.bounds = sliderRect;
+	mSmoothingFactorSlider.title = "Smoothing";
+	mSmoothingFactorSlider.min = 0.0f;
+	mSmoothingFactorSlider.max = 1.0f;
+	mSmoothingFactorSlider.set( mSpectrumTap->getSmoothingFactor() );
+	mWidgets.push_back( &mSmoothingFactorSlider );
+
+
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
+	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
+	getWindow()->getSignalTouchesMoved().connect( [this] ( TouchEvent &event ) {
+		for( const TouchEvent::Touch &touch : getActiveTouches() )
+			processDrag( touch.getPos() );
+	} );
 
 	gl::enableAlphaBlending();
 }
@@ -181,6 +195,11 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 		printBinFreq( pos.x );
 }
 
+void SpectrumTapTestApp::processDrag( Vec2i pos )
+{
+	if( mSmoothingFactorSlider.hitTest( pos ) )
+		mSpectrumTap->setSmoothingFactor( mSmoothingFactorSlider.valueScaled );
+}
 
 void SpectrumTapTestApp::fileDrop( FileDropEvent event )
 {

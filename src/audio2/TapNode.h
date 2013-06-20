@@ -43,6 +43,9 @@ public:
 
 	size_t getFftSize() const	{ return mFftSize; }
 
+	float getSmoothingFactor() const	{ return mSmoothingFactor; }
+	void setSmoothingFactor( float factor );
+
 private:
 
 	void copyToInternalBuffer( audio2::Buffer *buffer );
@@ -55,6 +58,7 @@ private:
 	std::atomic<bool> mApplyWindow;
 	std::atomic<size_t> mNumFramesCopied;
 	size_t mWindowSize, mFftSize;
+	float mSmoothingFactor;
 };
 
 } // namespace audio2

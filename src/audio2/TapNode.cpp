@@ -64,7 +64,7 @@ void TapNode::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize )
-: mFftSize( fftSize ), mWindowSize( windowSize ), mNumFramesCopied( 0 ), mApplyWindow( true )
+: mFftSize( fftSize ), mWindowSize( windowSize ), mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
 {
 	mTag = "SpectrumTapNode";
 }
@@ -114,11 +114,10 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 		imag[0] = 0.0f;
 
 		// compute normalized magnitude spectrum
-		// TODO: try using vDSP_zvabs for this
 		const float kMagScale = 1.0f / mFft->getSize();
 		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
 			complex<float> c( real[i], imag[i] );
-			mMagSpectrum[i] = abs( c ) * kMagScale;
+			mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + abs( c ) * kMagScale * ( 1.0f - mSmoothingFactor );
 		}
 		mNumFramesCopied = 0;
 		mBuffer.zero();
@@ -168,6 +167,11 @@ void SpectrumTapNode::applyWindow()
 		double window = a0 - a1 * cos( 2.0 * M_PI * x ) + a2 * cos( 4.0 * M_PI * x );
 		mBuffer[i] *= float(window);
 	}
+}
+
+void SpectrumTapNode::setSmoothingFactor( float factor )
+{
+	mSmoothingFactor = ( factor < 0.0f ) ? 0.0f : ( ( factor > 1.0f ) ? 1.0f : factor );
 }
 
 
