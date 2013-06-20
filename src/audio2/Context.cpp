@@ -42,6 +42,9 @@ NodeRef Node::connect( NodeRef dest, size_t bus )
 
 void Node::disconnect( size_t bus )
 {
+	if( mEnabled )
+		stop();
+	
 	auto& sources = getParent()->getSources();
 	if( bus < sources.size() )
 		sources[bus].reset();
@@ -57,6 +60,8 @@ void Node::setSource( NodeRef source )
 // TODO: figure out how to best handle node replacements
 void Node::setSource( NodeRef source, size_t bus )
 {
+	CI_ASSERT( source != shared_from_this() );
+	
 	if( bus > mSources.size() )
 		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mSources.size() ) + ")" );
 //	if( sources[bus] )
