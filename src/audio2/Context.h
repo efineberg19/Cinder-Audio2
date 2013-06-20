@@ -43,8 +43,7 @@ class Node : public std::enable_shared_from_this<Node> {
 		const Buffer::Format& getBufferFormat() const { return mBufferFormat; }
 		void	setBufferFormat( const Buffer::Format& format )	{ mBufferFormat = format; }
 
-		//! controls whether the graph automatically enables / disables this Node
-		// TODO: rename isEnabledByGraph / setEnabledByGraph
+		//! controls whether the owning Context automatically enables / disables this Node
 		bool	isAutoEnabled() const				{ return mAutoEnabled; }
 		void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
 
@@ -62,6 +61,8 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual NodeRef connect( NodeRef dest );
 	virtual NodeRef connect( NodeRef dest, size_t bus );
+
+	virtual void disconnect( size_t bus = 0 );
 
 	virtual void setSource( NodeRef source );
 	virtual void setSource( NodeRef source, size_t bus );

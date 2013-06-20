@@ -40,6 +40,15 @@ NodeRef Node::connect( NodeRef dest, size_t bus )
 	return dest;
 }
 
+void Node::disconnect( size_t bus )
+{
+	auto& sources = getParent()->getSources();
+	if( bus < sources.size() )
+		sources[bus].reset();
+
+	mParent.reset();
+}
+
 void Node::setSource( NodeRef source )
 {
 	setSource( source, 0 );
