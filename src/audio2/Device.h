@@ -11,6 +11,10 @@ class Device {
   public:
 	static DeviceRef getDefaultOutput();
 	static DeviceRef getDefaultInput();
+	static DeviceRef findDeviceByName( const std::string &name );
+	static DeviceRef findDeviceByKey( const std::string &key );
+
+
 	static const std::vector<DeviceRef>& getDevices();
 	virtual ~Device() {}
 

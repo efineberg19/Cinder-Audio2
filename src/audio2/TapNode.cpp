@@ -6,6 +6,8 @@
 
 #include "cinder/CinderMath.h"
 
+#include <complex>
+
 using namespace std;
 using namespace ci;
 

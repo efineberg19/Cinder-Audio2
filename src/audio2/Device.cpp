@@ -29,6 +29,16 @@ DeviceRef Device::getDefaultInput()
 	return DeviceManager::instance()->getDefaultInput();
 }
 
+DeviceRef Device::findDeviceByName( const std::string &name )
+{
+	return DeviceManager::instance()->findDeviceByName( name );
+}
+
+DeviceRef Device::findDeviceByKey( const std::string &key )
+{
+	return DeviceManager::instance()->findDeviceByKey( key );
+}
+
 const std::vector<DeviceRef>& Device::getDevices()
 {
 	return DeviceManager::instance()->getDevices();
