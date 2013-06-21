@@ -57,7 +57,6 @@ void InputTestApp::setup()
 	logDevices( inputDevice, outputDevice );
 
 	mInput = Context::instance()->createInput( inputDevice );
-	mInput->start(); // this'll start the input whenever the Context rendering begins
 
 	//mInput->getFormat().setNumChannels( 1 );
 
