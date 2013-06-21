@@ -181,15 +181,12 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 		bool running = mContext->isEnabled();
 		mContext->uninitialize();
 
-		if( currentTest == "one" ) {
+		if( currentTest == "one" )
 			setupOne();
-		}
-		if( currentTest == "two" ) {
+		if( currentTest == "two" )
 			setupTwo();
-		}
-		if( currentTest == "native -> generic" ) {
+		if( currentTest == "native -> generic" )
 			setupNativeThenGeneric();
-		}
 		initContext();
 
 		if( running )

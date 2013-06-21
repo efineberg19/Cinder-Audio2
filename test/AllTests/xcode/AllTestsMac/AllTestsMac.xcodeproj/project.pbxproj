@@ -582,6 +582,7 @@
 				142A88241774DD7400CCC8B6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

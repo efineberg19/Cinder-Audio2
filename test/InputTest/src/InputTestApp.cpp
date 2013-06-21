@@ -28,11 +28,13 @@ class InputTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void logDevices( DeviceRef input, DeviceRef output );
 	void initGraph();
 
 	void setupUI();
 	void processTap( Vec2i pos );
+
+	void setupDefaultDevices();
+	void setupDedicatedDevice();
 
 	void setupPassThrough();
 	void setupInProcessOut();
@@ -51,22 +53,54 @@ void InputTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
 
-	DeviceRef inputDevice = Device::getDefaultInput();
-	DeviceRef outputDevice = Device::getDefaultOutput();
+	LOG_V << "all devices: " << endl;
+	printDevices();
 
-	logDevices( inputDevice, outputDevice );
+//	setupDefaultDevices();
+	setupDedicatedDevice();
 
-	mInput = Context::instance()->createInput( inputDevice );
 
+	// TODO: add this as a test control
 	//mInput->getFormat().setNumChannels( 1 );
-
-	auto output = Context::instance()->createOutput( outputDevice );
-	mContext->setRoot( output );
 
 	setupInTapOut();
 
 	initGraph();
 	setupUI();
+}
+
+void InputTestApp::setupDefaultDevices()
+{
+	mInput = Context::instance()->createInput();
+	auto output = Context::instance()->createOutput();
+	mContext->setRoot( output );
+
+	LOG_V << "input device name: " << mInput->getDevice()->getName() << endl;
+	console() << "\t channels: " << mInput->getDevice()->getNumInputChannels() << endl;
+	console() << "\t samplerate: " << mInput->getDevice()->getSampleRate() << endl;
+	console() << "\t block size: " << mInput->getDevice()->getNumFramesPerBlock() << endl;
+
+	LOG_V << "output device name: " << output->getDevice()->getName() << endl;
+	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
+	console() << "\t samplerate: " << output->getDevice()->getSampleRate() << endl;
+	console() << "\t block size: " << output->getDevice()->getNumFramesPerBlock() << endl;
+
+	LOG_V << "input == output: " << boolalpha << ( mInput->getDevice() == output->getDevice() ) << dec << endl;
+}
+
+void InputTestApp::setupDedicatedDevice()
+{
+	DeviceRef device = Device::findDeviceByName( "PreSonus FIREPOD (1431)" );
+	CI_ASSERT( device );
+
+	mInput = Context::instance()->createInput( device );
+	auto output = Context::instance()->createOutput( device );
+	mContext->setRoot( output );
+
+	LOG_V << "shared device name: " << output->getDevice()->getName() << endl;
+	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
+	console() << "\t samplerate: " << output->getDevice()->getSampleRate() << endl;
+	console() << "\t block size: " << output->getDevice()->getNumFramesPerBlock() << endl;
 }
 
 void InputTestApp::setupPassThrough()
@@ -91,24 +125,6 @@ void InputTestApp::setupInTapProcessOut()
 	mTap = make_shared<TapNode>();
 	auto ringMod = make_shared<RingMod>();
 	mInput->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
-}
-
-void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
-{
-	LOG_V << "all devices: " << endl;
-	printDevices();
-
-	LOG_V << "input device name: " << i->getName() << endl;
-	console() << "\t channels: " << i->getNumInputChannels() << endl;
-	console() << "\t samplerate: " << i->getSampleRate() << endl;
-	console() << "\t block size: " << i->getNumFramesPerBlock() << endl;
-
-	LOG_V << "output device name: " << o->getName() << endl;
-	console() << "\t channels: " << o->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << o->getSampleRate() << endl;
-	console() << "\t block size: " << o->getNumFramesPerBlock() << endl;
-
-	LOG_V << "input == output: " << boolalpha << (i == o) << dec << endl;
 }
 
 void InputTestApp::initGraph()
