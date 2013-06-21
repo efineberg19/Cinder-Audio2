@@ -1,6 +1,7 @@
 #pragma once
 
 #include "audio2/Context.h"
+#include "audio2/Dsp.h"
 
 namespace audio2 {
 
@@ -30,7 +31,7 @@ private:
 class SpectrumTapNode : public Node {
 public:
 	//! If fftSize is not set, defaults to Context::getNumFramesPerBlock(). If window size is not set, defaults to fftSize
-	SpectrumTapNode( size_t fftSize = 0, size_t windowSize = 0 );
+	SpectrumTapNode( size_t fftSize = 0, size_t windowSize = 0, WindowType windowType = WindowType::BLACKMAN );
 	virtual ~SpectrumTapNode();
 	
 	virtual void initialize() override;
@@ -55,6 +56,7 @@ private:
 	std::atomic<bool> mApplyWindow;
 	std::atomic<size_t> mNumFramesCopied;
 	size_t mWindowSize, mFftSize;
+	WindowType mWindowType;
 	float mSmoothingFactor;
 };
 

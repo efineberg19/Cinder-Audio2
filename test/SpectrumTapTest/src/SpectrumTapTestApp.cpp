@@ -19,6 +19,7 @@
 
 #define FFT_SIZE 2048
 #define WINDOW_SIZE 1024
+#define WINDOW_TYPE WindowType::BLACKMAN
 
 using namespace ci;
 using namespace ci::app;
@@ -75,7 +76,7 @@ void SpectrumTapTestApp::setup()
 
 
 	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
-	mSpectrumTap = make_shared<SpectrumTapNode>( FFT_SIZE, WINDOW_SIZE );
+	mSpectrumTap = make_shared<SpectrumTapNode>( FFT_SIZE, WINDOW_SIZE, WINDOW_TYPE );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 

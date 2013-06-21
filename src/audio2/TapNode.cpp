@@ -1,7 +1,6 @@
 #include "audio2/TapNode.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/Fft.h"
-#include "audio2/Dsp.h"
 
 #include "audio2/Debug.h"
 
@@ -67,8 +66,8 @@ void TapNode::process( Buffer *buffer )
 // MARK: - SpectrumTapNode
 // ----------------------------------------------------------------------------------------------------
 
-SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize )
-: mFftSize( fftSize ), mWindowSize( windowSize ), mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
+SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize, WindowType windowType )
+: mFftSize( fftSize ), mWindowSize( windowSize ), mWindowType( windowType ), mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
 {
 	mTag = "SpectrumTapNode";
 }
@@ -97,7 +96,23 @@ void SpectrumTapNode::initialize()
 
 	mWindow = makeAlignedArray<float>( mWindowSize );
 
-	generateBlackmanWindow( mWindow.get(), mWindowSize );
+	switch ( mWindowType ) {
+		case WindowType::BLACKMAN:
+			generateBlackmanWindow( mWindow.get(), mWindowSize );
+			break;
+		case WindowType::HAMM:
+			generateHammWindow( mWindow.get(), mWindowSize );
+			break;
+		case WindowType::HANN:
+			generateHannWindow( mWindow.get(), mWindowSize );
+			break;
+		default:
+			// rect window, just fill with 1's
+			for( size_t i = 0; i < mWindowSize; i++ )
+				mWindow.get()[i] = 1.0f;
+			break;
+	}
+
 	LOG_V << "complete. fft size: " << mFftSize << ", window size: " << mWindowSize << endl;
 }
 

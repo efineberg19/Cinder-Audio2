@@ -98,4 +98,11 @@ void generateBlackmanWindow( float *window, size_t length );
 void generateHammWindow( float *window, size_t length );
 void generateHannWindow( float *window, size_t length );
 
+enum WindowType {
+	BLACKMAN,
+	HAMM,
+	HANN,
+	RECT		//! no window
+};
+
 } // namespace audio2
