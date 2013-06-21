@@ -1,7 +1,8 @@
 #include "audio2/cocoa/DeviceManagerCoreAudio.h"
 #include "audio2/cocoa/DeviceAudioUnit.h"
 #include "audio2/audio.h"
-#include "audio2/assert.h"
+
+#include "audio2/Debug.h"
 
 #include "cinder/cocoa/CinderCocoa.h"
 
@@ -27,7 +28,8 @@ DeviceRef DeviceManagerCoreAudio::getDefaultOutput()
 	UInt32 propertySize = sizeof( defaultOutputId );
 	::AudioObjectPropertyAddress propertyAddress = audioObjectProperty( kAudioHardwarePropertyDefaultOutputDevice );
 	audioObjectPropertyData( kAudioObjectSystemObject, propertyAddress, propertySize, &defaultOutputId );
-	return getDevice( DeviceManagerCoreAudio::keyForDeviceId( defaultOutputId ) );
+
+	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultOutputId ) );
 }
 
 DeviceRef DeviceManagerCoreAudio::getDefaultInput()
@@ -36,24 +38,49 @@ DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	UInt32 propertySize = sizeof( defaultInputId );
 	::AudioObjectPropertyAddress propertyAddress = audioObjectProperty( kAudioHardwarePropertyDefaultInputDevice );
 	audioObjectPropertyData( kAudioObjectSystemObject, propertyAddress, propertySize, &defaultInputId );
-	return getDevice( DeviceManagerCoreAudio::keyForDeviceId( defaultInputId ) );
+	
+	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultInputId ) );
+}
+
+DeviceRef DeviceManagerCoreAudio::findDeviceByName( const std::string &name )
+{
+	for( const auto& device : getDevices() ) {
+		if( device->getName() == name )
+			return device;
+	}
+
+	LOG_E << "unknown device name: " << name << endl;
+	return DeviceRef();
+}
+
+DeviceRef DeviceManagerCoreAudio::findDeviceByKey( const std::string &key )
+{
+	for( const auto& device : getDevices() ) {
+		if( device->getKey() == key )
+			return device;
+	}
+
+	LOG_E << "unknown device key: " << key << endl;
+	return DeviceRef();
 }
 
 void DeviceManagerCoreAudio::setActiveDevice( const string &key )
 {
-	::AudioDeviceID deviceId = kAudioObjectUnknown;
-	shared_ptr<DeviceAudioUnit> deviceAU;
-	for( const auto& deviceInfo : getDevices() ) {
-		if( deviceInfo.key == key ) {
-			deviceAU = dynamic_pointer_cast<DeviceAudioUnit>( deviceInfo.device );
-			deviceId = deviceInfo.deviceId;
-			break;
+	for( const auto& device : getDevices() ) {
+		if( device->getKey() == key ) {
+			auto deviceAU = dynamic_pointer_cast<DeviceAudioUnit>( device );
+			auto idIt = mDeviceIds.find( device );
+			CI_ASSERT( idIt != mDeviceIds.end() );
+
+			::AudioDeviceID deviceId = idIt->second;
+			OSStatus status = ::AudioUnitSetProperty( deviceAU->getComponentInstance(), kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
+			CI_ASSERT( status == noErr );
+
+			return;
 		}
 	}
-	CI_ASSERT( deviceAU );
 
-	OSStatus status = ::AudioUnitSetProperty( deviceAU->getComponentInstance(), kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
-	CI_ASSERT( status == noErr );
+	CI_ASSERT( 0 && "unreachable" );
 }
 
 std::string DeviceManagerCoreAudio::getName( const string &key )
@@ -100,26 +127,17 @@ size_t DeviceManagerCoreAudio::getNumFramesPerBlock( const string &key )
 // MARK: - Private
 // ----------------------------------------------------------------------------------------------------
 
-DeviceRef DeviceManagerCoreAudio::getDevice( const std::string &key )
-{
-	for( const auto& deviceInfo : getDevices() ) {
-		if( deviceInfo.key == key )
-			return deviceInfo.device;
-	}
-	throw AudioDeviceExc( string( "unknown key: " ) + key );
-}
-
 ::AudioDeviceID DeviceManagerCoreAudio::getDeviceId( const std::string &key )
 {
-	for( const auto& deviceInfo : getDevices() ) {
-		if( deviceInfo.key == key ) {
-			return deviceInfo.deviceId;
-		}
+	for( const auto& devicePair : mDeviceIds ) {
+		if( devicePair.first->getKey() == key )
+			return devicePair.second;
 	}
-	throw AudioDeviceExc( string( "unknown key: " ) + key );
+
+	CI_ASSERT( 0 && "unreachable" );
 }
 
-DeviceManagerCoreAudio::DeviceContainerT& DeviceManagerCoreAudio::getDevices()
+const std::vector<DeviceRef>& DeviceManagerCoreAudio::getDevices()
 {
 	if( mDevices.empty() ) {
 		vector<::AudioObjectID> deviceIds;
@@ -138,7 +156,8 @@ DeviceManagerCoreAudio::DeviceContainerT& DeviceManagerCoreAudio::getDevices()
 		for ( ::AudioDeviceID &deviceId : deviceIds ) {
 			string key = keyForDeviceId( deviceId );
 			auto device = DeviceRef( new DeviceAudioUnit( key, component ) );
-			mDevices.push_back( { key, deviceId, device } );
+			mDevices.push_back( device );
+			mDeviceIds.insert( { device, deviceId } );
 		}
 	}
 	return mDevices;

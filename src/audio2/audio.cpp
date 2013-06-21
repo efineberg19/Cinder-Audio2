@@ -1,4 +1,5 @@
 #include "audio2/audio.h"
+#include "audio2/Device.h"
 
 #include "cinder/app/App.h"
 
@@ -20,6 +21,17 @@ void printGraph( ContextRef graph )
 	};
 
 	printNode( graph->getRoot(), 0 );
+}
+
+void printDevices()
+{
+	for( auto &device : Device::getDevices() ) {
+		app::console() << "-- " << device->getName() << " --" << endl;
+		app::console() << "\t key: " << device->getKey() << endl;
+		app::console() << "\t inputs: " << device->getNumInputChannels() << ", outputs: " << device->getNumOutputChannels() << endl;
+		app::console() << "\t samplerate: " << device->getSampleRate() << ", frames per block: " << device->getNumFramesPerBlock() << endl;
+
+	}
 }
 
 } // namespace audio2

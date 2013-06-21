@@ -11,6 +11,7 @@ class Device {
   public:
 	static DeviceRef getDefaultOutput();
 	static DeviceRef getDefaultInput();
+	static const std::vector<DeviceRef>& getDevices();
 	virtual ~Device() {}
 
 	virtual void initialize() = 0;
@@ -39,6 +40,11 @@ class DeviceManager {
 	virtual DeviceRef getDefaultOutput() = 0;
 	virtual DeviceRef getDefaultInput() = 0;
 
+	virtual DeviceRef findDeviceByName( const std::string &name ) = 0;
+	virtual DeviceRef findDeviceByKey( const std::string &key ) = 0;
+
+	virtual const std::vector<DeviceRef>& getDevices() = 0;
+
 	virtual std::string getName( const std::string &key ) = 0;
 	virtual size_t getNumInputChannels( const std::string &key ) = 0;
 	virtual size_t getNumOutputChannels( const std::string &key ) = 0;
@@ -53,6 +59,8 @@ class DeviceManager {
 
 protected:
 	DeviceManager()	{}
+
+	std::vector<DeviceRef> mDevices;
 };
 
 } // namespace audio2

@@ -9,6 +9,7 @@
 namespace audio2 {
 
 void printGraph( ContextRef graph );
+void printDevices();
 
 class AudioExc : public ci::Exception {
 public:

@@ -3,16 +3,20 @@
 #include "audio2/Device.h"
 
 #include <CoreAudio/CoreAudio.h>
-#include <vector>
+#include <map>
 
 namespace audio2 { namespace cocoa {
 
 class DeviceManagerCoreAudio : public DeviceManager {
+public:
 
 	DeviceRef getDefaultOutput() override;
 	DeviceRef getDefaultInput() override;
 
-	DeviceRef getDevice( const std::string &key );
+	DeviceRef findDeviceByName( const std::string &name ) override;
+	DeviceRef findDeviceByKey( const std::string &key ) override;
+
+	const std::vector<DeviceRef>& getDevices() override;
 
 	std::string getName( const std::string &key ) override;
 	size_t getNumInputChannels( const std::string &key ) override;
@@ -24,19 +28,10 @@ class DeviceManagerCoreAudio : public DeviceManager {
 
   private:
 
+	::AudioDeviceID getDeviceId( const std::string &key );
 	static std::string keyForDeviceId( ::AudioObjectID deviceId );
 
-	struct DeviceInfo {
-		std::string			key;
-		::AudioDeviceID		deviceId;
-		DeviceRef			device;
-	};
-	typedef std::vector<DeviceInfo> DeviceContainerT;
-
-	::AudioDeviceID getDeviceId( const std::string &key );
-	DeviceContainerT& getDevices();
-
-	DeviceContainerT mDevices;
+	std::map<DeviceRef,::AudioDeviceID> mDeviceIds;
 };
 
 } } // audio2::cocoa

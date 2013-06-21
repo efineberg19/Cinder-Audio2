@@ -95,6 +95,9 @@ void InputTestApp::setupInTapProcessOut()
 
 void InputTestApp::logDevices( DeviceRef i, DeviceRef o )
 {
+	LOG_V << "all devices: " << endl;
+	printDevices();
+
 	LOG_V << "input device name: " << i->getName() << endl;
 	console() << "\t channels: " << i->getNumInputChannels() << endl;
 	console() << "\t samplerate: " << i->getSampleRate() << endl;
