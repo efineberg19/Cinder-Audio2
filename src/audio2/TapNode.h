@@ -50,7 +50,10 @@ public:
 private:
 	std::unique_ptr<Fft> mFft;
 	std::mutex mMutex;
-	audio2::Buffer mBuffer; // TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
+
+	// TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
+	// - but all 'TapNode's could use this - move it to base class?
+	audio2::Buffer mBuffer;
 	std::vector<float> mMagSpectrum;
 	AlignedArrayPtr mWindow;
 	std::atomic<bool> mApplyWindow;
