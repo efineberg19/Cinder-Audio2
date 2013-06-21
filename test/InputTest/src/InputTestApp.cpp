@@ -4,6 +4,7 @@
 #include "audio2/Context.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/EffectNode.h"
+#include "audio2/TapNode.h"
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 

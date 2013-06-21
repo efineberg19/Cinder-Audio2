@@ -16,6 +16,9 @@
 		11CF3CC91765403400C2DA62 /* ContextAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CC11765403400C2DA62 /* ContextAudioUnit.cpp */; };
 		11CF3CCA1765403400C2DA62 /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CC31765403400C2DA62 /* DeviceAudioUnit.cpp */; };
 		11CF3CCC1765403400C2DA62 /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CC71765403400C2DA62 /* DeviceManagerCoreAudio.cpp */; };
+		142A885A1774DED600CCC8B6 /* TapNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 142A88581774DED600CCC8B6 /* TapNode.cpp */; };
+		142A885C1774DEE000CCC8B6 /* Dsp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 142A885B1774DEE000CCC8B6 /* Dsp.cpp */; };
+		142A885F1774DEF200CCC8B6 /* Fft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 142A885D1774DEF200CCC8B6 /* Fft.cpp */; };
 		1485FD3E1768DFAE003BAECF /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1485FD3D1768DFAE003BAECF /* GeneratorNode.cpp */; };
 		177B0655EF0B4F298C53B202 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1A89F4E0C10941EEB856C672 /* CinderApp.icns */; };
 		41BE0490E3B045239BE8962F /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0A0CDEBD3A54619A74D5968 /* audio.cpp */; };
@@ -46,6 +49,11 @@
 		11D679E11759755500E96E0D /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dsp.h; path = ../../../src/audio2/Dsp.h; sourceTree = "<group>"; };
 		11D679E21759755500E96E0D /* EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffectNode.h; path = ../../../src/audio2/EffectNode.h; sourceTree = "<group>"; };
 		11D679E31759755500E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GeneratorNode.h; path = ../../../src/audio2/GeneratorNode.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		142A88581774DED600CCC8B6 /* TapNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TapNode.cpp; path = ../../../src/audio2/TapNode.cpp; sourceTree = "<group>"; };
+		142A88591774DED600CCC8B6 /* TapNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TapNode.h; path = ../../../src/audio2/TapNode.h; sourceTree = "<group>"; };
+		142A885B1774DEE000CCC8B6 /* Dsp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Dsp.cpp; path = ../../../src/audio2/Dsp.cpp; sourceTree = "<group>"; };
+		142A885D1774DEF200CCC8B6 /* Fft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fft.cpp; path = ../../../src/audio2/Fft.cpp; sourceTree = "<group>"; };
+		142A885E1774DEF200CCC8B6 /* Fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fft.h; path = ../../../src/audio2/Fft.h; sourceTree = "<group>"; };
 		143C2533176229570063DFDA /* Buffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Buffer.h; path = ../../../src/audio2/Buffer.h; sourceTree = "<group>"; };
 		1465A93ABECD437096A13581 /* assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = assert.h; path = ../../../src/audio2/assert.h; sourceTree = "<group>"; };
 		1485FD3D1768DFAE003BAECF /* GeneratorNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GeneratorNode.cpp; path = ../../../src/audio2/GeneratorNode.cpp; sourceTree = "<group>"; };
@@ -181,10 +189,15 @@
 			isa = PBXGroup;
 			children = (
 				9A8101F3A473433C9936B32D /* cocoa */,
+				142A885B1774DEE000CCC8B6 /* Dsp.cpp */,
 				11D679E11759755500E96E0D /* Dsp.h */,
 				11D679E21759755500E96E0D /* EffectNode.h */,
 				11D679E31759755500E96E0D /* GeneratorNode.h */,
 				1485FD3D1768DFAE003BAECF /* GeneratorNode.cpp */,
+				142A88581774DED600CCC8B6 /* TapNode.cpp */,
+				142A88591774DED600CCC8B6 /* TapNode.h */,
+				142A885D1774DEF200CCC8B6 /* Fft.cpp */,
+				142A885E1774DEF200CCC8B6 /* Fft.h */,
 				1465A93ABECD437096A13581 /* assert.h */,
 				C96F9E48DD834E118A4032B6 /* Atomic.h */,
 				C0A0CDEBD3A54619A74D5968 /* audio.cpp */,
@@ -295,15 +308,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				142A885F1774DEF200CCC8B6 /* Fft.cpp in Sources */,
 				CAA124FE1CB64D05B3B39D25 /* InputTestApp.cpp in Sources */,
 				41BE0490E3B045239BE8962F /* audio.cpp in Sources */,
 				9E32E7FB015F4B31AF52CC5D /* Device.cpp in Sources */,
 				A7A98ADD1F8143B2BF82E54A /* Util.cpp in Sources */,
+				142A885C1774DEE000CCC8B6 /* Dsp.cpp in Sources */,
 				11CF3CC01765402600C2DA62 /* Context.cpp in Sources */,
 				11CF3CC91765403400C2DA62 /* ContextAudioUnit.cpp in Sources */,
 				11CF3CCA1765403400C2DA62 /* DeviceAudioUnit.cpp in Sources */,
 				1485FD3E1768DFAE003BAECF /* GeneratorNode.cpp in Sources */,
 				11CF3CCC1765403400C2DA62 /* DeviceManagerCoreAudio.cpp in Sources */,
+				142A885A1774DED600CCC8B6 /* TapNode.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
