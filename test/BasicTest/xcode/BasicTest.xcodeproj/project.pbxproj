@@ -19,6 +19,7 @@
 		11CF3C8E1762ABBB00C2DA62 /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3C871762ABBB00C2DA62 /* DeviceAudioUnit.cpp */; };
 		11CF3C901762ABBB00C2DA62 /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3C8B1762ABBB00C2DA62 /* DeviceManagerCoreAudio.cpp */; };
 		11D097F11766D7E4008464AD /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11D097F01766D7E4008464AD /* GeneratorNode.cpp */; };
+		142A879B1774D89200CCC8B6 /* TapNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 142A87991774D89200CCC8B6 /* TapNode.cpp */; };
 		148AFBDE172AE6C80066D8BE /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 148AFBDC172AE6C80066D8BE /* audio.cpp */; };
 		45E73D08F7D14B79939BB7DC /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 4C25C7997E6A487FA19C5DC0 /* CinderApp.icns */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
@@ -57,6 +58,8 @@
 		11D679DB175970A700E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeneratorNode.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		11EFFBB01732183E009EF46B /* Atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
 		128572BBFD5C4118B6B34756 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
+		142A87991774D89200CCC8B6 /* TapNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TapNode.cpp; sourceTree = "<group>"; };
+		142A879A1774D89200CCC8B6 /* TapNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TapNode.h; sourceTree = "<group>"; };
 		14485524173D51C500C27AD5 /* RingBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
 		148AFBDC172AE6C80066D8BE /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		148AFBDD172AE6C80066D8BE /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
@@ -150,6 +153,8 @@
 				11D679DA175970A700E96E0D /* EffectNode.h */,
 				11D679DB175970A700E96E0D /* GeneratorNode.h */,
 				11D097F01766D7E4008464AD /* GeneratorNode.cpp */,
+				142A87991774D89200CCC8B6 /* TapNode.cpp */,
+				142A879A1774D89200CCC8B6 /* TapNode.h */,
 				14485524173D51C500C27AD5 /* RingBuffer.h */,
 			);
 			name = audio2;
@@ -247,6 +252,8 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "BasicTest" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
@@ -291,6 +298,7 @@
 				11CF3C8E1762ABBB00C2DA62 /* DeviceAudioUnit.cpp in Sources */,
 				11D097F11766D7E4008464AD /* GeneratorNode.cpp in Sources */,
 				11CF3C901762ABBB00C2DA62 /* DeviceManagerCoreAudio.cpp in Sources */,
+				142A879B1774D89200CCC8B6 /* TapNode.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -28,7 +28,7 @@ class RingBuffer;
 
 class GeneratorNode : public Node {
 public:
-	GeneratorNode();
+	GeneratorNode( const Format &format = Format() );
 	virtual ~GeneratorNode() {}
 
 private:
@@ -39,7 +39,7 @@ private:
 
 class InputNode : public GeneratorNode {
 public:
-	InputNode( DeviceRef device ) : GeneratorNode() {
+	InputNode( DeviceRef device, const Format &format = Node::Format() ) : GeneratorNode( format ) {
 		setAutoEnabled();
 	}
 	virtual ~InputNode() {}
@@ -53,7 +53,7 @@ public:
 //! \see FilePlayerNode
 class PlayerNode : public GeneratorNode {
 public:
-	PlayerNode() : GeneratorNode(), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) { mTag = "PlayerNode"; }
+	PlayerNode( const Format &format = Format() ) : GeneratorNode( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) { mTag = "PlayerNode"; }
 	virtual ~PlayerNode() {}
 
 	virtual void setReadPosition( size_t pos )	{ mReadPos = pos; }
@@ -72,8 +72,8 @@ protected:
 
 class BufferPlayerNode : public PlayerNode {
 public:
-	BufferPlayerNode() : PlayerNode() { mTag = "BufferPlayerNode"; }
-	BufferPlayerNode( BufferRef buffer );
+	BufferPlayerNode( const Format &format = Format() ) : PlayerNode( format ) { mTag = "BufferPlayerNode"; }
+	BufferPlayerNode( BufferRef buffer, const Format &format = Format() );
 	virtual ~BufferPlayerNode() {}
 
 	virtual void start() override;
@@ -89,8 +89,8 @@ protected:
 // TODO: use a thread pool to keep the overrall number of read threads to a minimum.
 class FilePlayerNode : public PlayerNode {
 public:
-	FilePlayerNode();
-	FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded = true );
+	FilePlayerNode( const Format &format = Format() );
+	FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
 	virtual ~FilePlayerNode();
 
 	void initialize() override;
@@ -126,7 +126,7 @@ public:
 
 template <typename UGenT>
 struct UGenNode : public GeneratorNode {
-	UGenNode() : GeneratorNode() {
+	UGenNode( const Format &format = Format() ) : GeneratorNode( format ) {
 		mTag = "UGenNode";
 	}
 

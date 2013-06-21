@@ -17,7 +17,7 @@ struct RenderContext {
 	Buffer buffer;
 };
 
-	// TODO: rename to NodeAudioUnit for consistency
+// TODO: rename to NodeAudioUnit for consistency
 class AudioUnitNode {
   public:
 	AudioUnitNode() : mAudioUnit( nullptr ), mRenderBus( 0 ), mShouldUseGraphRenderCallback( true )	{}
@@ -34,7 +34,7 @@ class AudioUnitNode {
 
 class OutputAudioUnit : public OutputNode, public AudioUnitNode {
   public:
-	OutputAudioUnit( DeviceRef device );
+	OutputAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~OutputAudioUnit() = default;
 
 	void initialize() override;
@@ -52,7 +52,7 @@ class OutputAudioUnit : public OutputNode, public AudioUnitNode {
 
 class InputAudioUnit : public InputNode, public AudioUnitNode {
   public:
-	InputAudioUnit( DeviceRef device );
+	InputAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~InputAudioUnit();
 
 	void initialize() override;
@@ -77,7 +77,7 @@ class InputAudioUnit : public InputNode, public AudioUnitNode {
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used
 class EffectAudioUnit : public EffectNode, public AudioUnitNode {
   public:
-	EffectAudioUnit( UInt32 subType );
+	EffectAudioUnit( UInt32 subType, const Format &format = Format() );
 	virtual ~EffectAudioUnit();
 
 	void initialize() override;
@@ -91,7 +91,7 @@ class EffectAudioUnit : public EffectNode, public AudioUnitNode {
 
 class MixerAudioUnit : public MixerNode, public AudioUnitNode {
   public:
-	MixerAudioUnit();
+	MixerAudioUnit( const Format &format = Format() );
 	virtual ~MixerAudioUnit();
 
 	void initialize() override;

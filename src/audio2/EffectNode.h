@@ -9,18 +9,14 @@ namespace audio2 {
 
 	class EffectNode : public Node {
 	public:
-		EffectNode() : Node() {
+		EffectNode( const Format &format = Format() ) : Node( format ) {
 			setAutoEnabled();
 		}
 		virtual ~EffectNode() {}
 	};
 
 	struct RingMod : public EffectNode {
-		RingMod()
-			: mSineGen( 440.0f, 1.0f )	{
-				mTag = "RingMod";
-				setBufferFormat( Buffer::Format::NonInterleaved );
-		}
+		RingMod( const Format &format = Format() ) : EffectNode( format ), mSineGen( 440.0f, 1.0f )	{ mTag = "RingMod"; }
 
 		virtual void initialize() override {
 			mSineGen.setSampleRate( getContext()->getSampleRate() );

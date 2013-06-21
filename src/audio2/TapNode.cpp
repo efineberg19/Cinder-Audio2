@@ -15,8 +15,8 @@ namespace audio2 {
 // MARK: - TapNode
 // ----------------------------------------------------------------------------------------------------
 
-TapNode::TapNode( size_t numBufferedFrames )
-: Node(), mNumBufferedFrames( numBufferedFrames )
+TapNode::TapNode( size_t numBufferedFrames, const Format &format )
+: Node( format ), mNumBufferedFrames( numBufferedFrames )
 {
 	mTag = "BufferTap";
 	setAutoEnabled();
@@ -30,7 +30,7 @@ TapNode::~TapNode()
 // - methinks it requires all nodes to be able to keep a blocksize
 void TapNode::initialize()
 {
-	mCopiedBuffer = Buffer( getNumChannels(), mNumBufferedFrames, Buffer::Format::NonInterleaved );
+	mCopiedBuffer = Buffer( getNumChannels(), mNumBufferedFrames );
 	for( size_t ch = 0; ch < getNumChannels(); ch++ )
 		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mNumBufferedFrames ) ) );
 
@@ -66,8 +66,9 @@ void TapNode::process( Buffer *buffer )
 // MARK: - SpectrumTapNode
 // ----------------------------------------------------------------------------------------------------
 
-SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize, WindowType windowType )
-: mFftSize( fftSize ), mWindowSize( windowSize ), mWindowType( windowType ), mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
+SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize, WindowType windowType, const Format &format )
+: Node( format ), mFftSize( fftSize ), mWindowSize( windowSize ), mWindowType( windowType ),
+	mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
 {
 	mTag = "SpectrumTapNode";
 }

@@ -33,10 +33,10 @@ template <typename T>
 class BufferT {
 public:
 	typedef T SampleType;
-	enum Format { Interleaved, NonInterleaved }; // TODO: remove this and use a bool isInterleaved (default = false)
+	enum Layout { Interleaved, NonInterleaved };
 
-	BufferT( size_t numChannels = 0, size_t numFrames = 0, Format initialFormat = Format::NonInterleaved )
-	: mNumChannels( numChannels ), mNumFrames( numFrames ), mFormat( initialFormat ), mSilent( true )
+	BufferT( size_t numChannels = 0, size_t numFrames = 0, Layout layout = Layout::NonInterleaved )
+	: mNumChannels( numChannels ), mNumFrames( numFrames ), mLayout( layout ), mSilent( true )
 	{
 		mData.resize( numChannels * numFrames );
 	}
@@ -46,13 +46,13 @@ public:
 	// - if interleaved, return null.
 	//		- afb suggestion: variant called getChannelIter - result knows how to iterate over interleaved samples 
 	T* getChannel( size_t ch ) {
-		CI_ASSERT( mFormat == NonInterleaved );
+		CI_ASSERT( mLayout == NonInterleaved );
 		CI_ASSERT( ch < mNumChannels );
 		return &mData[ch * mNumFrames];
 	}
 
 	const T* getChannel( size_t ch ) const {
-		CI_ASSERT( mFormat == NonInterleaved );
+		CI_ASSERT( mLayout == NonInterleaved );
 		CI_ASSERT( ch < mNumChannels );
 		return &mData[ch * mNumFrames];
 	}
@@ -63,7 +63,7 @@ public:
 	
 	void zero( size_t startFrame, size_t numFrames ) {
 		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-		if( mFormat == Interleaved )
+		if( mLayout == Interleaved )
 			std::memset( &mData[startFrame * mNumChannels], 0, numFrames * mNumChannels * sizeof( T ) );
 		else {
 			for( size_t ch = 0; ch < mNumChannels; ch++ )
@@ -77,13 +77,6 @@ public:
 
 	void setSilent( bool b = true )	{ mSilent = b; }
 	bool isSilent() const			{ return mSilent; }
-
-//	void asFormat( Format fmt ) {
-//		if( fmt == NonInterleaved && mFormat == Interleaved )
-//			deinterleaveInplacePow2( mData.data(), mData.size() );
-//		else if( fmt == Interleaved && mFormat == NonInterleaved )
-//			CI_ASSERT( false ); // TODO: interleave
-//	}
 
 	T* getData() { return mData.data(); }
 
@@ -101,7 +94,7 @@ protected:
 	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
 	bool mSilent;
-	Format mFormat;
+	Layout mLayout;
 };
 
 //! DynamicBufferT is a resizable BufferT

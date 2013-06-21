@@ -26,6 +26,21 @@ class Node : public std::enable_shared_from_this<Node> {
   public:
 	virtual ~Node();
 
+	struct Format {
+		Format& channels( size_t ch )							{ mChannels = ch; return *this; }
+		Format& wantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; return *this; }
+		Format& bufferLayout( const Buffer::Layout &layout )	{ mBufferLayout = layout; return *this; }
+
+		size_t	getChannels() const								{ return mChannels; }
+		const	Buffer::Layout& getBufferLayout() const			{ return mBufferLayout; }
+		bool	wantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
+
+	  private:
+		size_t mChannels;
+		bool mWantsDefaultFormatFromParent;
+		Buffer::Layout mBufferLayout;
+	};
+
 	virtual void initialize()	{ mInitialized = true; }
 	virtual void uninitialize()	{ mInitialized = false; }
 	virtual void start()		{ mEnabled = true; }
@@ -40,15 +55,15 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void setSource( NodeRef source, size_t bus );
 
 	size_t	getNumChannels() const	{ return mNumChannels; }
-	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
+//	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
 
 	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
+	bool	wantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
 
-	bool	wantsDefaultFormatFromParent() const	{ return mWantsDefaultFormatFromParent; }
+	// TODO: remove this, set via Format
 	void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
 
-	const Buffer::Format& getBufferFormat() const { return mBufferFormat; }
-	void	setBufferFormat( const Buffer::Format& format )	{ mBufferFormat = format; }
+	const Buffer::Layout& getBufferLayout() const { return mBufferLayout; }
 
 	//! controls whether the owning Context automatically enables / disables this Node
 	bool	isAutoEnabled() const				{ return mAutoEnabled; }
@@ -80,7 +95,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	void setEnabled( bool b = true );
 
   protected:
-	Node();
+	Node( const Format &format );
 
 	//! If required Format properties are missing, fill in from \a otherFormat
 	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
@@ -95,7 +110,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	size_t mNumChannels;
 	bool mWantsDefaultFormatFromParent, mNumChannelsUnspecified;
 	bool mAutoEnabled;
-	Buffer::Format			mBufferFormat;
+	Buffer::Layout			mBufferLayout;
 
 
   private:
@@ -105,7 +120,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
 class RootNode : public Node {
   public:
-	RootNode() : Node() {}
+	RootNode( const Format &format = Format() ) : Node( format ) {}
 	virtual ~RootNode() {}
 
 	// TODO: need to decide where user sets the samplerate / blocksize - on RootNode or Context?
@@ -124,7 +139,7 @@ class OutputNode : public RootNode {
   public:
 
 	// ???: device param here necessary?
-	OutputNode( DeviceRef device ) : RootNode() {
+	OutputNode( DeviceRef device, const Format &format = Format() ) : RootNode( format ) {
 		setAutoEnabled();
 	}
 	virtual ~OutputNode() {}
@@ -145,7 +160,7 @@ class OutputNode : public RootNode {
 
 class MixerNode : public Node {
   public:
-	MixerNode() : Node(), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
+	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
 
 	using Node::setSource;

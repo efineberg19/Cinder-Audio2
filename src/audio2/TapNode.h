@@ -13,7 +13,7 @@ typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
 
 class TapNode : public Node {
 public:
-	TapNode( size_t numBufferedFrames = 1024 );
+	TapNode( size_t numBufferedFrames = 1024, const Format &format = Format() );
 	virtual ~TapNode();
 
 	const float* getChannel( size_t ch = 0 );
@@ -31,7 +31,7 @@ private:
 class SpectrumTapNode : public Node {
 public:
 	//! If fftSize is not set, defaults to Context::getNumFramesPerBlock(). If window size is not set, defaults to fftSize
-	SpectrumTapNode( size_t fftSize = 0, size_t windowSize = 0, WindowType windowType = WindowType::BLACKMAN );
+	SpectrumTapNode( size_t fftSize = 0, size_t windowSize = 0, WindowType windowType = WindowType::BLACKMAN, const Format &format = Format() );
 	virtual ~SpectrumTapNode();
 	
 	virtual void initialize() override;

@@ -17,10 +17,11 @@ using namespace std;
 
 namespace audio2 {
 
-Node::Node()
-: mInitialized( false ), mEnabled( false ), mNumChannels( 0 ), mSources( 1 ), mWantsDefaultFormatFromParent( false ),
-	mNumChannelsUnspecified( true ), mBufferFormat( Buffer::Format::NonInterleaved ), mAutoEnabled( false )
+Node::Node( const Format &format )
+: mInitialized( false ), mEnabled( false ), mSources( 1 ), mWantsDefaultFormatFromParent( false ),
+	mNumChannels( format.getChannels() ), mBufferLayout( format.getBufferLayout() ), mAutoEnabled( false )
 {
+	mNumChannelsUnspecified = ! format.getChannels();
 }
 
 Node::~Node()

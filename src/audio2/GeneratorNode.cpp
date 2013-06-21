@@ -13,7 +13,7 @@ namespace audio2 {
 // MARK: - GeneratorNode
 // ----------------------------------------------------------------------------------------------------
 
-GeneratorNode::GeneratorNode() : Node()
+GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
 {
 	mSources.clear();
 	setWantsDefaultFormatFromParent();
@@ -23,12 +23,16 @@ GeneratorNode::GeneratorNode() : Node()
 // MARK: - BufferPlayerNode
 // ----------------------------------------------------------------------------------------------------
 
-BufferPlayerNode::BufferPlayerNode( BufferRef buffer )
-: PlayerNode(), mBuffer( buffer )
+BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
+: PlayerNode( format ), mBuffer( buffer )
 {
 	mTag = "BufferPlayerNode";
 	mNumFrames = mBuffer->getNumFrames();
-	setNumChannels( mBuffer->getNumChannels() );
+
+	if( mNumChannelsUnspecified ) {
+		mNumChannels = mBuffer->getNumChannels();
+		mNumChannelsUnspecified = false;
+	}
 }
 
 void BufferPlayerNode::start()
@@ -75,8 +79,8 @@ void BufferPlayerNode::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 
-FilePlayerNode::FilePlayerNode()
-: PlayerNode(), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+FilePlayerNode::FilePlayerNode( const Format &format )
+: PlayerNode( format ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
 }
 
@@ -84,8 +88,8 @@ FilePlayerNode::~FilePlayerNode()
 {
 }
 
-FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded )
-: PlayerNode(), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded, const Format &format )
+: PlayerNode( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
 	mTag = "FilePlayerNode";
 	mNumFrames = mSourceFile->getNumFrames();

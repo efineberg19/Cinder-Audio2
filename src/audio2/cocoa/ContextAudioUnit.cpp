@@ -75,8 +75,8 @@ AudioUnitNode::~AudioUnitNode()
 // MARK: - OutputAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-OutputAudioUnit::OutputAudioUnit( DeviceRef device )
-: OutputNode( device )
+OutputAudioUnit::OutputAudioUnit( DeviceRef device, const Format &format )
+: OutputNode( device, format )
 {
 	mTag = "OutputAudioUnit";
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
@@ -85,8 +85,10 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device )
 	// RootNode gets a special callback
 	mShouldUseGraphRenderCallback = false;
 
-	setNumChannels( 2 );
-
+	if( mNumChannelsUnspecified ) {
+		mNumChannels = 2;
+		mNumChannelsUnspecified = false;
+	}
 
 	CI_ASSERT( ! mDevice->isOutputConnected() );
 	mDevice->setOutputConnected();
@@ -144,8 +146,8 @@ DeviceRef OutputAudioUnit::getDevice()
 //	- only way I can think of to solve this is to keep a weak reference to Graph in both I and O units,
 //	  check graph->output->device in initialize to see if it's the same
 
-InputAudioUnit::InputAudioUnit( DeviceRef device )
-: InputNode( device )
+InputAudioUnit::InputAudioUnit( DeviceRef device, const Format &format )
+: InputNode( device, format )
 {
 	mTag = "InputAudioUnit";
 	mRenderBus = DeviceAudioUnit::Bus::Input;
@@ -153,7 +155,10 @@ InputAudioUnit::InputAudioUnit( DeviceRef device )
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
-	setNumChannels( 2 );
+	if( mNumChannelsUnspecified ) {
+		mNumChannels = 2;
+		mNumChannelsUnspecified = false;
+	}
 
 	CI_ASSERT( ! mDevice->isInputConnected() );
 	mDevice->setInputConnected();
@@ -262,8 +267,8 @@ OSStatus InputAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags
 // MARK: - EffectAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-EffectAudioUnit::EffectAudioUnit(  UInt32 effectSubType )
-: mEffectSubType( effectSubType )
+EffectAudioUnit::EffectAudioUnit(  UInt32 effectSubType, const Format &format )
+: EffectNode( format ), mEffectSubType( effectSubType )
 {
 	mTag = "EffectAudioUnit";
 }
@@ -311,7 +316,8 @@ void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 // MARK: - MixerAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-MixerAudioUnit::MixerAudioUnit()
+MixerAudioUnit::MixerAudioUnit( const Format &format )
+: MixerNode( format )
 {
 	mTag = "MixerAudioUnit";
 	setWantsDefaultFormatFromParent();
@@ -459,6 +465,7 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 // ----------------------------------------------------------------------------------------------------
 
 ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
+: Node( Format() )
 {
 	mTag = "ConverterAudioUnit";
 	mNumChannels = dest->getNumChannels();
@@ -472,7 +479,7 @@ ConverterAudioUnit::~ConverterAudioUnit()
 void ConverterAudioUnit::initialize()
 {
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceNumChannels, getContext()->getNumFramesPerBlock(), Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mSourceNumChannels, getContext()->getNumFramesPerBlock() );
 
 	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_FormatConverter;
@@ -538,7 +545,7 @@ void ContextAudioUnit::initialize()
 
 	initNode( mRoot );
 
-	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock, Buffer::Format::NonInterleaved );
+	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock );
 	mRenderContext.currentNode = mRoot.get();
 
 	// register the root callback separately
