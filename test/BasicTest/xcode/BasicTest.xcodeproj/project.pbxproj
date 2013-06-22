@@ -13,7 +13,7 @@
 		00B784B50FF439BC000DE1D7 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B10FF439BC000DE1D7 /* AudioUnit.framework */; };
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		114FBA3A172A1CB9002CD25C /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA32172A1CB9002CD25C /* Device.cpp */; };
-		114FBA42172A2543002CD25C /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA40172A2543002CD25C /* Util.cpp */; };
+		114FBA42172A2543002CD25C /* CinderCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBA40172A2543002CD25C /* CinderCoreAudio.cpp */; };
 		11CF3C841762ABA300C2DA62 /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3C821762ABA300C2DA62 /* Context.cpp */; };
 		11CF3C8D1762ABBB00C2DA62 /* ContextAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3C851762ABBB00C2DA62 /* ContextAudioUnit.cpp */; };
 		11CF3C8E1762ABBB00C2DA62 /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3C871762ABBB00C2DA62 /* DeviceAudioUnit.cpp */; };
@@ -38,8 +38,8 @@
 		114FBA32172A1CB9002CD25C /* Device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Device.cpp; sourceTree = "<group>"; };
 		114FBA33172A1CB9002CD25C /* Device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = "<group>"; };
 		114FBA3E172A2337002CD25C /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
-		114FBA40172A2543002CD25C /* Util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Util.cpp; sourceTree = "<group>"; };
-		114FBA41172A2543002CD25C /* Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Util.h; sourceTree = "<group>"; };
+		114FBA40172A2543002CD25C /* CinderCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderCoreAudio.cpp; sourceTree = "<group>"; };
+		114FBA41172A2543002CD25C /* CinderCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderCoreAudio.h; sourceTree = "<group>"; };
 		1188A3D41739CFDB0075D5BA /* Gui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Gui.h; path = ../../../src/Gui.h; sourceTree = "<group>"; };
 		11CF3C811761553800C2DA62 /* Buffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		11CF3C821762ABA300C2DA62 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Context.cpp; sourceTree = "<group>"; };
@@ -172,8 +172,8 @@
 				11CF3C8A1762ABBB00C2DA62 /* DeviceManagerAudioSession.h */,
 				11CF3C8B1762ABBB00C2DA62 /* DeviceManagerCoreAudio.cpp */,
 				11CF3C8C1762ABBB00C2DA62 /* DeviceManagerCoreAudio.h */,
-				114FBA40172A2543002CD25C /* Util.cpp */,
-				114FBA41172A2543002CD25C /* Util.h */,
+				114FBA40172A2543002CD25C /* CinderCoreAudio.cpp */,
+				114FBA41172A2543002CD25C /* CinderCoreAudio.h */,
 			);
 			path = cocoa;
 			sourceTree = "<group>";
@@ -291,7 +291,7 @@
 			files = (
 				FE6541737CFA406192BDC3E9 /* BasicTestApp.cpp in Sources */,
 				114FBA3A172A1CB9002CD25C /* Device.cpp in Sources */,
-				114FBA42172A2543002CD25C /* Util.cpp in Sources */,
+				114FBA42172A2543002CD25C /* CinderCoreAudio.cpp in Sources */,
 				148AFBDE172AE6C80066D8BE /* audio.cpp in Sources */,
 				11CF3C841762ABA300C2DA62 /* Context.cpp in Sources */,
 				11CF3C8D1762ABBB00C2DA62 /* ContextAudioUnit.cpp in Sources */,
