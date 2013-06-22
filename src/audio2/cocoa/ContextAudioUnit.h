@@ -12,6 +12,8 @@ namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
 
+// TODO: make this a private struct of ContextAudioUnit
+// - need to get rid of ConverterAudioUnit first - it has it's own render context - is this a good idea?
 struct RenderContext {
 	Node *currentNode;
 	Buffer buffer;
