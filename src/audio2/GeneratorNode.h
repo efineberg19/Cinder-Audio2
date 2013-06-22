@@ -28,7 +28,7 @@ class RingBuffer;
 
 class GeneratorNode : public Node {
 public:
-	GeneratorNode( const Format &format = Format() );
+	GeneratorNode( const Format &format );
 	virtual ~GeneratorNode() {}
 
 private:
@@ -39,7 +39,7 @@ private:
 
 class InputNode : public GeneratorNode {
 public:
-	InputNode( DeviceRef device, const Format &format = Node::Format() ) : GeneratorNode( format ) {
+	InputNode( DeviceRef device, const Format &format ) : GeneratorNode( format ) {
 		setAutoEnabled();
 	}
 	virtual ~InputNode() {}

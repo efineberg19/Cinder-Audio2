@@ -40,7 +40,25 @@ DeviceRef DeviceManagerAudioSession::getDefaultOutput()
 
 DeviceRef DeviceManagerAudioSession::getDefaultInput()
 {
-	return static_pointer_cast<Device>( getRemoteIOUnit() );
+	return getDefaultOutput();
+}
+
+DeviceRef DeviceManagerAudioSession::findDeviceByName( const std::string &name )
+{
+	return getDefaultOutput();
+}
+
+DeviceRef DeviceManagerAudioSession::findDeviceByKey( const std::string &key )
+{
+	return getDefaultOutput();
+}
+
+const std::vector<DeviceRef>& DeviceManagerAudioSession::getDevices()
+{
+	if( mDevices.empty() )
+		mDevices.push_back( getDefaultOutput() );
+	
+	return mDevices;
 }
 
 void DeviceManagerAudioSession::setActiveDevice( const std::string &key )
@@ -98,7 +116,7 @@ size_t DeviceManagerAudioSession::getSampleRate( const string &key )
 	return static_cast<size_t>( result );
 }
 
-size_t DeviceManagerAudioSession::getBlockSize( const string &key )
+size_t DeviceManagerAudioSession::getNumFramesPerBlock( const string &key )
 {
 	Float32 durationSeconds;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareIOBufferDuration, durationSeconds );
@@ -117,7 +135,7 @@ shared_ptr<DeviceAudioUnit> DeviceManagerAudioSession::getRemoteIOUnit()
 		component.componentSubType = kAudioUnitSubType_RemoteIO;
 		component.componentManufacturer = kAudioUnitManufacturer_Apple;
 
-		mRemoteIOUnit = shared_ptr<DeviceAudioUnit>( new DeviceAudioUnit( component, kRemoteIOKey ) );
+		mRemoteIOUnit = shared_ptr<DeviceAudioUnit>( new DeviceAudioUnit( kRemoteIOKey, component ) );
 	}
 
 	return mRemoteIOUnit;

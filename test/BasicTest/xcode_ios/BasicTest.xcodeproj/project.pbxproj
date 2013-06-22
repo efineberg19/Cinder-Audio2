@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
+		1104F4CD17754CE2003EAA2B /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F4CC17754CE2003EAA2B /* GeneratorNode.cpp */; };
+		1104F4D017754CF4003EAA2B /* TapNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F4CE17754CF4003EAA2B /* TapNode.cpp */; };
 		114FBBEF172CBF7E002CD25C /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBE1172CBF7E002CD25C /* audio.cpp */; };
 		114FBBF0172CBF7E002CD25C /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBE4172CBF7E002CD25C /* Util.cpp */; };
 		114FBBF1172CBF7E002CD25C /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FBBE7172CBF7E002CD25C /* Device.cpp */; };
@@ -36,6 +38,9 @@
 		0087D25412CD809F002CD69F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		1104F4CC17754CE2003EAA2B /* GeneratorNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GeneratorNode.cpp; sourceTree = "<group>"; };
+		1104F4CE17754CF4003EAA2B /* TapNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TapNode.cpp; sourceTree = "<group>"; };
+		1104F4CF17754CF4003EAA2B /* TapNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TapNode.h; sourceTree = "<group>"; };
 		114FBBE0172CBF7E002CD25C /* assert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = assert.h; sourceTree = "<group>"; };
 		114FBBE1172CBF7E002CD25C /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		114FBBE2172CBF7E002CD25C /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
@@ -166,6 +171,7 @@
 				11D679DD1759748900E96E0D /* Dsp.h */,
 				11D679DE1759748900E96E0D /* EffectNode.h */,
 				11D679DF1759748900E96E0D /* GeneratorNode.h */,
+				1104F4CC17754CE2003EAA2B /* GeneratorNode.cpp */,
 				11D679E01759748900E96E0D /* RingBuffer.h */,
 				114FBBE0172CBF7E002CD25C /* assert.h */,
 				114FBBE1172CBF7E002CD25C /* audio.cpp */,
@@ -173,6 +179,8 @@
 				114FBBE6172CBF7E002CD25C /* Debug.h */,
 				114FBBE7172CBF7E002CD25C /* Device.cpp */,
 				114FBBE8172CBF7E002CD25C /* Device.h */,
+				1104F4CE17754CF4003EAA2B /* TapNode.cpp */,
+				1104F4CF17754CF4003EAA2B /* TapNode.h */,
 			);
 			name = audio2;
 			path = ../../../src/audio2;
@@ -279,7 +287,9 @@
 				11CF3CB117640ED000C2DA62 /* Context.cpp in Sources */,
 				11CF3CBA17640EDC00C2DA62 /* ContextAudioUnit.cpp in Sources */,
 				11CF3CBB17640EDC00C2DA62 /* DeviceAudioUnit.cpp in Sources */,
+				1104F4CD17754CE2003EAA2B /* GeneratorNode.cpp in Sources */,
 				11CF3CBC17640EDC00C2DA62 /* DeviceManagerAudioSession.cpp in Sources */,
+				1104F4D017754CF4003EAA2B /* TapNode.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
