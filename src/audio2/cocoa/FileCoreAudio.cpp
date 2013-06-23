@@ -1,5 +1,5 @@
 #include "audio2/cocoa/FileCoreAudio.h"
-#include "audio2/cocoa/Util.h"
+#include "audio2/cocoa/CinderCoreAudio.h"
 #include "audio2/audio.h"
 #include "audio2/Debug.h"
 
@@ -143,7 +143,7 @@ void SourceFileCoreAudio::setNumChannels( size_t numChannels )
 
 void SourceFileCoreAudio::updateOutputFormat()
 {
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mNumChannels, mSampleRate );
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mNumChannels, mSampleRate );
 	OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
 	CI_ASSERT( status == noErr );
 
