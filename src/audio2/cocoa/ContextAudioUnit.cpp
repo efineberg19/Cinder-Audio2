@@ -100,7 +100,7 @@ void OutputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -173,7 +173,7 @@ void InputAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::Input, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
@@ -288,7 +288,7 @@ void EffectAudioUnit::initialize()
 	auto source = mSources.front();
 	CI_ASSERT( source );
 
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
@@ -320,7 +320,7 @@ MixerAudioUnit::MixerAudioUnit( const Format &format )
 : MixerNode( format )
 {
 	mTag = "MixerAudioUnit";
-	setWantsDefaultFormatFromParent();
+	mWantsDefaultFormatFromParent = true;
 }
 
 MixerAudioUnit::~MixerAudioUnit()
@@ -342,7 +342,7 @@ void MixerAudioUnit::initialize()
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 	size_t sampleRate = getContext()->getSampleRate();
-	::AudioStreamBasicDescription asbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), sampleRate );
+	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), sampleRate );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
@@ -358,7 +358,7 @@ void MixerAudioUnit::initialize()
 		if( ! mSources[bus] )
 			continue;
 
-		::AudioStreamBasicDescription busAsbd = cocoa::nonInterleavedFloatABSD( mSources[bus]->getNumChannels(), sampleRate );
+		::AudioStreamBasicDescription busAsbd = cocoa::createFloatAsbd( mSources[bus]->getNumChannels(), sampleRate );
 
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &busAsbd, sizeof( busAsbd ) );
 		CI_ASSERT( status == noErr );
@@ -464,10 +464,12 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 // MARK: - ConverterAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
+// TODO: remove these params - they are deduced once connected
 ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
 : Node( Format() )
 {
 	mTag = "ConverterAudioUnit";
+
 	mNumChannels = dest->getNumChannels();
 	mSourceNumChannels = source->getNumChannels();
 }
@@ -476,26 +478,35 @@ ConverterAudioUnit::~ConverterAudioUnit()
 {
 }
 
+// TODO NEXT: see if this guy can handle non-interleaved -> interleaved and back
+// if so, can install ConverterAudio unit's at either side to deliver proper buffer layout
+// - but what about the end Buffer - how to provide one with Layout::Interleaved?
 void ConverterAudioUnit::initialize()
 {
-	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( mSourceNumChannels, getContext()->getNumFramesPerBlock() );
-
 	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_FormatConverter;
 	comp.componentSubType = kAudioUnitSubType_AUConverter;
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 
+	NodeRef sourceNode = mSources[0];
+	NodeRef destNode = getParent();
+
+	mBufferLayout = destNode->getBufferLayout();
+
+	mRenderContext.currentNode = this;
+	mRenderContext.buffer = Buffer( sourceNode->getNumChannels(), getContext()->getNumFramesPerBlock(), sourceNode->getBufferLayout() );
+
+
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 	size_t sampleRate = getContext()->getSampleRate();
-	::AudioStreamBasicDescription inputAsbd = cocoa::nonInterleavedFloatABSD( mSourceNumChannels, sampleRate );
-	::AudioStreamBasicDescription outputAsbd = cocoa::nonInterleavedFloatABSD( getNumChannels(), sampleRate );
+	::AudioStreamBasicDescription inputAsbd = cocoa::createFloatAsbd( sourceNode->getNumChannels(), sampleRate, ( sourceNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
+	::AudioStreamBasicDescription outputAsbd = cocoa::createFloatAsbd( destNode->getNumChannels(), sampleRate, ( destNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
 
-//	LOG_V << "input ASBD:" << endl;
-//	cocoa::printASBD( inputAsbd );
-//	LOG_V << "output ASBD:" << endl;
-//	cocoa::printASBD( outputAsbd );
+	LOG_V << "input ASBD:" << endl;
+	cocoa::printASBD( inputAsbd );
+	LOG_V << "output ASBD:" << endl;
+	cocoa::printASBD( outputAsbd );
 
 
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outputAsbd, sizeof( outputAsbd ) );
@@ -510,7 +521,6 @@ void ConverterAudioUnit::initialize()
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &channelMap, sizeof( channelMap ) );
 		CI_ASSERT( status == noErr );
 	}
-	// TODO: stereo to mono
 
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
@@ -570,7 +580,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 
 	node->setContext( shared_from_this() );
 
-	if( node->wantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
+	if( node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromParent();
 
 	// recurse through sources
@@ -578,7 +588,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 		initNode( sourceNode );
 
 	// set default params from source
-	if(  ! node->wantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
+	if(  ! node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromSource();
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
@@ -586,12 +596,13 @@ void ContextAudioUnit::initNode( NodeRef node )
 		if( ! sourceNode )
 			continue;
 
+		// TODO: if node is an OutputAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
 		bool needsConverter = false;
-		if( node->getNumChannels() != sourceNode->getNumChannels() ) {
-			LOG_V << "CHANNEL MISMATCH: " << sourceNode->getNumChannels() << " -> " << node->getNumChannels() << endl;
-			// TODO: if node is an OutputAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
+		if( node->getNumChannels() != sourceNode->getNumChannels() )
 			needsConverter = true;
-		}
+		else if( node->getBufferLayout() != sourceNode->getBufferLayout() )
+			needsConverter = true;
+
 		if( needsConverter ) {
 			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
 			converter->setContext( shared_from_this() );
@@ -666,7 +677,6 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 // TODO: consider adding a volume param here
 // - OS X output unit has kHALOutputParam_Volume, but need to check if this works on iOS
 // - this is also made difficult because I'm currently connecting the ConverterNode's callback to this
-//		- TODO: switch ConverterAudioNode to a more general ConverterCoreAudio, it shouldn't need to be connected to this after that
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *renderContext = static_cast<RenderContext *>( data );
@@ -675,9 +685,6 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
 
-// TODO: adhere to node's buffer format (interleaved / non-interleaved ) and convert if necessary
-//	- should just be a bool?
-//  - to test: pd node that wants interleaved
 // TODO: avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
@@ -685,7 +692,6 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 
 	CI_ASSERT( renderContext->currentNode );
 	CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
-	CI_ASSERT( bufferList->mNumberBuffers == renderContext->buffer.getNumChannels() );
 	CI_ASSERT( numFrames == renderContext->buffer.getNumFrames() );
 
 	NodeRef source = renderContext->currentNode->getSources()[bus];
@@ -718,16 +724,29 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 
 		if( didRenderChildren ) {
 			// copy samples from AudioBufferList to the generic buffer before generic render
-			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-				memcpy( renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
+			// TODO: consider adding methods for buffer copying to CinderCoreAudio
+			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
+				CI_ASSERT( bufferList->mNumberBuffers == 1 );
+				memcpy( renderContext->buffer.getData(), bufferList->mBuffers[0].mData, bufferList->mBuffers[0].mDataByteSize );
+			}
+			else {
+				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+					memcpy( renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
+			}
 		}
 
 		if( source->isEnabled() )
 			source->process( &renderContext->buffer );
 
 		// copy samples back to the output buffer
-		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-			memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
+		if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
+			CI_ASSERT( bufferList->mNumberBuffers == 1 );
+			memcpy( bufferList->mBuffers[0].mData, renderContext->buffer.getData(), bufferList->mBuffers[0].mDataByteSize );
+		}
+		else {
+			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+				memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
+		}
 	}
 	
 	return noErr;

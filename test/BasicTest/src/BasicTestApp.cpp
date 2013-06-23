@@ -14,6 +14,21 @@ using namespace std;
 
 using namespace audio2;
 
+struct InterleavedPassThruNode : public Node {
+	InterleavedPassThruNode() : Node( Format() )
+	{
+		mTag = "InterleavedPassThruNode";
+		mBufferLayout = audio2::Buffer::Layout::Interleaved;
+		mAutoEnabled = true;
+	}
+
+	void process( audio2::Buffer *buffer ) override
+	{
+		CI_ASSERT( buffer->getLayout() == audio2::Buffer::Layout::Interleaved );
+	}
+
+};
+
 class BasicTestApp : public AppNative {
 public:
 	void prepareSettings( Settings *settings );
@@ -24,6 +39,7 @@ public:
 	void setupSine();
 	void setupNoise();
 	void setupMixer();
+	void setupInterleavedPassThru();
 	void initContext();
 
 	void setupUI();
@@ -61,7 +77,8 @@ void BasicTestApp::setup()
 	mContext = Context::instance()->createContext();
 	mContext->setRoot( output );
 
-	setupSine();
+//	setupSine();
+	setupInterleavedPassThru();
 
 	initContext();
 	setupUI();
@@ -69,7 +86,7 @@ void BasicTestApp::setup()
 
 void BasicTestApp::setupSine()
 {
-	auto genNode = make_shared<UGenNode<SineGen> >();
+	auto genNode = make_shared<UGenNode<SineGen> >( Node::Format().channels( 1 ) );
 	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
@@ -122,6 +139,24 @@ void BasicTestApp::setupMixer()
 	mEnableSineButton.setEnabled( true );
 	mEnableNoiseButton.setEnabled( true );
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableSineButton.hidden = mEnableNoiseButton.hidden = false;
+}
+
+// TODO: this belongs in it's own test app - one for weird conversions
+void BasicTestApp::setupInterleavedPassThru()
+{
+	auto genNode = make_shared<UGenNode<SineGen> >();
+	genNode->setAutoEnabled();
+	genNode->getUGen().setAmp( 0.2f );
+	genNode->getUGen().setFreq( 440.0f );
+	mSine = genNode;
+
+	auto interleaved = make_shared<InterleavedPassThruNode>();
+
+	genNode->connect( interleaved )->connect( mContext->getRoot() );
+
+	mEnableSineButton.setEnabled( true );
+	mEnableSineButton.hidden = false;
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableNoiseButton.hidden = true;
 }
 
 void BasicTestApp::initContext()

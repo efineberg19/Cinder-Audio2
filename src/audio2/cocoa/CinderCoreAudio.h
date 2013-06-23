@@ -35,7 +35,10 @@ AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t nu
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance );
 
-::AudioStreamBasicDescription interleavedFloatABSD( size_t numChannels, size_t sampleRate );
-::AudioStreamBasicDescription nonInterleavedFloatABSD( size_t numChannels, size_t sampleRate );
+::AudioStreamBasicDescription createFloatAsbd( size_t numChannels, size_t sampleRate, bool isInterleaved = false );
+
+inline void copyToGenericBuffer( ::AudioBufferList *bufferList, Buffer *buffer )
+{
+}
 
 } } // namespace audio2::cocoa
