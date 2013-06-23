@@ -1,5 +1,7 @@
 #pragma once
 
+#include "audio2/audio.h"
+
 #include <memory>
 #include <AudioToolbox/AudioToolbox.h>
 
@@ -7,6 +9,18 @@ struct AudioStreamBasicDescription;
 
 namespace audio2 { namespace cocoa {
 
+class ConverterCoreAudio : public Converter {
+public:
+	ConverterCoreAudio( const Format &sourceFormat, const Format &destFormat );
+	virtual ~ConverterCoreAudio();
+
+	virtual void convert( Buffer *sourceBuffer, Buffer *destBuffer ) override;
+
+private:
+	::AudioConverterRef mAudioConverter;
+};
+
+//! convience function for pretty printing \a asbd
 void printASBD( const ::AudioStreamBasicDescription &asbd );
 
 struct AudioBufferListDeleter {
