@@ -25,6 +25,10 @@ struct InterleavedPassThruNode : public Node {
 	void process( audio2::Buffer *buffer ) override
 	{
 		CI_ASSERT( buffer->getLayout() == audio2::Buffer::Layout::Interleaved );
+		CI_ASSERT( buffer->getData()[0] == buffer->getData()[1] );
+
+		// In debug mode, this will trigger an assertion failure, since it is a user error.
+		//buffer->getChannel( 0 );
 	}
 
 };

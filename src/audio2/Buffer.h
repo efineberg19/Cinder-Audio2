@@ -41,18 +41,15 @@ public:
 		mData.resize( numChannels * numFrames );
 	}
 
-	// TODO: getChannel(), in this form is bad news for interleaved data. options:
-	// - implicitly de-interleave and change the format (call asFormat( fmt ) )
-	// - if interleaved, return null.
-	//		- afb suggestion: variant called getChannelIter - result knows how to iterate over interleaved samples 
+	// TODO: consider adding getChannelIter, which knows how to iterate over both interleaved and non-interleaved samples
 	T* getChannel( size_t ch ) {
-		CI_ASSERT( mLayout == NonInterleaved );
+		CI_ASSERT_MSG( mLayout == NonInterleaved, "Cannot get raw pointer to channel from an interleaved Buffer" );
 		CI_ASSERT( ch < mNumChannels );
 		return &mData[ch * mNumFrames];
 	}
 
 	const T* getChannel( size_t ch ) const {
-		CI_ASSERT( mLayout == NonInterleaved );
+		CI_ASSERT_MSG( mLayout == NonInterleaved, "Cannot get raw pointer to channel from an interleaved Buffer" );
 		CI_ASSERT( ch < mNumChannels );
 		return &mData[ch * mNumFrames];
 	}
