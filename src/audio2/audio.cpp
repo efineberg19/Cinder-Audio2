@@ -15,7 +15,9 @@ void printGraph( ContextRef graph )
 			return;
 		for( size_t i = 0; i < depth; i++ )
 			app::console() << "-- ";
-		app::console() << node->getTag() << "\t[ ch: " << node->getNumChannels() << " ]" << endl;
+		app::console() << node->getTag() << "\t[ ch: " << node->getNumChannels();
+		app::console() << ", " << ( node->getBufferLayout() == Buffer::Layout::Interleaved ? "interleaved" : "non-interleaved" );
+		app::console() << " ]" << endl;
 		for( auto &source : node->getSources() )
 			printNode( source, depth + 1 );
 	};
