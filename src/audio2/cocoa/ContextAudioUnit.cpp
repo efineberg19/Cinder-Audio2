@@ -85,10 +85,8 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device, const Format &format )
 	// RootNode gets a special callback
 	mShouldUseGraphRenderCallback = false;
 
-	if( mNumChannelsUnspecified ) {
-		mNumChannels = 2;
-		mNumChannelsUnspecified = false;
-	}
+	if( mNumChannelsUnspecified )
+		setNumChannels( 2 );
 
 	CI_ASSERT( ! mDevice->isOutputConnected() );
 	mDevice->setOutputConnected();
@@ -156,8 +154,7 @@ InputAudioUnit::InputAudioUnit( DeviceRef device, const Format &format )
 	CI_ASSERT( mDevice );
 
 	if( mNumChannelsUnspecified ) {
-		mNumChannels = 2;
-		mNumChannelsUnspecified = false;
+		setNumChannels( 2 ); // TODO: should default input channels be 1?
 	}
 
 	CI_ASSERT( ! mDevice->isInputConnected() );

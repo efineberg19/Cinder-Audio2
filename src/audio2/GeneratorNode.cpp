@@ -16,7 +16,7 @@ namespace audio2 {
 GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
 {
 	mSources.clear();
-	setWantsDefaultFormatFromParent();
+	mWantsDefaultFormatFromParent = true;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -29,10 +29,8 @@ BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
 	mTag = "BufferPlayerNode";
 	mNumFrames = mBuffer->getNumFrames();
 
-	if( mNumChannelsUnspecified ) {
-		mNumChannels = mBuffer->getNumChannels();
-		mNumChannelsUnspecified = false;
-	}
+	if( mNumChannelsUnspecified )
+		setNumChannels( mBuffer->getNumChannels() );
 }
 
 void BufferPlayerNode::start()

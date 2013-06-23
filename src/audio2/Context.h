@@ -54,7 +54,6 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void setSource( NodeRef source, size_t bus );
 
 	size_t	getNumChannels() const	{ return mNumChannels; }
-//	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
 
 	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
 	bool	getWantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
@@ -97,6 +96,10 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	//! If required Format properties are missing, fill in from \a otherFormat
 	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
+
+	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
+	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
+
 
 	std::vector<NodeRef>	mSources;
 	std::weak_ptr<Node>		mParent;
