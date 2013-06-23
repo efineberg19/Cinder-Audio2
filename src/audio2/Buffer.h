@@ -71,9 +71,10 @@ public:
 		}
 	}
 
-	size_t getNumFrames() const	{ return mNumFrames; }
+	size_t getNumFrames() const		{ return mNumFrames; }
 	size_t getNumChannels() const	{ return mNumChannels; }
-	size_t getSize() const	{ return mData.size(); }
+	size_t getSize() const			{ return mData.size(); }
+	Layout getLayout() const		{ return mLayout; }
 
 	void setSilent( bool b = true )	{ mSilent = b; }
 	bool isSilent() const			{ return mSilent; }
