@@ -27,18 +27,17 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual ~Node();
 
 	struct Format {
+		Format() : mChannels( 0 ), mWantsDefaultFormatFromParent( false ) {}
+		
 		Format& channels( size_t ch )							{ mChannels = ch; return *this; }
 		Format& wantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; return *this; }
-		Format& bufferLayout( const Buffer::Layout &layout )	{ mBufferLayout = layout; return *this; }
 
 		size_t	getChannels() const								{ return mChannels; }
-		const	Buffer::Layout& getBufferLayout() const			{ return mBufferLayout; }
-		bool	wantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
+		bool	getWantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
 
 	  private:
 		size_t mChannels;
 		bool mWantsDefaultFormatFromParent;
-		Buffer::Layout mBufferLayout;
 	};
 
 	virtual void initialize()	{ mInitialized = true; }
@@ -58,10 +57,9 @@ class Node : public std::enable_shared_from_this<Node> {
 //	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
 
 	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
-	bool	wantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
+	bool	getWantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
 
-	// TODO: remove this, set via Format
-	void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
+//	void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
 
 	const Buffer::Layout& getBufferLayout() const { return mBufferLayout; }
 

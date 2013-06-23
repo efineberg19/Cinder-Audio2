@@ -17,9 +17,13 @@ using namespace std;
 
 namespace audio2 {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Node
+// ----------------------------------------------------------------------------------------------------
+
 Node::Node( const Format &format )
-: mInitialized( false ), mEnabled( false ), mSources( 1 ), mWantsDefaultFormatFromParent( false ),
-	mNumChannels( format.getChannels() ), mBufferLayout( format.getBufferLayout() ), mAutoEnabled( false )
+: mInitialized( false ), mEnabled( false ), mSources( 1 ), mWantsDefaultFormatFromParent( format.getWantsDefaultFormatFromParent() ),
+	mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false )
 {
 	mNumChannelsUnspecified = ! format.getChannels();
 }
@@ -109,6 +113,10 @@ void Node::setEnabled( bool enabled )
 		stop();
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - MixerNode
+// ----------------------------------------------------------------------------------------------------
+
 void MixerNode::setSource( NodeRef source )
 {
 	source->setParent( shared_from_this() );
@@ -122,6 +130,11 @@ void MixerNode::setSource( NodeRef source )
 	// all slots full, append
 	mSources.push_back( source );
 }
+
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Context
+// ----------------------------------------------------------------------------------------------------
 
 Context* Context::instance()
 {
