@@ -12,8 +12,7 @@ namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
 
-// TODO: make this a private struct of ContextAudioUnit
-// - need to get rid of ConverterAudioUnit first - it has it's own render context - is this a good idea?
+// TODO: rename to RenderCallbackContext for clarity
 struct RenderContext {
 	Node *currentNode;
 	Buffer buffer;
@@ -142,16 +141,18 @@ class ContextAudioUnit : public Context {
 	void uninitialize() override;
 
   private:
-	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+
+	void connectRenderCallback( NodeRef node, RenderContext *context, ::AURenderCallback callback, bool recursive );
+
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+	static OSStatus renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	// TODO: consider making these abstract methods in Context
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );
 
 	
-	void connectRenderCallback( NodeRef node, RenderContext *context = nullptr, bool recursive = false, bool asRoot = false );
-
 	RenderContext mRenderContext;
 };
 

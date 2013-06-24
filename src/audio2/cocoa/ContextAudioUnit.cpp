@@ -556,6 +556,7 @@ void ContextAudioUnit::initialize()
 	mRenderContext.currentNode = mRoot.get();
 
 	// register the root callback separately
+	// TODO: replace with connectRenderCallback
 	::AURenderCallbackStruct callbackStruct;
 	callbackStruct.inputProc = ContextAudioUnit::renderCallbackRoot;
 	callbackStruct.inputProcRefCon = &mRenderContext;
@@ -606,17 +607,17 @@ void ContextAudioUnit::initNode( NodeRef node )
 			node->setSource( converter, bus );
 			converter->setSource( sourceNode );
 			converter->initialize();
-			connectRenderCallback( converter, &converter->mRenderContext, true, true );
+			connectRenderCallback( converter, &converter->mRenderContext, &ContextAudioUnit::renderCallbackConverter, true );
 		}
 	}
 
 	node->initialize();
 
-	connectRenderCallback( node );
+	connectRenderCallback( node, nullptr, &ContextAudioUnit::renderCallback, false );
 }
 
 // TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
-void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, bool recursive, bool asRoot )
+void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, ::AURenderCallback callback, bool recursive )
 {
 	AudioUnitNode *nodeAU = dynamic_cast<AudioUnitNode *>( node.get() );
 	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
@@ -626,7 +627,7 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *conte
 	CI_ASSERT( audioUnit );
 
 	::AURenderCallbackStruct callbackStruct;
-	callbackStruct.inputProc = ( asRoot ? &ContextAudioUnit::renderCallbackRoot : &ContextAudioUnit::renderCallback );
+	callbackStruct.inputProc = callback;
 	callbackStruct.inputProcRefCon = ( context ? context : &mRenderContext );
 
 	for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
@@ -638,7 +639,7 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *conte
 		LOG_V << "connected render callback to: " << source->getTag() << endl;
 
 		if( recursive )
-			connectRenderCallback( source, context, true );
+			connectRenderCallback( source, context, callback, recursive );
 	}
 }
 
@@ -676,11 +677,20 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 // - this is also made difficult because I'm currently connecting the ConverterNode's callback to this
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	RenderContext *renderContext = static_cast<RenderContext *>( data );
-	renderContext->buffer.zero();
+	static_cast<RenderContext *>( data )->buffer.zero();
 
+	// TODO: zero out bufferList
+	
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
+
+OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+{
+	static_cast<RenderContext *>( data )->buffer.zero();
+	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
+}
+
+// FIXME: in rare cases when all nodes are disabled, bufferList can contain crap  and needs to be zerod out
 
 // TODO: avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
