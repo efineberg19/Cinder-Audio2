@@ -734,17 +734,18 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 			}
 		}
 
-		if( source->isEnabled() )
+		if( source->isEnabled() ) {
 			source->process( &renderContext->buffer );
 
-		// copy samples back to the output buffer
-		if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
-			CI_ASSERT( bufferList->mNumberBuffers == 1 );
-			memcpy( bufferList->mBuffers[0].mData, renderContext->buffer.getData(), bufferList->mBuffers[0].mDataByteSize );
-		}
-		else {
-			for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-				memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
+			// copy samples back to the output buffer
+			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
+				CI_ASSERT( bufferList->mNumberBuffers == 1 );
+				memcpy( bufferList->mBuffers[0].mData, renderContext->buffer.getData(), bufferList->mBuffers[0].mDataByteSize );
+			}
+			else {
+				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+					memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
+			}
 		}
 	}
 	
