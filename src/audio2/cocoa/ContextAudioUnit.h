@@ -12,17 +12,15 @@ namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
 
-// TODO: rename to RenderCallbackContext for clarity
-struct RenderContext {
+struct RenderCallbackContext {
 	Node *currentNode;
 	Buffer buffer;
 };
 
-// TODO: rename to NodeAudioUnit for consistency
-class AudioUnitNode {
+class NodeAudioUnit {
   public:
-	AudioUnitNode() : mAudioUnit( nullptr ), mRenderBus( 0 ), mShouldUseGraphRenderCallback( true )	{}
-	virtual ~AudioUnitNode();
+	NodeAudioUnit() : mAudioUnit( nullptr ), mRenderBus( 0 ), mShouldUseGraphRenderCallback( true )	{}
+	virtual ~NodeAudioUnit();
 	virtual ::AudioUnit getAudioUnit() const	{ return mAudioUnit; }
 	::AudioUnitScope getRenderBus() const	{ return mRenderBus; }
 
@@ -33,7 +31,7 @@ class AudioUnitNode {
 	bool				mShouldUseGraphRenderCallback;
 };
 
-class OutputAudioUnit : public OutputNode, public AudioUnitNode {
+class OutputAudioUnit : public OutputNode, public NodeAudioUnit {
   public:
 	OutputAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~OutputAudioUnit() = default;
@@ -51,7 +49,7 @@ class OutputAudioUnit : public OutputNode, public AudioUnitNode {
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
 
-class InputAudioUnit : public InputNode, public AudioUnitNode {
+class InputAudioUnit : public InputNode, public NodeAudioUnit {
   public:
 	InputAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~InputAudioUnit();
@@ -76,7 +74,7 @@ class InputAudioUnit : public InputNode, public AudioUnitNode {
 };
 
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used
-class EffectAudioUnit : public EffectNode, public AudioUnitNode {
+class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
   public:
 	EffectAudioUnit( UInt32 subType, const Format &format = Format() );
 	virtual ~EffectAudioUnit();
@@ -90,7 +88,7 @@ class EffectAudioUnit : public EffectNode, public AudioUnitNode {
 	UInt32		mEffectSubType;
 };
 
-class MixerAudioUnit : public MixerNode, public AudioUnitNode {
+class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
   public:
 	MixerAudioUnit( const Format &format = Format() );
 	virtual ~MixerAudioUnit();
@@ -113,7 +111,7 @@ class MixerAudioUnit : public MixerNode, public AudioUnitNode {
 	void checkBusIsValid( size_t bus );
 };
 
-class ConverterAudioUnit : public Node, public AudioUnitNode {
+class ConverterAudioUnit : public Node, public NodeAudioUnit {
   public:
 	ConverterAudioUnit( NodeRef source, NodeRef dest );
 	virtual ~ConverterAudioUnit();
@@ -123,7 +121,7 @@ class ConverterAudioUnit : public Node, public AudioUnitNode {
 
   private:
 	size_t mSourceNumChannels;
-	RenderContext mRenderContext;
+	RenderCallbackContext mRenderContext;
 
 	friend class ContextAudioUnit;
 };
@@ -142,7 +140,7 @@ class ContextAudioUnit : public Context {
 
   private:
 
-	void connectRenderCallback( NodeRef node, RenderContext *context, ::AURenderCallback callback, bool recursive );
+	void connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive );
 
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
@@ -153,7 +151,7 @@ class ContextAudioUnit : public Context {
 	void uninitNode( NodeRef node );
 
 	
-	RenderContext mRenderContext;
+	RenderCallbackContext mRenderContext;
 };
 
 } } // namespace audio2::cocoa

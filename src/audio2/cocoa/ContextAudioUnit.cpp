@@ -60,10 +60,10 @@ inline vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, :
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - AudioUnitNode
+// MARK: - NodeAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-AudioUnitNode::~AudioUnitNode()
+NodeAudioUnit::~NodeAudioUnit()
 {
 	if( mAudioUnit ) {
 		OSStatus status = ::AudioComponentInstanceDispose( mAudioUnit );
@@ -604,11 +604,11 @@ void ContextAudioUnit::initNode( NodeRef node )
 }
 
 // TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
-void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, ::AURenderCallback callback, bool recursive )
+void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive )
 {
 	CI_ASSERT( context );
 
-	AudioUnitNode *nodeAU = dynamic_cast<AudioUnitNode *>( node.get() );
+	NodeAudioUnit *nodeAU = dynamic_cast<NodeAudioUnit *>( node.get() );
 	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
 		return;
 
@@ -664,7 +664,7 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 // - this is also made difficult because I'm currently connecting the ConverterNode's callback to this
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	static_cast<RenderContext *>( data )->buffer.zero();
+	static_cast<RenderCallbackContext *>( data )->buffer.zero();
 
 	// TODO: zero out bufferList
 	
@@ -673,7 +673,7 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 
 OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	static_cast<RenderContext *>( data )->buffer.zero();
+	static_cast<RenderCallbackContext *>( data )->buffer.zero();
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
 
@@ -682,14 +682,14 @@ OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRende
 // TODO: avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	RenderContext *renderContext = static_cast<RenderContext *>( data );
+	RenderCallbackContext *renderContext = static_cast<RenderCallbackContext *>( data );
 
 	CI_ASSERT( renderContext->currentNode );
 	CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
 	CI_ASSERT( numFrames == renderContext->buffer.getNumFrames() );
 
 	NodeRef source = renderContext->currentNode->getSources()[bus];
-	AudioUnitNode *sourceAU = dynamic_cast<AudioUnitNode *>( source.get() );
+	NodeAudioUnit *sourceAU = dynamic_cast<NodeAudioUnit *>( source.get() );
 
 	// check if this needs native rendering
 	if( sourceAU && sourceAU->shouldUseGraphRenderCallback() ) {
