@@ -692,7 +692,6 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	CI_ASSERT( numFrames == renderContext->buffer.getNumFrames() );
 
 	NodeRef source = renderContext->currentNode->getSources()[bus];
-
 	AudioUnitNode *sourceAU = dynamic_cast<AudioUnitNode *>( source.get() );
 
 	// check if this needs native rendering
@@ -710,6 +709,9 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 		// render all children through this callback, since there is a possiblity they can fall into the native category
 		bool didRenderChildren = false;
 		for( size_t i = 0; i < source->getSources().size(); i++ ) {
+			if( ! source->getSources()[i] )
+				continue;
+
 			didRenderChildren = true;
 			Node *thisNode = renderContext->currentNode;
 			renderContext->currentNode = source.get();
