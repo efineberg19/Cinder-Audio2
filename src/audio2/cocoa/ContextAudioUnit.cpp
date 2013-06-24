@@ -82,9 +82,6 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device, const Format &format )
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
-	// RootNode gets a special callback
-	mShouldUseGraphRenderCallback = false;
-
 	if( mNumChannelsUnspecified )
 		setNumChannels( 2 );
 
@@ -555,17 +552,7 @@ void ContextAudioUnit::initialize()
 	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock );
 	mRenderContext.currentNode = mRoot.get();
 
-	// register the root callback separately
-	// TODO: replace with connectRenderCallback
-	::AURenderCallbackStruct callbackStruct;
-	callbackStruct.inputProc = ContextAudioUnit::renderCallbackRoot;
-	callbackStruct.inputProcRefCon = &mRenderContext;
-
-	AudioUnitNode *rootAU = dynamic_cast<AudioUnitNode *>( mRoot.get() );
-	CI_ASSERT( rootAU );
-
-	OSStatus status = ::AudioUnitSetProperty( rootAU->getAudioUnit(), kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
-	CI_ASSERT( status == noErr );
+	connectRenderCallback( mRoot, &mRenderContext, &ContextAudioUnit::renderCallbackRoot, false );
 
 	mInitialized = true;
 	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", frames per block: " << mRenderContext.buffer.getNumFrames() << endl;
@@ -613,12 +600,14 @@ void ContextAudioUnit::initNode( NodeRef node )
 
 	node->initialize();
 
-	connectRenderCallback( node, nullptr, &ContextAudioUnit::renderCallback, false );
+	connectRenderCallback( node, &mRenderContext, &ContextAudioUnit::renderCallback, false );
 }
 
 // TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
 void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *context, ::AURenderCallback callback, bool recursive )
 {
+	CI_ASSERT( context );
+
 	AudioUnitNode *nodeAU = dynamic_cast<AudioUnitNode *>( node.get() );
 	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
 		return;
@@ -626,9 +615,7 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderContext *conte
 	::AudioUnit audioUnit = nodeAU->getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AURenderCallbackStruct callbackStruct;
-	callbackStruct.inputProc = callback;
-	callbackStruct.inputProcRefCon = ( context ? context : &mRenderContext );
+	::AURenderCallbackStruct callbackStruct = { callback, context };
 
 	for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
 		NodeRef source = node->getSources()[bus];
