@@ -52,7 +52,7 @@ private:
 
 class InputWasapi : public InputNode {
   public:
-	InputWasapi( DeviceRef device );
+	InputWasapi( DeviceRef device, const Format &format = Format() );
 	virtual ~InputWasapi();
 
 	void initialize() override;

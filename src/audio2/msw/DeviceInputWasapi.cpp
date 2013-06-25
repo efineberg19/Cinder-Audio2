@@ -96,10 +96,9 @@ void DeviceInputWasapi::stop()
 
 // TODO: audio client activation should be in Device, maybe audio client should even be in there
 // TODO: default block sizes should be set in one place and propagate down the graph
-//  - first set in Graph?
-//  - nodes can override in format
-InputWasapi::InputWasapi( DeviceRef device )
-: InputNode( device ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 1024 )
+//  - update: it's now at getContext()->getNumFramesPerBlock() - can get it there
+InputWasapi::InputWasapi( DeviceRef device, const Format &format )
+: InputNode( device, format ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
 	mTag = "InputWasapi";
 
@@ -124,8 +123,7 @@ InputWasapi::InputWasapi( DeviceRef device )
 	hr = mImpl->mAudioClient->GetMixFormat( &mixFormat );
 	CI_ASSERT( hr == S_OK );
 
-	mFormat.setSampleRate( mixFormat->nSamplesPerSec );
-	mFormat.setNumChannels( mixFormat->nChannels );
+	setNumChannels( mixFormat->nChannels );
 
 	LOG_V << "initial mix format samplerate: " << mixFormat->nSamplesPerSec << ", num channels: " << mixFormat->nChannels << endl;
 	CoTaskMemFree( mixFormat );
@@ -139,7 +137,9 @@ InputWasapi::~InputWasapi()
 
 void InputWasapi::initialize()
 {
-	auto wfx = interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );
+	size_t sampleRate = getContext()->getSampleRate();
+
+	auto wfx = interleavedFloatWaveFormat( mNumChannels, sampleRate );
 	::WAVEFORMATEX *closestMatch;
 	HRESULT hr = mImpl->mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
 	if( hr == S_OK )
@@ -153,7 +153,7 @@ void InputWasapi::initialize()
 
 	LOG_V << "requested block size: " << mCaptureBlockSize << " frames" << endl;
 
-	::REFERENCE_TIME requestedDuration = samplesToReferenceTime( mCaptureBlockSize, mFormat.getSampleRate() );
+	::REFERENCE_TIME requestedDuration = samplesToReferenceTime( mCaptureBlockSize, sampleRate );
 	hr = mImpl->mAudioClient->Initialize( ::AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, wfx.get(), NULL ); 
 	CI_ASSERT( hr == S_OK );
 
@@ -164,9 +164,9 @@ void InputWasapi::initialize()
 	double captureDurationMs = (double) numFrames * 1000.0 / (double) wfx->nSamplesPerSec;
 
 	mCaptureBlockSize = numFrames;
-	mImpl->initCapture( numFrames, mFormat.getNumChannels() );
+	mImpl->initCapture( numFrames, mNumChannels );
 
-	mInterleavedBuffer = Buffer( mFormat.getNumChannels(), numFrames, Buffer::Format::Interleaved );
+	mInterleavedBuffer = Buffer( mNumChannels, numFrames, Buffer::Layout::Interleaved );
 	
 	LOG_V << "numFrames: " << numFrames << ", buffer size: " << mInterleavedBuffer.getSize() << ", actual duration: " << captureDurationMs << "ms" << endl;
 

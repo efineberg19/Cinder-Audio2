@@ -76,7 +76,7 @@ DeviceRef DeviceManagerWasapi::getDefaultOutput()
 	::CoTaskMemFree( idStr );
 	LOG_V << "key: " << key << endl;
 
-	return getDevice( key );
+	return findDeviceByKey( key );
 }
 
 DeviceRef DeviceManagerWasapi::getDefaultInput()
@@ -100,7 +100,16 @@ DeviceRef DeviceManagerWasapi::getDefaultInput()
 	::CoTaskMemFree( idStr );
 	LOG_V << "key: " << key << endl;
 
-	return getDevice( key ); // TODO: method doesn't know this is input
+	return findDeviceByKey( key );
+}
+
+const std::vector<DeviceRef>& DeviceManagerWasapi::getDevices()
+{
+	if( mDevices.empty() ) {
+		parseDevices( DeviceInfo::Usage::Input );
+		parseDevices( DeviceInfo::Usage::Output );
+	}
+	return mDevices;
 }
 
 void DeviceManagerWasapi::setActiveDevice( const string &key )
@@ -129,7 +138,7 @@ size_t DeviceManagerWasapi::getSampleRate( const string &key )
 	return getDeviceInfo( key ).sampleRate;
 }
 
-size_t DeviceManagerWasapi::getBlockSize( const string &key )
+size_t DeviceManagerWasapi::getNumFramesPerBlock( const string &key )
 {
 	// ???: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
 	// - if it doesn't need a way to tell the user they should not listen to this value,
@@ -162,28 +171,30 @@ shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const std::string &ke
 // MARK: - Private
 // ----------------------------------------------------------------------------------------------------
 
-DeviceRef DeviceManagerWasapi::getDevice( const string &key )
-{
-	return getDeviceInfo( key ).device;
-}
+//DeviceRef DeviceManagerWasapi::getDevice( const string &key )
+//{
+//	return getDeviceInfo( key ).device;
+//}
 
 DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const std::string &key )
 {
-	for( auto& devInfo : getDevices() ) {
+	CI_ASSERT( ! mDeviceInfoArray.empty() );
+
+	for( auto& devInfo : mDeviceInfoArray ) {
 		if( key == devInfo.key )
 			return devInfo;
 	}
 	throw AudioDeviceExc( string( "could not find device for key: " ) + key );
 }
 
-DeviceManagerWasapi::DeviceContainerT& DeviceManagerWasapi::getDevices()
-{
-	if( mDevices.empty() ) {
-		parseDevices( DeviceInfo::Usage::Input );
-		parseDevices( DeviceInfo::Usage::Output );
-	}
-	return mDevices;
-}
+//DeviceManagerWasapi::DeviceContainerT& DeviceManagerWasapi::getDevices()
+//{
+//	if( mDevices.empty() ) {
+//		parseDevices( DeviceInfo::Usage::Input );
+//		parseDevices( DeviceInfo::Usage::Output );
+//	}
+//	return mDevices;
+//}
 
 // This call is performed twice because a separate Device subclass is used for input and output
 // and by using eRender / eCapture instead of eAll when enumerating the endpoints, it is easier
@@ -257,16 +268,21 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 	CI_ASSERT( hr == S_OK);
 
 	for ( UINT i = 0; i < numDevices; i++ )	{
-		mDevices.push_back( DeviceInfo() );
-		DeviceInfo &devInfo = mDevices.back();
 
-		::IMMDevice *device;
-		hr = devices->Item( i, &device );
+		mDeviceInfoArray.push_back( DeviceInfo() );
+		DeviceInfo &devInfo = mDeviceInfoArray.back();
+		devInfo.usage = usage;
+
+		DeviceRef device = ( usage == DeviceInfo::Usage::Input ?  DeviceRef( new DeviceInputWasapi( devInfo.key ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.key ) ) );
+		mDevices.push_back( device );
+
+		::IMMDevice *deviceImm;
+		hr = devices->Item( i, &deviceImm );
 		CI_ASSERT( hr == S_OK);
-		auto devicePtr = msw::makeComUnique( device );
+		auto devicePtr = msw::makeComUnique( deviceImm );
 
 		::IPropertyStore *properties;
-		hr = device->OpenPropertyStore( STGM_READ, &properties );
+		hr = deviceImm->OpenPropertyStore( STGM_READ, &properties );
 		CI_ASSERT( hr == S_OK);
 		auto propertiesPtr = msw::makeComUnique( properties );
 
@@ -276,7 +292,7 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 		CI_ASSERT( hr == S_OK );
 
 		LPWSTR endpointIdLpwStr;
-		hr = device->GetId( &endpointIdLpwStr );
+		hr = deviceImm->GetId( &endpointIdLpwStr );
 		CI_ASSERT( hr == S_OK );
 		devInfo.endpointId = wstring( endpointIdLpwStr );
 		devInfo.key = ci::toUtf8( devInfo.endpointId );
@@ -291,12 +307,6 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 				break;
 			}
 		}
-
-		devInfo.usage = usage;
-		if( usage == DeviceInfo::Usage::Input )
-			devInfo.device = DeviceRef( new DeviceInputWasapi( devInfo.key ) );
-		else
-			devInfo.device = DeviceRef( new DeviceOutputXAudio( devInfo.key ) );
 
 		::PROPVARIANT formatVar;
 		hr = properties->GetValue( PKEY_AudioEngine_DeviceFormat, &formatVar );
