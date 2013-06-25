@@ -1,0 +1,1 @@
+Audio2.xcodeproj is broken on my machine, for some reason the compiler can't find the assert macro in cinder headers.  Moving on for now, but it would be nice to have this since it would mean not having to update every test by hand all the time.
