@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <memory>
+#include <cstdlib>
 
 namespace audio2 {
 
