@@ -682,15 +682,14 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 		converter->getParent()->setSource( converter->getSources()[0] );
 }
 
-// TODO: consider adding a volume param here
-// - OS X output unit has kHALOutputParam_Volume, but need to check if this works on iOS
-// - this is also made difficult because I'm currently connecting the ConverterNode's callback to this
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	static_cast<RenderCallbackContext *>( data )->buffer.zero();
 
-	// TODO: zero out bufferList
-	
+	// In rare cases (when all nodes are disabled, but graph is running), the bufferList can get passed to output unmodified. So zero it out too.
+	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
 
@@ -699,8 +698,6 @@ OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRende
 	static_cast<RenderCallbackContext *>( data )->buffer.zero();
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
-
-// FIXME: in rare cases when all nodes are disabled, bufferList can contain crap  and needs to be zerod out
 
 // TODO: avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
