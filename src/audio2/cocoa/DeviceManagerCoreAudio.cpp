@@ -65,28 +65,6 @@ DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultInputId ) );
 }
 
-DeviceRef DeviceManagerCoreAudio::findDeviceByName( const std::string &name )
-{
-	for( const auto& device : getDevices() ) {
-		if( device->getName() == name )
-			return device;
-	}
-
-	LOG_E << "unknown device name: " << name << endl;
-	return DeviceRef();
-}
-
-DeviceRef DeviceManagerCoreAudio::findDeviceByKey( const std::string &key )
-{
-	for( const auto& device : getDevices() ) {
-		if( device->getKey() == key )
-			return device;
-	}
-
-	LOG_E << "unknown device key: " << key << endl;
-	return DeviceRef();
-}
-
 void DeviceManagerCoreAudio::setActiveDevice( const string &key )
 {
 	for( const auto& device : getDevices() ) {

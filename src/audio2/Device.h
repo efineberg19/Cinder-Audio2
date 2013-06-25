@@ -65,13 +65,14 @@ class Device {
 class DeviceManager {
   public:
 	virtual ~DeviceManager() {}
-	virtual DeviceRef getDefaultOutput() = 0;
-	virtual DeviceRef getDefaultInput() = 0;
+	static DeviceManager* instance();
 
 	virtual DeviceRef findDeviceByName( const std::string &name );
 	virtual DeviceRef findDeviceByKey( const std::string &key );
 
 	virtual const std::vector<DeviceRef>& getDevices() = 0;
+	virtual DeviceRef getDefaultOutput() = 0;
+	virtual DeviceRef getDefaultInput() = 0;
 
 	virtual std::string getName( const std::string &key ) = 0;
 	virtual size_t getNumInputChannels( const std::string &key ) = 0;
@@ -82,8 +83,6 @@ class DeviceManager {
 	// TODO: the functionality in this method feels awkward, consider doing it in device
 	// - for iOS audio session activating, can just do that in DeviceManager's constructor
 	virtual void setActiveDevice( const std::string &key ) = 0;
-
-	static DeviceManager* instance();
 
 protected:
 	DeviceManager()	{}

@@ -36,9 +36,6 @@ public:
 	DeviceRef getDefaultOutput() override;
 	DeviceRef getDefaultInput() override;
 
-	DeviceRef findDeviceByName( const std::string &name ) override;
-	DeviceRef findDeviceByKey( const std::string &key ) override;
-
 	const std::vector<DeviceRef>& getDevices() override;
 
 	std::string getName( const std::string &key ) override;
