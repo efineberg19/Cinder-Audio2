@@ -697,6 +697,10 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	static_cast<RenderCallbackContext *>( data )->buffer.zero();
+
+	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
 
