@@ -121,7 +121,7 @@ DeviceManager* DeviceManager::instance()
 
 DeviceRef DeviceManager::findDeviceByName( const std::string &name )
 {
-	for( const auto &device : mDevices ) {
+	for( const auto &device : getDevices() ) {
 		if( device->getName() == name )
 			return device;
 	}
@@ -132,7 +132,7 @@ DeviceRef DeviceManager::findDeviceByName( const std::string &name )
 
 DeviceRef DeviceManager::findDeviceByKey( const std::string &key )
 {
-	for( const auto &device : mDevices ) {
+	for( const auto &device : getDevices() ) {
 		if( device->getKey() == key )
 			return device;
 	}
