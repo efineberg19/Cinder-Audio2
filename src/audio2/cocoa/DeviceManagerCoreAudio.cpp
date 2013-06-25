@@ -152,6 +152,8 @@ size_t DeviceManagerCoreAudio::getNumFramesPerBlock( const string &key )
 
 ::AudioDeviceID DeviceManagerCoreAudio::getDeviceId( const std::string &key )
 {
+	CI_ASSERT( ! mDeviceIds.empty() );
+
 	for( const auto& devicePair : mDeviceIds ) {
 		if( devicePair.first->getKey() == key )
 			return devicePair.second;
