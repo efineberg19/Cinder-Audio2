@@ -54,18 +54,15 @@ void DeviceAudioUnit::initialize()
 
 	UInt32 enableInput = static_cast<UInt32>( mInputConnected );
 	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, Bus::Input, &enableInput, sizeof( enableInput ) );
-	LOG_V << "input enabled: " << enableInput << endl;
 
 	UInt32 enableOutput = static_cast<UInt32>( mOutputConnected );
 	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, Bus::Output, &enableOutput, sizeof( enableOutput ) );
-	LOG_V << "output enabled: " << enableOutput << endl;
 
 	DeviceManager::instance()->setActiveDevice( mKey );
 
 	OSStatus status = ::AudioUnitInitialize( getComponentInstance() );
 	CI_ASSERT( status == noErr );
 
-	LOG_V << "success initializing device: " << getName() << endl;
 	mInitialized = true;
 }
 
@@ -75,8 +72,6 @@ void DeviceAudioUnit::uninitialize()
 		LOG_E << "not initialized." << endl;
 		return;
 	}
-
-	LOG_V << "unitinializing device: " << getName() << endl;
 
 	if( mComponentInstance ) {
 		OSStatus status = ::AudioUnitUninitialize( mComponentInstance );

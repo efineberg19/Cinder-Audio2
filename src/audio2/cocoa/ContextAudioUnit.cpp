@@ -124,25 +124,25 @@ void OutputAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	mDevice->initialize();
-
-	LOG_V << "initialize complete." << endl;
+	mInitialized = true;
 }
 
 void OutputAudioUnit::uninitialize()
 {
+	mInitialized = false;
 	mDevice->uninitialize();
 }
 
 void OutputAudioUnit::start()
 {
+	mEnabled = true;
 	mDevice->start();
-	LOG_V << "started: " << mDevice->getName() << endl;
 }
 
 void OutputAudioUnit::stop()
 {
+	mEnabled = false;
 	mDevice->stop();
-	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
 DeviceRef OutputAudioUnit::getDevice()
@@ -215,17 +215,17 @@ void InputAudioUnit::initialize()
 		mDevice->initialize();
 	}
 
-	LOG_V << "initialize complete." << endl;
+	mInitialized = true;
 }
 
 void InputAudioUnit::uninitialize()
 {
+	mInitialized = false;
 	mDevice->uninitialize();
 }
 
 void InputAudioUnit::start()
 {
-
 	if( ! mDevice->isOutputConnected() ) {
 		mEnabled = true;
 		mDevice->start();
@@ -314,11 +314,12 @@ void EffectAudioUnit::initialize()
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 
-	LOG_V << "initialize complete. " << endl;
+	mInitialized = true;
 }
 
 void EffectAudioUnit::uninitialize()
 {
+	mInitialized = false;
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 }
@@ -388,11 +389,12 @@ void MixerAudioUnit::initialize()
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 
-	LOG_V << "initialize complete. " << endl;
+	mInitialized = true;
 }
 
 void MixerAudioUnit::uninitialize()
 {
+	mInitialized = false;
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 }
@@ -520,11 +522,10 @@ void ConverterAudioUnit::initialize()
 	::AudioStreamBasicDescription inputAsbd = cocoa::createFloatAsbd( sourceNode->getNumChannels(), sampleRate, ( sourceNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
 	::AudioStreamBasicDescription outputAsbd = cocoa::createFloatAsbd( destNode->getNumChannels(), sampleRate, ( destNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
 
-	LOG_V << "input ASBD:" << endl;
-	cocoa::printASBD( inputAsbd );
-	LOG_V << "output ASBD:" << endl;
-	cocoa::printASBD( outputAsbd );
-
+//	LOG_V << "input ASBD:" << endl;
+//	cocoa::printASBD( inputAsbd );
+//	LOG_V << "output ASBD:" << endl;
+//	cocoa::printASBD( outputAsbd );
 
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outputAsbd, sizeof( outputAsbd ) );
 	CI_ASSERT( status == noErr );
@@ -542,11 +543,12 @@ void ConverterAudioUnit::initialize()
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 
-	LOG_V << "initialize complete. " << endl;
+	mInitialized = true;
 }
 
 void ConverterAudioUnit::uninitialize()
 {
+	mInitialized = false;
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 }
@@ -646,7 +648,6 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContex
 			continue;
 		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
 		CI_ASSERT( status == noErr );
-		LOG_V << "connected render callback to: " << source->getTag() << endl;
 
 		if( recursive )
 			connectRenderCallback( source, context, callback, recursive );
