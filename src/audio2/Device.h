@@ -68,8 +68,8 @@ class DeviceManager {
 	virtual DeviceRef getDefaultOutput() = 0;
 	virtual DeviceRef getDefaultInput() = 0;
 
-	virtual DeviceRef findDeviceByName( const std::string &name ) = 0;
-	virtual DeviceRef findDeviceByKey( const std::string &key ) = 0;
+	virtual DeviceRef findDeviceByName( const std::string &name );
+	virtual DeviceRef findDeviceByKey( const std::string &key );
 
 	virtual const std::vector<DeviceRef>& getDevices() = 0;
 

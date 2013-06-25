@@ -119,4 +119,26 @@ DeviceManager* DeviceManager::instance()
 	return sInstance;
 }
 
+DeviceRef DeviceManager::findDeviceByName( const std::string &name )
+{
+	for( const auto &device : mDevices ) {
+		if( device->getName() == name )
+			return device;
+	}
+
+	LOG_E << "unknown device name: " << name << std::endl;
+	return DeviceRef();
+}
+
+DeviceRef DeviceManager::findDeviceByKey( const std::string &key )
+{
+	for( const auto &device : mDevices ) {
+		if( device->getKey() == key )
+			return device;
+	}
+
+	LOG_E << "unknown device key: " << key << std::endl;
+	return DeviceRef();
+}
+
 } // namespace audio2
