@@ -168,8 +168,7 @@ Context* Context::instance()
 #elif defined( CINDER_MSW )
 		sInstance = new msw::ContextXAudio();
 #else
-		// TODO: add hook here to get user defined engine impl
-#error "not implemented."
+		throw AudioContextExc( "no default context for this platform." );
 #endif
 	}
 	return sInstance;
