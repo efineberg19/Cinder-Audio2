@@ -144,7 +144,7 @@ size_t DeviceManagerWasapi::getNumFramesPerBlock( const string &key )
 	// - if it doesn't need a way to tell the user they should not listen to this value,
 	//   or we can use a pretty standard default (like 512 or 1024).
 	// - IAudioClient::GetBufferSize seems to be a possiblity, needs to be activated first
-	return 0;
+	return 512;
 }
 
 const std::wstring& DeviceManagerWasapi::getDeviceId( const std::string &key )
