@@ -31,7 +31,7 @@
 	#define CINDER_AUDIO_FFT_ACCELERATE
 	#include <Accelerate/Accelerate.h>
 #else
-	#warning "FFT not yet implemented for this platform"
+	// TODO: use cross-platform FFT library 
 #endif
 
 #include <vector>

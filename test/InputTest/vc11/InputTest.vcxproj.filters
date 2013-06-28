@@ -87,6 +87,15 @@
     <ClCompile Include="..\..\..\src\audio2\GeneratorNode.cpp">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\audio2\TapNode.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio2\Dsp.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio2\Fft.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
@@ -124,6 +133,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio2\msw\DeviceManagerWasapi.h">
       <Filter>Blocks\Audio2\src\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\TapNode.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\Fft.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

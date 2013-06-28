@@ -34,7 +34,6 @@ Fft::Fft( size_t fftSize )
 	if( ! mSize || ! isPowerOf2( mSize ) )
 		throw AudioExc( "invalid fftSize" );
 
-	mLog2FftSize = log2f( mSize );
 
 	mReal.resize( mSize );
 	mImag.resize( mSize );
@@ -43,9 +42,12 @@ Fft::Fft( size_t fftSize )
 	mSplitComplexFrame.realp = mReal.data();
 	mSplitComplexFrame.imagp = mImag.data();
 
+	mLog2FftSize = log2f( mSize );
 	mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
 	CI_ASSERT( mFftSetup );
-#endif // defined( CINDER_AUDIO_FFT_ACCELERATE )
+#else
+	CI_ASSERT_MSG( 0, "fft only implemented on mac so far" );
+#endif
 
 }
 

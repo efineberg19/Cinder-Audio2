@@ -56,8 +56,8 @@ void InputTestApp::setup()
 	LOG_V << "all devices: " << endl;
 	printDevices();
 
-//	setupDefaultDevices();
-	setupDedicatedDevice();
+	setupDefaultDevices();
+	//setupDedicatedDevice();
 
 
 	// TODO: add this as a test control

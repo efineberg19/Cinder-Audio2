@@ -107,12 +107,15 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\audio2\Dsp.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\Fft.cpp" />
     <ClCompile Include="..\..\..\src\audio2\GeneratorNode.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\ContextXAudio.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\DeviceInputWasapi.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\DeviceManagerWasapi.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\DeviceOutputXAudio.cpp" />
     <ClCompile Include="..\..\..\src\audio2\msw\util.cpp" />
+    <ClCompile Include="..\..\..\src\audio2\TapNode.cpp" />
     <ClCompile Include="..\src\InputTestApp.cpp" />
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.cpp" />
     <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Device.cpp" />
@@ -122,6 +125,7 @@
     <ClInclude Include="..\..\..\src\audio2\Buffer.h" />
     <ClInclude Include="..\..\..\src\audio2\Dsp.h" />
     <ClInclude Include="..\..\..\src\audio2\EffectNode.h" />
+    <ClInclude Include="..\..\..\src\audio2\Fft.h" />
     <ClInclude Include="..\..\..\src\audio2\GeneratorNode.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\ContextXAudio.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\DeviceInputWasapi.h" />
@@ -129,6 +133,7 @@
     <ClInclude Include="..\..\..\src\audio2\msw\DeviceOutputXAudio.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\util.h" />
     <ClInclude Include="..\..\..\src\audio2\msw\xaudio.h" />
+    <ClInclude Include="..\..\..\src\audio2\TapNode.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\Gui.h" />
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\assert.h" />

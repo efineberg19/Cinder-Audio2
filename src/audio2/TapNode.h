@@ -26,6 +26,8 @@
 #include "audio2/Context.h"
 #include "audio2/Dsp.h"
 
+#include "cinder/Thread.h"
+
 namespace audio2 {
 
 class RingBuffer;
