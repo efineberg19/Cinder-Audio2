@@ -96,8 +96,7 @@ struct VoiceCallbackImpl;
 
 class SourceVoiceXAudio : public Node, public NodeXAudio {
   public:
-	SourceVoiceXAudio();
-	~SourceVoiceXAudio();
+	virtual	~SourceVoiceXAudio();
 
 	void initialize() override;
 	void uninitialize() override;
@@ -108,6 +107,8 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSourceVoice ), this ); }
 
   private:
+	SourceVoiceXAudio();
+
 	void submitNextBuffer();
 	void renderNode( NodeRef node );
 
@@ -124,7 +125,7 @@ class EffectXAudioXapo : public EffectNode, public NodeXAudio {
 public:
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
-	EffectXAudioXapo( XapoType type );
+	EffectXAudioXapo( XapoType type, const Format &format = Format() );
 	virtual ~EffectXAudioXapo();
 
 	void initialize() override;
@@ -153,7 +154,7 @@ private:
 class EffectXAudioFilter : public EffectNode, public NodeXAudio {
 public:
 
-	EffectXAudioFilter();
+	EffectXAudioFilter( const Format &format = Format() );
 	virtual ~EffectXAudioFilter();
 
 	void initialize() override;

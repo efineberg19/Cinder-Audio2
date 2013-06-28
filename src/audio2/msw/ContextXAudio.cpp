@@ -270,8 +270,8 @@ void SourceVoiceXAudio::renderNode( NodeRef node )
 // ----------------------------------------------------------------------------------------------------
 
 // TODO: cover the 2 built-ins too, included via xaudio2fx.h
-EffectXAudioXapo::EffectXAudioXapo( XapoType type )
-: mType( type )
+EffectXAudioXapo::EffectXAudioXapo( XapoType type, const Format &format )
+: EffectNode( format ), mType( type )
 {
 	mTag = "EffectXAudioXapo";
 
@@ -341,7 +341,8 @@ void EffectXAudioXapo::setParams( const void *params, size_t sizeParams )
 // MARK: - EffectXAudioFilter
 // ----------------------------------------------------------------------------------------------------
 
-EffectXAudioFilter::EffectXAudioFilter()
+EffectXAudioFilter::EffectXAudioFilter( const Format &format )
+: EffectNode( format )
 {
 	mTag = "EffectXAudioFilter";
 
@@ -690,7 +691,7 @@ void ContextXAudio::initNode( NodeRef node )
 				if( getXAudioNode( source ) )
 					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 
-				sourceVoice = make_shared<SourceVoiceXAudio>();
+				sourceVoice = shared_ptr<SourceVoiceXAudio>( new SourceVoiceXAudio() );
 				node->getSources()[i] = sourceVoice;
 				sourceVoice->setParent( node );
 				sourceVoice->setSource( source );

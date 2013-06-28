@@ -62,7 +62,7 @@ void EffectXAudioTestApp::setup()
 	console() << "\t input channels: " << device->getNumInputChannels() << endl;
 	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t block size: " << device->getBlockSize() << endl;
+	console() << "\t frames per block: " << device->getNumFramesPerBlock() << endl;
 
 	auto output = Context::instance()->createOutput( device );
 	mContext = Context::instance()->createContext();
@@ -70,7 +70,7 @@ void EffectXAudioTestApp::setup()
 
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->getUGen().setAmp( 0.25f );
-	noise->getFormat().setAutoEnabled();
+	noise->setAutoEnabled();
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
@@ -131,10 +131,11 @@ void EffectXAudioTestApp::setupOne()
 
 void EffectXAudioTestApp::setupTwo()
 {
-	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
-	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
+	Node::Format format;
+	//format.channels( 2 ); // force stereo
 
-	mEffect->getFormat().setNumChannels( 2 ); // force stereo
+	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ, format );
+	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
 
 	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
 }
@@ -210,7 +211,7 @@ void EffectXAudioTestApp::processEvent( Vec2i pos )
 void EffectXAudioTestApp::updateLowpass()
 {
 	if( mFilterEffect ) {
-		mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.valueScaled, mFilterEffect->getFormat().getSampleRate() );
+		mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.valueScaled, mContext->getSampleRate() );
 		mFilterEffect->setParams( mFilterParams );
 	}
 }
