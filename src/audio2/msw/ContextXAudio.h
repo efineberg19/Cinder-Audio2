@@ -86,9 +86,7 @@ class OutputXAudio : public OutputNode, public NodeXAudio {
 
 	DeviceRef getDevice() override;
 
-	size_t getBlockSize() const override;
-
-	bool supportsSourceFormat( const Format &sourceFormat ) const override;
+	bool supportsSourceNumChannels( size_t numChannels ) const override;
 
   private:
 	std::shared_ptr<DeviceOutputXAudio> mDevice;
@@ -118,6 +116,8 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
 	Buffer										mBuffer, mBufferInterleaved;
 	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
+
+	friend class ContextXAudio;
 };
 
 class EffectXAudioXapo : public EffectNode, public NodeXAudio {
@@ -187,7 +187,7 @@ public:
 
 	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSubmixVoice ), this ); }
 
-	bool supportsSourceFormat( const Node::Format &sourceFormat ) const override;
+	bool supportsSourceNumChannels( size_t numChannels ) const override;
 
   private:
 	void checkBusIsValid( size_t bus );
@@ -227,7 +227,7 @@ class ContextXAudio : public Context {
 
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );
-	void setXAudio( NodeRef node );
+	void setContext( NodeRef node );
 	void initEffects( NodeRef node );
 };
 

@@ -171,11 +171,6 @@ shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const std::string &ke
 // MARK: - Private
 // ----------------------------------------------------------------------------------------------------
 
-//DeviceRef DeviceManagerWasapi::getDevice( const string &key )
-//{
-//	return getDeviceInfo( key ).device;
-//}
-
 DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const std::string &key )
 {
 	CI_ASSERT( ! mDeviceInfoArray.empty() );
@@ -184,7 +179,7 @@ DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const std::
 		if( key == devInfo.key )
 			return devInfo;
 	}
-	throw AudioDeviceExc( string( "could not find device for key: " ) + key );
+	throw AudioDeviceExc( string( "could not find device info for key: " ) + key );
 }
 
 //DeviceManagerWasapi::DeviceContainerT& DeviceManagerWasapi::getDevices()
@@ -268,13 +263,9 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 	CI_ASSERT( hr == S_OK);
 
 	for ( UINT i = 0; i < numDevices; i++ )	{
-
 		mDeviceInfoArray.push_back( DeviceInfo() );
 		DeviceInfo &devInfo = mDeviceInfoArray.back();
 		devInfo.usage = usage;
-
-		DeviceRef device = ( usage == DeviceInfo::Usage::Input ?  DeviceRef( new DeviceInputWasapi( devInfo.key ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.key ) ) );
-		mDevices.push_back( device );
 
 		::IMMDevice *deviceImm;
 		hr = devices->Item( i, &deviceImm );
@@ -288,8 +279,8 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 
 		::PROPVARIANT nameVar;
 		hr = properties->GetValue( PKEY_Device_FriendlyName, &nameVar );
-		devInfo.name = ci::toUtf8( nameVar.pwszVal );
 		CI_ASSERT( hr == S_OK );
+		devInfo.name = ci::toUtf8( nameVar.pwszVal );
 
 		LPWSTR endpointIdLpwStr;
 		hr = deviceImm->GetId( &endpointIdLpwStr );
@@ -315,6 +306,10 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 
 		devInfo.numChannels = format->nChannels;
 		devInfo.sampleRate = format->nSamplesPerSec;
+
+
+		DeviceRef device = ( usage == DeviceInfo::Usage::Input ? DeviceRef( new DeviceInputWasapi( devInfo.key ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.key ) ) );
+		mDevices.push_back( device );
 	}
 }
 

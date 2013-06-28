@@ -81,8 +81,8 @@ void BasicTestApp::setup()
 	mContext = Context::instance()->createContext();
 	mContext->setRoot( output );
 
-//	setupSine();
-	setupInterleavedPassThru();
+	setupSine();
+	//setupInterleavedPassThru();
 
 	initContext();
 	setupUI();

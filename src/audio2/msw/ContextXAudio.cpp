@@ -124,8 +124,8 @@ OutputXAudio::OutputXAudio( DeviceRef device )
 	mDevice = dynamic_pointer_cast<DeviceOutputXAudio>( device );
 	CI_ASSERT( mDevice );
 
-	mFormat.setSampleRate( mDevice->getSampleRate() );
-	mFormat.setNumChannels( mDevice->getNumOutputChannels() );
+	if( mNumChannelsUnspecified )
+		setNumChannels( mDevice->getNumOutputChannels() );
 }
 
 void OutputXAudio::initialize()
@@ -160,14 +160,7 @@ DeviceRef OutputXAudio::getDevice()
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
-size_t OutputXAudio::getBlockSize() const
-{
-	// TOOD: this is not yet retrievable from device, if it is necessary, provide value some other way
-	return mDevice->getBlockSize();
-}
-
-// TODO: check what happens for different samplerates
-bool OutputXAudio::supportsSourceFormat( const Node::Format &sourceFormat ) const
+bool OutputXAudio::supportsSourceNumChannels( size_t numChannels ) const
 {
 	return true;
 }
@@ -178,9 +171,10 @@ bool OutputXAudio::supportsSourceFormat( const Node::Format &sourceFormat ) cons
 
 // TODO: blocksize needs to be exposed.
 SourceVoiceXAudio::SourceVoiceXAudio()
+: Node( Format() )
 {
 	mTag = "SourceVoiceXAudio";
-	mFormat.setAutoEnabled( true );
+	setAutoEnabled( true );
 	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &SourceVoiceXAudio::submitNextBuffer, this ) ) );
 }
 
@@ -192,24 +186,24 @@ SourceVoiceXAudio::~SourceVoiceXAudio()
 void SourceVoiceXAudio::initialize()
 {
 	// TODO: consider whether this should handle higher channel counts, or disallow in graph configure / node format
-	CI_ASSERT( mFormat.getNumChannels() <= 2 ); 
+	CI_ASSERT( getNumChannels() <= 2 ); 
 
-	mBuffer = Buffer( mFormat.getNumChannels(), 512 );
+	mBuffer = Buffer( getNumChannels(), getContext()->getNumFramesPerBlock() );
 	
 	size_t numSamples = mBuffer.getSize();
 
 	memset( &mXAudio2Buffer, 0, sizeof( mXAudio2Buffer ) );
 	mXAudio2Buffer.AudioBytes = numSamples * sizeof( float );
-	if( mFormat.getNumChannels() == 2 ) {
+	if( getNumChannels() == 2 ) {
 		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
-		mBufferInterleaved = Buffer( mBuffer.getNumChannels(), mBuffer.getNumFrames(), Buffer::Format::Interleaved );
+		mBufferInterleaved = Buffer( mBuffer.getNumChannels(), mBuffer.getNumFrames(), Buffer::Layout::Interleaved );
 		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.getData() );
 	} else {
 		// setup mono
 		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>(  mBuffer.getData() );
 	}
 
-	auto wfx = msw::interleavedFloatWaveFormat( mFormat.getNumChannels(), mFormat.getSampleRate() );
+	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), getContext()->getSampleRate() );
 
 	UINT32 flags = ( mFilterEnabled ? XAUDIO2_VOICE_USEFILTER : 0 );
 	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
@@ -255,7 +249,7 @@ void SourceVoiceXAudio::submitNextBuffer()
 	mBuffer.zero();
 	renderNode( mSources[0] );
 
-	if( mFormat.getNumChannels() == 2 )
+	if( getNumChannels() == 2 )
 		interleaveStereoBuffer( &mBuffer, &mBufferInterleaved );
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
@@ -307,7 +301,7 @@ void EffectXAudioXapo::initialize()
 	//effectDesc.InitialState = mEnabled = true; // TODO: add enabled / running param for all Nodes.
 	effectDesc.InitialState = true;
 	effectDesc.pEffect = mXapo.get();
-	effectDesc.OutputChannels = mFormat.getNumChannels();
+	effectDesc.OutputChannels = getNumChannels();
 
 	XAudioVoice v = getXAudioVoice( shared_from_this() );
 	auto &effects = v.node->getEffectsDescriptors();
@@ -402,9 +396,10 @@ void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
 // ----------------------------------------------------------------------------------------------------
 
 MixerXAudio::MixerXAudio()
+: MixerNode( Format() )
 {
 	mTag = "MixerXAudio";
-	mFormat.setWantsDefaultFormatFromParent();
+	mWantsDefaultFormatFromParent = true;
 }
 
 MixerXAudio::~MixerXAudio()
@@ -413,7 +408,7 @@ MixerXAudio::~MixerXAudio()
 
 void MixerXAudio::initialize()
 {
-	HRESULT hr = mXAudio->CreateSubmixVoice( &mSubmixVoice, mFormat.getNumChannels(), mFormat.getSampleRate());
+	HRESULT hr = mXAudio->CreateSubmixVoice( &mSubmixVoice, getNumChannels(), getContext()->getSampleRate());
 
 	::XAUDIO2_SEND_DESCRIPTOR sendDesc = { 0, mSubmixVoice };
 	::XAUDIO2_VOICE_SENDS sendList = { 1, &sendDesc };
@@ -522,7 +517,7 @@ void MixerXAudio::setBusPan( size_t bus, float pan )
 {
 	checkBusIsValid( bus );
 
-	size_t numChannels = mFormat.getNumChannels(); 
+	size_t numChannels = getNumChannels(); 
 	if( numChannels == 1 )
 		return; // mono is no-op
 	if( numChannels > 2 )
@@ -540,7 +535,7 @@ void MixerXAudio::setBusPan( size_t bus, float pan )
 	NodeRef node = mSources[bus];
 	auto nodeXAudio = getXAudioNode( node );
 	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node ).voice;
-	HRESULT hr = voice->SetOutputMatrix( nullptr, node->getFormat().getNumChannels(), numChannels, outputMatrix.data() );
+	HRESULT hr = voice->SetOutputMatrix( nullptr, node->getNumChannels(), numChannels, outputMatrix.data() );
 	CI_ASSERT( hr == S_OK );
 }
 
@@ -559,8 +554,7 @@ void MixerXAudio::checkBusIsValid( size_t bus )
 		throw AudioParamExc( "There is no node at bus index: " + bus );
 }
 
-// TODO: check what happens for different samplerates
-bool MixerXAudio::supportsSourceFormat( const Node::Format &sourceFormat ) const
+bool MixerXAudio::supportsSourceNumChannels( size_t numChannels ) const
 {
 	return true;
 }
@@ -653,6 +647,9 @@ void ContextXAudio::initialize()
 		return;
 	CI_ASSERT( mRoot );
 
+	mSampleRate = mRoot->getSampleRate();
+	mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
+
 	// TODO: what about when outputting to file? Do we still need a device?
 	// - probably requires abstracting to RootXAudio - if not a device output, we implicitly have one but it is muted
 	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mRoot )->getDevice().get() );
@@ -667,24 +664,13 @@ void ContextXAudio::initialize()
 
 void ContextXAudio::initNode( NodeRef node )
 {
-	setXAudio( node );
+	if( ! node )
+		return;
 
-	Node::Format& format = node->getFormat();
+	setContext( node );
 
-	// set default params from parent if requested // TODO: switch these checks, and one below as well
-	if( ! format.isComplete() && format.wantsDefaultFormatFromParent() ) {
-		NodeRef parent = node->getParent();
-		while( parent ) {
-			if( ! format.getSampleRate() )
-				format.setSampleRate( parent->getFormat().getSampleRate() );
-			if( ! format.getNumChannels() )
-				format.setNumChannels( parent->getFormat().getNumChannels() );
-			if( format.isComplete() )
-				break;
-			parent = parent->getParent();
-		}
-		CI_ASSERT( format.isComplete() );
-	}
+	if( node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
+		node->fillFormatParamsFromParent();
 
 	// recurse through sources
 	for( size_t i = 0; i < node->getSources().size(); i++ ) {
@@ -715,47 +701,26 @@ void ContextXAudio::initNode( NodeRef node )
 
 		// initialize source voice after node
 		if( sourceVoice && ! sourceVoice->isInitialized() ) {
-			sourceVoice->getFormat().setNumChannels( source->getFormat().getNumChannels() );
-			sourceVoice->getFormat().setSampleRate( source->getFormat().getSampleRate() );
-			setXAudio( sourceVoice );
+			sourceVoice->setNumChannels( source->getNumChannels() );
+			setContext( sourceVoice );
 			sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
 			sourceVoice->initialize();
 		}
 	}
 
 	// set default params from source
-	if( ! format.isComplete() && ! format.wantsDefaultFormatFromParent() ) {
-		if( ! format.getSampleRate() )
-			format.setSampleRate( node->getSourceFormat().getSampleRate() );
-		if( ! format.getNumChannels() )
-			format.setNumChannels( node->getSourceFormat().getNumChannels() );
-	}
-
-	CI_ASSERT( format.isComplete() );
+	if( ! node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
+		node->fillFormatParamsFromSource();
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
 		NodeRef& sourceNode = node->getSources()[bus];
 		if( ! sourceNode )
 			continue;
 
-		if( ! node->supportsSourceFormat( sourceNode->getFormat() ) ) {
+		if( ! node->supportsSourceNumChannels( sourceNode->getNumChannels() ) ) {
 			CI_ASSERT( 0 && "ConverterXAudio not yet implemented" );
 
-			bool needsConverter = false;
-			if( format.getSampleRate() != sourceNode->getFormat().getSampleRate() )
-				//needsConverter = true;
-				throw AudioFormatExc( "non-matching samplerates not supported" );
-			if( format.getNumChannels() != sourceNode->getFormat().getNumChannels() ) {
-				LOG_V << "CHANNEL MISMATCH: " << sourceNode->getFormat().getNumChannels() << " -> " << format.getNumChannels() << endl;
-				needsConverter = true;
-			}
-			if( needsConverter ) {
-				//auto converter = make_shared<ConverterAudioUnit>( sourceNode, node, mOutput->getBlockSize() );
-				//converter->getSources()[0] = sourceNode;
-				//node->getSources()[bus] = converter;
-				//converter->setParent( node->getSources()[bus] );
-				//converter->initialize();
-			}
+			// TODO: insert Converter based on xaudio2 submix voice
 		}
 	}
 
@@ -782,8 +747,9 @@ void ContextXAudio::uninitNode( NodeRef node )
 	node->uninitialize();
 }
 
-void ContextXAudio::setXAudio( NodeRef node )
+void ContextXAudio::setContext( NodeRef node )
 {
+	node->setContext( shared_from_this() );
 	NodeXAudio *nodeXAudio = dynamic_cast<NodeXAudio *>( node.get() );
 	if( nodeXAudio ) {
 		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<OutputXAudio>( mRoot )->getDevice().get() );
