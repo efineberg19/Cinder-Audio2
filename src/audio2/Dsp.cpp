@@ -23,18 +23,13 @@
 
 #include "audio2/Dsp.h"
 
-#include "cinder/Cinder.h"
 #include "cinder/CinderMath.h"
-
-#if defined( CINDER_COCOA )
-	#include <Accelerate/Accelerate.h>
-#endif
 
 using namespace ci;
 
 namespace audio2 {
 
-#if defined( CINDER_COCOA )
+#if defined( CINDER_AUDIO_DSP_ACCELERATE )
 
 void generateBlackmanWindow( float *window, size_t length )
 {

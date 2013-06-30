@@ -26,7 +26,13 @@
 #include "audio2/Atomic.h"
 #include "audio2/assert.h"
 
+#include "cinder/Cinder.h"
 #include "cinder/Rand.h"
+
+#if defined( CINDER_COCOA )
+	#define CINDER_AUDIO_DSP_ACCELERATE
+	#include <Accelerate/Accelerate.h>
+#endif
 
 #include <cmath>
 #include <vector>

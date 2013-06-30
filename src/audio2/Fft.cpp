@@ -22,7 +22,6 @@
 */
 
 #include "audio2/Fft.h"
-#include "audio2/Dsp.h"
 #include "audio2/Assert.h"
 #include "audio2/audio.h"
 
@@ -34,11 +33,10 @@ Fft::Fft( size_t fftSize )
 	if( ! mSize || ! isPowerOf2( mSize ) )
 		throw AudioExc( "invalid fftSize" );
 
-
 	mReal.resize( mSize );
 	mImag.resize( mSize );
 
-#if defined( CINDER_AUDIO_FFT_ACCELERATE )
+#if defined( CINDER_AUDIO_DSP_ACCELERATE )
 	mSplitComplexFrame.realp = mReal.data();
 	mSplitComplexFrame.imagp = mImag.data();
 
@@ -53,7 +51,7 @@ Fft::Fft( size_t fftSize )
 
 Fft::~Fft()
 {
-#if defined( CINDER_AUDIO_FFT_ACCELERATE )
+#if defined( CINDER_AUDIO_DSP_ACCELERATE )
 	vDSP_destroy_fftsetup( mFftSetup );
 #endif // defined( CINDER_AUDIO_FFT_ACCELERATE )
 }
@@ -63,7 +61,7 @@ void Fft::compute( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumFrames() == mSize );
 	
-#if defined( CINDER_AUDIO_FFT_ACCELERATE )
+#if defined( CINDER_AUDIO_DSP_ACCELERATE )
 
 	vDSP_ctoz( ( ::DSPComplex *)buffer->getData(), 2, &mSplitComplexFrame, 1, mSize / 2 );
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );

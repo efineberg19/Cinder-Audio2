@@ -23,16 +23,8 @@
 
 #pragma once
 
-#include "cinder/Cinder.h"
-
 #include "audio2/Buffer.h"
-
-#if defined( CINDER_COCOA )
-	#define CINDER_AUDIO_FFT_ACCELERATE
-	#include <Accelerate/Accelerate.h>
-#else
-	// TODO: use cross-platform FFT library 
-#endif
+#include "audio2/Dsp.h"
 
 #include <vector>
 
@@ -60,11 +52,14 @@ protected:
 	std::vector<float> mReal, mImag;
 	size_t mSize;
 
-#if defined( CINDER_AUDIO_FFT_ACCELERATE )
+#if defined( CINDER_AUDIO_DSP_ACCELERATE )
 	size_t mLog2FftSize;
 	::FFTSetup mFftSetup;
 	::DSPSplitComplex mSplitComplexFrame;
+#else
+	// TODO: use cross-platform FFT library
 #endif
+
 };
 
 } // namespace audio2
