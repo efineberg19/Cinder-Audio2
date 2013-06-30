@@ -24,10 +24,13 @@
 #include "audio2/Dsp.h"
 
 #include "cinder/Cinder.h"
+#include "cinder/CinderMath.h"
 
 #if defined( CINDER_COCOA )
 	#include <Accelerate/Accelerate.h>
 #endif
+
+using namespace ci;
 
 namespace audio2 {
 
@@ -46,6 +49,13 @@ void generateHammWindow( float *window, size_t length )
 void generateHannWindow( float *window, size_t length )
 {
 	vDSP_hann_window( window, static_cast<vDSP_Length>( length ), 0 );
+}
+
+float rms( const float *audioData, size_t length )
+{
+	float result;
+	vDSP_rmsqv( audioData, 1, &result, length );
+	return result;
 }
 
 #else
@@ -73,6 +83,17 @@ void generateHammWindow( float *window, size_t length )
 void generateHannWindow( float *window, size_t length )
 {
 	CI_ASSERT( 0 && "not implemented" );
+}
+
+float rms( const float *audioData, size_t length )
+{
+	float sumSquared = 0;
+	for( size_t i = 0; i < length; i++ ) {
+		float val = audioData[i];
+		sumSquared += val * val;
+	}
+
+	return math<float>::sqrt( sumSquared / (float)length );
 }
 
 #endif

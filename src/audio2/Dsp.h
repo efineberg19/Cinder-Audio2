@@ -128,4 +128,7 @@ enum WindowType {
 	RECT		//! no window
 };
 
+
+float rms( const float *audioData, size_t length );
+
 } // namespace audio2

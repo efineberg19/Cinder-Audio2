@@ -40,8 +40,8 @@ namespace audio2 {
 // MARK: - TapNode
 // ----------------------------------------------------------------------------------------------------
 
-TapNode::TapNode( size_t numBufferedFrames, const Format &format )
-: Node( format ), mNumBufferedFrames( numBufferedFrames )
+TapNode::TapNode( size_t windowSize, const Format &format )
+: Node( format ), mWindowSize( windowSize )
 {
 	mTag = "BufferTap";
 	setAutoEnabled();
@@ -51,15 +51,19 @@ TapNode::~TapNode()
 {
 }
 
-// TODO: make it possible for tap size to be auto-configured to input size
-// - methinks it requires all nodes to be able to keep a blocksize
 void TapNode::initialize()
 {
-	mCopiedBuffer = Buffer( getNumChannels(), mNumBufferedFrames );
+	mCopiedBuffer = Buffer( getNumChannels(), mWindowSize );
 	for( size_t ch = 0; ch < getNumChannels(); ch++ )
-		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mNumBufferedFrames ) ) );
+		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mWindowSize ) ) );
 
 	mInitialized = true;
+}
+
+void TapNode::process( Buffer *buffer )
+{
+	for( size_t ch = 0; ch < getNumChannels(); ch++ )
+		mRingBuffers[ch]->write( buffer->getChannel( ch ), buffer->getNumFrames() );
 }
 
 const Buffer& TapNode::getBuffer()
@@ -70,7 +74,6 @@ const Buffer& TapNode::getBuffer()
 	return mCopiedBuffer;
 }
 
-// FIXME: samples will go out of whack if only one channel is pulled. add a fillCopiedBuffer private method
 const float *TapNode::getChannel( size_t channel )
 {
 	CI_ASSERT( channel < mCopiedBuffer.getNumChannels() );
@@ -81,10 +84,15 @@ const float *TapNode::getChannel( size_t channel )
 	return buf;
 }
 
-void TapNode::process( Buffer *buffer )
+float TapNode::getVolume()
 {
-	for( size_t ch = 0; ch < getNumChannels(); ch++ )
-		mRingBuffers[ch]->write( buffer->getChannel( ch ), buffer->getNumFrames() );
+	const Buffer& buffer = getBuffer();
+	return rms( buffer.getData(), buffer.getSize() );
+}
+
+float TapNode::getVolume( size_t channel )
+{
+	return rms( getChannel( channel ), mCopiedBuffer.getNumFrames() );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -96,6 +104,7 @@ SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize, WindowType 
 	mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
 {
 	mTag = "SpectrumTapNode";
+	setAutoEnabled();
 }
 
 SpectrumTapNode::~SpectrumTapNode()
@@ -204,6 +213,5 @@ void SpectrumTapNode::setSmoothingFactor( float factor )
 {
 	mSmoothingFactor = ( factor < 0.0f ) ? 0.0f : ( ( factor > 1.0f ) ? 1.0f : factor );
 }
-
 
 } // namespace audio2

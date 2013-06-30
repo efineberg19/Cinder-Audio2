@@ -101,6 +101,7 @@ public:
 	bool isSilent() const			{ return mSilent; }
 
 	T* getData() { return mData.data(); }
+	const T* getData() const { return mData.data(); }
 
 	T& operator[]( size_t n ) {
 		CI_ASSERT( n < getSize() );

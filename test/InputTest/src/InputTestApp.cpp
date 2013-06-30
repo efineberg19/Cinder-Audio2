@@ -204,6 +204,7 @@ void InputTestApp::update()
 void InputTestApp::draw()
 {
 	gl::clear();
+	gl::color( 0.0f, 0.9f, 0.0f );
 
 	if( mTap && mTap->isInitialized() ) {
 		const audio2::Buffer &buffer = mTap->getBuffer();
@@ -221,10 +222,14 @@ void InputTestApp::draw()
 				float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
 				waveform.push_back( Vec2f( x, y ) );
 			}
-			gl::color( 0.0f, 0.9f, 0.0f );
 			gl::draw( waveform );
 			yOffset += waveHeight + padding;
 		}
+
+		float volumeMeterHeight = 20.0f;
+		float volume = mTap->getVolume();
+		Rectf volumeRect( padding, getWindowHeight() - padding - volumeMeterHeight, padding + volume * ( getWindowWidth() - padding ), getWindowHeight() - padding );
+		gl::drawSolidRect( volumeRect );
 	}
 
 	mPlayButton.draw();

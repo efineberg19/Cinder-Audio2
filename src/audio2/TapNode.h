@@ -21,12 +21,14 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+// TODO: consider TapNode as a base class
+//		- all subclasses auto-enabled
+//		- examples: WaveformTapNode, VolumeTapNode, SpectrumTapNode, OnsetTapNode, PitchTapNode
+
 #pragma once
 
 #include "audio2/Context.h"
 #include "audio2/Dsp.h"
-
-#include "cinder/Thread.h"
 
 namespace audio2 {
 
@@ -38,19 +40,24 @@ typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
 
 class TapNode : public Node {
 public:
-	TapNode( size_t numBufferedFrames = 1024, const Format &format = Format() );
+	TapNode( size_t windowSize = 1024, const Format &format = Format() );
 	virtual ~TapNode();
 
 	const float* getChannel( size_t ch = 0 );
 	const Buffer& getBuffer();
 
+	//! Compute the average (RMS) volume across all channels
+	float getVolume();
+	//! Compute the averate (RMS) volume across \a channel
+	float getVolume( size_t channel );
+
 	virtual void initialize() override;
 	virtual void process( Buffer *buffer ) override;
 
 private:
-	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers; // TODO: make this one continuous buffer so it better matches audio::Buffer
+	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers;
 	Buffer mCopiedBuffer;
-	size_t mNumBufferedFrames;
+	size_t mWindowSize;
 };
 
 class SpectrumTapNode : public Node {
