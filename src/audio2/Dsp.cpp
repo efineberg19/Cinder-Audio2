@@ -49,7 +49,9 @@ void generateHannWindow( float *window, size_t length )
 float rms( const float *audioData, size_t length )
 {
 	float result;
-	vDSP_rmsqv( audioData, 1, &result, length );
+
+	// note: OS X 10.8 specifies float pointer as first parm, while 10.9 is const float pointer
+	vDSP_rmsqv( const_cast<float *>( audioData ), 1, &result, length );
 	return result;
 }
 
