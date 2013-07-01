@@ -130,23 +130,7 @@ void SpectrumTapNode::initialize()
 		mWindowSize = nextPowerOf2( mWindowSize );
 
 	mWindow = makeAlignedArray<float>( mWindowSize );
-
-	switch ( mWindowType ) {
-		case WindowType::BLACKMAN:
-			generateBlackmanWindow( mWindow.get(), mWindowSize );
-			break;
-		case WindowType::HAMM:
-			generateHammWindow( mWindow.get(), mWindowSize );
-			break;
-		case WindowType::HANN:
-			generateHannWindow( mWindow.get(), mWindowSize );
-			break;
-		default:
-			// rect window, just fill with 1's
-			for( size_t i = 0; i < mWindowSize; i++ )
-				mWindow.get()[i] = 1.0f;
-			break;
-	}
+	generateWindow( mWindowType, mWindow.get(), mWindowSize );
 
 	LOG_V << "complete. fft size: " << mFftSize << ", window size: " << mWindowSize << endl;
 }

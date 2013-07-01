@@ -46,6 +46,11 @@ void generateHannWindow( float *window, size_t length )
 	vDSP_hann_window( window, static_cast<vDSP_Length>( length ), 0 );
 }
 
+void fill( float value, float *audioData, size_t length )
+{
+	vDSP_vfill( audioData, audioData, value, length );
+}
+
 float rms( const float *audioData, size_t length )
 {
 	float result;
@@ -82,6 +87,12 @@ void generateHannWindow( float *window, size_t length )
 	CI_ASSERT( 0 && "not implemented" );
 }
 
+void fill( float value, float *audioData, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		audioData[i] = value;
+}
+
 float rms( const float *audioData, size_t length )
 {
 	float sumSquared = 0;
@@ -94,5 +105,26 @@ float rms( const float *audioData, size_t length )
 }
 
 #endif
+
+
+void generateWindow( WindowType windowType, float *window, size_t length )
+{
+	switch ( windowType ) {
+		case WindowType::BLACKMAN:
+			generateBlackmanWindow( window, length );
+			break;
+		case WindowType::HAMM:
+			generateHammWindow( window, length );
+			break;
+		case WindowType::HANN:
+			generateHannWindow( window, length );
+			break;
+		case WindowType::RECT:
+		default:
+			fill( 1.0f, window, length );
+			break;
+	}
+}
+
 
 } // namespace audio2

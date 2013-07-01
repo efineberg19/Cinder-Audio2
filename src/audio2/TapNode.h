@@ -67,7 +67,7 @@ public:
 	virtual ~SpectrumTapNode();
 	
 	virtual void initialize() override;
-	virtual void process( audio2::Buffer *buffer ) override;
+	virtual void process( Buffer *buffer ) override;
 
 	const std::vector<float>& getMagSpectrum();
 
@@ -85,7 +85,7 @@ private:
 
 	// TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
 	// - but all 'TapNode's could use this - move it to base class?
-	audio2::Buffer mBuffer;
+	Buffer mBuffer;
 	std::vector<float> mMagSpectrum;
 	AlignedArrayPtr mWindow;
 	std::atomic<bool> mApplyWindow;

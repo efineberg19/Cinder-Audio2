@@ -134,7 +134,11 @@ enum WindowType {
 	RECT		//! no window
 };
 
-
+//! fills \a window array with a windowing function specified by \a windowType
+void generateWindow( WindowType windowType, float *window, size_t length );
+//! fills \a audioData array with value \a value
+void fill( float value, float *audioData, size_t length );
+//! computes the Root-Mean-Squared value of \a audioData array
 float rms( const float *audioData, size_t length );
 
 } // namespace audio2
