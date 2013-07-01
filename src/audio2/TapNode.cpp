@@ -120,7 +120,6 @@ void SpectrumTapNode::initialize()
 		
 
 	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
-
 	mBuffer = audio2::Buffer( 1, mFftSize );
 	mMagSpectrum.resize( mFftSize / 2 );
 
@@ -141,10 +140,10 @@ void SpectrumTapNode::process( audio2::Buffer *buffer )
 {
 	lock_guard<mutex> lock( mMutex );
 
-	if( mNumFramesCopied == mWindowSize )
+	if( mNumFramesCopied >= mWindowSize )
 		return;
 
-	size_t numCopyFrames = std::min( buffer->getNumFrames(), mWindowSize - mNumFramesCopied ); // TODO: return if zero
+	size_t numCopyFrames = std::min( buffer->getNumFrames(), mWindowSize - mNumFramesCopied );
 	size_t numSourceChannels = buffer->getNumChannels();
 	float *offsetBuffer = &mBuffer[mNumFramesCopied];
 	if( numSourceChannels == 1 ) {
@@ -167,11 +166,8 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 	lock_guard<mutex> lock( mMutex );
 	if( mNumFramesCopied == mWindowSize ) {
 
-		if( mApplyWindow ) {
-			float *win = mWindow.get();
-			for( size_t i = 0; i < mWindowSize; ++i )
-				mBuffer[i] *= win[i];
-		}
+		if( mApplyWindow )
+			multiply( mBuffer.getData(), mWindow.get(), mBuffer.getData(), mWindowSize );
 
 		mFft->compute( &mBuffer );
 

@@ -60,7 +60,13 @@ float rms( const float *audioData, size_t length )
 	return result;
 }
 
-#else
+void multiply( const float *arrayA, const float *arrayB, float *result, size_t length )
+{
+	vDSP_vmul( arrayA, 1, arrayB, 1, result, 1, length );
+}
+
+
+#else // ! defined( CINDER_AUDIO_DSP_ACCELERATE )
 
 // from WebKit's applyWindow in RealtimeAnalyser.cpp
 void generateBlackmanWindow( float *window, size_t length )
@@ -93,18 +99,24 @@ void fill( float value, float *audioData, size_t length )
 		audioData[i] = value;
 }
 
-float rms( const float *audioData, size_t length )
+float rms( const float *array, size_t length )
 {
 	float sumSquared = 0;
 	for( size_t i = 0; i < length; i++ ) {
-		float val = audioData[i];
+		float val = array[i];
 		sumSquared += val * val;
 	}
 
 	return math<float>::sqrt( sumSquared / (float)length );
 }
 
-#endif
+void multiply( const float *arrayA, const float *arrayB, float *result, size_t length )
+{
+	for( size_t i = 0; i < length; ++i )
+		result[i] = arrayA[i] * arrayB[i];
+}
+
+#endif // ! defined( CINDER_AUDIO_DSP_ACCELERATE )
 
 
 void generateWindow( WindowType windowType, float *window, size_t length )
@@ -125,6 +137,5 @@ void generateWindow( WindowType windowType, float *window, size_t length )
 			break;
 	}
 }
-
 
 } // namespace audio2
