@@ -68,10 +68,8 @@ void DeviceAudioUnit::initialize()
 
 void DeviceAudioUnit::uninitialize()
 {
-	if( ! mInitialized ) {
-		LOG_E << "not initialized." << endl;
+	if( ! mInitialized )
 		return;
-	}
 
 	if( mComponentInstance ) {
 		OSStatus status = ::AudioUnitUninitialize( mComponentInstance );
