@@ -136,11 +136,13 @@ enum WindowType {
 
 //! fills \a window array with a windowing function specified by \a windowType
 void generateWindow( WindowType windowType, float *window, size_t length );
-//! fills \a audioData array with value \a value
-void fill( float value, float *audioData, size_t length );
+//! fills \a array with value \a value
+void fill( float value, float *array, size_t length );
 //! multiplies \a length elements of \a arrayA by \a arrayB and leaves the result at \a result.
 void multiply( const float *arrayA, const float *arrayB, float *result, size_t length );
-//! computes the Root-Mean-Squared value of \a audioData array
-float rms( const float *audioData, size_t length );
+//! returns the sum of \a array
+float sum( const float *array, size_t length );
+//! returns the Root-Mean-Squared value of \a array
+float rms( const float *array, size_t length );
 
 } // namespace audio2

@@ -46,17 +46,22 @@ void generateHannWindow( float *window, size_t length )
 	vDSP_hann_window( window, static_cast<vDSP_Length>( length ), 0 );
 }
 
-void fill( float value, float *audioData, size_t length )
+void fill( float value, float *array, size_t length )
 {
-	vDSP_vfill( audioData, audioData, value, length );
+	vDSP_vfill( array, array, value, length );
 }
 
-float rms( const float *audioData, size_t length )
+float sum( const float *array, size_t length )
 {
 	float result;
+	vDSP_svemg( array, 1, &result, length );
+	return result;
+}
 
-	// note: OS X 10.8 specifies float pointer as first parm, while 10.9 is const float pointer
-	vDSP_rmsqv( const_cast<float *>( audioData ), 1, &result, length );
+float rms( const float *array, size_t length )
+{
+	float result;
+	vDSP_rmsqv( const_cast<float *>( array ), 1, &result, length );
 	return result;
 }
 
@@ -64,7 +69,6 @@ void multiply( const float *arrayA, const float *arrayB, float *result, size_t l
 {
 	vDSP_vmul( arrayA, 1, arrayB, 1, result, 1, length );
 }
-
 
 #else // ! defined( CINDER_AUDIO_DSP_ACCELERATE )
 
@@ -93,10 +97,18 @@ void generateHannWindow( float *window, size_t length )
 	CI_ASSERT( 0 && "not implemented" );
 }
 
-void fill( float value, float *audioData, size_t length )
+void fill( float value, float *array, size_t length )
 {
 	for( size_t i = 0; i < length; i++ )
-		audioData[i] = value;
+		array[i] = value;
+}
+
+float sum( const float *array, size_t length )
+{
+	float result( 0.0f );
+	for( size_t i = 0; i < length; i++ )
+		result += array[i];
+	return result;
 }
 
 float rms( const float *array, size_t length )
