@@ -153,10 +153,10 @@ class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
 
-	virtual ContextRef			createContext() override					{ return ContextRef( new ContextAudioUnit() ); }
-	virtual OutputNodeRef		createOutput( DeviceRef device ) override	{ return OutputNodeRef( new OutputAudioUnit( device ) ); }
-	virtual InputNodeRef		createInput( DeviceRef device ) override	{ return InputNodeRef( new InputAudioUnit( device ) ); }
-	virtual MixerNodeRef		createMixer() override						{ return MixerNodeRef( new MixerAudioUnit() ); }
+	virtual ContextRef			createContext() override																{ return ContextRef( new ContextAudioUnit() ); }
+	virtual OutputNodeRef		createOutput( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return OutputNodeRef( new OutputAudioUnit( device, format ) ); }
+	virtual InputNodeRef		createInput( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return InputNodeRef( new InputAudioUnit( device, format ) ); }
+	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) override						{ return MixerNodeRef( new MixerAudioUnit( format ) ); }
 
 	void initialize() override;
 	void uninitialize() override;

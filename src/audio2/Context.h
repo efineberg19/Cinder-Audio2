@@ -176,12 +176,6 @@ class OutputNode : public RootNode {
   protected:
 };
 
-// TODO: Because busses can be expanded, the naming is off:
-//		- mMaxNumBusses should be mNumBusses, there is no max
-//			- so there is getNumBusses() / setNumBusses()
-//		- there can be 'holes', slots in mSources that are not used
-//		- getNumActiveBusses() returns number of used slots
-
 class MixerNode : public Node {
   public:
 	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
@@ -196,14 +190,24 @@ class MixerNode : public Node {
 	virtual void setNumBusses( size_t count ) = 0;	// ???: does this make sense now? should above be getNumActiveBusses?
 	virtual size_t getMaxNumBusses()	{ return mMaxNumBusses; }
 	virtual void setMaxNumBusses( size_t count ) = 0;
-	virtual bool isBusEnabled( size_t bus ) = 0;
-	virtual void setBusEnabled( size_t bus, bool enabled = true ) = 0;
 	virtual void setBusVolume( size_t bus, float volume ) = 0;
 	virtual float getBusVolume( size_t bus ) = 0;
 	virtual void setBusPan( size_t bus, float pan ) = 0;
 	virtual float getBusPan( size_t bus ) = 0;
 
+	// TODO: decide whether it is appropriate for MixerNode to enable / disable busses
+	// - Node's can be enabled / disabled now)
+	// - this should probably be internal - an impl such as MixerNodeAudioUnit will
+	//	 disable all busses that doesn't have a corresponding source Node hooked up to them
+	virtual bool isBusEnabled( size_t bus ) = 0;
+	virtual void setBusEnabled( size_t bus, bool enabled = true ) = 0;
+
 protected:
+	// TODO: Because busses can be expanded, the naming is off:
+	//		- mMaxNumBusses should be mNumBusses, there is no max
+	//			- so there is getNumBusses() / setNumBusses()
+	//		- there can be 'holes', slots in mSources that are not used
+	//		- getNumActiveBusses() returns number of used slots
 	size_t mMaxNumBusses;
 };
 
@@ -212,9 +216,9 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual ~Context();
 
 	virtual ContextRef			createContext() = 0;
-	virtual MixerNodeRef		createMixer() = 0;
-	virtual OutputNodeRef		createOutput( DeviceRef device = Device::getDefaultOutput() ) = 0;
-	virtual InputNodeRef		createInput( DeviceRef device = Device::getDefaultInput() ) = 0;
+	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) = 0;
+	virtual OutputNodeRef		createOutput( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual InputNodeRef		createInput( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	static Context* instance();
 
