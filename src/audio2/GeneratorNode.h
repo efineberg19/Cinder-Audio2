@@ -95,7 +95,7 @@ protected:
 
 class BufferPlayerNode : public PlayerNode {
 public:
-	BufferPlayerNode( const Format &format = Format() ) : PlayerNode( format ) { mTag = "BufferPlayerNode"; }
+	BufferPlayerNode( const Format &format = Format() );
 	BufferPlayerNode( BufferRef buffer, const Format &format = Format() );
 	virtual ~BufferPlayerNode() {}
 
@@ -104,6 +104,7 @@ public:
 	virtual void process( Buffer *buffer );
 
 	BufferRef getBuffer() const	{ return mBuffer; }
+	void setBuffer( BufferRef buffer );
 
 protected:
 	BufferRef mBuffer;

@@ -46,6 +46,12 @@ GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
 // MARK: - BufferPlayerNode
 // ----------------------------------------------------------------------------------------------------
 
+BufferPlayerNode::BufferPlayerNode( const Format &format )
+: PlayerNode( format )
+{
+	mTag = "BufferPlayerNode";
+}
+
 BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
 : PlayerNode( format ), mBuffer( buffer )
 {
@@ -58,7 +64,10 @@ BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
 
 void BufferPlayerNode::start()
 {
-	CI_ASSERT( mBuffer );
+	if( ! mBuffer ) {
+		LOG_E << "no audio buffer, returning." << endl;
+		return;
+	}
 
 	mReadPos = 0;
 	mEnabled = true;
@@ -71,6 +80,29 @@ void BufferPlayerNode::stop()
 	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
+}
+
+// TODO: decide how best to allow this BufferPlayerNode to load audio files of a different format. options:
+// a) use a converter that takes the passed in buffer and spits out a new buffer of the proper format
+// b) change this BufferPlayerNode's format to match
+//		- in the current system, requires an un-init, cleanup converters, re-init.
+//		- if there are no converters and channels are 'runtime mapped' by the Context graph, this will probably work.
+void BufferPlayerNode::setBuffer( BufferRef buffer )
+{
+	if( buffer->getNumChannels() != mNumChannels || buffer->getLayout() != mBufferLayout ) {
+		LOG_E << "swapping in another BufferRef is currently limited to one with the same format as this BufferPlayerNode." << endl;
+		return;
+	}
+
+	bool enabled = mEnabled;
+	if( mEnabled )
+		stop();
+
+	mBuffer = buffer;
+	mNumFrames = buffer->getNumFrames();
+
+	if( mEnabled )
+		start();
 }
 
 void BufferPlayerNode::process( Buffer *buffer )
