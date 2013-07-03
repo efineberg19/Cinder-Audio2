@@ -29,8 +29,6 @@
 
 #include "cinder/CinderMath.h"
 
-#include <complex>
-
 using namespace std;
 using namespace ci;
 
@@ -180,8 +178,9 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 		// compute normalized magnitude spectrum
 		const float kMagScale = 1.0f / mFft->getSize();
 		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
-			complex<float> c( real[i], imag[i] );
-			mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + abs( c ) * kMagScale * ( 1.0f - mSmoothingFactor );
+			float re = real[i];
+			float im = imag[i];
+			mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + sqrt( re * re + im * im ) * kMagScale * ( 1.0f - mSmoothingFactor );
 		}
 		mNumFramesCopied = 0;
 		mBuffer.zero();
