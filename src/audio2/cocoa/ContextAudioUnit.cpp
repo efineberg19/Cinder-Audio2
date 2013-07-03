@@ -688,8 +688,9 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 	static_cast<RenderCallbackContext *>( data )->buffer.zero();
 
 	// In rare cases (when all nodes are disabled, but graph is running), the bufferList can get passed to output unmodified. So zero it out too.
-	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+	// note: moved to end of renderCallback (source->isLeaf check)
+//	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+//		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
 
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
@@ -698,8 +699,8 @@ OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRende
 {
 	static_cast<RenderCallbackContext *>( data )->buffer.zero();
 
-	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+//	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+//		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
 
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
@@ -768,6 +769,10 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
 					memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
 			}
+		}
+		else if( ! didRenderChildren && source->getSources().empty() ) {
+			for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+				memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
 		}
 	}
 	
