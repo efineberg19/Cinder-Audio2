@@ -97,6 +97,8 @@ struct SineGen : public UGen {
 	float mPhase, mPhaseIncr;
 };
 
+// TODO: decide on decibel convensions
+//		- these match pd but that may not be very general
 //! linear gain equal to -100db
 const float kGainNegative100Decibels = 0.00001f;
 const float kGainNegative100DecibelsInverse = 1.0f / kGainNegative100Decibels;
@@ -110,6 +112,12 @@ inline float toDecibels( float gainLinear )
 		return 20.0f * log10f( gainLinear * kGainNegative100DecibelsInverse );
 }
 
+inline void toDecibels( float *array, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		array[i] = toDecibels( array[i] );
+}
+
 inline float toLinear( float gainDecibels )
 {
 	if( gainDecibels < kGainNegative100Decibels )
@@ -117,6 +125,13 @@ inline float toLinear( float gainDecibels )
 	else
 		return( kGainNegative100Decibels * powf( 10.0f, gainDecibels * 0.05f ) );
 }
+
+inline void toLinear( float *array, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		array[i] = toLinear( array[i] );
+}
+
 
 inline bool isPowerOf2( size_t val ) {
 	return ( val & ( val - 1 ) ) == 0;
