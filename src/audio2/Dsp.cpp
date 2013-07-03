@@ -25,6 +25,10 @@
 
 #include "cinder/CinderMath.h"
 
+#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+	#include <Accelerate/Accelerate.h>
+#endif
+
 using namespace ci;
 
 namespace audio2 {
@@ -54,7 +58,7 @@ void fill( float value, float *array, size_t length )
 float sum( const float *array, size_t length )
 {
 	float result;
-	vDSP_svemg( array, 1, &result, length );
+	vDSP_svemg( const_cast<float *>( array ), 1, &result, length );
 	return result;
 }
 

@@ -31,7 +31,6 @@
 
 #if defined( CINDER_COCOA )
 	#define CINDER_AUDIO_DSP_ACCELERATE
-	#include <Accelerate/Accelerate.h>
 #endif
 
 #include <cmath>

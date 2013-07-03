@@ -28,6 +28,10 @@
 
 #include <vector>
 
+#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+	#include <Accelerate/Accelerate.h>
+#endif
+
 namespace audio2 {
 
 class Fft {
