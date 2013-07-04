@@ -68,7 +68,6 @@ void BasicTestApp::prepareSettings( Settings *settings )
 
 void BasicTestApp::setup()
 {
-
 	DeviceRef device = Device::getDefaultOutput();
 
 	LOG_V << "device name: " << device->getName() << endl;
@@ -91,13 +90,13 @@ void BasicTestApp::setup()
 void BasicTestApp::setupSine()
 {
 	auto genNode = make_shared<UGenNode<SineGen> >( Node::Format().channels( 1 ) );
-	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 
 	genNode->connect( mContext->getRoot() );
 	mSine = genNode;
 
+	mSine->start();
 	mEnableSineButton.setEnabled( true );
 	mEnableSineButton.hidden = false;
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableNoiseButton.hidden = true;
@@ -112,6 +111,7 @@ void BasicTestApp::setupNoise()
 	genNode->connect( mContext->getRoot() );
 	mNoise = genNode;
 
+	mNoise->start();
 	mEnableNoiseButton.setEnabled( true );
 	mEnableNoiseButton.hidden = false;
 	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableSineButton.hidden = true;
@@ -120,12 +120,10 @@ void BasicTestApp::setupNoise()
 void BasicTestApp::setupMixer()
 {
 	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->setAutoEnabled();
 	noise->getUGen().setAmp( 0.25f );
 	mNoise = noise;
 
 	auto sine = make_shared<UGenNode<SineGen> >();
-	sine->setAutoEnabled();
 	sine->getUGen().setAmp( 0.25f );
 	sine->getUGen().setFreq( 440.0f );
 	mSine = sine;
@@ -139,6 +137,9 @@ void BasicTestApp::setupMixer()
 	// or connect by index
 	noise->connect( mMixer, Bus::Noise );
 	sine->connect( mMixer, Bus::Sine )->connect( mContext->getRoot() );
+
+	mSine->start();
+	mNoise->start();
 
 	mEnableSineButton.setEnabled( true );
 	mEnableNoiseButton.setEnabled( true );
