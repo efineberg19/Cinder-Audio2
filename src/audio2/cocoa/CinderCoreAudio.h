@@ -50,10 +50,9 @@ struct AudioBufferListDeleter {
 	void operator()( ::AudioBufferList *bufferList ) { free( bufferList ); }
 };
 
-typedef std::unique_ptr<::AudioBufferList, AudioBufferListDeleter> AudioBufferListRef;
+typedef std::unique_ptr<::AudioBufferList, AudioBufferListDeleter> AudioBufferListPtr;
 
-// TODO: consider adopting the CAPublicUitility way of doing this (I think it does it on the stack)
-AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t numFrames );
+AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t numFrames );
 
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance );

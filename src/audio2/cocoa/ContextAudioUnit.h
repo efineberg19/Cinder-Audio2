@@ -93,7 +93,7 @@ class InputAudioUnit : public InputNode, public NodeAudioUnit {
 
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 	std::unique_ptr<RingBuffer> mRingBuffer;
-	cocoa::AudioBufferListRef mBufferList;
+	AudioBufferListPtr mBufferList;
 };
 
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used

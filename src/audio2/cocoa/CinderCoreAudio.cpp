@@ -94,7 +94,7 @@ void printASBD( const ::AudioStreamBasicDescription &asbd ) {
 	printf( "  Bits per Channel:    %10d\n",    (unsigned int)asbd.mBitsPerChannel );
 }
 
-AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t numFrames )
+AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t numFrames )
 {
 	::AudioBufferList *bufferList = static_cast<::AudioBufferList *>( calloc( 1, sizeof( ::AudioBufferList ) + sizeof( ::AudioBuffer ) * (numChannels - 1) ) );
 	bufferList->mNumberBuffers = numChannels;
@@ -103,7 +103,7 @@ AudioBufferListRef createNonInterleavedBufferList( size_t numChannels, size_t nu
 		bufferList->mBuffers[i].mDataByteSize = numFrames;
 	}
 
-	return AudioBufferListRef( bufferList );
+	return AudioBufferListPtr( bufferList );
 }
 
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription )
