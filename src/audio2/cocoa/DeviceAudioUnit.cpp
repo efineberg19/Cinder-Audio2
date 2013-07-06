@@ -108,10 +108,9 @@ void DeviceAudioUnit::stop()
 
 const ::AudioComponentInstance& DeviceAudioUnit::getComponentInstance()
 {
-	if( ! mComponentInstance ) {
-		LOG_V << "creating component instance." << endl;
+	if( ! mComponentInstance )
 		cocoa::findAndCreateAudioComponent( mComponentDescription, &mComponentInstance );
-	}
+	
 	return mComponentInstance;
 }
 

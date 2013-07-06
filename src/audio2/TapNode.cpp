@@ -41,7 +41,7 @@ namespace audio2 {
 TapNode::TapNode( size_t windowSize, const Format &format )
 : Node( format ), mWindowSize( windowSize )
 {
-	mTag = "BufferTap";
+	mTag = "TapNode";
 	setAutoEnabled();
 }
 

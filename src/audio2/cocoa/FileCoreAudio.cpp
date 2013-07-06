@@ -62,7 +62,7 @@ static void printExtensions()
 SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
 : SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 )
 {
-	printExtensions();
+//	printExtensions();
 
 	::CFURLRef audioFileUrl = ci::cocoa::createCfUrl( Url( dataSource->getFilePath().string() ) );
 
