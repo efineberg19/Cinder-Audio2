@@ -113,6 +113,16 @@ public:
 		return mData[n];
 	}
 
+	// TODO: add copy constructor different OtherT
+	// FIXME: this breaks when non-interleaved and sizes don't match
+	template <typename OtherT>
+	void set( const BufferT<OtherT> &other )
+	{
+		size_t count = std::min( getSize(), other.getSize() );
+		for( size_t i = 0; i < count; i++ )
+			mData[i] = other.getData()[i];
+	}
+
 protected:
 	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
@@ -184,9 +194,13 @@ typedef std::unique_ptr<float, FreeDeleter<float>> AlignedArrayPtr;
 	
 
 typedef BufferT<float> Buffer;
+typedef BufferT<double> Bufferd;
 typedef DynamicBufferT<float> DynamicBuffer;
+typedef DynamicBufferT<double> DynamicBufferd;
 
 typedef std::shared_ptr<Buffer> BufferRef;
+typedef std::shared_ptr<Bufferd> BufferdRef;
 typedef std::shared_ptr<DynamicBuffer> DynamicBufferRef;
+typedef std::shared_ptr<DynamicBufferd> DynamicdBufferRef;
 
 } // namespace audio2
