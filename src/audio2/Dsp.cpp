@@ -69,6 +69,11 @@ float rms( const float *array, size_t length )
 	return result;
 }
 
+void multiply( const float *array, float scalar, float *result, size_t length )
+{
+	vDSP_vsmul( array, 1, &scalar, result, 1, length );
+}
+
 void multiply( const float *arrayA, const float *arrayB, float *result, size_t length )
 {
 	vDSP_vmul( arrayA, 1, arrayB, 1, result, 1, length );
@@ -124,6 +129,12 @@ float rms( const float *array, size_t length )
 	}
 
 	return math<float>::sqrt( sumSquared / (float)length );
+}
+
+void multiply( const float *array, float scalar, float *result, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		result[i] = array[i] * scalar;
 }
 
 void multiply( const float *arrayA, const float *arrayB, float *result, size_t length )

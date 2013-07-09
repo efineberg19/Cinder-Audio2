@@ -152,6 +152,8 @@ enum WindowType {
 void generateWindow( WindowType windowType, float *window, size_t length );
 //! fills \a array with value \a value
 void fill( float value, float *array, size_t length );
+//! multiplies \a length elements of \a array by \a scalar and leaves the result at \a result.
+void multiply( const float *array, float scalar, float *result, size_t length );
 //! multiplies \a length elements of \a arrayA by \a arrayB and leaves the result at \a result.
 void multiply( const float *arrayA, const float *arrayB, float *result, size_t length );
 //! returns the sum of \a array

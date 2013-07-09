@@ -25,10 +25,12 @@
 
 #include "audio2/Context.h"
 #include "audio2/Dsp.h"
+#include "cinder/CinderMath.h"
 
 namespace audio2 {
 
 	typedef std::shared_ptr<class EffectNode> EffectNodeRef;
+	typedef std::shared_ptr<class GainNode> GainNodeRef;
 
 	class EffectNode : public Node {
 	public:
@@ -36,6 +38,27 @@ namespace audio2 {
 			setAutoEnabled();
 		}
 		virtual ~EffectNode() {}
+	};
+
+	class GainNode : public EffectNode {
+	public:
+		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
+		virtual ~GainNode() {}
+
+		void process( Buffer *buffer ) override {
+			multiply( buffer->getData(), mGain, buffer->getData(), buffer->getSize() );
+		}
+
+		void setGain( float linear )	{ mGain = ci::math<float>::clamp( linear, mMin, mMax ); }
+		float getGain() const			{ return mGain; }
+
+		void setMin( float min )		{ mMin = min; }
+		float getMin() const			{ return mMin; }
+		void setMax( float max )		{ mMax = max; }
+		float getMax() const			{ return mMax; }
+
+	private:
+		std::atomic<float> mGain, mMin, mMax;
 	};
 
 	struct RingMod : public EffectNode {
