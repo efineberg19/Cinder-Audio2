@@ -42,7 +42,7 @@ namespace audio2 {
 
 	class GainNode : public EffectNode {
 	public:
-		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
+		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) { mTag = "GainNode"; }
 		virtual ~GainNode() {}
 
 		void process( Buffer *buffer ) override {
