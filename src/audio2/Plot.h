@@ -23,6 +23,10 @@
 
 #pragma once
 
+// TODO: move this to "samples/common/Plot.h"
+// - move ci::gl::draw( plot ) back to WaveformPlot
+// - on WinRT it will use dx
+
 #include "audio2/Buffer.h"
 
 #include "cinder/Vector.h"
