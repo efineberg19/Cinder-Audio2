@@ -33,16 +33,6 @@
 
 namespace audio2 {
 
-// TODO: sort the naming of 'Source' out.
-// - I'd like to use SourceNode instead of GeneratorNode, but I'm already using getSources() and setSource()
-//	 to mean upstream (children) nodes
-// - would like to use Input / Output for that, but those terms are already used for device input / output
-
-// - possible: DeviceInputNode : public InputNode, DeviceOutputNode : public OutputNode
-//		- this is still confusing if you have Node::mOutput / Node::mInputs
-// - webaudio uses LiveInput - use that and LiveOutput? I think I prefer MicInput / SpeakerOutput, even though that isn't always the case
-// - pd uses DAC / ADC, which is confusing for some
-
 typedef std::shared_ptr<class PlayerNode>		PlayerNodeRef;
 typedef std::shared_ptr<class BufferPlayerNode> BufferPlayerNodeRef;
 typedef std::shared_ptr<class FilePlayerNode>	FilePlayerNodeRef;
@@ -60,12 +50,12 @@ private:
 	void setSource( NodeRef source, size_t bus ) override {}
 };
 
-class InputNode : public GeneratorNode {
+class LineInNode : public GeneratorNode {
 public:
-	InputNode( DeviceRef device, const Format &format ) : GeneratorNode( format ) {
+	LineInNode( DeviceRef device, const Format &format ) : GeneratorNode( format ) {
 		setAutoEnabled();
 	}
-	virtual ~InputNode() {}
+	virtual ~LineInNode() {}
 
 	virtual DeviceRef getDevice() = 0;
 };

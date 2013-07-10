@@ -218,7 +218,7 @@ void Context::setEnabled( bool enabled )
 RootNodeRef Context::getRoot()
 {
 	if( ! mRoot )
-		mRoot = createOutput();
+		mRoot = createLineOut();
 	return mRoot;
 }
 

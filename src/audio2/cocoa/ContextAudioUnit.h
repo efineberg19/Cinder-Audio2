@@ -54,10 +54,10 @@ class NodeAudioUnit {
 	bool				mShouldUseGraphRenderCallback;
 };
 
-class OutputAudioUnit : public OutputNode, public NodeAudioUnit {
+class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
   public:
-	OutputAudioUnit( DeviceRef device, const Format &format = Format() );
-	virtual ~OutputAudioUnit() = default;
+	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
+	virtual ~LineOutAudioUnit() = default;
 
 	void initialize() override;
 	void uninitialize() override;
@@ -72,10 +72,10 @@ class OutputAudioUnit : public OutputNode, public NodeAudioUnit {
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
 
-class InputAudioUnit : public InputNode, public NodeAudioUnit {
+class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
   public:
-	InputAudioUnit( DeviceRef device, const Format &format = Format() );
-	virtual ~InputAudioUnit();
+	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
+	virtual ~LineInAudioUnit();
 
 	void initialize() override;
 	void uninitialize() override;
@@ -154,8 +154,8 @@ class ContextAudioUnit : public Context {
 	virtual ~ContextAudioUnit();
 
 	virtual ContextRef			createContext() override																{ return ContextRef( new ContextAudioUnit() ); }
-	virtual OutputNodeRef		createOutput( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return OutputNodeRef( new OutputAudioUnit( device, format ) ); }
-	virtual InputNodeRef		createInput( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return InputNodeRef( new InputAudioUnit( device, format ) ); }
+	virtual LineOutNodeRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return LineOutNodeRef( new LineOutAudioUnit( device, format ) ); }
+	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return LineInNodeRef( new LineInAudioUnit( device, format ) ); }
 	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) override						{ return MixerNodeRef( new MixerAudioUnit( format ) ); }
 
 	void initialize() override;

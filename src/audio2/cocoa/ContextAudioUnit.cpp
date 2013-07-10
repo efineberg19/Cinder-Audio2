@@ -95,13 +95,13 @@ NodeAudioUnit::~NodeAudioUnit()
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - OutputAudioUnit
+// MARK: - LineOutAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-OutputAudioUnit::OutputAudioUnit( DeviceRef device, const Format &format )
-: OutputNode( device, format )
+LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
+: LineOutNode( device, format )
 {
-	mTag = "OutputAudioUnit";
+	mTag = "LineOutAudioUnit";
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
@@ -112,7 +112,7 @@ OutputAudioUnit::OutputAudioUnit( DeviceRef device, const Format &format )
 	mDevice->setOutputConnected();
 }
 
-void OutputAudioUnit::initialize()
+void LineOutAudioUnit::initialize()
 {
 
 	::AudioUnit audioUnit = getAudioUnit();
@@ -127,36 +127,36 @@ void OutputAudioUnit::initialize()
 	mInitialized = true;
 }
 
-void OutputAudioUnit::uninitialize()
+void LineOutAudioUnit::uninitialize()
 {
 	mInitialized = false;
 	mDevice->uninitialize();
 }
 
-void OutputAudioUnit::start()
+void LineOutAudioUnit::start()
 {
 	mEnabled = true;
 	mDevice->start();
 }
 
-void OutputAudioUnit::stop()
+void LineOutAudioUnit::stop()
 {
 	mEnabled = false;
 	mDevice->stop();
 }
 
-DeviceRef OutputAudioUnit::getDevice()
+DeviceRef LineOutAudioUnit::getDevice()
 {
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
-::AudioUnit OutputAudioUnit::getAudioUnit() const
+::AudioUnit LineOutAudioUnit::getAudioUnit() const
 {
 	return mDevice->getComponentInstance();
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - InputAudioUnit
+// MARK: - LineInAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
 // FIXME: in a multi-graph situation, Path A is only pliable if device is used for both I/O in _this_ graph
@@ -164,10 +164,10 @@ DeviceRef OutputAudioUnit::getDevice()
 //	- only way I can think of to solve this is to keep a weak reference to Graph in both I and O units,
 //	  check graph->output->device in initialize to see if it's the same
 
-InputAudioUnit::InputAudioUnit( DeviceRef device, const Format &format )
-: InputNode( device, format )
+LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
+: LineInNode( device, format )
 {
-	mTag = "InputAudioUnit";
+	mTag = "LineInAudioUnit";
 	mRenderBus = DeviceAudioUnit::Bus::Input;
 
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
@@ -181,11 +181,11 @@ InputAudioUnit::InputAudioUnit( DeviceRef device, const Format &format )
 	mDevice->setInputConnected();
 }
 
-InputAudioUnit::~InputAudioUnit()
+LineInAudioUnit::~LineInAudioUnit()
 {
 }
 
-void InputAudioUnit::initialize()
+void LineInAudioUnit::initialize()
 {
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
@@ -207,7 +207,7 @@ void InputAudioUnit::initialize()
 		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() * sizeof( float ) );
 
 		::AURenderCallbackStruct callbackStruct;
-		callbackStruct.inputProc = InputAudioUnit::inputCallback;
+		callbackStruct.inputProc = LineInAudioUnit::inputCallback;
 		callbackStruct.inputProcRefCon = this;
 		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::Input, &callbackStruct, sizeof( callbackStruct ) );
 		CI_ASSERT( status == noErr );
@@ -218,13 +218,13 @@ void InputAudioUnit::initialize()
 	mInitialized = true;
 }
 
-void InputAudioUnit::uninitialize()
+void LineInAudioUnit::uninitialize()
 {
 	mInitialized = false;
 	mDevice->uninitialize();
 }
 
-void InputAudioUnit::start()
+void LineInAudioUnit::start()
 {
 	if( ! mDevice->isOutputConnected() ) {
 		mEnabled = true;
@@ -233,7 +233,7 @@ void InputAudioUnit::start()
 	}
 }
 
-void InputAudioUnit::stop()
+void LineInAudioUnit::stop()
 {
 	if( ! mDevice->isOutputConnected() ) {
 		mEnabled = false;
@@ -242,17 +242,17 @@ void InputAudioUnit::stop()
 	}
 }
 
-DeviceRef InputAudioUnit::getDevice()
+DeviceRef LineInAudioUnit::getDevice()
 {
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
-::AudioUnit InputAudioUnit::getAudioUnit() const
+::AudioUnit LineInAudioUnit::getAudioUnit() const
 {
 	return mDevice->getComponentInstance();
 }
 
-void InputAudioUnit::process( Buffer *buffer )
+void LineInAudioUnit::process( Buffer *buffer )
 {
 	CI_ASSERT( mRingBuffer );
 
@@ -264,9 +264,9 @@ void InputAudioUnit::process( Buffer *buffer )
 	}
 }
 
-OSStatus InputAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	InputAudioUnit *inputNode = static_cast<InputAudioUnit *>( data );
+	LineInAudioUnit *inputNode = static_cast<LineInAudioUnit *>( data );
 	CI_ASSERT( inputNode->mRingBuffer );
 	
 	::AudioBufferList *nodeBufferList = inputNode->mBufferList.get();
@@ -606,7 +606,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 		if( ! sourceNode )
 			continue;
 
-		// TODO: if node is an OutputAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
+		// TODO: if node is an LineOutAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
 		bool needsConverter = false;
 		if( node->getNumChannels() != sourceNode->getNumChannels() )
 			needsConverter = true;

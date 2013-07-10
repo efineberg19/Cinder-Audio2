@@ -32,17 +32,13 @@
 
 namespace audio2 {
 
-class GeneratorNode;
-
 typedef std::shared_ptr<class Context> ContextRef;
 typedef std::shared_ptr<class Node> NodeRef;
-
-typedef std::shared_ptr<class MixerNode> MixerNodeRef;
-typedef std::shared_ptr<class RootNode> RootNodeRef;
-typedef std::shared_ptr<class OutputNode> OutputNodeRef;
-
 typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
-typedef std::shared_ptr<class InputNode> InputNodeRef;
+typedef std::shared_ptr<class RootNode> RootNodeRef;
+typedef std::shared_ptr<class LineOutNode> LineOutNodeRef;
+typedef std::shared_ptr<class LineInNode> LineInNodeRef;
+typedef std::shared_ptr<class MixerNode> MixerNodeRef;
 typedef std::shared_ptr<class FilePlayerNode> FilePlayerNodeRef;
 
 class Node : public std::enable_shared_from_this<Node> {
@@ -159,14 +155,14 @@ class RootNode : public Node {
 	NodeRef connect( NodeRef dest, size_t bus ) override	{ return NodeRef(); }
 };
 
-class OutputNode : public RootNode {
+class LineOutNode : public RootNode {
   public:
 
 	// ???: device param here necessary?
-	OutputNode( DeviceRef device, const Format &format = Format() ) : RootNode( format ) {
+	LineOutNode( DeviceRef device, const Format &format = Format() ) : RootNode( format ) {
 		setAutoEnabled();
 	}
-	virtual ~OutputNode() {}
+	virtual ~LineOutNode() {}
 
 	virtual DeviceRef getDevice() = 0;
 
@@ -217,8 +213,8 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	virtual ContextRef			createContext() = 0;
 	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) = 0;
-	virtual OutputNodeRef		createOutput( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
-	virtual InputNodeRef		createInput( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual LineInNodeRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	static Context* instance();
 
@@ -226,7 +222,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual void uninitialize();
 	virtual void setRoot( RootNodeRef root )	{ mRoot = root; }
 
-	//! If the root has not already been set, it is the default OutputNode
+	//! If the root has not already been set, it is the default LineOutNode
 	virtual RootNodeRef getRoot();
 	virtual void start();
 	virtual void stop();

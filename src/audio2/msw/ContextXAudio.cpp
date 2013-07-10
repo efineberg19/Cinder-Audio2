@@ -637,7 +637,7 @@ ContextXAudio::~ContextXAudio()
 		uninitialize();
 }
 
-InputNodeRef ContextXAudio::createInput( DeviceRef device )
+InputNodeRef ContextXAudio::createLineIn( DeviceRef device )
 {
 	return InputNodeRef( new InputWasapi( device ) );
 }

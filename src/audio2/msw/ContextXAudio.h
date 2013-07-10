@@ -216,10 +216,10 @@ class ContextXAudio : public Context {
 
 	virtual ContextRef		createContext() override	{ return ContextRef( new ContextXAudio() ); }
 	virtual MixerNodeRef	createMixer() override	{ return MixerNodeRef( new MixerXAudio() ); }
-	virtual OutputNodeRef	createOutput( DeviceRef device ) override	{ return OutputNodeRef( new OutputXAudio( device ) ); }
+	virtual OutputNodeRef	createLineOut( DeviceRef device ) override	{ return OutputNodeRef( new OutputXAudio( device ) ); }
 
 	//! If deployment target is 0x601 (win xp) or greater, uses InputWasapi
-	virtual InputNodeRef	createInput( DeviceRef device ) override;
+	virtual InputNodeRef	createLineIn( DeviceRef device ) override;
 
 	void initialize() override;
 	void uninitialize() override;
