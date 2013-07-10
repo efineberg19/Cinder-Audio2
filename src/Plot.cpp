@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "audio2/Plot.h"
+#include "Plot.h"
 
 #include "cinder/CinderMath.h"
 #include "cinder/Triangulate.h"
@@ -107,16 +107,11 @@ void WaveformPlot::load( BufferRef buffer, const ci::Rectf &bounds, size_t pixel
 	}
 }
 
-} // namespace audio2
-
-
-namespace cinder { namespace gl {
-
 // TODO: account for larger size (channels) waveforms
 // TODO: use offset and scale
-void draw( const audio2::WaveformPlot &plot, const Vec2i &offset, float scale, const ColorA &colorMinMax, const ColorA &colorAverage )
+void WaveformPlot::draw( const Vec2i &offset, float scale, const ColorA &colorMinMax, const ColorA &colorAverage )
 {
-	auto &waveforms = plot.getWaveforms();
+	auto &waveforms = getWaveforms();
 	if( waveforms.empty() ) {
 		return;
 	}
@@ -129,16 +124,17 @@ void draw( const audio2::WaveformPlot &plot, const Vec2i &offset, float scale, c
 
 	if( waveforms.size() > 2 ) {
 		gl::pushMatrices();
-		gl::translate( 0.0f, plot.getBounds().getHeight() / 2 );
+		gl::translate( 0.0f, getBounds().getHeight() / 2 );
 
 		gl::color( colorMinMax );
 		gl::draw( waveforms[2].getMesh() );
 
 		gl::color( colorAverage );
 		gl::draw( waveforms[3].getMesh() );
-
+		
 		gl::popMatrices();
 	}
 }
-	
-} } // namespace ci::gl
+
+
+} // namespace audio2

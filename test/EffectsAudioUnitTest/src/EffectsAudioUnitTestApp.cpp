@@ -54,7 +54,7 @@ void EffectsAudioUnitTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t block size: " << device->getNumFramesPerBlock() << endl;
 
-	auto output = Context::instance()->createOutput( device );
+	auto output = Context::instance()->createLineOut( device );
 	mContext = Context::instance()->createContext();
 	mContext->setRoot( output );
 

@@ -42,7 +42,7 @@ class InputTestApp : public AppNative {
 	void setupInTapProcessOut();
 
 	ContextRef mContext;
-	InputNodeRef mInput;
+	LineInNodeRef mLineIn;
 	TapNodeRef mTap;
 
 	VSelector mTestSelector;
@@ -61,7 +61,7 @@ void InputTestApp::setup()
 
 
 	// TODO: add this as a test control
-	//mInput->getFormat().setNumChannels( 1 );
+	//mLineIn->getFormat().setNumChannels( 1 );
 
 	setupInTapOut();
 
@@ -71,21 +71,21 @@ void InputTestApp::setup()
 
 void InputTestApp::setupDefaultDevices()
 {
-	mInput = Context::instance()->createInput();
-	auto output = Context::instance()->createOutput();
+	mLineIn = Context::instance()->createLineIn();
+	auto output = Context::instance()->createLineOut();
 	mContext->setRoot( output );
 
-	LOG_V << "input device name: " << mInput->getDevice()->getName() << endl;
-	console() << "\t channels: " << mInput->getDevice()->getNumInputChannels() << endl;
-	console() << "\t samplerate: " << mInput->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << mInput->getDevice()->getNumFramesPerBlock() << endl;
+	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
+	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
+	console() << "\t samplerate: " << mLineIn->getDevice()->getSampleRate() << endl;
+	console() << "\t block size: " << mLineIn->getDevice()->getNumFramesPerBlock() << endl;
 
 	LOG_V << "output device name: " << output->getDevice()->getName() << endl;
 	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << output->getDevice()->getSampleRate() << endl;
 	console() << "\t block size: " << output->getDevice()->getNumFramesPerBlock() << endl;
 
-	LOG_V << "input == output: " << boolalpha << ( mInput->getDevice() == output->getDevice() ) << dec << endl;
+	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == output->getDevice() ) << dec << endl;
 }
 
 void InputTestApp::setupDedicatedDevice()
@@ -93,8 +93,8 @@ void InputTestApp::setupDedicatedDevice()
 	DeviceRef device = Device::findDeviceByName( "PreSonus FIREPOD (1431)" );
 	CI_ASSERT( device );
 
-	mInput = Context::instance()->createInput( device );
-	auto output = Context::instance()->createOutput( device );
+	mLineIn = Context::instance()->createLineIn( device );
+	auto output = Context::instance()->createLineOut( device );
 	mContext->setRoot( output );
 
 	LOG_V << "shared device name: " << output->getDevice()->getName() << endl;
@@ -105,26 +105,26 @@ void InputTestApp::setupDedicatedDevice()
 
 void InputTestApp::setupPassThrough()
 {
-	mInput->connect( mContext->getRoot() );
+	mLineIn->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInProcessOut()
 {
 	auto ringMod = make_shared<RingMod>();
-	mInput->connect( ringMod )->connect( mContext->getRoot() );
+	mLineIn->connect( ringMod )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInTapOut()
 {
 	mTap = make_shared<TapNode>();
-	mInput->connect( mTap )->connect( mContext->getRoot() );
+	mLineIn->connect( mTap )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInTapProcessOut()
 {
 	mTap = make_shared<TapNode>();
 	auto ringMod = make_shared<RingMod>();
-	mInput->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
+	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::initGraph()

@@ -5,7 +5,7 @@
 #include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/TapNode.h"
-#include "audio2/Plot.h"
+#include "Plot.h"
 #include "audio2/Debug.h"
 
 #include "Gui.h"
@@ -191,7 +191,7 @@ void FileNodeTestApp::update()
 void FileNodeTestApp::draw()
 {
 	gl::clear();
-	gl::draw( mWaveformPlot );
+	mWaveformPlot.draw();
 
 	float readPos = (float)getWindowWidth() * mPlayerNode->getReadPosition() / mPlayerNode->getNumFrames();
 

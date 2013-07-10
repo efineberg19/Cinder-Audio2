@@ -23,10 +23,6 @@
 
 #pragma once
 
-// TODO: move this to "samples/common/Plot.h"
-// - move ci::gl::draw( plot ) back to WaveformPlot
-// - on WinRT it will use dx
-
 #include "audio2/Buffer.h"
 
 #include "cinder/Vector.h"
@@ -67,16 +63,12 @@ public:
 	const std::vector<Waveform>& getWaveforms() const	{ return mWaveforms; }
 	const ci::Rectf& getBounds() const					{ return mBounds; }
 
+	// TODO: move the colors to member vars
+	void draw( const ci::Vec2i &offset = ci::Vec2i::zero(), float scale = 1.0f, const ci::ColorA &colorMinMax = ci::ColorA::gray( 0.5f ), const ci::ColorA &colorAverage = ci::ColorA::gray( 0.75f ) );
+
 private:
 	std::vector<Waveform> mWaveforms;
 	ci::Rectf mBounds;
 };
 
 } // namespace audio2
-
-namespace cinder { namespace gl {
-
-	void draw( const audio2::WaveformPlot &plot, const Vec2i &offset = Vec2i::zero(), float scale = 1.0f, const ColorA &colorMinMax = ColorA::gray( 0.5f ), const ColorA &colorAverage = ColorA::gray( 0.75f ) );
-
-} } // namespace cinder::gl
-
