@@ -302,7 +302,7 @@ void EffectAudioUnit::initialize()
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	auto source = mSources.front();
+	auto source = mInputs.front();
 	CI_ASSERT( source );
 
 	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
@@ -338,7 +338,7 @@ MixerAudioUnit::MixerAudioUnit( const Format &format )
 : MixerNode( format )
 {
 	mTag = "MixerAudioUnit";
-	mWantsDefaultFormatFromParent = true;
+	mWantsDefaultFormatFromOutput = true;
 }
 
 MixerAudioUnit::~MixerAudioUnit()
@@ -368,15 +368,15 @@ void MixerAudioUnit::initialize()
 	status = ::AudioUnitSetParameter( mAudioUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, outputVolume, 0 );
 	CI_ASSERT( status == noErr );
 
-	if( mSources.size() > getNumBusses() ) {
-		setMaxNumBusses( mSources.size() );
+	if( mInputs.size() > getNumBusses() ) {
+		setMaxNumBusses( mInputs.size() );
 	}
 
-	for( UInt32 bus = 0; bus < mSources.size(); bus++ ) {
-		if( ! mSources[bus] )
+	for( UInt32 bus = 0; bus < mInputs.size(); bus++ ) {
+		if( ! mInputs[bus] )
 			continue;
 
-		::AudioStreamBasicDescription busAsbd = cocoa::createFloatAsbd( mSources[bus]->getNumChannels(), sampleRate );
+		::AudioStreamBasicDescription busAsbd = cocoa::createFloatAsbd( mInputs[bus]->getNumChannels(), sampleRate );
 
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &busAsbd, sizeof( busAsbd ) );
 		CI_ASSERT( status == noErr );
@@ -484,13 +484,13 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 // ----------------------------------------------------------------------------------------------------
 
 // TODO: remove these params - they are deduced once connected
-ConverterAudioUnit::ConverterAudioUnit( NodeRef source, NodeRef dest )
+ConverterAudioUnit::ConverterAudioUnit( NodeRef input, NodeRef dest )
 : Node( Format() )
 {
 	mTag = "ConverterAudioUnit";
 
 	mNumChannels = dest->getNumChannels();
-	mSourceNumChannels = source->getNumChannels();
+	mInputNumChannels = input->getNumChannels();
 }
 
 ConverterAudioUnit::~ConverterAudioUnit()
@@ -507,19 +507,19 @@ void ConverterAudioUnit::initialize()
 	comp.componentSubType = kAudioUnitSubType_AUConverter;
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 
-	NodeRef sourceNode = mSources[0];
-	NodeRef destNode = getParent();
+	NodeRef inputNode = mInputs[0];
+	NodeRef destNode = getOutput();
 
 	mBufferLayout = destNode->getBufferLayout();
 
 	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( sourceNode->getNumChannels(), getContext()->getNumFramesPerBlock(), sourceNode->getBufferLayout() );
+	mRenderContext.buffer = Buffer( inputNode->getNumChannels(), getContext()->getNumFramesPerBlock(), inputNode->getBufferLayout() );
 
 
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 	size_t sampleRate = getContext()->getSampleRate();
-	::AudioStreamBasicDescription inputAsbd = cocoa::createFloatAsbd( sourceNode->getNumChannels(), sampleRate, ( sourceNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
+	::AudioStreamBasicDescription inputAsbd = cocoa::createFloatAsbd( inputNode->getNumChannels(), sampleRate, ( inputNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
 	::AudioStreamBasicDescription outputAsbd = cocoa::createFloatAsbd( destNode->getNumChannels(), sampleRate, ( destNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
 
 //	LOG_V << "input ASBD:" << endl;
@@ -533,7 +533,7 @@ void ConverterAudioUnit::initialize()
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &inputAsbd, sizeof( inputAsbd ) );
 	CI_ASSERT( status == noErr );
 
-	if( mSourceNumChannels == 1 && getNumChannels() == 2 ) {
+	if( mInputNumChannels == 1 && getNumChannels() == 2 ) {
 		// map mono source to stereo out
 		UInt32 channelMap[2] = { 0, 0 };
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &channelMap, sizeof( channelMap ) );
@@ -590,34 +590,34 @@ void ContextAudioUnit::initNode( NodeRef node )
 
 	node->setContext( shared_from_this() );
 
-	if( node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
-		node->fillFormatParamsFromParent();
+	if( node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
+		node->fillFormatParamsFromOutput();
 
-	// recurse through sources
-	for( NodeRef& sourceNode : node->getSources() )
-		initNode( sourceNode );
+	// recurse through inputs
+	for( NodeRef& inputNode : node->getInputs() )
+		initNode( inputNode );
 
 	// set default params from source
-	if(  ! node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
-		node->fillFormatParamsFromSource();
+	if(  ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
+		node->fillFormatParamsFromInput();
 
-	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {
-		NodeRef sourceNode = node->getSources()[bus];
-		if( ! sourceNode )
+	for( size_t bus = 0; bus < node->getInputs().size(); bus++ ) {
+		NodeRef inputNode = node->getInputs()[bus];
+		if( ! inputNode )
 			continue;
 
 		// TODO: if node is an LineOutAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
 		bool needsConverter = false;
-		if( node->getNumChannels() != sourceNode->getNumChannels() )
+		if( node->getNumChannels() != inputNode->getNumChannels() )
 			needsConverter = true;
-		else if( node->getBufferLayout() != sourceNode->getBufferLayout() )
+		else if( node->getBufferLayout() != inputNode->getBufferLayout() )
 			needsConverter = true;
 
 		if( needsConverter ) {
-			auto converter = make_shared<ConverterAudioUnit>( sourceNode, node );
+			auto converter = make_shared<ConverterAudioUnit>( inputNode, node );
 			converter->setContext( shared_from_this() );
-			node->setSource( converter, bus );
-			converter->setSource( sourceNode );
+			node->setInput( converter, bus );
+			converter->setInput( inputNode );
 			converter->initialize();
 			connectRenderCallback( converter, &converter->mRenderContext, &ContextAudioUnit::renderCallbackConverter, true );
 		}
@@ -628,7 +628,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 	connectRenderCallback( node, &mRenderContext, &ContextAudioUnit::renderCallback, false );
 }
 
-// TODO: if both node and source are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
+// TODO: if both node and input are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
 void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive )
 {
 	CI_ASSERT( context );
@@ -642,15 +642,15 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContex
 
 	::AURenderCallbackStruct callbackStruct = { callback, context };
 
-	for( UInt32 bus = 0; bus < node->getSources().size(); bus++ ) {
-		NodeRef source = node->getSources()[bus];
-		if( ! source )
+	for( UInt32 bus = 0; bus < node->getInputs().size(); bus++ ) {
+		NodeRef input = node->getInputs()[bus];
+		if( ! input )
 			continue;
 		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
 		CI_ASSERT( status == noErr );
 
 		if( recursive )
-			connectRenderCallback( source, context, callback, recursive );
+			connectRenderCallback( input, context, callback, recursive );
 	}
 }
 
@@ -672,7 +672,7 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 {
 	if( ! node )
 		return;
-	for( auto &source : node->getSources() )
+	for( auto &source : node->getInputs() )
 		uninitNode( source );
 
 	node->uninitialize();
@@ -680,7 +680,7 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 	// throw away any ConverterNodes
 	ConverterAudioUnit *converter = dynamic_cast<ConverterAudioUnit *>( node.get() );
 	if( converter )
-		converter->getParent()->setSource( converter->getSources()[0] );
+		converter->getOutput()->setInput( converter->getInputs()[0] );
 }
 
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
@@ -711,18 +711,18 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	RenderCallbackContext *renderContext = static_cast<RenderCallbackContext *>( data );
 
 	CI_ASSERT( renderContext->currentNode );
-	CI_ASSERT( bus < renderContext->currentNode->getSources().size() );
+	CI_ASSERT( bus < renderContext->currentNode->getInputs().size() );
 	CI_ASSERT( numFrames == renderContext->buffer.getNumFrames() );
 
-	NodeRef source = renderContext->currentNode->getSources()[bus];
-	NodeAudioUnit *sourceAU = dynamic_cast<NodeAudioUnit *>( source.get() );
+	NodeRef input = renderContext->currentNode->getInputs()[bus];
+	NodeAudioUnit *inputAU = dynamic_cast<NodeAudioUnit *>( input.get() );
 
 	// check if this needs native rendering
-	if( sourceAU && sourceAU->shouldUseGraphRenderCallback() ) {
+	if( inputAU && inputAU->shouldUseGraphRenderCallback() ) {
 		Node *thisNode = renderContext->currentNode;
-		renderContext->currentNode = source.get();
-		::AudioUnit audioUnit = sourceAU->getAudioUnit();
-		::AudioUnitScope renderBus = sourceAU->getRenderBus();
+		renderContext->currentNode = input.get();
+		::AudioUnit audioUnit = inputAU->getAudioUnit();
+		::AudioUnitScope renderBus = inputAU->getRenderBus();
 		OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, renderBus, numFrames, bufferList );
 		CI_ASSERT( status == noErr );
 
@@ -731,13 +731,13 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	else {
 		// render all children through this callback, since there is a possiblity they can fall into the native category
 		bool didRenderChildren = false;
-		for( size_t i = 0; i < source->getSources().size(); i++ ) {
-			if( ! source->getSources()[i] )
+		for( size_t i = 0; i < input->getInputs().size(); i++ ) {
+			if( ! input->getInputs()[i] )
 				continue;
 
 			didRenderChildren = true;
 			Node *thisNode = renderContext->currentNode;
-			renderContext->currentNode = source.get();
+			renderContext->currentNode = input.get();
 
 			renderCallback( renderContext, flags, timeStamp, 0, numFrames, bufferList );
 
@@ -757,8 +757,8 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 			}
 		}
 
-		if( source->isEnabled() ) {
-			source->process( &renderContext->buffer );
+		if( input->isEnabled() ) {
+			input->process( &renderContext->buffer );
 
 			// copy samples back to the output buffer
 			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
@@ -770,7 +770,7 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 					memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
 			}
 		}
-		else if( ! didRenderChildren && source->getSources().empty() ) {
+		else if( ! didRenderChildren && input->getInputs().empty() ) {
 			for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
 				memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
 		}

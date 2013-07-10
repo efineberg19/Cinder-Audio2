@@ -46,17 +46,17 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual ~Node();
 
 	struct Format {
-		Format() : mChannels( 0 ), mWantsDefaultFormatFromParent( false ) {}
+		Format() : mChannels( 0 ), mWantsDefaultFormatFromOutput( false ) {}
 		
 		Format& channels( size_t ch )							{ mChannels = ch; return *this; }
-		Format& wantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; return *this; }
+		Format& wantsDefaultFormatFromOutput( bool b = true )	{ mWantsDefaultFormatFromOutput = b; return *this; }
 
 		size_t	getChannels() const								{ return mChannels; }
-		bool	getWantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
+		bool	getWantsDefaultFormatFromOutput() const			{ return mWantsDefaultFormatFromOutput; }
 
 	  private:
 		size_t mChannels;
-		bool mWantsDefaultFormatFromParent;
+		bool mWantsDefaultFormatFromOutput;
 	};
 
 	virtual void initialize()	{ mInitialized = true; }
@@ -69,15 +69,15 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual void disconnect( size_t bus = 0 );
 
-	virtual void setSource( NodeRef source );
-	virtual void setSource( NodeRef source, size_t bus );
+	virtual void setInput( NodeRef input );
+	virtual void setInput( NodeRef input, size_t bus );
 
 	size_t	getNumChannels() const	{ return mNumChannels; }
 
 	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
-	bool	getWantsDefaultFormatFromParent() const			{ return mWantsDefaultFormatFromParent; }
+	bool	getWantsDefaultFormatFromOutput() const			{ return mWantsDefaultFormatFromOutput; }
 
-//	void	setWantsDefaultFormatFromParent( bool b = true )	{ mWantsDefaultFormatFromParent = b; }
+//	void	setWantsDefaultFormatFromOutput( bool b = true )	{ mWantsDefaultFormatFromOutput = b; }
 
 	const Buffer::Layout& getBufferLayout() const { return mBufferLayout; }
 
@@ -88,17 +88,17 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Default implementation returns true if numChannels match our format
 	virtual bool supportsSourceNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
 
-	//! If required Format properties are missing, fill in params from parent tree
-	virtual void fillFormatParamsFromParent();
+	//! If required Format properties are missing, fill in params from output
+	virtual void fillFormatParamsFromOutput();
 
-	//! If required Format properties are missing, fill in params from first source
-	virtual void fillFormatParamsFromSource();
+	//! If required Format properties are missing, fill in params from first input
+	virtual void fillFormatParamsFromInput();
 
 	virtual void process( Buffer *buffer )	{}
 
-	std::vector<NodeRef>& getSources()			{ return mSources; }
-	NodeRef getParent()	const					{ return mParent.lock(); }
-	void setParent( NodeRef parent )			{ mParent = parent; }
+	std::vector<NodeRef>& getInputs()			{ return mInputs; }
+	NodeRef getOutput()	const					{ return mOutput.lock(); }
+	void setOutput( NodeRef output )			{ mOutput = output; }
 
 	ContextRef getContext() const				{ return mContext.lock(); }
 	void setContext( ContextRef context )		{ mContext = context; }
@@ -120,15 +120,15 @@ class Node : public std::enable_shared_from_this<Node> {
 	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
 
 
-	std::vector<NodeRef>	mSources;
-	std::weak_ptr<Node>		mParent;
+	std::vector<NodeRef>	mInputs;
+	std::weak_ptr<Node>		mOutput;
 	std::weak_ptr<Context>	mContext;
 	bool					mInitialized;
 	std::atomic<bool>		mEnabled;
 	std::string				mTag;
 
 	size_t mNumChannels;
-	bool mWantsDefaultFormatFromParent, mNumChannelsUnspecified;
+	bool mWantsDefaultFormatFromOutput, mNumChannelsUnspecified;
 	bool mAutoEnabled;
 	Buffer::Layout			mBufferLayout;
 
@@ -174,12 +174,12 @@ class LineOutNode : public RootNode {
 
 class MixerNode : public Node {
   public:
-	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mSources.resize( mMaxNumBusses ); }
+	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
 
-	using Node::setSource;
-	//! Mixers will append the node if setSource() is called without a bus number.
-	virtual void setSource( NodeRef source ) override;
+	using Node::setInput;
+	//! Mixers will append the node if setInput() is called without a bus number.
+	virtual void setInput( NodeRef input ) override;
 
 	//! returns the number of connected busses.
 	virtual size_t getNumBusses() = 0;
@@ -202,7 +202,7 @@ protected:
 	// TODO: Because busses can be expanded, the naming is off:
 	//		- mMaxNumBusses should be mNumBusses, there is no max
 	//			- so there is getNumBusses() / setNumBusses()
-	//		- there can be 'holes', slots in mSources that are not used
+	//		- there can be 'holes', slots in mInputs that are not used
 	//		- getNumActiveBusses() returns number of used slots
 	size_t mMaxNumBusses;
 };

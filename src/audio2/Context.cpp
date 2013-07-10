@@ -45,7 +45,7 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 Node::Node( const Format &format )
-: mInitialized( false ), mEnabled( false ), mSources( 1 ), mWantsDefaultFormatFromParent( format.getWantsDefaultFormatFromParent() ),
+: mInitialized( false ), mEnabled( false ), mInputs( 1 ), mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
 	mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false )
 {
 	mNumChannelsUnspecified = ! format.getChannels();
@@ -58,13 +58,13 @@ Node::~Node()
 
 NodeRef Node::connect( NodeRef dest )
 {
-	dest->setSource( shared_from_this() );
+	dest->setInput( shared_from_this() );
 	return dest;
 }
 
 NodeRef Node::connect( NodeRef dest, size_t bus )
 {
-	dest->setSource( shared_from_this(), bus );
+	dest->setInput( shared_from_this(), bus );
 	return dest;
 }
 
@@ -73,51 +73,51 @@ void Node::disconnect( size_t bus )
 	if( mEnabled )
 		stop();
 	
-	auto& sources = getParent()->getSources();
-	if( bus < sources.size() )
-		sources[bus].reset();
+	auto& inputs = getOutput()->getInputs();
+	if( bus < inputs.size() )
+		inputs[bus].reset();
 
-	mParent.reset();
+	mOutput.reset();
 }
 
-void Node::setSource( NodeRef source )
+void Node::setInput( NodeRef input )
 {
-	setSource( source, 0 );
+	setInput( input, 0 );
 }
 
 // TODO: figure out how to best handle node replacements
-void Node::setSource( NodeRef source, size_t bus )
+void Node::setInput( NodeRef input, size_t bus )
 {
-	CI_ASSERT( source != shared_from_this() );
+	CI_ASSERT( input != shared_from_this() );
 	
-	if( bus > mSources.size() )
-		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mSources.size() ) + ")" );
-//	if( sources[bus] )
+	if( bus > mInputs.size() )
+		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
+//	if( mInupts[bus] )
 //		throw AudioExc(  string( "bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." );
 
-	mSources[bus] = source;
-	source->setParent( shared_from_this() );
+	mInputs[bus] = input;
+	input->setOutput( shared_from_this() );
 }
 
 
-void Node::fillFormatParamsFromParent()
+void Node::fillFormatParamsFromOutput()
 {
-	NodeRef parent = getParent();
-	CI_ASSERT( parent );
+	NodeRef output = getOutput();
+	CI_ASSERT( output );
 
-	while( parent && ! mNumChannels ) {
-		fillFormatParamsFromNode( parent );
-		parent = parent->getParent();
+	while( output && ! mNumChannels ) {
+		fillFormatParamsFromNode( output );
+		output = output->getOutput();
 	}
 	
 	CI_ASSERT( mNumChannels );
 }
 
-void Node::fillFormatParamsFromSource()
+void Node::fillFormatParamsFromInput()
 {
-	CI_ASSERT( ! mSources.empty() && mSources[0] );
+	CI_ASSERT( ! mInputs.empty() && mInputs[0] );
 
-	auto firstSource = mSources[0];
+	auto firstSource = mInputs[0];
 	fillFormatParamsFromNode( firstSource );
 
 	CI_ASSERT( mNumChannels );
@@ -140,18 +140,18 @@ void Node::setEnabled( bool enabled )
 // MARK: - MixerNode
 // ----------------------------------------------------------------------------------------------------
 
-void MixerNode::setSource( NodeRef source )
+void MixerNode::setInput( NodeRef input )
 {
-	source->setParent( shared_from_this() );
+	input->setOutput( shared_from_this() );
 
-	for( size_t i = 0; i < mSources.size(); i++ ) {
-		if( ! mSources[i] ) {
-			mSources[i] = source;
+	for( size_t i = 0; i < mInputs.size(); i++ ) {
+		if( ! mInputs[i] ) {
+			mInputs[i] = input;
 			return;
 		}
 	}
 	// all slots full, append
-	mSources.push_back( source );
+	mInputs.push_back( input );
 }
 
 
@@ -226,8 +226,8 @@ void Context::start( NodeRef node )
 {
 	if( ! node )
 		return;
-	for( auto& source : node->getSources() )
-		start( source );
+	for( auto& input : node->getInputs() )
+		start( input );
 
 	if( node->isAutoEnabled() )
 		node->start();
@@ -237,8 +237,8 @@ void Context::stop( NodeRef node )
 {
 	if( ! node )
 		return;
-	for( auto& source : node->getSources() )
-		stop( source );
+	for( auto& input : node->getInputs() )
+		stop( input );
 
 	if( node->isAutoEnabled() )
 		node->stop();

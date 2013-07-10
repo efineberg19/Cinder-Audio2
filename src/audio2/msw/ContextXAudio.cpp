@@ -72,7 +72,7 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 
 	VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
 
-	void setSourceVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
+	void setInputVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
 
 	// TODO: apparently passing in XAUDIO2_VOICE_NOSAMPLESPLAYED to GetState is 4x faster
 	void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
@@ -208,7 +208,7 @@ void SourceVoiceXAudio::initialize()
 	UINT32 flags = ( mFilterEnabled ? XAUDIO2_VOICE_USEFILTER : 0 );
 	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
-	mVoiceCallback->setSourceVoice( mSourceVoice );
+	mVoiceCallback->setInputVoice( mSourceVoice );
 
 	mInitialized = true;
 	LOG_V << "complete." << endl;
@@ -400,7 +400,7 @@ MixerXAudio::MixerXAudio()
 : MixerNode( Format() )
 {
 	mTag = "MixerXAudio";
-	mWantsDefaultFormatFromParent = true;
+	mWantsDefaultFormatFromOutput = true;
 }
 
 MixerXAudio::~MixerXAudio()
@@ -670,7 +670,7 @@ void ContextXAudio::initNode( NodeRef node )
 
 	setContext( node );
 
-	if( node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
+	if( node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromParent();
 
 	// recurse through sources
@@ -694,7 +694,7 @@ void ContextXAudio::initNode( NodeRef node )
 				sourceVoice = shared_ptr<SourceVoiceXAudio>( new SourceVoiceXAudio() );
 				node->getSources()[i] = sourceVoice;
 				sourceVoice->setParent( node );
-				sourceVoice->setSource( source );
+				sourceVoice->setInput( source );
 			}
 		}
 
@@ -710,7 +710,7 @@ void ContextXAudio::initNode( NodeRef node )
 	}
 
 	// set default params from source
-	if( ! node->getWantsDefaultFormatFromParent() && node->isNumChannelsUnspecified() )
+	if( ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromSource();
 
 	for( size_t bus = 0; bus < node->getSources().size(); bus++ ) {

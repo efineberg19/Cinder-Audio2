@@ -136,14 +136,14 @@ class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
 
 class ConverterAudioUnit : public Node, public NodeAudioUnit {
   public:
-	ConverterAudioUnit( NodeRef source, NodeRef dest );
+	ConverterAudioUnit( NodeRef input, NodeRef dest );
 	virtual ~ConverterAudioUnit();
 
 	void initialize() override;
 	void uninitialize() override;
 
   private:
-	size_t mSourceNumChannels;
+	size_t mInputNumChannels;
 	RenderCallbackContext mRenderContext;
 
 	friend class ContextAudioUnit;
