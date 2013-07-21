@@ -5,8 +5,8 @@
 #include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/Debug.h"
-#include "audio2/cocoa/Util.h"
-#include "audio2/Plot.h"
+#include "audio2/cocoa/CinderCoreAudio.h"
+#include "Plot.h"
 
 // Note: this was an attempt at using Core Audio's Audio File + Audio Converter Services api's. Currently SourceFileCoreAudio uses
 // Extended Audio File Services because it is easier to handle the many different types of audio files with confidence.
@@ -61,7 +61,7 @@ struct ConverterInfo {
 void CAFileLoadingTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
-	OutputNodeRef output = Context::instance()->createOutput();
+	LineOutNodeRef output = Context::instance()->createLineOut();
 	mContext->setRoot( output );
 
 	DataSourceRef dataSource = loadResource( FILE_NAME );
@@ -252,7 +252,7 @@ void CAFileLoadingTestApp::update()
 void CAFileLoadingTestApp::draw()
 {
 	gl::clear();
-	gl::draw( mWaveformPlot );
+	mWaveformPlot.draw();
 }
 
 void CAFileLoadingTestApp::printErrorCodes()
