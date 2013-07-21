@@ -56,7 +56,7 @@ class DeviceManagerAudioSession : public DeviceManager {
 
 	std::shared_ptr<DeviceAudioUnit>	getRemoteIOUnit();
 	void								activateSession();
-	UInt32								getSessionCategory(); // TODO: consider useing the strings provided by AVAudioSession
+	uint32_t							getSessionCategory(); // TODO: consider useing the strings provided by AVAudioSession
 
 
 	std::shared_ptr<DeviceAudioUnit> mRemoteIOUnit;

@@ -172,11 +172,11 @@ void DeviceManagerAudioSession::activateSession()
 	mSessionIsActive = true;
 }
 
-UInt32	DeviceManagerAudioSession::getSessionCategory()
+uint32_t DeviceManagerAudioSession::getSessionCategory()
 {
 	UInt32 result;
 	audioSessionProperty( kAudioSessionProperty_AudioCategory, result );
-	return result;
+	return static_cast<uint32_t>( result );
 }
 
 } } // namespace audio2::cocoa
