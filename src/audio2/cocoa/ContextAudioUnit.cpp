@@ -497,9 +497,6 @@ ConverterAudioUnit::~ConverterAudioUnit()
 {
 }
 
-// TODO NEXT: see if this guy can handle non-interleaved -> interleaved and back
-// if so, can install ConverterAudio unit's at either side to deliver proper buffer layout
-// - but what about the end Buffer - how to provide one with Layout::Interleaved?
 void ConverterAudioUnit::initialize()
 {
 	::AudioComponentDescription comp{ 0 };
@@ -598,7 +595,7 @@ void ContextAudioUnit::initNode( NodeRef node )
 		initNode( inputNode );
 
 	// set default params from source
-	if(  ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
+	if( ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromInput();
 
 	for( size_t bus = 0; bus < node->getInputs().size(); bus++ ) {
