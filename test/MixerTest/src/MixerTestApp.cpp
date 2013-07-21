@@ -3,7 +3,6 @@
 
 #include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
-#include "audio2/EffectNode.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
@@ -34,7 +33,7 @@ struct InterleavedPassThruNode : public Node {
 
 };
 
-class BasicTestApp : public AppNative {
+class MixerTestApp : public AppNative {
 public:
 	void prepareSettings( Settings *settings );
 	void setup();
@@ -43,7 +42,7 @@ public:
 
 	void setupSine();
 	void setupNoise();
-	void setupSumming();
+	void setupMixer();
 	void setupInterleavedPassThru();
 	void initContext();
 
@@ -52,22 +51,22 @@ public:
 	void processTap( Vec2i pos );
 
 	ContextRef mContext;
-	GainNodeRef mGain;
+	MixerNodeRef mMixer;
 	GeneratorNodeRef mSine, mNoise;
 
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton, mEnableNoiseButton, mEnableSineButton;
 	VSelector mTestSelector;
-	HSlider mGainSlider;
+	HSlider mNoisePanSlider, mSinePanSlider, mNoiseVolumeSlider, mFreqVolumeSlider;
 
 	enum Bus { Noise, Sine };
 };
 
-void BasicTestApp::prepareSettings( Settings *settings )
+void MixerTestApp::prepareSettings( Settings *settings )
 {
 }
 
-void BasicTestApp::setup()
+void MixerTestApp::setup()
 {
 	DeviceRef device = Device::getDefaultOutput();
 
@@ -80,8 +79,6 @@ void BasicTestApp::setup()
 	auto output = Context::instance()->createLineOut( device );
 	mContext = Context::instance()->createContext();
 	mContext->setRoot( output );
-	mGain = make_shared<GainNode>();
-	mGain->setGain( 0.6f );
 
 	setupSine();
 	//setupInterleavedPassThru();
@@ -90,33 +87,37 @@ void BasicTestApp::setup()
 	setupUI();
 }
 
-void BasicTestApp::setupSine()
+void MixerTestApp::setupSine()
 {
 	auto genNode = make_shared<UGenNode<SineGen> >( Node::Format().channels( 1 ) );
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 
-	genNode->connect( mGain )->connect( mContext->getRoot() );
+	genNode->connect( mContext->getRoot() );
 	mSine = genNode;
 
 	mSine->start();
 	mEnableSineButton.setEnabled( true );
+	mEnableSineButton.hidden = false;
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableNoiseButton.hidden = true;
 }
 
-void BasicTestApp::setupNoise()
+void MixerTestApp::setupNoise()
 {
 	auto genNode = make_shared<UGenNode<NoiseGen> >();
 	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 
-	genNode->connect( mGain )->connect( mContext->getRoot() );
+	genNode->connect( mContext->getRoot() );
 	mNoise = genNode;
 
 	mNoise->start();
 	mEnableNoiseButton.setEnabled( true );
+	mEnableNoiseButton.hidden = false;
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableSineButton.hidden = true;
 }
 
-void BasicTestApp::setupSumming()
+void MixerTestApp::setupMixer()
 {
 	auto noise = make_shared<UGenNode<NoiseGen> >();
 	noise->getUGen().setAmp( 0.25f );
@@ -126,25 +127,27 @@ void BasicTestApp::setupSumming()
 	sine->getUGen().setAmp( 0.25f );
 	sine->getUGen().setFreq( 440.0f );
 	mSine = sine;
-	
+
+	mMixer = Context::instance()->createMixer();
 
 	// connect by appending
-	noise->connect( mGain );
-	sine->connect( mGain )->connect( mContext->getRoot() );
+	//	noise->connect( mMixer );
+	//	sine->connect( mMixer )->connect( mContext->getRoot() );
 
 	// or connect by index
-//	noise->connect( mGain, Bus::Noise );
-//	sine->connect( mGain, Bus::Sine )->connect( mContext->getRoot() );
+	noise->connect( mMixer, Bus::Noise );
+	sine->connect( mMixer, Bus::Sine )->connect( mContext->getRoot() );
 
 	mSine->start();
 	mNoise->start();
 
 	mEnableSineButton.setEnabled( true );
 	mEnableNoiseButton.setEnabled( true );
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableSineButton.hidden = mEnableNoiseButton.hidden = false;
 }
 
 // TODO: this belongs in it's own test app - one for weird conversions
-void BasicTestApp::setupInterleavedPassThru()
+void MixerTestApp::setupInterleavedPassThru()
 {
 	auto genNode = make_shared<UGenNode<SineGen> >();
 	genNode->setAutoEnabled();
@@ -157,9 +160,11 @@ void BasicTestApp::setupInterleavedPassThru()
 	genNode->connect( interleaved )->connect( mContext->getRoot() );
 
 	mEnableSineButton.setEnabled( true );
+	mEnableSineButton.hidden = false;
+	mNoisePanSlider.hidden = mSinePanSlider.hidden = mNoiseVolumeSlider.hidden = mFreqVolumeSlider.hidden = mEnableNoiseButton.hidden = true;
 }
 
-void BasicTestApp::initContext()
+void MixerTestApp::initContext()
 {
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
@@ -170,9 +175,32 @@ void BasicTestApp::initContext()
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (after)" << endl;
 	printGraph( mContext );
+
+	if( mMixer ) {
+
+		// reduce default bus volumes
+		// FIXME: setting params fails before Graph::initialize(), so there isn't an audio unit yet.
+		//		- can I overcome this by lazy-loading the AudioUnit, just create when first asked for?
+		mMixer->setBusVolume( Bus::Noise, 0.65f );
+		mMixer->setBusVolume( Bus::Sine, 0.65f );
+
+		LOG_V << "mixer stats:" << endl;
+		size_t numBusses = mMixer->getNumBusses();
+		console() << "\t num busses: " << numBusses << endl;
+		for( size_t i = 0; i < numBusses; i++ ) {
+			console() << "\t [" << i << "] enabled: " << boolalpha << mMixer->isBusEnabled( i ) << dec;
+			console() << ", volume: " << mMixer->getBusVolume( i );
+			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
+		}
+
+		mNoisePanSlider.set( mMixer->getBusPan( Bus::Noise ) );
+		mSinePanSlider.set( mMixer->getBusPan( Bus::Sine ) );
+		mNoiseVolumeSlider.set( mMixer->getBusVolume( Bus::Noise ) );
+		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::Sine ) );
+	}
 }
 
-void BasicTestApp::setupUI()
+void MixerTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
@@ -180,18 +208,37 @@ void BasicTestApp::setupUI()
 
 	mTestSelector.segments.push_back( "sine" );
 	mTestSelector.segments.push_back( "noise" );
-	mTestSelector.segments.push_back( "sum" );
+	mTestSelector.segments.push_back( "mixer" );
 	mTestSelector.bounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
-	mGainSlider.bounds = sliderRect;
-	mGainSlider.title = "Gain";
-	mGainSlider.max = 1.0f;
-	mGainSlider.set( mGain->getGain() );
+	mNoisePanSlider.bounds = sliderRect;
+	mNoisePanSlider.title = "Pan (Noise)";
+	mNoisePanSlider.min = -1.0f;
+	mNoisePanSlider.max = 1.0f;
+	mWidgets.push_back( &mNoisePanSlider );
 
-	mWidgets.push_back( &mGainSlider );
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mSinePanSlider.bounds = sliderRect;
+	mSinePanSlider.title = "Pan (Freq)";
+	mSinePanSlider.min = -1.0f;
+	mSinePanSlider.max = 1.0f;
+	mWidgets.push_back( &mSinePanSlider );
+
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mNoiseVolumeSlider.bounds = sliderRect;
+	mNoiseVolumeSlider.title = "Volume (Noise)";
+	mNoiseVolumeSlider.max = 1.0f;
+	mWidgets.push_back( &mNoiseVolumeSlider );
+
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
+	mFreqVolumeSlider.bounds = sliderRect;
+	mFreqVolumeSlider.title = "Volume (Freq)";
+	mFreqVolumeSlider.max = 1.0f;
+	mWidgets.push_back( &mFreqVolumeSlider );
+
 
 	mEnableSineButton.isToggle = true;
 	mEnableSineButton.titleNormal = "sine disabled";
@@ -217,13 +264,21 @@ void BasicTestApp::setupUI()
 	gl::enableAlphaBlending();
 }
 
-void BasicTestApp::processDrag( Vec2i pos )
+void MixerTestApp::processDrag( Vec2i pos )
 {
-	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.valueScaled );
+	if( mMixer ) {
+		if( mNoisePanSlider.hitTest( pos ) )
+			mMixer->setBusPan( Bus::Noise, mNoisePanSlider.valueScaled );
+		if( mSinePanSlider.hitTest( pos ) )
+			mMixer->setBusPan( Bus::Sine, mSinePanSlider.valueScaled );
+		if( mNoiseVolumeSlider.hitTest( pos ) )
+			mMixer->setBusVolume( Bus::Noise, mNoiseVolumeSlider.valueScaled );
+		if( mFreqVolumeSlider.hitTest( pos ) )
+			mMixer->setBusVolume( Bus::Sine, mFreqVolumeSlider.valueScaled );
+	}
 }
 
-void BasicTestApp::processTap( Vec2i pos )
+void MixerTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
@@ -244,8 +299,8 @@ void BasicTestApp::processTap( Vec2i pos )
 			setupSine();
 		if( currentTest == "noise" )
 			setupNoise();
-		if( currentTest == "sum" )
-			setupSumming();
+		if( currentTest == "mixer" )
+			setupMixer();
 		initContext();
 
 		if( running )
@@ -253,14 +308,14 @@ void BasicTestApp::processTap( Vec2i pos )
 	}
 }
 
-void BasicTestApp::update()
+void MixerTestApp::update()
 {
 }
 
-void BasicTestApp::draw()
+void MixerTestApp::draw()
 {
 	gl::clear();
 	drawWidgets( mWidgets );
 }
 
-CINDER_APP_NATIVE( BasicTestApp, RendererGl )
+CINDER_APP_NATIVE( MixerTestApp, RendererGl )

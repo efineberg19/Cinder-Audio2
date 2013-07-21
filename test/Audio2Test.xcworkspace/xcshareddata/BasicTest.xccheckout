@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>AFA781F6-370D-4239-80E6-696FD7E4EFF6</string>
+	<key>IDESourceControlProjectName</key>
+	<string>BasicTest</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>CA9D4AF0-58B3-4684-A4C4-0538D49F572E</key>
+		<string>ssh://github.com/reakinator/Cinder-Audio2.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>test/BasicTest/xcode/BasicTest.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>CA9D4AF0-58B3-4684-A4C4-0538D49F572E</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/reakinator/Cinder-Audio2.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>CA9D4AF0-58B3-4684-A4C4-0538D49F572E</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>CA9D4AF0-58B3-4684-A4C4-0538D49F572E</string>
+			<key>IDESourceControlWCCName</key>
+			<string>audio2</string>
+		</dict>
+	</array>
+</dict>
+</plist>

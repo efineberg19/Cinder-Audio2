@@ -8,6 +8,9 @@
       location = "container:"
       name = "osx">
       <FileRef
+         location = "group:MixerTest/xcode/MixerTest.xcodeproj">
+      </FileRef>
+      <FileRef
          location = "container:BasicTest/xcode/BasicTest.xcodeproj">
       </FileRef>
       <FileRef
@@ -29,6 +32,9 @@
    <Group
       location = "container:"
       name = "ios">
+      <FileRef
+         location = "group:MixerTest/xcode_ios/MixerTest.xcodeproj">
+      </FileRef>
       <FileRef
          location = "group:BasicTest/xcode_ios/BasicTest.xcodeproj">
       </FileRef>
