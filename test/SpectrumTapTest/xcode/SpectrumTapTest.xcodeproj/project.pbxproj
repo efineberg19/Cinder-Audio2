@@ -16,6 +16,7 @@
 		09E646E16F4D41999837B36A /* SpectrumTapTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D57A454C16451CB8A6608A /* SpectrumTapTestApp.cpp */; };
 		113D06C11772A0F00095AA35 /* cash_satisfied_mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */; };
 		11B041CA179B8CB80034BEE2 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B041C7179B8C900034BEE2 /* libAudio2.a */; };
+		11B0422E179B97F40034BEE2 /* FileNodeTest.xcodeproj in Resources */ = {isa = PBXBuildFile; fileRef = 11B0422D179B97F40034BEE2 /* FileNodeTest.xcodeproj */; };
 		11F978EE176E965F00E2C7D0 /* tone440.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978ED176E965E00E2C7D0 /* tone440.wav */; };
 		11F978F0176E966700E2C7D0 /* tone440L220R.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978EF176E966700E2C7D0 /* tone440L220R.wav */; };
 		11F978F2176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */; };
@@ -39,6 +40,13 @@
 			remoteGlobalIDString = 1104F3C817753F10003EAA2B;
 			remoteInfo = "Audio2-mac";
 		};
+		11B04230179B97F40034BEE2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11B041C2179B8C8F0034BEE2 /* Audio2.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 11B0421C179B90450034BEE2;
+			remoteInfo = "Audio2-ios";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +59,7 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = cash_satisfied_mind.mp3; path = ../../../assets/cash_satisfied_mind.mp3; sourceTree = "<group>"; };
 		11B041C2179B8C8F0034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "/Volumes/ssd/code/cinder/audio-rewrite/audio2/test/../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
+		11B0422D179B97F40034BEE2 /* FileNodeTest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = file; name = FileNodeTest.xcodeproj; path = ../../FileNodeTest/xcode/FileNodeTest.xcodeproj; sourceTree = "<group>"; };
 		11F978ED176E965E00E2C7D0 /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11F978EF176E966700E2C7D0 /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
 		11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Blank__Kytt_-_08_-_RSPN.mp3"; path = "../../../assets/Blank__Kytt_-_08_-_RSPN.mp3"; sourceTree = "<group>"; };
@@ -121,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				11B041C7179B8C900034BEE2 /* libAudio2.a */,
+				11B04231179B97F40034BEE2 /* libAudio2-ios.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,6 +146,7 @@
 		29B97314FDCFA39411CA2CEA /* SpectrumTapTest */ = {
 			isa = PBXGroup;
 			children = (
+				11B0422D179B97F40034BEE2 /* FileNodeTest.xcodeproj */,
 				11B041C2179B8C8F0034BEE2 /* Audio2.xcodeproj */,
 				29B97315FDCFA39411CA2CEA /* Headers */,
 				080E96DDFE201D6D7F000001 /* Source */,
@@ -239,6 +250,13 @@
 			remoteRef = 11B041C6179B8C900034BEE2 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		11B04231179B97F40034BEE2 /* libAudio2-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libAudio2-ios.a";
+			remoteRef = 11B04230179B97F40034BEE2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -250,6 +268,7 @@
 				0933A883BD734B5DAC509302 /* CinderApp.icns in Resources */,
 				11F978F0176E966700E2C7D0 /* tone440L220R.wav in Resources */,
 				113D06C11772A0F00095AA35 /* cash_satisfied_mind.mp3 in Resources */,
+				11B0422E179B97F40034BEE2 /* FileNodeTest.xcodeproj in Resources */,
 				11F978EE176E965F00E2C7D0 /* tone440.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

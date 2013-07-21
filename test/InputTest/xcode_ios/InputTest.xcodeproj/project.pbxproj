@@ -9,15 +9,9 @@
 /* Begin PBXBuildFile section */
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
-		11CF3CD51765408C00C2DA62 /* ContextAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CCD1765408C00C2DA62 /* ContextAudioUnit.cpp */; };
-		11CF3CD61765408C00C2DA62 /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CCF1765408C00C2DA62 /* DeviceAudioUnit.cpp */; };
-		11CF3CD71765408C00C2DA62 /* DeviceManagerAudioSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CD11765408C00C2DA62 /* DeviceManagerAudioSession.cpp */; };
-		11CF3CDB1765409700C2DA62 /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CF3CD91765409700C2DA62 /* Context.cpp */; };
-		11D097F5176AD2C3008464AD /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11D097F4176AD2C3008464AD /* GeneratorNode.cpp */; };
-		144855561742F68800C27AD5 /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 144855541742F68800C27AD5 /* Util.cpp */; };
+		11B04263179C588C0034BEE2 /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B0425D179C56A10034BEE2 /* libAudio2-ios.a */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
-		2578E3B39D594803BB689CE8 /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4DFE211676884CE19B7B153C /* audio.cpp */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		4E017C12D2ED452EA0A7DFFA /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 9459ED9C20F145EEA98D29CC /* CinderApp_ios.png */; };
@@ -26,52 +20,53 @@
 		C725E001121DAC8FFFFA18FF /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091FFFF /* ImageIO.framework */; };
 		C727C02E121B400300192073 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C727C02D121B400300192073 /* CoreVideo.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		C7FB19D6124BC0D70045AFD2 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */; };
-		CDE837C4FB7B46B89B589C10 /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F6D1F5423E4392AA441033 /* Device.cpp */; };
 		CFEFAAD0DEA04680A1ED4B93 /* InputTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3EBBA30085504EF9A08D0847 /* InputTestApp.cpp */; };
 		DDDDE001121DAC8FFFFADDDD /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DDDDDF6A1138442D0091DDDD /* MobileCoreServices.framework */; };
 		E301A19945C649B9B3066FA8 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F747DB4A232445BD9F8E6B3F /* Default-568h@2x.png */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		11B0425A179C56A10034BEE2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11B04255179C56A00034BEE2 /* Audio2.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 1104F3C917753F10003EAA2B;
+			remoteInfo = "Audio2-mac";
+		};
+		11B0425C179C56A10034BEE2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11B04255179C56A00034BEE2 /* Audio2.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 11B0421C179B90450034BEE2;
+			remoteInfo = "Audio2-ios";
+		};
+		11B04261179C58860034BEE2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11B04255179C56A00034BEE2 /* Audio2.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 11B041F2179B90450034BEE2;
+			remoteInfo = "Audio2-ios";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		00692BCF14FF149000D0A05E /* InputTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InputTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0087D25412CD809F002CD69F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
-		082881F7FD2242169C715247 /* Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Device.h; path = ../../../src/audio2/Device.h; sourceTree = "<group>"; };
-		11CF3CCD1765408C00C2DA62 /* ContextAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextAudioUnit.cpp; sourceTree = "<group>"; };
-		11CF3CCE1765408C00C2DA62 /* ContextAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContextAudioUnit.h; sourceTree = "<group>"; };
-		11CF3CCF1765408C00C2DA62 /* DeviceAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceAudioUnit.cpp; sourceTree = "<group>"; };
-		11CF3CD01765408C00C2DA62 /* DeviceAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceAudioUnit.h; sourceTree = "<group>"; };
-		11CF3CD11765408C00C2DA62 /* DeviceManagerAudioSession.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerAudioSession.cpp; sourceTree = "<group>"; };
-		11CF3CD21765408C00C2DA62 /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
-		11CF3CD91765409700C2DA62 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = ../../../src/audio2/Context.cpp; sourceTree = "<group>"; };
-		11CF3CDA1765409700C2DA62 /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Context.h; path = ../../../src/audio2/Context.h; sourceTree = "<group>"; };
-		11D097F4176AD2C3008464AD /* GeneratorNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GeneratorNode.cpp; path = ../../../src/audio2/GeneratorNode.cpp; sourceTree = "<group>"; };
-		11D679E41759767700E96E0D /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dsp.h; path = ../../../src/audio2/Dsp.h; sourceTree = "<group>"; };
-		11D679E51759767700E96E0D /* EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffectNode.h; path = ../../../src/audio2/EffectNode.h; sourceTree = "<group>"; };
-		11D679E61759767700E96E0D /* GeneratorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GeneratorNode.h; path = ../../../src/audio2/GeneratorNode.h; sourceTree = "<group>"; };
-		144855541742F68800C27AD5 /* Util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Util.cpp; sourceTree = "<group>"; };
-		144855551742F68800C27AD5 /* Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Util.h; sourceTree = "<group>"; };
+		11B04255179C56A00034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "/Volumes/ssd/code/cinder/audio-rewrite/audio2/test/../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		28FD14FF0DC6FC520079059D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		3EBBA30085504EF9A08D0847 /* InputTestApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = InputTestApp.cpp; path = ../src/InputTestApp.cpp; sourceTree = "<group>"; };
-		4DFE211676884CE19B7B153C /* audio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = audio.cpp; path = ../../../src/audio2/audio.cpp; sourceTree = "<group>"; };
 		648794F9920946B091D7FF1D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		765698F5B90F4A6B97B1F07E /* Gui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Gui.h; path = ../../../src/Gui.h; sourceTree = "<group>"; };
-		91CFF48A02FD455E91306BEF /* RingBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RingBuffer.h; path = ../../../src/audio2/RingBuffer.h; sourceTree = "<group>"; };
 		9459ED9C20F145EEA98D29CC /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = CinderApp_ios.png; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; };
-		A1F6D1F5423E4392AA441033 /* Device.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = Device.cpp; path = ../../../src/audio2/Device.cpp; sourceTree = "<group>"; };
-		B9EF42EB921449238A222CF8 /* audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = audio.h; path = ../../../src/audio2/audio.h; sourceTree = "<group>"; };
 		C725E000121DAC8F00FA186B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		C727C02B121B400300192073 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		C727C02D121B400300192073 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
-		C747026CDC5E42AC90503B0C /* Atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Atomic.h; path = ../../../src/audio2/Atomic.h; sourceTree = "<group>"; };
 		C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		DDDDDF6A1138442D0091DDDD /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
-		E9644BFF92B746C58E61EC99 /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../src/audio2/Debug.h; sourceTree = "<group>"; };
-		E9663B875A7542F5B634755A /* assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = assert.h; path = ../../../src/audio2/assert.h; sourceTree = "<group>"; };
 		EF966C616CDD4F64A52E1A7C /* InputTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = InputTest_Prefix.pch; sourceTree = "<group>"; };
 		F2C3DB0006124B19BB432372 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		F747DB4A232445BD9F8E6B3F /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
@@ -82,6 +77,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11B04263179C588C0034BEE2 /* libAudio2-ios.a in Frameworks */,
 				C725E001121DAC8F00FA186B /* AVFoundation.framework in Frameworks */,
 				C725DFFE121DAC7F00FA186B /* CoreMedia.framework in Frameworks */,
 				C725E001121DAC8FFFFA18FF /* ImageIO.framework in Frameworks */,
@@ -103,7 +99,7 @@
 		00692BC414FF149000D0A05E = {
 			isa = PBXGroup;
 			children = (
-				99692BD914FF149000DFFFFF /* Blocks */,
+				11B04255179C56A00034BEE2 /* Audio2.xcodeproj */,
 				99692BD914FF149000D0A05F /* Headers */,
 				00692BD914FF149000D0A05E /* Source */,
 				00692BD914FF149000D0FFFF /* Resources */,
@@ -157,42 +153,13 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
-		144855531742F68800C27AD5 /* cocoa */ = {
+		11B04256179C56A00034BEE2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				11CF3CCD1765408C00C2DA62 /* ContextAudioUnit.cpp */,
-				11CF3CCE1765408C00C2DA62 /* ContextAudioUnit.h */,
-				11CF3CCF1765408C00C2DA62 /* DeviceAudioUnit.cpp */,
-				11CF3CD01765408C00C2DA62 /* DeviceAudioUnit.h */,
-				11CF3CD11765408C00C2DA62 /* DeviceManagerAudioSession.cpp */,
-				11CF3CD21765408C00C2DA62 /* DeviceManagerAudioSession.h */,
-				144855541742F68800C27AD5 /* Util.cpp */,
-				144855551742F68800C27AD5 /* Util.h */,
+				11B0425B179C56A10034BEE2 /* libAudio2.a */,
+				11B0425D179C56A10034BEE2 /* libAudio2-ios.a */,
 			);
-			name = cocoa;
-			path = ../../../src/audio2/cocoa;
-			sourceTree = "<group>";
-		};
-		78906FF6EEF14C7BAA5E75D7 /* audio2 */ = {
-			isa = PBXGroup;
-			children = (
-				144855531742F68800C27AD5 /* cocoa */,
-				11D679E41759767700E96E0D /* Dsp.h */,
-				11D679E51759767700E96E0D /* EffectNode.h */,
-				11D679E61759767700E96E0D /* GeneratorNode.h */,
-				11D097F4176AD2C3008464AD /* GeneratorNode.cpp */,
-				E9663B875A7542F5B634755A /* assert.h */,
-				C747026CDC5E42AC90503B0C /* Atomic.h */,
-				B9EF42EB921449238A222CF8 /* audio.h */,
-				11CF3CD91765409700C2DA62 /* Context.cpp */,
-				11CF3CDA1765409700C2DA62 /* Context.h */,
-				E9644BFF92B746C58E61EC99 /* Debug.h */,
-				082881F7FD2242169C715247 /* Device.h */,
-				91CFF48A02FD455E91306BEF /* RingBuffer.h */,
-				4DFE211676884CE19B7B153C /* audio.cpp */,
-				A1F6D1F5423E4392AA441033 /* Device.cpp */,
-			);
-			name = audio2;
+			name = Products;
 			sourceTree = "<group>";
 		};
 		99692BD914FF149000D0A05F /* Headers */ = {
@@ -202,31 +169,6 @@
 				EF966C616CDD4F64A52E1A7C /* InputTest_Prefix.pch */,
 			);
 			name = Headers;
-			sourceTree = "<group>";
-		};
-		99692BD914FF149000DFFFFF /* Blocks */ = {
-			isa = PBXGroup;
-			children = (
-				C5D1970EA38242879D16E262 /* Audio2 */,
-			);
-			name = Blocks;
-			sourceTree = "<group>";
-		};
-		C5D1970EA38242879D16E262 /* Audio2 */ = {
-			isa = PBXGroup;
-			children = (
-				D21C823E4D5C44A3B2E41014 /* src */,
-			);
-			name = Audio2;
-			sourceTree = "<group>";
-		};
-		D21C823E4D5C44A3B2E41014 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				765698F5B90F4A6B97B1F07E /* Gui.h */,
-				78906FF6EEF14C7BAA5E75D7 /* audio2 */,
-			);
-			name = src;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -243,6 +185,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				11B04262179C58860034BEE2 /* PBXTargetDependency */,
 			);
 			name = InputTest;
 			productName = InputTest;
@@ -267,12 +210,35 @@
 			mainGroup = 00692BC414FF149000D0A05E;
 			productRefGroup = 00692BD014FF149000D0A05E /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 11B04256179C56A00034BEE2 /* Products */;
+					ProjectRef = 11B04255179C56A00034BEE2 /* Audio2.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				00692BCE14FF149000D0A05E /* InputTest */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		11B0425B179C56A10034BEE2 /* libAudio2.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libAudio2.a;
+			remoteRef = 11B0425A179C56A10034BEE2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		11B0425D179C56A10034BEE2 /* libAudio2-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libAudio2-ios.a";
+			remoteRef = 11B0425C179C56A10034BEE2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		00692BCD14FF149000D0A05E /* Resources */ = {
@@ -292,18 +258,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				CFEFAAD0DEA04680A1ED4B93 /* InputTestApp.cpp in Sources */,
-				2578E3B39D594803BB689CE8 /* audio.cpp in Sources */,
-				CDE837C4FB7B46B89B589C10 /* Device.cpp in Sources */,
-				144855561742F68800C27AD5 /* Util.cpp in Sources */,
-				11CF3CD51765408C00C2DA62 /* ContextAudioUnit.cpp in Sources */,
-				11CF3CD61765408C00C2DA62 /* DeviceAudioUnit.cpp in Sources */,
-				11CF3CD71765408C00C2DA62 /* DeviceManagerAudioSession.cpp in Sources */,
-				11D097F5176AD2C3008464AD /* GeneratorNode.cpp in Sources */,
-				11CF3CDB1765409700C2DA62 /* Context.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		11B04262179C58860034BEE2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Audio2-ios";
+			targetProxy = 11B04261179C58860034BEE2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		00692BF314FF149000D0A05E /* Debug */ = {
@@ -311,7 +277,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CINDER_PATH = "../../../cinder";
+				CINDER_PATH = ../../../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
@@ -350,7 +316,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CINDER_PATH = "../../../cinder";
+				CINDER_PATH = ../../../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
