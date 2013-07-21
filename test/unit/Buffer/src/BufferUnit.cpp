@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE( test_in_place )
 
 BOOST_AUTO_TEST_CASE( test_out_of_place )
 {
-	BufferT<int> interleaved( 2, 4, BufferT<int>::Format::Interleaved );
+	BufferT<int> interleaved( 2, 4, BufferT<int>::Layout::Interleaved );
 	BufferT<int> nonInterleaved( 2, 4 );
 
 	nonInterleaved[0] = 10;
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE( test_out_of_place )
 
 BOOST_AUTO_TEST_CASE( test_mismatched_deinterleave )
 {
-	BufferT<int> interleaved( 2, 4, BufferT<int>::Format::Interleaved );
+	BufferT<int> interleaved( 2, 4, BufferT<int>::Layout::Interleaved );
 	BufferT<int> nonInterleaved( 2, 3 );
 
 	interleaved[0] = 10;
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE( test_mismatched_deinterleave )
 
 BOOST_AUTO_TEST_CASE( test_mismatched_interleave )
 {
-	BufferT<int> interleaved( 2, 3, BufferT<int>::Format::Interleaved );
+	BufferT<int> interleaved( 2, 3, BufferT<int>::Layout::Interleaved );
 	BufferT<int> nonInterleaved( 2, 4 );
 
 	nonInterleaved[0] = 10;
