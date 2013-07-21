@@ -83,8 +83,6 @@
 		1104F3C917753F10003EAA2B /* libAudio2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAudio2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1104F3CC17753F10003EAA2B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		1104F3CF17753F10003EAA2B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		1104F3D017753F10003EAA2B /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		1104F3D117753F10003EAA2B /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		1104F46317754A6E003EAA2B /* Atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
 		1104F46417754A6E003EAA2B /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		1104F46517754A6E003EAA2B /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
@@ -187,8 +185,6 @@
 			isa = PBXGroup;
 			children = (
 				1104F3CF17753F10003EAA2B /* Foundation.framework */,
-				1104F3D017753F10003EAA2B /* CoreData.framework */,
-				1104F3D117753F10003EAA2B /* AppKit.framework */,
 			);
 			name = "Other Frameworks";
 			sourceTree = "<group>";
