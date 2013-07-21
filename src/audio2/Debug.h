@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 
 // note: this file will be removed at a later point
 

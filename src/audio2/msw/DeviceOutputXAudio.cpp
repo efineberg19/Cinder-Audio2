@@ -24,7 +24,7 @@
 #include "audio2/msw/DeviceOutputXAudio.h"
 #include "audio2/msw/DeviceManagerWasapi.h"
 #include "audio2/Debug.h"
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 
 #include "cinder/Utilities.h"
 #include "cinder/msw/CinderMsw.h"

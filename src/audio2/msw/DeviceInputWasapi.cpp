@@ -27,7 +27,7 @@
 #include "audio2/audio.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/Dsp.h"
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
 #include <Audioclient.h>

@@ -22,7 +22,7 @@
 */
 
 #include "audio2/Fft.h"
-#include "audio2/Assert.h"
+#include "audio2/CinderAssert.h"
 #include "audio2/audio.h"
 
 namespace audio2 {

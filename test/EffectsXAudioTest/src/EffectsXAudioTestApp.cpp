@@ -4,7 +4,7 @@
 #include "audio2/audio.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/EffectNode.h"
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
 #include "audio2/msw/ContextXAudio.h"

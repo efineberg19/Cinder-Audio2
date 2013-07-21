@@ -24,7 +24,7 @@
 #pragma once
 
 #include "audio2/Atomic.h"
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 
 #include "cinder/Cinder.h"
 #include "cinder/Rand.h"

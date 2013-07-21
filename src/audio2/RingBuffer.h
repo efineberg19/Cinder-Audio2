@@ -28,7 +28,7 @@
 //   yet due to a known bug, so boost::atomic will be used until then
 // - vc2010 also requires boost::atomic
 
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 #include <boost/lockfree/spsc_queue.hpp>
 #include <vector>
 

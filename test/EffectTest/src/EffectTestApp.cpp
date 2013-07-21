@@ -5,7 +5,7 @@
 #include "audio2/Graph.h"
 #include "audio2/Engine.h"
 #include "audio2/audio.h"
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
 #include "Gui.h"

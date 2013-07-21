@@ -23,7 +23,7 @@
 
 #include "audio2/cocoa/DeviceManagerAudioSession.h"
 #include "audio2/cocoa/DeviceAudioUnit.h"
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
 #include <cmath>

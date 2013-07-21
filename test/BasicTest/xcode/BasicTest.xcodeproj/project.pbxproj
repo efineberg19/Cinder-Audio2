@@ -63,7 +63,7 @@
 		14485524173D51C500C27AD5 /* RingBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
 		148AFBDC172AE6C80066D8BE /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		148AFBDD172AE6C80066D8BE /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
-		148AFBDF172AF1300066D8BE /* assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assert.h; sourceTree = "<group>"; };
+		148AFBDF172AF1300066D8BE /* CinderAssert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CinderAssert.h; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		3D080E4252C34004B9ED31F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -139,7 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				114FBA3F172A2543002CD25C /* cocoa */,
-				148AFBDF172AF1300066D8BE /* assert.h */,
+				148AFBDF172AF1300066D8BE /* CinderAssert.h */,
 				11EFFBB01732183E009EF46B /* Atomic.h */,
 				148AFBDC172AE6C80066D8BE /* audio.cpp */,
 				148AFBDD172AE6C80066D8BE /* audio.h */,

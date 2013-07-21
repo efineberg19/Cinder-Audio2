@@ -25,7 +25,7 @@
 #include "audio2/Context.h"
 #include "audio2/GeneratorNode.h"
 #include "audio2/audio.h"
-#include "audio2/assert.h"
+#include "audio2/CinderAssert.h"
 
 #include "cinder/Cinder.h"
 #include "cinder/Utilities.h"
