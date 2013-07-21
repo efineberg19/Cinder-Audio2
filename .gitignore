@@ -6,7 +6,7 @@ cinder
 *.mode1v3
 *.mode2v3
 *.user
-*.xcworkspace/
+project.xcworkspace
 xcuserdata/
 .DS_Store
 
