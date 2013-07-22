@@ -100,7 +100,7 @@ void BufferPlayerNode::setBuffer( BufferRef buffer )
 	mBuffer = buffer;
 	mNumFrames = buffer->getNumFrames();
 
-	if( mEnabled )
+	if( enabled )
 		start();
 }
 
