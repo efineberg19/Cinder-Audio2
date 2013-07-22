@@ -69,6 +69,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual void disconnect( size_t bus = 0 );
 
+	//! insert in first available slot or append the node if called without a bus number.
 	virtual void setInput( NodeRef input );
 	virtual void setInput( NodeRef input, size_t bus );
 
@@ -106,6 +107,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	const std::string& getTag()	const	{ return mTag; }
 
 	bool isInitialized() const	{ return mInitialized; }
+	bool isConnected() const	{ return mConnected; }
 	bool isEnabled() const		{ return mEnabled; }
 
 	void setEnabled( bool b = true );
@@ -124,7 +126,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	std::weak_ptr<Node>		mOutput;
 	std::weak_ptr<Context>	mContext;
 	bool					mInitialized;
-	std::atomic<bool>		mEnabled;
+	std::atomic<bool>		mConnected, mEnabled;
 	std::string				mTag;
 
 	size_t mNumChannels;
@@ -176,10 +178,6 @@ class MixerNode : public Node {
   public:
 	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
-
-	using Node::setInput;
-	//! Mixers will append the node if setInput() is called without a bus number.
-	virtual void setInput( NodeRef input ) override;
 
 	//! returns the number of connected busses.
 	virtual size_t getNumBusses() = 0;

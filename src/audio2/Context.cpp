@@ -26,6 +26,7 @@
 #include "audio2/GeneratorNode.h"
 #include "audio2/audio.h"
 #include "audio2/CinderAssert.h"
+#include "audio2/Debug.h"
 
 #include "cinder/Cinder.h"
 #include "cinder/Utilities.h"
@@ -45,7 +46,8 @@ namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 Node::Node( const Format &format )
-: mInitialized( false ), mEnabled( false ), mInputs( 1 ), mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
+: mInitialized( false ), mConnected( false ), mEnabled( false ),
+	mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
 	mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false )
 {
 	mNumChannelsUnspecified = ! format.getChannels();
@@ -68,22 +70,45 @@ NodeRef Node::connect( NodeRef dest, size_t bus )
 	return dest;
 }
 
+// TODO: if multi-output is supported, use getOutput( bus )->getInputs()
 void Node::disconnect( size_t bus )
 {
+	if( ! mConnected )
+		return;
+
 	if( mEnabled )
 		stop();
+
+	mConnected = false;
 	
 	auto& inputs = getOutput()->getInputs();
-	if( bus < inputs.size() )
-		inputs[bus].reset();
+	for( size_t i = 0; i < inputs.size(); i++ ) {
+		if( inputs[i] == shared_from_this() )
+			inputs[i].reset();
+	}
 
 	mOutput.reset();
 }
 
 void Node::setInput( NodeRef input )
 {
-	setInput( input, 0 );
+	if( ! input || find( mInputs.begin(), mInputs.end(), input ) != mInputs.end() )
+		return;
+
+	input->setOutput( shared_from_this() );
+
+	// find first available slot, or append
+	for( size_t i = 0; i < mInputs.size(); i++ ) {
+		if( ! mInputs[i] ) {
+			mInputs[i] = input;
+			input->mConnected = true;
+			return;
+		}
+	}
+	mInputs.push_back( input );
+	input->mConnected = true;
 }
+
 
 // TODO: figure out how to best handle node replacements
 void Node::setInput( NodeRef input, size_t bus )
@@ -135,25 +160,6 @@ void Node::setEnabled( bool enabled )
 	else
 		stop();
 }
-
-// ----------------------------------------------------------------------------------------------------
-// MARK: - MixerNode
-// ----------------------------------------------------------------------------------------------------
-
-void MixerNode::setInput( NodeRef input )
-{
-	input->setOutput( shared_from_this() );
-
-	for( size_t i = 0; i < mInputs.size(); i++ ) {
-		if( ! mInputs[i] ) {
-			mInputs[i] = input;
-			return;
-		}
-	}
-	// all slots full, append
-	mInputs.push_back( input );
-}
-
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Context

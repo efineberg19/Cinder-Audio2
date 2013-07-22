@@ -38,7 +38,6 @@ namespace audio2 {
 
 GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
 {
-	mInputs.clear();
 	mWantsDefaultFormatFromOutput = true;
 }
 

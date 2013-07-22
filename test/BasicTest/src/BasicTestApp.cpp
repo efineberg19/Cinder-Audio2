@@ -83,6 +83,15 @@ void BasicTestApp::setup()
 	mGain = make_shared<GainNode>();
 	mGain->setGain( 0.6f );
 
+	auto noise = make_shared<UGenNode<NoiseGen> >();
+	noise->getUGen().setAmp( 0.25f );
+	mNoise = noise;
+
+	auto sine = make_shared<UGenNode<SineGen> >();
+	sine->getUGen().setAmp( 0.25f );
+	sine->getUGen().setFreq( 440.0f );
+	mSine = sine;
+
 	setupSine();
 	//setupInterleavedPassThru();
 
@@ -92,49 +101,37 @@ void BasicTestApp::setup()
 
 void BasicTestApp::setupSine()
 {
-	auto genNode = make_shared<UGenNode<SineGen> >( Node::Format().channels( 1 ) );
-	genNode->getUGen().setAmp( 0.2f );
-	genNode->getUGen().setFreq( 440.0f );
+	if( mNoise->isConnected() )
+		mNoise->disconnect();
 
-	genNode->connect( mGain )->connect( mContext->getRoot() );
-	mSine = genNode;
+	mSine->connect( mGain )->connect( mContext->getRoot() );
 
 	mSine->start();
+	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
 }
 
 void BasicTestApp::setupNoise()
 {
-	auto genNode = make_shared<UGenNode<NoiseGen> >();
-	genNode->setAutoEnabled();
-	genNode->getUGen().setAmp( 0.2f );
+	if( mSine->isConnected() )
+		mSine->disconnect();
 
-	genNode->connect( mGain )->connect( mContext->getRoot() );
-	mNoise = genNode;
+	mNoise->connect( mGain )->connect( mContext->getRoot() );
 
 	mNoise->start();
+	mEnableSineButton.setEnabled( false );
 	mEnableNoiseButton.setEnabled( true );
 }
 
 void BasicTestApp::setupSumming()
 {
-	auto noise = make_shared<UGenNode<NoiseGen> >();
-	noise->getUGen().setAmp( 0.25f );
-	mNoise = noise;
-
-	auto sine = make_shared<UGenNode<SineGen> >();
-	sine->getUGen().setAmp( 0.25f );
-	sine->getUGen().setFreq( 440.0f );
-	mSine = sine;
-	
-
 	// connect by appending
-	noise->connect( mGain );
-	sine->connect( mGain )->connect( mContext->getRoot() );
+	mNoise->connect( mGain );
+	mSine->connect( mGain )->connect( mContext->getRoot() );
 
 	// or connect by index
-//	noise->connect( mGain, Bus::Noise );
-//	sine->connect( mGain, Bus::Sine )->connect( mContext->getRoot() );
+//	mNoise->connect( mGain, Bus::Noise );
+//	mSine->connect( mGain, Bus::Sine )->connect( mContext->getRoot() );
 
 	mSine->start();
 	mNoise->start();
