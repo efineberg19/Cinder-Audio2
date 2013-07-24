@@ -57,7 +57,7 @@
 		0C116A5339F74C6BA288F2C0 /* SpectrumTapTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = SpectrumTapTest_Prefix.pch; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = cash_satisfied_mind.mp3; path = ../../../assets/cash_satisfied_mind.mp3; sourceTree = "<group>"; };
-		11B041C2179B8C8F0034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "/Volumes/ssd/code/cinder/audio-rewrite/audio2/test/../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
+		11B041C2179B8C8F0034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "../../../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
 		11F978ED176E965E00E2C7D0 /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11F978EF176E966700E2C7D0 /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
 		11F978F1176E967100E2C7D0 /* Blank__Kytt_-_08_-_RSPN.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Blank__Kytt_-_08_-_RSPN.mp3"; path = "../../../assets/Blank__Kytt_-_08_-_RSPN.mp3"; sourceTree = "<group>"; };

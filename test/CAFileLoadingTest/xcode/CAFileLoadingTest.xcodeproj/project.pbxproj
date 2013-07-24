@@ -51,7 +51,7 @@
 		11944A5C1759AC930003B8ED /* tone440.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440.mp3; path = ../../../assets/tone440.mp3; sourceTree = "<group>"; };
 		11944A5D1759AC930003B8ED /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11944A601759B4BC0003B8ED /* tone440_float.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440_float.wav; path = ../../../assets/tone440_float.wav; sourceTree = "<group>"; };
-		11B041E9179B8E850034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "/Volumes/ssd/code/cinder/audio-rewrite/audio2/test/../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
+		11B041E9179B8E850034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "../../../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
 		11E8CE96175AF7F300245372 /* CAFileLoadingTestApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CAFileLoadingTestApp.cpp; path = ../src/CAFileLoadingTestApp.cpp; sourceTree = "<group>"; };
 		143C252E175FBE710063DFDA /* tone440L220R.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440L220R.mp3; path = ../../../assets/tone440L220R.mp3; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
