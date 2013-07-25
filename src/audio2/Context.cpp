@@ -70,7 +70,8 @@ NodeRef Node::connect( NodeRef dest, size_t bus )
 	return dest;
 }
 
-// TODO: if multi-output is supported, use getOutput( bus )->getInputs()
+// TODO: need 2 variants
+// - if multi-output is supported, use getOutput( bus )->getInputs()
 void Node::disconnect( size_t bus )
 {
 	if( ! mConnected )
@@ -81,12 +82,13 @@ void Node::disconnect( size_t bus )
 
 	mConnected = false;
 	
-	auto& inputs = getOutput()->getInputs();
-	for( size_t i = 0; i < inputs.size(); i++ ) {
-		if( inputs[i] == shared_from_this() )
-			inputs[i].reset();
+	auto& parentInputs = getOutput()->getInputs();
+	for( size_t i = 0; i < parentInputs.size(); i++ ) {
+		if( parentInputs[i] == shared_from_this() )
+			parentInputs[i].reset();
 	}
 
+	mInputs.clear();
 	mOutput.reset();
 }
 

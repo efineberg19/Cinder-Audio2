@@ -64,6 +64,7 @@ void DeviceAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	mInitialized = true;
+	LOG_V << "complete." << endl;
 }
 
 void DeviceAudioUnit::uninitialize()
@@ -79,7 +80,9 @@ void DeviceAudioUnit::uninitialize()
 
 		mComponentInstance = NULL;
 	}
-	mInitialized = false;
+	mInitialized = mInputConnected = mOutputConnected = false;
+
+	LOG_V << "complete." << endl;
 }
 
 void DeviceAudioUnit::start()

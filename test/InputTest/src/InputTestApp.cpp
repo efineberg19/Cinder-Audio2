@@ -53,8 +53,8 @@ void InputTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
 
-	LOG_V << "all devices: " << endl;
-	printDevices();
+//	LOG_V << "all devices: " << endl;
+//	printDevices();
 
 	setupDefaultDevices();
 	//setupDedicatedDevice();
@@ -64,6 +64,7 @@ void InputTestApp::setup()
 	//mLineIn->getFormat().setNumChannels( 1 );
 
 	setupInTapOut();
+//	setupInTapProcessOut();
 
 	initGraph();
 	setupUI();
@@ -176,6 +177,10 @@ void InputTestApp::processTap( Vec2i pos )
 
 		bool running = mContext->isEnabled();
 		mContext->uninitialize();
+
+		mContext->getRoot()->disconnect();
+		mTap->disconnect();
+		mLineIn->disconnect();
 
 		if( currentTest == "pass through" ) {
 			setupPassThrough();

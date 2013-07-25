@@ -243,7 +243,6 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual void start( NodeRef node );
 	virtual void stop( NodeRef node );
 
-
 	RootNodeRef		mRoot;
 	bool			mInitialized, mEnabled;
 	size_t			mSampleRate, mNumFramesPerBlock;
