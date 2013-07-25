@@ -15,7 +15,7 @@
 		11944A5E1759AC930003B8ED /* tone440.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 11944A5C1759AC930003B8ED /* tone440.mp3 */; };
 		11944A5F1759AC930003B8ED /* tone440.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11944A5D1759AC930003B8ED /* tone440.wav */; };
 		11944A611759B4BC0003B8ED /* tone440_float.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11944A601759B4BC0003B8ED /* tone440_float.wav */; };
-		11B041F1179B8E9B0034BEE2 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B041EE179B8E850034BEE2 /* libAudio2.a */; };
+		11B92E1E17A0B824003D6346 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B92E1D17A0B824003D6346 /* libAudio2.a */; };
 		11E8CE97175AF7F300245372 /* CAFileLoadingTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11E8CE96175AF7F300245372 /* CAFileLoadingTestApp.cpp */; };
 		143C252F175FBE710063DFDA /* tone440L220R.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 143C252E175FBE710063DFDA /* tone440L220R.mp3 */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
@@ -25,16 +25,23 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		11B041ED179B8E850034BEE2 /* PBXContainerItemProxy */ = {
+		11B92E5017A0B92C003D6346 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B041E9179B8E850034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 11B92E4B17A0B92C003D6346 /* Audio2.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 1104F3C917753F10003EAA2B;
 			remoteInfo = "Audio2-mac";
 		};
-		11B041EF179B8E930034BEE2 /* PBXContainerItemProxy */ = {
+		11B92E5217A0B92C003D6346 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B041E9179B8E850034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 11B92E4B17A0B92C003D6346 /* Audio2.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 11B0421C179B90450034BEE2;
+			remoteInfo = "Audio2-ios";
+		};
+		11B92E5417A0B936003D6346 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11B92E4B17A0B92C003D6346 /* Audio2.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 1104F3C817753F10003EAA2B;
 			remoteInfo = "Audio2-mac";
@@ -51,7 +58,8 @@
 		11944A5C1759AC930003B8ED /* tone440.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440.mp3; path = ../../../assets/tone440.mp3; sourceTree = "<group>"; };
 		11944A5D1759AC930003B8ED /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11944A601759B4BC0003B8ED /* tone440_float.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440_float.wav; path = ../../../assets/tone440_float.wav; sourceTree = "<group>"; };
-		11B041E9179B8E850034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "../../../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
+		11B92E1D17A0B824003D6346 /* libAudio2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libAudio2.a; path = ../../../xcode/build/Debug/libAudio2.a; sourceTree = "<group>"; };
+		11B92E4B17A0B92C003D6346 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
 		11E8CE96175AF7F300245372 /* CAFileLoadingTestApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CAFileLoadingTestApp.cpp; path = ../src/CAFileLoadingTestApp.cpp; sourceTree = "<group>"; };
 		143C252E175FBE710063DFDA /* tone440L220R.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440L220R.mp3; path = ../../../assets/tone440L220R.mp3; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -70,7 +78,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11B041F1179B8E9B0034BEE2 /* libAudio2.a in Frameworks */,
+				11B92E1E17A0B824003D6346 /* libAudio2.a in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */,
 				5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */,
@@ -117,10 +125,11 @@
 			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
-		11B041EA179B8E850034BEE2 /* Products */ = {
+		11B92E4C17A0B92C003D6346 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				11B041EE179B8E850034BEE2 /* libAudio2.a */,
+				11B92E5117A0B92C003D6346 /* libAudio2.a */,
+				11B92E5317A0B92C003D6346 /* libAudio2-ios.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,7 +145,7 @@
 		29B97314FDCFA39411CA2CEA /* CAFileLoadingTest */ = {
 			isa = PBXGroup;
 			children = (
-				11B041E9179B8E850034BEE2 /* Audio2.xcodeproj */,
+				11B92E4B17A0B92C003D6346 /* Audio2.xcodeproj */,
 				29B97315FDCFA39411CA2CEA /* Headers */,
 				080E96DDFE201D6D7F000001 /* Source */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -171,6 +180,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				11B92E1D17A0B824003D6346 /* libAudio2.a */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
@@ -191,7 +201,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				11B041F0179B8E930034BEE2 /* PBXTargetDependency */,
+				11B92E5517A0B936003D6346 /* PBXTargetDependency */,
 			);
 			name = CAFileLoadingTest;
 			productInstallPath = "$(HOME)/Applications";
@@ -220,8 +230,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 11B041EA179B8E850034BEE2 /* Products */;
-					ProjectRef = 11B041E9179B8E850034BEE2 /* Audio2.xcodeproj */;
+					ProductGroup = 11B92E4C17A0B92C003D6346 /* Products */;
+					ProjectRef = 11B92E4B17A0B92C003D6346 /* Audio2.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -232,11 +242,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		11B041EE179B8E850034BEE2 /* libAudio2.a */ = {
+		11B92E5117A0B92C003D6346 /* libAudio2.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libAudio2.a;
-			remoteRef = 11B041ED179B8E850034BEE2 /* PBXContainerItemProxy */;
+			remoteRef = 11B92E5017A0B92C003D6346 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		11B92E5317A0B92C003D6346 /* libAudio2-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libAudio2-ios.a";
+			remoteRef = 11B92E5217A0B92C003D6346 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -268,10 +285,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		11B041F0179B8E930034BEE2 /* PBXTargetDependency */ = {
+		11B92E5517A0B936003D6346 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Audio2-mac";
-			targetProxy = 11B041EF179B8E930034BEE2 /* PBXContainerItemProxy */;
+			targetProxy = 11B92E5417A0B936003D6346 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -294,6 +311,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../../xcode/build/Debug",
+				);
 				OTHER_LDFLAGS = "\"$(CINDER_PATH)/lib/libcinder_d.a\"";
 				PRODUCT_NAME = CAFileLoadingTest;
 				SYMROOT = ./build;
@@ -316,6 +337,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../../xcode/build/Debug",
+				);
 				OTHER_LDFLAGS = "\"$(CINDER_PATH)/lib/libcinder.a\"";
 				PRODUCT_NAME = CAFileLoadingTest;
 				STRIP_INSTALLED_PRODUCT = YES;

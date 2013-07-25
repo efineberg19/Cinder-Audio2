@@ -8,7 +8,7 @@
       location = "container:"
       name = "osx">
       <FileRef
-         location = "group:MixerTest/xcode/MixerTest.xcodeproj">
+         location = "absolute:MixerTest/xcode/MixerTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "container:BasicTest/xcode/BasicTest.xcodeproj">
