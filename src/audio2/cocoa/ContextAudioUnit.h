@@ -69,6 +69,9 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 	DeviceRef getDevice() override;
 
   private:
+
+	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
 
@@ -134,6 +137,7 @@ class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
 	void checkBusIsValid( size_t bus );
 };
 
+/*
 class ConverterAudioUnit : public Node, public NodeAudioUnit {
   public:
 	ConverterAudioUnit( NodeRef input, NodeRef dest );
@@ -148,6 +152,8 @@ class ConverterAudioUnit : public Node, public NodeAudioUnit {
 
 	friend class ContextAudioUnit;
 };
+ 
+*/
 
 class ContextAudioUnit : public Context {
   public:
@@ -167,7 +173,7 @@ class ContextAudioUnit : public Context {
 
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
-	static OSStatus renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+//	static OSStatus renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	// TODO: consider making these abstract methods in Context
 	void initNode( NodeRef node );

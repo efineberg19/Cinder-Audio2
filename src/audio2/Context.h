@@ -95,7 +95,11 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! If required Format properties are missing, fill in params from first input
 	virtual void fillFormatParamsFromInput();
 
+	//! Override to perform processing or analysis on \t buffer
 	virtual void process( Buffer *buffer )	{}
+
+	//! Default implementation pulls samples from all inputs and sums the result.
+	virtual void pullInputs();
 
 	std::vector<NodeRef>& getInputs()			{ return mInputs; }
 	NodeRef getOutput()	const					{ return mOutput.lock(); }
@@ -121,6 +125,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
 
+	const Buffer *getInternalBuffer() const	{ return &mInternalBuffer; }
 
 	std::vector<NodeRef>	mInputs;
 	std::weak_ptr<Node>		mOutput;
@@ -132,8 +137,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	size_t mNumChannels;
 	bool mWantsDefaultFormatFromOutput, mNumChannelsUnspecified;
 	bool mAutoEnabled;
-	Buffer::Layout			mBufferLayout;
-
+	Buffer::Layout			mBufferLayout; // TODO: remove, use mInternalBuffer.getLayout()
+	Buffer					mInternalBuffer;
 
   private:
 	  Node( Node const& );

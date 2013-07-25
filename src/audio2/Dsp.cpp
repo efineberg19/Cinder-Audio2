@@ -62,6 +62,13 @@ float sum( const float *array, size_t length )
 	return result;
 }
 
+// TODO: impl with vDSP
+void sum( const float *arrayA, const float *arrayB, float *result, size_t length )
+{
+	for( size_t i = 0; i < length; ++i )
+		result[i] = arrayA[i] + arrayB[i];
+}
+
 float rms( const float *array, size_t length )
 {
 	float result;

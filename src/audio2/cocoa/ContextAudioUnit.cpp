@@ -114,35 +114,50 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 
 void LineOutAudioUnit::initialize()
 {
+	// FIXME: re-init is not working with BasicTest
+	
+	static bool sBlarg = true;
+	if( sBlarg ) {
+		sBlarg = false;
 
-	::AudioUnit audioUnit = getAudioUnit();
-	CI_ASSERT( audioUnit );
+		::AudioUnit audioUnit = getAudioUnit();
+		CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
+		::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
-	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
-	CI_ASSERT( status == noErr );
+		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
+		CI_ASSERT( status == noErr );
 
-	mDevice->initialize();
-	mInitialized = true;
+		::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, this };
+		status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+		CI_ASSERT( status == noErr );
+
+		mDevice->initialize();
+		mInitialized = true;
+	}
+
 }
 
 void LineOutAudioUnit::uninitialize()
 {
-	mInitialized = false;
-	mDevice->uninitialize();
+//	mInitialized = false;
+//	mDevice->uninitialize();
 }
 
 void LineOutAudioUnit::start()
 {
 	mEnabled = true;
 	mDevice->start();
+
+	LOG_V << "started" << endl;
 }
 
 void LineOutAudioUnit::stop()
 {
 	mEnabled = false;
 	mDevice->stop();
+
+	LOG_V << "stopped" << endl;
 }
 
 DeviceRef LineOutAudioUnit::getDevice()
@@ -153,6 +168,15 @@ DeviceRef LineOutAudioUnit::getDevice()
 ::AudioUnit LineOutAudioUnit::getAudioUnit() const
 {
 	return mDevice->getComponentInstance();
+}
+
+OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+{
+	LineOutAudioUnit *node = static_cast<LineOutAudioUnit *>( data );
+	node->pullInputs();
+	copyToBufferList( bufferList, &node->mInternalBuffer );
+
+	return noErr;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -483,6 +507,7 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 // MARK: - ConverterAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
+/*
 // TODO: remove these params - they are deduced once connected
 ConverterAudioUnit::ConverterAudioUnit( NodeRef input, NodeRef dest )
 : Node( Format() )
@@ -549,7 +574,7 @@ void ConverterAudioUnit::uninitialize()
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 }
-
+*/
 // ----------------------------------------------------------------------------------------------------
 // MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
@@ -574,7 +599,7 @@ void ContextAudioUnit::initialize()
 	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock );
 	mRenderContext.currentNode = mRoot.get();
 
-	connectRenderCallback( mRoot, &mRenderContext, &ContextAudioUnit::renderCallbackRoot, false );
+//	connectRenderCallback( mRoot, &mRenderContext, &ContextAudioUnit::renderCallbackRoot, false );
 
 	mInitialized = true;
 	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", frames per block: " << mRenderContext.buffer.getNumFrames() << endl;
@@ -595,39 +620,41 @@ void ContextAudioUnit::initNode( NodeRef node )
 		initNode( inputNode );
 
 	// set default params from source
+	// TODO: move this to connect(), make enum with matchesInput / matchesOutput / specified
 	if( ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromInput();
 
-	for( size_t bus = 0; bus < node->getInputs().size(); bus++ ) {
-		NodeRef inputNode = node->getInputs()[bus];
-		if( ! inputNode )
-			continue;
-
-		// TODO: if node is an LineOutAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
-		bool needsConverter = false;
-		if( node->getNumChannels() != inputNode->getNumChannels() )
-			needsConverter = true;
-		else if( node->getBufferLayout() != inputNode->getBufferLayout() )
-			needsConverter = true;
-
-		if( needsConverter ) {
-			auto converter = make_shared<ConverterAudioUnit>( inputNode, node );
-			converter->setContext( shared_from_this() );
-			node->setInput( converter, bus );
-			converter->setInput( inputNode );
-			converter->initialize();
-			connectRenderCallback( converter, &converter->mRenderContext, &ContextAudioUnit::renderCallbackConverter, true );
-		}
-	}
+//	for( size_t bus = 0; bus < node->getInputs().size(); bus++ ) {
+//		NodeRef inputNode = node->getInputs()[bus];
+//		if( ! inputNode )
+//			continue;
+//
+//		// TODO: if node is an LineOutAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
+//		bool needsConverter = false;
+//		if( node->getNumChannels() != inputNode->getNumChannels() )
+//			needsConverter = true;
+//		else if( node->getBufferLayout() != inputNode->getBufferLayout() )
+//			needsConverter = true;
+//
+//		if( needsConverter ) {
+//			auto converter = make_shared<ConverterAudioUnit>( inputNode, node );
+//			converter->setContext( shared_from_this() );
+//			node->setInput( converter, bus );
+//			converter->setInput( inputNode );
+//			converter->initialize();
+//			connectRenderCallback( converter, &converter->mRenderContext, &ContextAudioUnit::renderCallbackConverter, true );
+//		}
+//	}
 
 	node->initialize();
 
-	connectRenderCallback( node, &mRenderContext, &ContextAudioUnit::renderCallback, false );
+//	connectRenderCallback( node, &mRenderContext, &ContextAudioUnit::renderCallback, false );
 }
 
 // TODO: if both node and input are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
 void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive )
 {
+	CI_ASSERT( false && "don't use" );
 	CI_ASSERT( context );
 
 	NodeAudioUnit *nodeAU = dynamic_cast<NodeAudioUnit *>( node.get() );
@@ -675,9 +702,9 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 	node->uninitialize();
 
 	// throw away any ConverterNodes
-	ConverterAudioUnit *converter = dynamic_cast<ConverterAudioUnit *>( node.get() );
-	if( converter )
-		converter->getOutput()->setInput( converter->getInputs()[0] );
+//	ConverterAudioUnit *converter = dynamic_cast<ConverterAudioUnit *>( node.get() );
+//	if( converter )
+//		converter->getOutput()->setInput( converter->getInputs()[0] );
 }
 
 OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
@@ -692,15 +719,15 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
 }
 
-OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
-{
-	static_cast<RenderCallbackContext *>( data )->buffer.zero();
-
-//	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-//		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
-
-	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
-}
+//OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+//{
+//	static_cast<RenderCallbackContext *>( data )->buffer.zero();
+//
+////	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+////		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+//
+//	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
+//}
 
 // TODO: avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )

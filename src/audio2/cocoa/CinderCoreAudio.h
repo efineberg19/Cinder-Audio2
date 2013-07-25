@@ -59,8 +59,16 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 
 ::AudioStreamBasicDescription createFloatAsbd( size_t numChannels, size_t sampleRate, bool isInterleaved = false );
 
-inline void copyToGenericBuffer( ::AudioBufferList *bufferList, Buffer *buffer )
+inline void copyToBufferList( ::AudioBufferList *bufferList, Buffer *buffer )
 {
+	if( buffer->getLayout() == Buffer::Layout::Interleaved ) {
+		CI_ASSERT( bufferList->mNumberBuffers == 1 );
+		memcpy( bufferList->mBuffers[0].mData, buffer->getData(), bufferList->mBuffers[0].mDataByteSize );
+	}
+	else {
+		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+			memcpy( bufferList->mBuffers[i].mData, buffer->getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
+	}
 }
 
 } } // namespace audio2::cocoa

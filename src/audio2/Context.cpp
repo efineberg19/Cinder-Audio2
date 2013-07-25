@@ -26,6 +26,7 @@
 #include "audio2/GeneratorNode.h"
 #include "audio2/audio.h"
 #include "audio2/CinderAssert.h"
+#include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
 #include "cinder/Cinder.h"
@@ -45,12 +46,18 @@ namespace audio2 {
 // MARK: - Node
 // ----------------------------------------------------------------------------------------------------
 
+// TODO: seems fitting to pass in Context* as first argument to all Node's
+// - setting during init no longer necessary
+// - provides samplerate / num frames at init
+
 Node::Node( const Format &format )
 : mInitialized( false ), mConnected( false ), mEnabled( false ),
 	mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
 	mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false )
 {
 	mNumChannelsUnspecified = ! format.getChannels();
+
+	mInternalBuffer = Buffer( 2, 512 ); // TEMP
 }
 
 Node::~Node()
@@ -161,6 +168,23 @@ void Node::setEnabled( bool enabled )
 		start();
 	else
 		stop();
+}
+
+void Node::pullInputs()
+{
+	mInternalBuffer.zero();
+
+	for( NodeRef input : mInputs ) {
+		if( ! input || ! input->isEnabled() )
+			continue;
+
+		input->pullInputs();
+
+		for( size_t c = 0; c < mInternalBuffer.getNumChannels(); c++ )
+			sum( input->getInternalBuffer()->getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
+
+		input->process( &mInternalBuffer );
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------

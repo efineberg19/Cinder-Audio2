@@ -95,6 +95,8 @@ void DeviceAudioUnit::start()
 	mEnabled = true;
 	OSStatus status = ::AudioOutputUnitStart( mComponentInstance );
 	CI_ASSERT( status == noErr );
+
+	LOG_V << "started" << endl;
 }
 
 void DeviceAudioUnit::stop()
@@ -107,6 +109,8 @@ void DeviceAudioUnit::stop()
 	mEnabled = false;
 	OSStatus status = ::AudioOutputUnitStop( mComponentInstance );
 	CI_ASSERT( status == noErr );
+
+	LOG_V << "stopped" << endl;
 }
 
 const ::AudioComponentInstance& DeviceAudioUnit::getComponentInstance()
