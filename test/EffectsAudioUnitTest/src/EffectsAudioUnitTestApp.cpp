@@ -124,15 +124,15 @@ void EffectsAudioUnitTestApp::setupUI()
 	mTestSelector.segments = { "one", "two", "native -> generic" };
 //	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 
-#if defined( CINDER_COCOA_TOUCH )
-	mPlayButton.bounds = Rectf( 0, 0, 120, 60 );
-	mPlayButton.textIsCentered = false;
-	mTestSelector.bounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
-	mTestSelector.textIsCentered = false;
-#else
+//#if defined( CINDER_COCOA_TOUCH )
+//	mPlayButton.bounds = Rectf( 0, 0, 120, 60 );
+//	mPlayButton.textIsCentered = false;
+//	mTestSelector.bounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
+//	mTestSelector.textIsCentered = false;
+//#else
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
-#endif
+//#endif
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );

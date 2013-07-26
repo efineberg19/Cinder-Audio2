@@ -116,6 +116,9 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	void setEnabled( bool b = true );
 
+	// TODO: make this protected if possible
+	const Buffer *getInternalBuffer() const	{ return &mInternalBuffer; }
+
   protected:
 	Node( const Format &format );
 
@@ -124,8 +127,6 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
-
-	const Buffer *getInternalBuffer() const	{ return &mInternalBuffer; }
 
 	std::vector<NodeRef>	mInputs;
 	std::weak_ptr<Node>		mOutput;

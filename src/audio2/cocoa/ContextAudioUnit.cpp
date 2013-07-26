@@ -94,6 +94,16 @@ NodeAudioUnit::~NodeAudioUnit()
 	}
 }
 
+// FIXME: CAREFUL! loud noise will come through your speakers via EffectsAudioUnitTest
+OSStatus NodeAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+{
+	Node *node = static_cast<Node *>( data );
+	node->pullInputs();
+	copyToBufferList( bufferList, node->getInternalBuffer() );
+
+	return noErr;
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - LineOutAudioUnit
 // ----------------------------------------------------------------------------------------------------
@@ -124,7 +134,8 @@ void LineOutAudioUnit::initialize()
 	OSStatus status = ::AudioUnitSetProperty( getAudioUnit(), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
-	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, this };
+	// TODO: move to NodeAudioUnit method
+	::AURenderCallbackStruct callbackStruct = { NodeAudioUnit::renderCallback, this };
 	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
@@ -158,15 +169,6 @@ DeviceRef LineOutAudioUnit::getDevice()
 ::AudioUnit LineOutAudioUnit::getAudioUnit() const
 {
 	return mDevice->getComponentInstance();
-}
-
-OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
-{
-	LineOutAudioUnit *node = static_cast<LineOutAudioUnit *>( data );
-	node->pullInputs();
-	copyToBufferList( bufferList, node->getInternalBuffer() );
-
-	return noErr;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -316,14 +318,19 @@ void EffectAudioUnit::initialize()
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	auto source = mInputs.front();
-	CI_ASSERT( source );
+	mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getNumFramesPerBlock() );
 
 	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
+
+	// FIXME: this isn't firing
+	::AURenderCallbackStruct callbackStruct = { NodeAudioUnit::renderCallback, this };
+	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+	CI_ASSERT( status == noErr );
+
 
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
@@ -337,6 +344,17 @@ void EffectAudioUnit::uninitialize()
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 }
+
+void EffectAudioUnit::process( Buffer *buffer )
+{
+	::AudioUnitRenderActionFlags flags = 0;
+	::AudioTimeStamp timeStamp = { 0 };
+	OSStatus status = ::AudioUnitRender( mAudioUnit, &flags, &timeStamp, 0, (UInt32)buffer->getNumFrames(), mBufferList.get() );
+	CI_ASSERT( status == noErr );
+
+	copyFromBufferList( &mInternalBuffer, mBufferList.get() );
+}
+
 
 void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 {
@@ -722,6 +740,8 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 // TODO: avoid multiple copies when generic nodes are chained together
 OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
+	CI_ASSERT( 0 && "don't use" );
+
 	RenderCallbackContext *renderContext = static_cast<RenderCallbackContext *>( data );
 
 	CI_ASSERT( renderContext->currentNode );

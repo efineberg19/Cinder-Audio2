@@ -71,4 +71,16 @@ inline void copyToBufferList( ::AudioBufferList *bufferList, const Buffer *buffe
 	}
 }
 
+inline void copyFromBufferList( Buffer *buffer, const ::AudioBufferList *bufferList )
+{
+	if( buffer->getLayout() == Buffer::Layout::Interleaved ) {
+		CI_ASSERT( bufferList->mNumberBuffers == 1 );
+		memcpy( buffer->getData(), bufferList->mBuffers[0].mData, bufferList->mBuffers[0].mDataByteSize );
+	}
+	else {
+		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+			memcpy( buffer->getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
+	}
+}
+
 } } // namespace audio2::cocoa

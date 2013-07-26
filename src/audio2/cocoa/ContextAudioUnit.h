@@ -49,6 +49,9 @@ class NodeAudioUnit {
 
 	bool shouldUseGraphRenderCallback() const	{ return mShouldUseGraphRenderCallback; }
   protected:
+
+	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+
 	::AudioUnit			mAudioUnit;
 	::AudioUnitScope	mRenderBus;
 	bool				mShouldUseGraphRenderCallback;
@@ -69,8 +72,6 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 	DeviceRef getDevice() override;
 
   private:
-
-	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
@@ -107,11 +108,13 @@ class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
 
 	void initialize() override;
 	void uninitialize() override;
+	void process( Buffer *buffer ) override;
 
 	void setParameter( ::AudioUnitParameterID param, float val );
 
   private:
 	UInt32		mEffectSubType;
+	AudioBufferListPtr mBufferList;
 };
 
 class MixerAudioUnit : public MixerNode, public NodeAudioUnit {

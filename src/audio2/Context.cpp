@@ -170,6 +170,7 @@ void Node::setEnabled( bool enabled )
 		stop();
 }
 
+// TODO: (NEXT) add ability to use an in-place buffer and no summing when only connected to one input
 void Node::pullInputs()
 {
 	mInternalBuffer.zero();
@@ -182,7 +183,6 @@ void Node::pullInputs()
 
 		for( size_t c = 0; c < mInternalBuffer.getNumChannels(); c++ )
 			sum( input->getInternalBuffer()->getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
-
 	}
 
 	if( mEnabled )
