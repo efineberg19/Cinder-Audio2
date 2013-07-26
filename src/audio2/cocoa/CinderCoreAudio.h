@@ -59,7 +59,7 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 
 ::AudioStreamBasicDescription createFloatAsbd( size_t numChannels, size_t sampleRate, bool isInterleaved = false );
 
-inline void copyToBufferList( ::AudioBufferList *bufferList, Buffer *buffer )
+inline void copyToBufferList( ::AudioBufferList *bufferList, const Buffer *buffer )
 {
 	if( buffer->getLayout() == Buffer::Layout::Interleaved ) {
 		CI_ASSERT( bufferList->mNumberBuffers == 1 );

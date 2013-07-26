@@ -164,7 +164,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 {
 	LineOutAudioUnit *node = static_cast<LineOutAudioUnit *>( data );
 	node->pullInputs();
-	copyToBufferList( bufferList, &node->mInternalBuffer );
+	copyToBufferList( bufferList, node->getInternalBuffer() );
 
 	return noErr;
 }
