@@ -218,7 +218,7 @@ void LineInAudioUnit::initialize()
 		mShouldUseGraphRenderCallback = false;
 
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * getNumChannels() ) );
-		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() * sizeof( float ) );
+		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() );
 
 		::AURenderCallbackStruct callbackStruct;
 		callbackStruct.inputProc = LineInAudioUnit::inputCallback;

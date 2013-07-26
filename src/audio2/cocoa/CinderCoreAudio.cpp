@@ -100,7 +100,7 @@ AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t nu
 	bufferList->mNumberBuffers = numChannels;
 	for( size_t i = 0; i < numChannels; i++ ) {
 		bufferList->mBuffers[i].mNumberChannels = 1;
-		bufferList->mBuffers[i].mDataByteSize = numFrames;
+		bufferList->mBuffers[i].mDataByteSize = numFrames * sizeof( float );
 	}
 
 	return AudioBufferListPtr( bufferList );
