@@ -175,7 +175,7 @@ void Node::pullInputs()
 	mInternalBuffer.zero();
 
 	for( NodeRef input : mInputs ) {
-		if( ! input || ! input->isEnabled() )
+		if( ! input )
 			continue;
 
 		input->pullInputs();
@@ -185,7 +185,8 @@ void Node::pullInputs()
 
 	}
 
-	process( &mInternalBuffer );
+	if( mEnabled )
+		process( &mInternalBuffer );
 }
 
 // ----------------------------------------------------------------------------------------------------
