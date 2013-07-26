@@ -183,8 +183,9 @@ void Node::pullInputs()
 		for( size_t c = 0; c < mInternalBuffer.getNumChannels(); c++ )
 			sum( input->getInternalBuffer()->getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
 
-		input->process( &mInternalBuffer );
 	}
+
+	process( &mInternalBuffer );
 }
 
 // ----------------------------------------------------------------------------------------------------

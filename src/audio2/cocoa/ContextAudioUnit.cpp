@@ -108,56 +108,46 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 	if( mNumChannelsUnspecified )
 		setNumChannels( 2 );
 
-	CI_ASSERT( ! mDevice->isOutputConnected() );
-	mDevice->setOutputConnected();
 }
 
 void LineOutAudioUnit::initialize()
 {
-	// FIXME: re-init is not working with BasicTest
-	
-	static bool sBlarg = true;
-	if( sBlarg ) {
-		sBlarg = false;
+	CI_ASSERT( ! mDevice->isOutputConnected() );
+	mDevice->setOutputConnected();
 
-		::AudioUnit audioUnit = getAudioUnit();
-		CI_ASSERT( audioUnit );
 
-		::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
+	::AudioUnit audioUnit = getAudioUnit();
+	CI_ASSERT( audioUnit );
 
-		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
-		CI_ASSERT( status == noErr );
+	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
-		::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, this };
-		status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
-		CI_ASSERT( status == noErr );
+	OSStatus status = ::AudioUnitSetProperty( getAudioUnit(), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
+	CI_ASSERT( status == noErr );
 
-		mDevice->initialize();
-		mInitialized = true;
-	}
+	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, this };
+	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+	CI_ASSERT( status == noErr );
 
+	mDevice->initialize();
+	mInitialized = true;
 }
 
 void LineOutAudioUnit::uninitialize()
 {
-//	mInitialized = false;
-//	mDevice->uninitialize();
+	mInitialized = false;
+	mDevice->uninitialize();
 }
 
 void LineOutAudioUnit::start()
 {
 	mEnabled = true;
 	mDevice->start();
-
-	LOG_V << "started" << endl;
 }
 
 void LineOutAudioUnit::stop()
 {
 	mEnabled = false;
 	mDevice->stop();
-
-	LOG_V << "stopped" << endl;
 }
 
 DeviceRef LineOutAudioUnit::getDevice()
