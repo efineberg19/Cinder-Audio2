@@ -43,10 +43,11 @@ class DeviceAudioUnit : public Device {
 	void stop() override;
 
 	const ::AudioComponentInstance& getComponentInstance();
-	bool isInputConnected() const	{ return mInputConnected; }
-	bool isOutputConnected() const	{ return mOutputConnected; }
-	void setInputConnected()	{ mInputConnected = true; }
-	void setOutputConnected()	{ mOutputConnected = true; }
+
+	bool isInputConnected() const				{ return mInputConnected; }
+	bool isOutputConnected() const				{ return mOutputConnected; }
+	void setInputConnected( bool b = true )		{ mInputConnected = b; }
+	void setOutputConnected( bool b = true )	{ mOutputConnected = b; }
 
   private:
 
