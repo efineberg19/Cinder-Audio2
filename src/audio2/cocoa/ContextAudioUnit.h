@@ -50,11 +50,10 @@ class NodeAudioUnit {
 	bool shouldUseGraphRenderCallback() const	{ return mShouldUseGraphRenderCallback; }
   protected:
 
-	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
-
 	::AudioUnit			mAudioUnit;
 	::AudioUnitScope	mRenderBus;
 	bool				mShouldUseGraphRenderCallback;
+	Buffer*				mProcessBuffer;
 };
 
 class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
@@ -72,6 +71,7 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 	DeviceRef getDevice() override;
 
   private:
+	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
@@ -113,6 +113,8 @@ class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
 	void setParameter( ::AudioUnitParameterID param, float val );
 
   private:
+	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+
 	UInt32		mEffectSubType;
 	AudioBufferListPtr mBufferList;
 };
@@ -170,6 +172,9 @@ class ContextAudioUnit : public Context {
 	void initialize() override;
 	void uninitialize() override;
 
+	const ::AudioTimeStamp* getCurrentTimeStamp() { return mCurrentTimeStamp; }
+	void setCurrentTimeStamp( const ::AudioTimeStamp *timeStamp ) { mCurrentTimeStamp = timeStamp; }
+
   private:
 
 	void connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive );
@@ -182,6 +187,7 @@ class ContextAudioUnit : public Context {
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );
 
+	const ::AudioTimeStamp *mCurrentTimeStamp;
 	
 	RenderCallbackContext mRenderContext;
 };

@@ -10,7 +10,6 @@
 
 #include "Gui.h"
 
-// TODO: switching from 2 effects to 1 should disconnect the second effect
 
 using namespace ci;
 using namespace ci::app;
@@ -18,6 +17,20 @@ using namespace std;
 
 using namespace audio2;
 using namespace audio2::cocoa;
+
+struct TestConstGen : public UGen {
+	TestConstGen( float val = 0.5f ) : UGen(), mVal( val )	{}
+
+	using UGen::process;
+	void process( float *channel, size_t count ) override {
+		float val = mVal;
+		for( size_t i = 0; i < count; i++ )
+			channel[i] = val;
+	}
+
+private:
+	float mVal;
+};
 
 class EffectsAudioUnitTestApp : public AppNative {
   public:
@@ -65,10 +78,15 @@ void EffectsAudioUnitTestApp::setup()
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
+//	auto test = make_shared<UGenNode<TestConstGen> >();
+//	test->setAutoEnabled();
+//	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
+//	mSource = test;
+
 	setupOne();
 
-	initContext();
 	setupUI();
+	initContext();
 }
 
 void EffectsAudioUnitTestApp::setupOne()

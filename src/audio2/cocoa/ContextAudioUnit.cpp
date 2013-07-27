@@ -82,6 +82,15 @@ inline vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, :
 	return result;
 }
 
+void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFrames )
+{
+	for( UInt32 c = 0; c < bufferList->mNumberBuffers; c++ ) {
+		float *buf = (float *)bufferList->mBuffers[c].mData;
+		for( UInt32 i = 0; i < numFrames; i++ )
+			CI_ASSERT_MSG( buf[i] < 1.2f, "Audio Clipped" );
+	}
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - NodeAudioUnit
 // ----------------------------------------------------------------------------------------------------
@@ -92,16 +101,6 @@ NodeAudioUnit::~NodeAudioUnit()
 		OSStatus status = ::AudioComponentInstanceDispose( mAudioUnit );
 		CI_ASSERT( status == noErr );
 	}
-}
-
-// FIXME: CAREFUL! loud noise will come through your speakers via EffectsAudioUnitTest
-OSStatus NodeAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
-{
-	Node *node = static_cast<Node *>( data );
-	node->pullInputs();
-	copyToBufferList( bufferList, node->getInternalBuffer() );
-
-	return noErr;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -135,7 +134,7 @@ void LineOutAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	// TODO: move to NodeAudioUnit method
-	::AURenderCallbackStruct callbackStruct = { NodeAudioUnit::renderCallback, this };
+	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, this };
 	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
@@ -169,6 +168,17 @@ DeviceRef LineOutAudioUnit::getDevice()
 ::AudioUnit LineOutAudioUnit::getAudioUnit() const
 {
 	return mDevice->getComponentInstance();
+}
+
+OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+{
+	Node *node = static_cast<Node *>( data );
+	dynamic_pointer_cast<ContextAudioUnit>( node->getContext() )->setCurrentTimeStamp( timeStamp );
+	node->pullInputs();
+	copyToBufferList( bufferList, node->getInternalBuffer() );
+
+	checkBufferListNotClipping( bufferList, numFrames );
+	return noErr;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -326,8 +336,7 @@ void EffectAudioUnit::initialize()
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
-	// FIXME: this isn't firing
-	::AURenderCallbackStruct callbackStruct = { NodeAudioUnit::renderCallback, this };
+	::AURenderCallbackStruct callbackStruct = { EffectAudioUnit::renderCallback, this };
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
@@ -345,16 +354,27 @@ void EffectAudioUnit::uninitialize()
 	CI_ASSERT( status == noErr );
 }
 
+// TODO: try pointing buffer list at processBuffer instead of copying
 void EffectAudioUnit::process( Buffer *buffer )
 {
+	mProcessBuffer = buffer;
+
 	::AudioUnitRenderActionFlags flags = 0;
-	::AudioTimeStamp timeStamp = { 0 };
-	OSStatus status = ::AudioUnitRender( mAudioUnit, &flags, &timeStamp, 0, (UInt32)buffer->getNumFrames(), mBufferList.get() );
+	const ::AudioTimeStamp *timeStamp = dynamic_pointer_cast<ContextAudioUnit>( getContext() )->getCurrentTimeStamp();
+	OSStatus status = ::AudioUnitRender( mAudioUnit, &flags, timeStamp, 0, (UInt32)buffer->getNumFrames(), mBufferList.get() );
 	CI_ASSERT( status == noErr );
 
-	copyFromBufferList( &mInternalBuffer, mBufferList.get() );
+	copyFromBufferList( buffer, mBufferList.get() );
 }
 
+OSStatus EffectAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+{
+	EffectAudioUnit *node = static_cast<EffectAudioUnit *>( data );
+	Buffer *processBuffer = node->mProcessBuffer;
+
+	copyToBufferList( bufferList, processBuffer );
+	return noErr;
+}
 
 void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 {
