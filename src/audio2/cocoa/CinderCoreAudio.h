@@ -47,7 +47,12 @@ private:
 void printASBD( const ::AudioStreamBasicDescription &asbd );
 
 struct AudioBufferListDeleter {
-	void operator()( ::AudioBufferList *bufferList ) { free( bufferList ); }
+	void operator()( ::AudioBufferList *bufferList )
+	{
+		for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+			free( bufferList->mBuffers[i].mData );
+		free( bufferList );
+	}
 };
 
 typedef std::unique_ptr<::AudioBufferList, AudioBufferListDeleter> AudioBufferListPtr;

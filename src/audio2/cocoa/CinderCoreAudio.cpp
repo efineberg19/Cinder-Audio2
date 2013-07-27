@@ -97,10 +97,12 @@ void printASBD( const ::AudioStreamBasicDescription &asbd ) {
 AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t numFrames )
 {
 	::AudioBufferList *bufferList = static_cast<::AudioBufferList *>( calloc( 1, sizeof( ::AudioBufferList ) + sizeof( ::AudioBuffer ) * (numChannels - 1) ) );
-	bufferList->mNumberBuffers = numChannels;
+	bufferList->mNumberBuffers = static_cast<UInt32>( numChannels );
 	for( size_t i = 0; i < numChannels; i++ ) {
-		bufferList->mBuffers[i].mNumberChannels = 1;
-		bufferList->mBuffers[i].mDataByteSize = numFrames * sizeof( float );
+		::AudioBuffer *buffer = &bufferList->mBuffers[i];
+		buffer->mNumberChannels = 1;
+		buffer->mDataByteSize = numFrames * sizeof( float );
+		buffer->mData = malloc( numFrames * sizeof( float ) );
 	}
 
 	return AudioBufferListPtr( bufferList );
