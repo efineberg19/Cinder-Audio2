@@ -56,13 +56,17 @@ Node::Node( const Format &format )
 	mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false )
 {
 	mNumChannelsUnspecified = ! format.getChannels();
-
-	mInternalBuffer = Buffer( 2, 512 ); // TEMP
 }
 
 Node::~Node()
 {
 
+}
+
+void Node::initialize()
+{
+	mInternalBuffer = Buffer( mNumChannels, getContext()->getNumFramesPerBlock() );
+	mInitialized = true;
 }
 
 NodeRef Node::connect( NodeRef dest )
@@ -180,13 +184,26 @@ void Node::pullInputs()
 			continue;
 
 		input->pullInputs();
-
-		for( size_t c = 0; c < mInternalBuffer.getNumChannels(); c++ )
-			sum( input->getInternalBuffer()->getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
+		sumToInternalBuffer( input );
 	}
 
 	if( mEnabled )
 		process( &mInternalBuffer );
+}
+
+void Node::sumToInternalBuffer( const NodeRef &input )
+{
+	if( mNumChannels == input->mNumChannels ) {
+		for( size_t c = 0; c < mInternalBuffer.getNumChannels(); c++ )
+			sum( input->getInternalBuffer()->getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
+	}
+	else if( input->mNumChannels == 1 ) {
+		// up-mix mono input to all of this Node's channels
+		for( size_t c = 0; c < mInternalBuffer.getNumChannels(); c++ )
+			sum( input->getInternalBuffer()->getChannel( 0 ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
+	}
+	else
+		CI_ASSERT( 0 && "unhandled" );
 }
 
 // ----------------------------------------------------------------------------------------------------

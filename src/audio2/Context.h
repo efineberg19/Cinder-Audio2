@@ -59,7 +59,7 @@ class Node : public std::enable_shared_from_this<Node> {
 		bool mWantsDefaultFormatFromOutput;
 	};
 
-	virtual void initialize()	{ mInitialized = true; }
+	virtual void initialize();
 	virtual void uninitialize()	{ mInitialized = false; }
 	virtual void start()		{ mEnabled = true; }
 	virtual void stop()			{ mEnabled = false; }
@@ -124,6 +124,8 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	//! If required Format properties are missing, fill in from \a otherFormat
 	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
+
+	void sumToInternalBuffer( const NodeRef &input );
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }

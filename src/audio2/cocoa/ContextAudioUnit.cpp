@@ -121,6 +121,8 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 
 void LineOutAudioUnit::initialize()
 {
+	LineOutNode::initialize();
+	
 	CI_ASSERT( ! mDevice->isOutputConnected() );
 	mDevice->setOutputConnected();
 
