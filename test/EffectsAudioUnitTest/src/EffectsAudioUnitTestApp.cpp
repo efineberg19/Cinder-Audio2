@@ -10,7 +10,6 @@
 
 #include "Gui.h"
 
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -198,6 +197,13 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 
 		bool running = mContext->isEnabled();
 		mContext->uninitialize();
+
+		// TODO: a 'disconnect all' method would be nice for this, although it probably wouldn't get used too much in practice
+
+		mSource->disconnect();
+		mEffect->disconnect();
+		if( mEffect2 )
+			mEffect2->disconnect();
 
 		if( currentTest == "one" )
 			setupOne();
