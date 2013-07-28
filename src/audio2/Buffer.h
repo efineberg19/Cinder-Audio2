@@ -68,13 +68,13 @@ public:
 	// TODO: consider adding getChannelIter, which knows how to iterate over both interleaved and non-interleaved samples
 	T* getChannel( size_t ch ) {
 		CI_ASSERT_MSG( mLayout == NonInterleaved, "Cannot get raw pointer to channel from an interleaved Buffer" );
-		CI_ASSERT( ch < mNumChannels );
+		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
 		return &mData[ch * mNumFrames];
 	}
 
 	const T* getChannel( size_t ch ) const {
 		CI_ASSERT_MSG( mLayout == NonInterleaved, "Cannot get raw pointer to channel from an interleaved Buffer" );
-		CI_ASSERT( ch < mNumChannels );
+		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
 		return &mData[ch * mNumFrames];
 	}
 
