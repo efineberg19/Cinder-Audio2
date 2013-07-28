@@ -46,7 +46,7 @@ class SourceFileCoreAudio : public SourceFile {
 	void updateOutputFormat();
 	
 	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
-	AudioBufferListPtr mBufferList;
+	AudioBufferListShallowPtr mBufferList;
 	size_t mReadPos;
 };
 

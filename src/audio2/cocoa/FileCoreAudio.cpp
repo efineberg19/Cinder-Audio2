@@ -171,7 +171,7 @@ void SourceFileCoreAudio::updateOutputFormat()
 	CI_ASSERT( status == noErr );
 
 	// numFrames will be updated at read time
-	mBufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, 0 );
+	mBufferList = audio2::cocoa::createNonInterleavedBufferListShallow( mNumChannels );
 }
 
 } } // namespace audio2::cocoa

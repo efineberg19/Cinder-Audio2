@@ -101,11 +101,25 @@ AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t nu
 	for( size_t i = 0; i < numChannels; i++ ) {
 		::AudioBuffer *buffer = &bufferList->mBuffers[i];
 		buffer->mNumberChannels = 1;
-		buffer->mDataByteSize = numFrames * sizeof( float );
+		buffer->mDataByteSize = static_cast<UInt32>( numFrames * sizeof( float ) );
 		buffer->mData = malloc( numFrames * sizeof( float ) );
 	}
 
 	return AudioBufferListPtr( bufferList );
+}
+
+AudioBufferListShallowPtr createNonInterleavedBufferListShallow( size_t numChannels )
+{
+	::AudioBufferList *bufferList = static_cast<::AudioBufferList *>( calloc( 1, sizeof( ::AudioBufferList ) + sizeof( ::AudioBuffer ) * (numChannels - 1) ) );
+	bufferList->mNumberBuffers = static_cast<UInt32>( numChannels );
+	for( size_t i = 0; i < numChannels; i++ ) {
+		::AudioBuffer *buffer = &bufferList->mBuffers[i];
+		buffer->mNumberChannels = 1;
+		buffer->mDataByteSize = 0;
+		buffer->mData = nullptr;
+	}
+
+	return AudioBufferListShallowPtr( bufferList );
 }
 
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription )

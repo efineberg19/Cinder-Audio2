@@ -55,9 +55,18 @@ struct AudioBufferListDeleter {
 	}
 };
 
+struct AudioBufferListShallowDeleter {
+	void operator()( ::AudioBufferList *bufferList )
+	{
+		free( bufferList );
+	}
+};
+
 typedef std::unique_ptr<::AudioBufferList, AudioBufferListDeleter> AudioBufferListPtr;
+typedef std::unique_ptr<::AudioBufferList, AudioBufferListShallowDeleter> AudioBufferListShallowPtr;
 
 AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t numFrames );
+AudioBufferListShallowPtr createNonInterleavedBufferListShallow( size_t numChannels );
 
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance );
