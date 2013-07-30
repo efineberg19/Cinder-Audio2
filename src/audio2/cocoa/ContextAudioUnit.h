@@ -42,17 +42,15 @@ struct RenderCallbackContext {
 
 class NodeAudioUnit {
   public:
-	NodeAudioUnit() : mAudioUnit( nullptr ), mRenderBus( 0 ), mShouldUseGraphRenderCallback( true )	{}
+	NodeAudioUnit() : mAudioUnit( nullptr ), mRenderBus( 0 )	{}
 	virtual ~NodeAudioUnit();
 	virtual ::AudioUnit getAudioUnit() const	{ return mAudioUnit; }
 	::AudioUnitScope getRenderBus() const	{ return mRenderBus; }
 
-	bool shouldUseGraphRenderCallback() const	{ return mShouldUseGraphRenderCallback; }
   protected:
 
 	::AudioUnit			mAudioUnit;
 	::AudioUnitScope	mRenderBus;
-	bool				mShouldUseGraphRenderCallback;
 	Buffer*				mProcessBuffer;
 };
 
@@ -93,11 +91,13 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 	void process( Buffer *buffer ) override;
 
   private:
+	OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 	std::unique_ptr<RingBuffer> mRingBuffer;
 	AudioBufferListPtr mBufferList;
+	bool				mSynchroniousIO;
 };
 
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used

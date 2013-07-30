@@ -117,14 +117,17 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 	if( mNumChannelsUnspecified )
 		setNumChannels( 2 );
 
+	// FIXME: this is not acceptable if there is a 1:1 relationship of Device to actual hardware
+	CI_ASSERT( ! mDevice->isOutputConnected() );
+	mDevice->setOutputConnected();
 }
 
 void LineOutAudioUnit::initialize()
 {
 	LineOutNode::initialize();
 	
-	CI_ASSERT( ! mDevice->isOutputConnected() );
-	mDevice->setOutputConnected();
+//	CI_ASSERT( ! mDevice->isOutputConnected() );
+//	mDevice->setOutputConnected();
 
 
 	::AudioUnit audioUnit = getAudioUnit();
@@ -137,7 +140,7 @@ void LineOutAudioUnit::initialize()
 
 	// TODO: move to NodeAudioUnit method
 	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, this };
-	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
 	mDevice->initialize();
@@ -172,6 +175,7 @@ DeviceRef LineOutAudioUnit::getDevice()
 	return mDevice->getComponentInstance();
 }
 
+// FIXME: seems to still be running after app closes. check InputTestApp
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	Node *node = static_cast<Node *>( data );
@@ -193,7 +197,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 //	  check graph->output->device in initialize to see if it's the same
 
 LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
-: LineInNode( device, format )
+: LineInNode( device, format ), mSynchroniousIO( false )
 {
 	mTag = "LineInAudioUnit";
 	mRenderBus = DeviceAudioUnit::Bus::Input;
@@ -213,8 +217,12 @@ LineInAudioUnit::~LineInAudioUnit()
 {
 }
 
+// TODO NEXT: get this sucker working. callback always needs to be set
+
 void LineInAudioUnit::initialize()
 {
+	Node::initialize();
+
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
@@ -224,19 +232,25 @@ void LineInAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	if( mDevice->isOutputConnected() ) {
-		LOG_V << "Path A. The High Road." << endl;
-		// output node is expected to initialize device, since it is pulling all the way to here.
+		LOG_V << "Synchronous I/O." << endl;
+		// output node is expected to initialize device, since it is pulling to here.
+		mSynchroniousIO = true;
+
+		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getNumFramesPerBlock() );
+
+
+		// TODO: move to NodeAudioUnit method
+		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, this };
+		status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+		CI_ASSERT( status == noErr );
 	}
 	else {
-		LOG_V << "Path B. initiate ringbuffer" << endl;
-		mShouldUseGraphRenderCallback = false;
+		LOG_V << "ASynchonous I/O, initiate ringbuffer" << endl;
 
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * getNumChannels() ) );
 		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() );
 
-		::AURenderCallbackStruct callbackStruct;
-		callbackStruct.inputProc = LineInAudioUnit::inputCallback;
-		callbackStruct.inputProcRefCon = this;
+		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, this };
 		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::Input, &callbackStruct, sizeof( callbackStruct ) );
 		CI_ASSERT( status == noErr );
 
@@ -254,20 +268,20 @@ void LineInAudioUnit::uninitialize()
 
 void LineInAudioUnit::start()
 {
-	if( ! mDevice->isOutputConnected() ) {
-		mEnabled = true;
+	if( ! mDevice->isOutputConnected() )
 		mDevice->start();
-		LOG_V << "started: " << mDevice->getName() << endl;
-	}
+
+	mEnabled = true;
+	LOG_V << "started: " << mDevice->getName() << endl;
 }
 
 void LineInAudioUnit::stop()
 {
-	if( ! mDevice->isOutputConnected() ) {
-		mEnabled = false;
+	if( ! mDevice->isOutputConnected() )
 		mDevice->stop();
-		LOG_V << "stopped: " << mDevice->getName() << endl;
-	}
+
+	mEnabled = false;
+	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
 DeviceRef LineInAudioUnit::getDevice()
@@ -282,14 +296,37 @@ DeviceRef LineInAudioUnit::getDevice()
 
 void LineInAudioUnit::process( Buffer *buffer )
 {
-	CI_ASSERT( mRingBuffer );
+	if( mSynchroniousIO ) {
 
+		mProcessBuffer = buffer;
+
+		::AudioUnitRenderActionFlags flags = 0;
+		const ::AudioTimeStamp *timeStamp = dynamic_pointer_cast<ContextAudioUnit>( getContext() )->getCurrentTimeStamp();
+		OSStatus status = ::AudioUnitRender( getAudioUnit(), &flags, timeStamp, DeviceAudioUnit::Bus::Input, (UInt32)buffer->getNumFrames(), mBufferList.get() );
+		CI_ASSERT( status == noErr );
+
+		copyFromBufferList( buffer, mBufferList.get() );
+
+		return;
+	}
+
+	// copy from async ringbuffer
 	size_t numFrames = buffer->getNumFrames();
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
 		size_t count = mRingBuffer->read( buffer->getChannel( ch ), numFrames );
 		if( count != numFrames )
 			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (ch = " << ch << ")" << endl;
 	}
+}
+
+// TODO: this is duplicated code, move to NodeAudioUnit if it doesn't need to change
+OSStatus LineInAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+{
+	LineInAudioUnit *node = static_cast<LineInAudioUnit *>( data );
+	Buffer *processBuffer = node->mProcessBuffer;
+
+	copyToBufferList( bufferList, processBuffer );
+	return noErr;
 }
 
 OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
@@ -324,6 +361,8 @@ EffectAudioUnit::~EffectAudioUnit()
 
 void EffectAudioUnit::initialize()
 {
+	Node::initialize(); // TEMP
+
 	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_Effect;
 	comp.componentSubType = mEffectSubType;
@@ -685,27 +724,28 @@ void ContextAudioUnit::initNode( NodeRef node )
 void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive )
 {
 	CI_ASSERT( false && "don't use" );
-	CI_ASSERT( context );
 
-	NodeAudioUnit *nodeAU = dynamic_cast<NodeAudioUnit *>( node.get() );
-	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
-		return;
-
-	::AudioUnit audioUnit = nodeAU->getAudioUnit();
-	CI_ASSERT( audioUnit );
-
-	::AURenderCallbackStruct callbackStruct = { callback, context };
-
-	for( UInt32 bus = 0; bus < node->getInputs().size(); bus++ ) {
-		NodeRef input = node->getInputs()[bus];
-		if( ! input )
-			continue;
-		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
-		CI_ASSERT( status == noErr );
-
-		if( recursive )
-			connectRenderCallback( input, context, callback, recursive );
-	}
+//	CI_ASSERT( context );
+//
+//	NodeAudioUnit *nodeAU = dynamic_cast<NodeAudioUnit *>( node.get() );
+//	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
+//		return;
+//
+//	::AudioUnit audioUnit = nodeAU->getAudioUnit();
+//	CI_ASSERT( audioUnit );
+//
+//	::AURenderCallbackStruct callbackStruct = { callback, context };
+//
+//	for( UInt32 bus = 0; bus < node->getInputs().size(); bus++ ) {
+//		NodeRef input = node->getInputs()[bus];
+//		if( ! input )
+//			continue;
+//		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
+//		CI_ASSERT( status == noErr );
+//
+//		if( recursive )
+//			connectRenderCallback( input, context, callback, recursive );
+//	}
 }
 
 void ContextAudioUnit::uninitialize()
@@ -764,74 +804,74 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 {
 	CI_ASSERT( 0 && "don't use" );
 
-	RenderCallbackContext *renderContext = static_cast<RenderCallbackContext *>( data );
+//	RenderCallbackContext *renderContext = static_cast<RenderCallbackContext *>( data );
+//
+//	CI_ASSERT( renderContext->currentNode );
+//	CI_ASSERT( bus < renderContext->currentNode->getInputs().size() );
+//	CI_ASSERT( numFrames == renderContext->buffer.getNumFrames() );
+//
+//	NodeRef input = renderContext->currentNode->getInputs()[bus];
+//	NodeAudioUnit *inputAU = dynamic_cast<NodeAudioUnit *>( input.get() );
+//
+//	// check if this needs native rendering
+//	if( inputAU && inputAU->shouldUseGraphRenderCallback() ) {
+//		Node *thisNode = renderContext->currentNode;
+//		renderContext->currentNode = input.get();
+//		::AudioUnit audioUnit = inputAU->getAudioUnit();
+//		::AudioUnitScope renderBus = inputAU->getRenderBus();
+//		OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, renderBus, numFrames, bufferList );
+//		CI_ASSERT( status == noErr );
+//
+//		renderContext->currentNode = thisNode;
+//	}
+//	else {
+//		// render all children through this callback, since there is a possiblity they can fall into the native category
+//		bool didRenderChildren = false;
+//		for( size_t i = 0; i < input->getInputs().size(); i++ ) {
+//			if( ! input->getInputs()[i] )
+//				continue;
+//
+//			didRenderChildren = true;
+//			Node *thisNode = renderContext->currentNode;
+//			renderContext->currentNode = input.get();
+//
+//			renderCallback( renderContext, flags, timeStamp, 0, numFrames, bufferList );
+//
+//			renderContext->currentNode = thisNode;
+//		}
+//
+//		if( didRenderChildren ) {
+//			// copy samples from AudioBufferList to the generic buffer before generic render
+//			// TODO: consider adding methods for buffer copying to CinderCoreAudio
+//			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
+//				CI_ASSERT( bufferList->mNumberBuffers == 1 );
+//				memcpy( renderContext->buffer.getData(), bufferList->mBuffers[0].mData, bufferList->mBuffers[0].mDataByteSize );
+//			}
+//			else {
+//				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+//					memcpy( renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
+//			}
+//		}
+//
+//		if( input->isEnabled() ) {
+//			input->process( &renderContext->buffer );
+//
+//			// copy samples back to the output buffer
+//			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
+//				CI_ASSERT( bufferList->mNumberBuffers == 1 );
+//				memcpy( bufferList->mBuffers[0].mData, renderContext->buffer.getData(), bufferList->mBuffers[0].mDataByteSize );
+//			}
+//			else {
+//				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+//					memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
+//			}
+//		}
+//		else if( ! didRenderChildren && input->getInputs().empty() ) {
+//			for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+//				memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+//		}
+//	}
 
-	CI_ASSERT( renderContext->currentNode );
-	CI_ASSERT( bus < renderContext->currentNode->getInputs().size() );
-	CI_ASSERT( numFrames == renderContext->buffer.getNumFrames() );
-
-	NodeRef input = renderContext->currentNode->getInputs()[bus];
-	NodeAudioUnit *inputAU = dynamic_cast<NodeAudioUnit *>( input.get() );
-
-	// check if this needs native rendering
-	if( inputAU && inputAU->shouldUseGraphRenderCallback() ) {
-		Node *thisNode = renderContext->currentNode;
-		renderContext->currentNode = input.get();
-		::AudioUnit audioUnit = inputAU->getAudioUnit();
-		::AudioUnitScope renderBus = inputAU->getRenderBus();
-		OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, renderBus, numFrames, bufferList );
-		CI_ASSERT( status == noErr );
-
-		renderContext->currentNode = thisNode;
-	}
-	else {
-		// render all children through this callback, since there is a possiblity they can fall into the native category
-		bool didRenderChildren = false;
-		for( size_t i = 0; i < input->getInputs().size(); i++ ) {
-			if( ! input->getInputs()[i] )
-				continue;
-
-			didRenderChildren = true;
-			Node *thisNode = renderContext->currentNode;
-			renderContext->currentNode = input.get();
-
-			renderCallback( renderContext, flags, timeStamp, 0, numFrames, bufferList );
-
-			renderContext->currentNode = thisNode;
-		}
-
-		if( didRenderChildren ) {
-			// copy samples from AudioBufferList to the generic buffer before generic render
-			// TODO: consider adding methods for buffer copying to CinderCoreAudio
-			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
-				CI_ASSERT( bufferList->mNumberBuffers == 1 );
-				memcpy( renderContext->buffer.getData(), bufferList->mBuffers[0].mData, bufferList->mBuffers[0].mDataByteSize );
-			}
-			else {
-				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-					memcpy( renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
-			}
-		}
-
-		if( input->isEnabled() ) {
-			input->process( &renderContext->buffer );
-
-			// copy samples back to the output buffer
-			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
-				CI_ASSERT( bufferList->mNumberBuffers == 1 );
-				memcpy( bufferList->mBuffers[0].mData, renderContext->buffer.getData(), bufferList->mBuffers[0].mDataByteSize );
-			}
-			else {
-				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-					memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
-			}
-		}
-		else if( ! didRenderChildren && input->getInputs().empty() ) {
-			for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-				memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
-		}
-	}
-	
 	return noErr;
 }
 

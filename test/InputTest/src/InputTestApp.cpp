@@ -10,10 +10,6 @@
 
 #include "Gui.h"
 
-// FIXME: (mac) crash on shutdown while audio was running
-// - in ContextAudioUnit::renderCallback(), renderContext->currentNode was null.
-// - may mean calling Context::stop() at shutdown is required, but I hope not.
-
 // TODO: test multiple formats for input
 // - make sure inputs and outputs with different samplerates somehow works correctly (which was default for my win8 laptop)
 
@@ -59,6 +55,7 @@ void InputTestApp::setup()
 	setupDefaultDevices();
 	//setupDedicatedDevice();
 
+	mLineIn->setAutoEnabled();
 
 	// TODO: add this as a test control
 	//mLineIn->getFormat().setNumChannels( 1 );
@@ -73,6 +70,7 @@ void InputTestApp::setup()
 void InputTestApp::setupDefaultDevices()
 {
 	mLineIn = Context::instance()->createLineIn();
+
 	auto output = Context::instance()->createLineOut();
 	mContext->setRoot( output );
 
