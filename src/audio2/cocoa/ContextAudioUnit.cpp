@@ -84,10 +84,11 @@ inline vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, :
 
 void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFrames )
 {
+	const float kClipLimit = 2.0f;
 	for( UInt32 c = 0; c < bufferList->mNumberBuffers; c++ ) {
 		float *buf = (float *)bufferList->mBuffers[c].mData;
 		for( UInt32 i = 0; i < numFrames; i++ )
-			CI_ASSERT_MSG( buf[i] < 1.2f, "Audio Clipped" );
+			CI_ASSERT_MSG( buf[i] < kClipLimit, "Audio Clipped" );
 	}
 }
 
