@@ -129,6 +129,8 @@ void LineOutAudioUnit::initialize()
 //	CI_ASSERT( ! mDevice->isOutputConnected() );
 //	mDevice->setOutputConnected();
 
+	mRenderContext.node = this;
+	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
@@ -139,7 +141,7 @@ void LineOutAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	// TODO: move to NodeAudioUnit method
-	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, this };
+	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, &mRenderContext };
 	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
@@ -178,10 +180,12 @@ DeviceRef LineOutAudioUnit::getDevice()
 // FIXME: seems to still be running after app closes. check InputTestApp
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	Node *node = static_cast<Node *>( data );
-	dynamic_pointer_cast<ContextAudioUnit>( node->getContext() )->setCurrentTimeStamp( timeStamp );
-	node->pullInputs();
-	copyToBufferList( bufferList, node->getInternalBuffer() );
+//	Node *node = static_cast<Node *>( data );
+	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
+	ctx->context->setCurrentTimeStamp( timeStamp );
+//	dynamic_pointer_cast<ContextAudioUnit>( ctx->lineOut->getContext() )->setCurrentTimeStamp( timeStamp );
+	ctx->node->pullInputs();
+	copyToBufferList( bufferList, ctx->node->getInternalBuffer() );
 
 	checkBufferListNotClipping( bufferList, numFrames );
 	return noErr;
@@ -217,11 +221,12 @@ LineInAudioUnit::~LineInAudioUnit()
 {
 }
 
-// TODO NEXT: get this sucker working. callback always needs to be set
-
 void LineInAudioUnit::initialize()
 {
 	Node::initialize();
+
+	mRenderContext.node = this;
+	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
@@ -240,7 +245,7 @@ void LineInAudioUnit::initialize()
 
 
 		// TODO: move to NodeAudioUnit method
-		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, this };
+		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
 		status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
 		CI_ASSERT( status == noErr );
 	}
@@ -250,7 +255,7 @@ void LineInAudioUnit::initialize()
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * getNumChannels() ) );
 		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() );
 
-		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, this };
+		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
 		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::Input, &callbackStruct, sizeof( callbackStruct ) );
 		CI_ASSERT( status == noErr );
 
@@ -294,6 +299,9 @@ DeviceRef LineInAudioUnit::getDevice()
 	return mDevice->getComponentInstance();
 }
 
+// TODO: clean up the background thread logging
+// - the right thing to do here is probably store an underrun framestamp
+// - retrieved by getting Context::getCurrentSampleFrame()
 void LineInAudioUnit::process( Buffer *buffer )
 {
 	if( mSynchroniousIO ) {
@@ -301,7 +309,7 @@ void LineInAudioUnit::process( Buffer *buffer )
 		mProcessBuffer = buffer;
 
 		::AudioUnitRenderActionFlags flags = 0;
-		const ::AudioTimeStamp *timeStamp = dynamic_pointer_cast<ContextAudioUnit>( getContext() )->getCurrentTimeStamp();
+		const ::AudioTimeStamp *timeStamp = mRenderContext.context->getCurrentTimeStamp();
 		OSStatus status = ::AudioUnitRender( getAudioUnit(), &flags, timeStamp, DeviceAudioUnit::Bus::Input, (UInt32)buffer->getNumFrames(), mBufferList.get() );
 		CI_ASSERT( status == noErr );
 
@@ -322,25 +330,26 @@ void LineInAudioUnit::process( Buffer *buffer )
 // TODO: this is duplicated code, move to NodeAudioUnit if it doesn't need to change
 OSStatus LineInAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	LineInAudioUnit *node = static_cast<LineInAudioUnit *>( data );
-	Buffer *processBuffer = node->mProcessBuffer;
+	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
+	LineInAudioUnit *lineIn = static_cast<LineInAudioUnit *>( ctx->node );
 
-	copyToBufferList( bufferList, processBuffer );
+	copyToBufferList( bufferList, lineIn->mProcessBuffer );
 	return noErr;
 }
 
 OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	LineInAudioUnit *inputNode = static_cast<LineInAudioUnit *>( data );
-	CI_ASSERT( inputNode->mRingBuffer );
+	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
+	LineInAudioUnit *lineIn = static_cast<LineInAudioUnit *>( ctx->node );
+	CI_ASSERT( lineIn->mRingBuffer );
 	
-	::AudioBufferList *nodeBufferList = inputNode->mBufferList.get();
-	OSStatus status = ::AudioUnitRender( inputNode->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::Input, numFrames, nodeBufferList );
+	::AudioBufferList *nodeBufferList = lineIn->mBufferList.get();
+	OSStatus status = ::AudioUnitRender( lineIn->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::Input, numFrames, nodeBufferList );
 	CI_ASSERT( status == noErr );
 
 	for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {
 		float *channel = static_cast<float *>( nodeBufferList->mBuffers[ch].mData );
-		inputNode->mRingBuffer->write( channel, numFrames );
+		lineIn->mRingBuffer->write( channel, numFrames );
 	}
 	return status;
 }
@@ -363,6 +372,9 @@ void EffectAudioUnit::initialize()
 {
 	Node::initialize(); // TEMP
 
+	mRenderContext.node = this;
+	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
+
 	::AudioComponentDescription comp{ 0 };
 	comp.componentType = kAudioUnitType_Effect;
 	comp.componentSubType = mEffectSubType;
@@ -377,7 +389,7 @@ void EffectAudioUnit::initialize()
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
-	::AURenderCallbackStruct callbackStruct = { EffectAudioUnit::renderCallback, this };
+	::AURenderCallbackStruct callbackStruct = { EffectAudioUnit::renderCallback, &mRenderContext };
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
@@ -401,7 +413,7 @@ void EffectAudioUnit::process( Buffer *buffer )
 	mProcessBuffer = buffer;
 
 	::AudioUnitRenderActionFlags flags = 0;
-	const ::AudioTimeStamp *timeStamp = dynamic_pointer_cast<ContextAudioUnit>( getContext() )->getCurrentTimeStamp();
+	const ::AudioTimeStamp *timeStamp = mRenderContext.context->getCurrentTimeStamp();
 	OSStatus status = ::AudioUnitRender( mAudioUnit, &flags, timeStamp, 0, (UInt32)buffer->getNumFrames(), mBufferList.get() );
 	CI_ASSERT( status == noErr );
 
@@ -410,10 +422,10 @@ void EffectAudioUnit::process( Buffer *buffer )
 
 OSStatus EffectAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-	EffectAudioUnit *node = static_cast<EffectAudioUnit *>( data );
-	Buffer *processBuffer = node->mProcessBuffer;
+	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
+	EffectAudioUnit *effectNode = static_cast<EffectAudioUnit *>( ctx->node );
 
-	copyToBufferList( bufferList, processBuffer );
+	copyToBufferList( bufferList, effectNode->mProcessBuffer );
 	return noErr;
 }
 
@@ -665,13 +677,13 @@ void ContextAudioUnit::initialize()
 
 	initNode( mRoot );
 
-	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock );
-	mRenderContext.currentNode = mRoot.get();
+//	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock );
+//	mRenderContext.currentNode = mRoot.get();
 
 //	connectRenderCallback( mRoot, &mRenderContext, &ContextAudioUnit::renderCallbackRoot, false );
 
 	mInitialized = true;
-	LOG_V << "graph initialize complete. output channels: " << mRenderContext.buffer.getNumChannels() << ", frames per block: " << mRenderContext.buffer.getNumFrames() << endl;
+	LOG_V << "graph initialize complete. samplerate: " << mSampleRate << ", frames per block: " << mNumFramesPerBlock << endl;
 }
 
 void ContextAudioUnit::initNode( NodeRef node )
@@ -721,10 +733,10 @@ void ContextAudioUnit::initNode( NodeRef node )
 }
 
 // TODO: if both node and input are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
-void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive )
-{
-	CI_ASSERT( false && "don't use" );
-
+//void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive )
+//{
+//	CI_ASSERT( false && "don't use" );
+//
 //	CI_ASSERT( context );
 //
 //	NodeAudioUnit *nodeAU = dynamic_cast<NodeAudioUnit *>( node.get() );
@@ -746,7 +758,7 @@ void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContex
 //		if( recursive )
 //			connectRenderCallback( input, context, callback, recursive );
 //	}
-}
+//}
 
 void ContextAudioUnit::uninitialize()
 {
@@ -777,17 +789,17 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 //		converter->getOutput()->setInput( converter->getInputs()[0] );
 }
 
-OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
-{
-	static_cast<RenderCallbackContext *>( data )->buffer.zero();
-
-	// In rare cases (when all nodes are disabled, but graph is running), the bufferList can get passed to output unmodified. So zero it out too.
-	// note: moved to end of renderCallback (source->isLeaf check)
-//	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-//		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
-
-	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
-}
+//OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+//{
+//	static_cast<RenderCallbackContext *>( data )->buffer.zero();
+//
+//	// In rare cases (when all nodes are disabled, but graph is running), the bufferList can get passed to output unmodified. So zero it out too.
+//	// note: moved to end of renderCallback (source->isLeaf check)
+////	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
+////		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+//
+//	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
+//}
 
 //OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 //{
@@ -800,10 +812,10 @@ OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActi
 //}
 
 // TODO: avoid multiple copies when generic nodes are chained together
-OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
-{
-	CI_ASSERT( 0 && "don't use" );
-
+//OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+//{
+//	CI_ASSERT( 0 && "don't use" );
+//
 //	RenderCallbackContext *renderContext = static_cast<RenderCallbackContext *>( data );
 //
 //	CI_ASSERT( renderContext->currentNode );
@@ -871,8 +883,8 @@ OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 //				memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
 //		}
 //	}
-
-	return noErr;
-}
+//
+//	return noErr;
+//}
 
 } } // namespace audio2::cocoa

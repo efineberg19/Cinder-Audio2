@@ -34,11 +34,7 @@
 namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
-
-struct RenderCallbackContext {
-	Node *currentNode;
-	Buffer buffer;
-};
+class ContextAudioUnit;
 
 class NodeAudioUnit {
   public:
@@ -52,6 +48,11 @@ class NodeAudioUnit {
 	::AudioUnit			mAudioUnit;
 	::AudioUnitScope	mRenderBus;
 	Buffer*				mProcessBuffer;
+
+	struct RenderContext {
+		Node				*node;
+		ContextAudioUnit	*context;
+	} mRenderContext;
 };
 
 class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
@@ -70,6 +71,11 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 
   private:
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+
+//	struct RenderContext {
+//		LineOutAudioUnit *lineOut;
+//		ContextAudioUnit *context;
+//	} mRenderContext;
 
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
@@ -172,15 +178,17 @@ class ContextAudioUnit : public Context {
 	void initialize() override;
 	void uninitialize() override;
 
-	const ::AudioTimeStamp* getCurrentTimeStamp() { return mCurrentTimeStamp; }
+	//! set by the RootNode
 	void setCurrentTimeStamp( const ::AudioTimeStamp *timeStamp ) { mCurrentTimeStamp = timeStamp; }
+	//! all other NodeAudioUnit's need to pass this correctly formatted timestamp to AudioUnitRender
+	const ::AudioTimeStamp* getCurrentTimeStamp() { return mCurrentTimeStamp; }
 
   private:
 
-	void connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive );
+//	void connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive );
 
-	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
-	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+//	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
+//	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 //	static OSStatus renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	// TODO: consider making these abstract methods in Context
@@ -189,7 +197,7 @@ class ContextAudioUnit : public Context {
 
 	const ::AudioTimeStamp *mCurrentTimeStamp;
 	
-	RenderCallbackContext mRenderContext;
+//	RenderCallbackContext mRenderContext;
 };
 
 } } // namespace audio2::cocoa
