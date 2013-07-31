@@ -178,13 +178,10 @@ DeviceRef LineOutAudioUnit::getDevice()
 	return mDevice->getComponentInstance();
 }
 
-// FIXME: seems to still be running after app closes. check InputTestApp
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
-//	Node *node = static_cast<Node *>( data );
 	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
 	ctx->context->setCurrentTimeStamp( timeStamp );
-//	dynamic_pointer_cast<ContextAudioUnit>( ctx->lineOut->getContext() )->setCurrentTimeStamp( timeStamp );
 	ctx->node->pullInputs();
 	copyToBufferList( bufferList, ctx->node->getInternalBuffer() );
 
