@@ -96,7 +96,7 @@ void Node::disconnect( size_t bus )
 
 void Node::setInput( NodeRef input )
 {
-	if( ! input || isConnectedToInput( input ) )
+	if( ! checkInput( input ) )
 		return;
 
 	input->setOutput( shared_from_this() );
@@ -117,7 +117,8 @@ void Node::setInput( NodeRef input )
 // TODO: figure out how to best handle node replacements
 void Node::setInput( NodeRef input, size_t bus )
 {
-	CI_ASSERT( input != shared_from_this() );
+	if( ! checkInput( input ) )
+		return;
 
 	if( bus > mInputs.size() )
 		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
@@ -136,6 +137,13 @@ bool Node::isConnectedToInput( const NodeRef &input ) const
 bool Node::isConnectedToOutput( const NodeRef &output ) const
 {
 	return ( getOutput() == output );
+}
+
+bool Node::checkInput( const NodeRef &input )
+{
+	bool isValid = ( input && ! ( input == shared_from_this() ) && isConnectedToInput( input ) );
+	CI_ASSERT( isValid );
+	return isValid;
 }
 
 void Node::fillFormatParamsFromOutput()

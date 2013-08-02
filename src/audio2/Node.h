@@ -131,6 +131,7 @@ namespace audio2 {
 
 		//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 		void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
+		bool checkInput( const NodeRef &input );
 
 		std::vector<NodeRef>	mInputs;
 		std::weak_ptr<Node>		mOutput;
