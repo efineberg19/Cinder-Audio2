@@ -36,6 +36,10 @@
 		1104F4C517754A6E003EAA2B /* TapNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F49317754A6E003EAA2B /* TapNode.cpp */; };
 		1104F4C617754A6E003EAA2B /* TapNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49417754A6E003EAA2B /* TapNode.h */; };
 		1104F4C717754A6E003EAA2B /* Gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49517754A6E003EAA2B /* Gui.h */; };
+		1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1180FD8917AB7CB70070AC30 /* Node.cpp */; };
+		1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1180FD8917AB7CB70070AC30 /* Node.cpp */; };
+		1180FD8D17AB7CB70070AC30 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = 1180FD8A17AB7CB70070AC30 /* Node.h */; };
+		1180FD8E17AB7CB70070AC30 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = 1180FD8A17AB7CB70070AC30 /* Node.h */; };
 		11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B041AE179B89F80034BEE2 /* Plot.cpp */; };
 		11B041B1179B89F80034BEE2 /* Plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041AF179B89F80034BEE2 /* Plot.h */; };
 		11B041B3179B8A0C0034BEE2 /* CinderAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041B2179B8A0C0034BEE2 /* CinderAssert.h */; };
@@ -139,6 +143,8 @@
 		1104F49317754A6E003EAA2B /* TapNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TapNode.cpp; sourceTree = "<group>"; };
 		1104F49417754A6E003EAA2B /* TapNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TapNode.h; sourceTree = "<group>"; };
 		1104F49517754A6E003EAA2B /* Gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gui.h; sourceTree = "<group>"; };
+		1180FD8917AB7CB70070AC30 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
+		1180FD8A17AB7CB70070AC30 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		11B041AE179B89F80034BEE2 /* Plot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Plot.cpp; sourceTree = "<group>"; };
 		11B041AF179B89F80034BEE2 /* Plot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Plot.h; sourceTree = "<group>"; };
 		11B041B2179B8A0C0034BEE2 /* CinderAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderAssert.h; sourceTree = "<group>"; };
@@ -237,6 +243,8 @@
 				1104F47F17754A6E003EAA2B /* File.h */,
 				1104F48017754A6E003EAA2B /* GeneratorNode.cpp */,
 				1104F48117754A6E003EAA2B /* GeneratorNode.h */,
+				1180FD8917AB7CB70070AC30 /* Node.cpp */,
+				1180FD8A17AB7CB70070AC30 /* Node.h */,
 				1104F49217754A6E003EAA2B /* RingBuffer.h */,
 				1104F49317754A6E003EAA2B /* TapNode.cpp */,
 				1104F49417754A6E003EAA2B /* TapNode.h */,
@@ -306,6 +314,7 @@
 				1104F4C617754A6E003EAA2B /* TapNode.h in Headers */,
 				11B041B3179B8A0C0034BEE2 /* CinderAssert.h in Headers */,
 				1104F4C417754A6E003EAA2B /* RingBuffer.h in Headers */,
+				1180FD8D17AB7CB70070AC30 /* Node.h in Headers */,
 				11B041B1179B89F80034BEE2 /* Plot.h in Headers */,
 				1104F4A417754A6E003EAA2B /* FileCoreAudio.h in Headers */,
 				1104F4C717754A6E003EAA2B /* Gui.h in Headers */,
@@ -334,6 +343,7 @@
 				11B04211179B90450034BEE2 /* TapNode.h in Headers */,
 				11B04212179B90450034BEE2 /* CinderAssert.h in Headers */,
 				11B04213179B90450034BEE2 /* RingBuffer.h in Headers */,
+				1180FD8E17AB7CB70070AC30 /* Node.h in Headers */,
 				11B04214179B90450034BEE2 /* Plot.h in Headers */,
 				11B04215179B90450034BEE2 /* FileCoreAudio.h in Headers */,
 				11B04216179B90450034BEE2 /* Gui.h in Headers */,
@@ -421,6 +431,7 @@
 				1104F4A717754A6E003EAA2B /* Context.cpp in Sources */,
 				1104F49B17754A6E003EAA2B /* ContextAudioUnit.cpp in Sources */,
 				11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */,
+				1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */,
 				11B0421E179B92D10034BEE2 /* DeviceManagerCoreAudio.cpp in Sources */,
 				1104F4AF17754A6E003EAA2B /* Fft.cpp in Sources */,
 				1104F49817754A6E003EAA2B /* audio.cpp in Sources */,
@@ -442,6 +453,7 @@
 				11B041F9179B90450034BEE2 /* TapNode.cpp in Sources */,
 				11B041FA179B90450034BEE2 /* Context.cpp in Sources */,
 				11B041FB179B90450034BEE2 /* ContextAudioUnit.cpp in Sources */,
+				1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */,
 				11B041FC179B90450034BEE2 /* Plot.cpp in Sources */,
 				11B041FD179B90450034BEE2 /* Fft.cpp in Sources */,
 				11B041FE179B90450034BEE2 /* audio.cpp in Sources */,
