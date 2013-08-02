@@ -118,17 +118,13 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 	if( mNumChannelsUnspecified )
 		setNumChannels( 2 );
 
-	// FIXME: this is not acceptable if there is a 1:1 relationship of Device to actual hardware
-	CI_ASSERT( ! mDevice->isOutputConnected() );
-	mDevice->setOutputConnected();
 }
 
 void LineOutAudioUnit::initialize()
 {
 	LineOutNode::initialize();
 	
-//	CI_ASSERT( ! mDevice->isOutputConnected() );
-//	mDevice->setOutputConnected();
+	mDevice->setOutputConnected();
 
 	mRenderContext.node = this;
 	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
