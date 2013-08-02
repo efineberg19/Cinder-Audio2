@@ -10,6 +10,9 @@
 
 #include "Gui.h"
 
+// FIXME: switching through tests repeatedly eventually leads to a deep, obscure thud.
+//	- related to teh AudioComponentInstance in AudioUnitDevice
+
 // TODO: test multiple formats for input
 // - make sure inputs and outputs with different samplerates somehow works correctly (which was default for my win8 laptop)
 
@@ -40,6 +43,7 @@ class InputTestApp : public AppNative {
 	ContextRef mContext;
 	LineInNodeRef mLineIn;
 	TapNodeRef mTap;
+	NodeRef mRingMod;
 
 	VSelector mTestSelector;
 	Button mPlayButton;
@@ -111,6 +115,8 @@ void InputTestApp::setupInProcessOut()
 {
 	auto ringMod = make_shared<RingMod>();
 	mLineIn->connect( ringMod )->connect( mContext->getRoot() );
+
+	mRingMod = ringMod; // FIXME: if I don't store a ref to ringMod, some weird double-free happens after a few test switches
 }
 
 void InputTestApp::setupInTapOut()
@@ -124,6 +130,8 @@ void InputTestApp::setupInTapProcessOut()
 	mTap = make_shared<TapNode>();
 	auto ringMod = make_shared<RingMod>();
 	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
+
+	mRingMod = ringMod;
 }
 
 void InputTestApp::initGraph()
@@ -176,9 +184,11 @@ void InputTestApp::processTap( Vec2i pos )
 		bool running = mContext->isEnabled();
 		mContext->uninitialize();
 
-		mContext->getRoot()->disconnect();
-		mTap->disconnect();
-		mLineIn->disconnect();
+		mContext->disconnectAllNodes();
+
+//		mContext->getRoot()->disconnect();
+//		mTap->disconnect();
+//		mLineIn->disconnect();
 
 		if( currentTest == "pass through" ) {
 			setupPassThrough();
