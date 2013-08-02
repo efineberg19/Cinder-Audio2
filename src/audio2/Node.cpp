@@ -44,7 +44,7 @@ namespace audio2 {
 
 Node::Node( const Format &format )
 : mInitialized( false ), mEnabled( false ),	mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
-mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false )
+mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mUseSummingBuffer( false )
 {
 	mNumChannelsUnspecified = ! format.getChannels();
 }
@@ -105,12 +105,14 @@ void Node::setInput( NodeRef input )
 	for( size_t i = 0; i < mInputs.size(); i++ ) {
 		if( ! mInputs[i] ) {
 			mInputs[i] = input;
+			configureProcessing();
 			return;
 		}
 	}
 
 	// or append
 	mInputs.push_back( input );
+	configureProcessing();
 }
 
 
@@ -122,11 +124,12 @@ void Node::setInput( NodeRef input, size_t bus )
 
 	if( bus > mInputs.size() )
 		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
-	//	if( mInupts[bus] )
-	//		throw AudioExc(  string( "bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." );
+	if( mInputs[bus] )
+		throw AudioExc(  string( "bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." );
 
 	mInputs[bus] = input;
 	input->setOutput( shared_from_this() );
+	configureProcessing();
 }
 
 bool Node::isConnectedToInput( const NodeRef &input ) const
@@ -137,13 +140,6 @@ bool Node::isConnectedToInput( const NodeRef &input ) const
 bool Node::isConnectedToOutput( const NodeRef &output ) const
 {
 	return ( getOutput() == output );
-}
-
-bool Node::checkInput( const NodeRef &input )
-{
-	bool isValid = ( input && ! ( input == shared_from_this() ) && isConnectedToInput( input ) );
-	CI_ASSERT( isValid );
-	return isValid;
 }
 
 void Node::fillFormatParamsFromOutput()
@@ -169,11 +165,6 @@ void Node::fillFormatParamsFromInput()
 	CI_ASSERT( mNumChannels );
 }
 
-void Node::fillFormatParamsFromNode( const NodeRef &otherNode )
-{
-	mNumChannels = otherNode->getNumChannels();
-}
-
 void Node::setEnabled( bool enabled )
 {
 	if( enabled )
@@ -182,25 +173,60 @@ void Node::setEnabled( bool enabled )
 		stop();
 }
 
-// TODO: (NEXT) add ability to use an in-place buffer and no summing when only connected to one input
-void Node::pullInputs()
+// FIXME: mUseSummingBuffer is not thread-safe
+// - probably high-time to ditch atomic<bool> and go with std::mutex, since there are multiple pieces that need to be synchronized
+void Node::pullInputs( Buffer *inPlaceBuffer )
 {
-	mInternalBuffer.zero();
+	if( mUseSummingBuffer ) {
+		mInternalBuffer.zero();
 
-	for( NodeRef input : mInputs ) {
+		for( NodeRef &input : mInputs ) {
+			if( ! input )
+				continue;
+
+			input->pullInputs( &mInternalBuffer ); // ???: is this appropriate?
+			sumToInternalBuffer( input );
+		}
+
+		if( mEnabled )
+			process( &mInternalBuffer );
+
+		return;
+	}
+
+	for( NodeRef &input : mInputs ) {
 		if( ! input )
 			continue;
 
-		input->pullInputs();
-		sumToInternalBuffer( input );
+		input->pullInputs( inPlaceBuffer );
 	}
 
 	if( mEnabled )
-		process( &mInternalBuffer );
+		process( inPlaceBuffer );
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Protected
+// ----------------------------------------------------------------------------------------------------
+
+void Node::fillFormatParamsFromNode( const NodeRef &otherNode )
+{
+	mNumChannels = otherNode->getNumChannels();
+}
+
+void Node::configureProcessing()
+{
+	if( mInputs.size() <= 1 )
+		mUseSummingBuffer = false;
+	else {
+		mUseSummingBuffer = true;
+	}
 }
 
 void Node::sumToInternalBuffer( const NodeRef &input )
 {
+	CI_ASSERT( mUseSummingBuffer );
+
 	if( mNumChannels == input->mNumChannels ) {
 		for( size_t c = 0; c < mInternalBuffer.getNumChannels(); c++ )
 			sum( input->getInternalBuffer()->getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
@@ -213,5 +239,11 @@ void Node::sumToInternalBuffer( const NodeRef &input )
 	else
 		CI_ASSERT( 0 && "unhandled" );
 }
+
+bool Node::checkInput( const NodeRef &input )
+{
+	return ( input && ( input != shared_from_this() ) && ! isConnectedToInput( input ) );
+}
+
 
 } // namespace audio2

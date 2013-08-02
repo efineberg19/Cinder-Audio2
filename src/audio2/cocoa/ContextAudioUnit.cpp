@@ -181,9 +181,12 @@ DeviceRef LineOutAudioUnit::getDevice()
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
+	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( ctx->node );
+
+	lineOut->mInternalBuffer.zero();
 	ctx->context->setCurrentTimeStamp( timeStamp );
-	ctx->node->pullInputs();
-	copyToBufferList( bufferList, ctx->node->getInternalBuffer() );
+	ctx->node->pullInputs( &lineOut->mInternalBuffer );
+	copyToBufferList( bufferList, &lineOut->mInternalBuffer );
 
 	checkBufferListNotClipping( bufferList, numFrames );
 	return noErr;
