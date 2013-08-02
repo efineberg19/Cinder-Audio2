@@ -51,8 +51,7 @@ namespace audio2 {
 // - provides samplerate / num frames at init
 
 Node::Node( const Format &format )
-: mInitialized( false ), mConnected( false ), mEnabled( false ),
-	mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
+: mInitialized( false ), mEnabled( false ),	mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
 	mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false )
 {
 	mNumChannelsUnspecified = ! format.getChannels();
@@ -65,6 +64,8 @@ Node::~Node()
 
 void Node::initialize()
 {
+	// TODO: this should be created at the end of connect, only if it needs to be based on inputs
+	// - at which point, subclasses don't need to call Node::initialize() in their initialize()
 	mInternalBuffer = Buffer( mNumChannels, getContext()->getNumFramesPerBlock() );
 	mInitialized = true;
 }
@@ -85,41 +86,39 @@ NodeRef Node::connect( NodeRef dest, size_t bus )
 // - if multi-output is supported, use getOutput( bus )->getInputs()
 void Node::disconnect( size_t bus )
 {
-	if( ! mConnected )
-		return;
-
-	if( mEnabled )
-		stop();
-
-	mConnected = false;
-	
-	auto& parentInputs = getOutput()->getInputs();
-	for( size_t i = 0; i < parentInputs.size(); i++ ) {
-		if( parentInputs[i] == shared_from_this() )
-			parentInputs[i].reset();
-	}
+	stop();
 
 	mInputs.clear();
-	mOutput.reset();
+
+	auto output = getOutput();
+	if( output ) {
+		auto& parentInputs = output->getInputs();
+		for( size_t i = 0; i < parentInputs.size(); i++ ) {
+			if( parentInputs[i] == shared_from_this() )
+				parentInputs[i].reset();
+		}
+//		mOutput.reset();
+		mOutput = std::weak_ptr<Node>();
+	}
 }
 
 void Node::setInput( NodeRef input )
 {
-	if( ! input || find( mInputs.begin(), mInputs.end(), input ) != mInputs.end() )
+	if( ! input || isConnectedToInput( input ) )
 		return;
 
 	input->setOutput( shared_from_this() );
 
-	// find first available slot, or append
+	// find first available slot
 	for( size_t i = 0; i < mInputs.size(); i++ ) {
 		if( ! mInputs[i] ) {
 			mInputs[i] = input;
-			input->mConnected = true;
 			return;
 		}
 	}
+
+	// or append
 	mInputs.push_back( input );
-	input->mConnected = true;
 }
 
 
@@ -137,6 +136,15 @@ void Node::setInput( NodeRef input, size_t bus )
 	input->setOutput( shared_from_this() );
 }
 
+bool Node::isConnectedToInput( const NodeRef &input ) const
+{
+	return find( mInputs.begin(), mInputs.end(), input ) != mInputs.end();
+}
+
+bool Node::isConnectedToOutput( const NodeRef &output ) const
+{
+	return ( getOutput() == output );
+}
 
 void Node::fillFormatParamsFromOutput()
 {
@@ -246,7 +254,15 @@ void Context::start()
 	CI_ASSERT( mRoot );
 	mEnabled = true;
 	
-	start( mRoot );
+	startRecursive( mRoot );
+}
+
+void Context::disconnectAllNodes()
+{
+	if( mEnabled )
+		stop();
+	
+	disconnectRecursive( mRoot );
 }
 
 void Context::stop()
@@ -255,7 +271,7 @@ void Context::stop()
 		return;
 	mEnabled = false;
 
-	stop( mRoot );
+	stopRecursive( mRoot );
 }
 
 void Context::setEnabled( bool enabled )
@@ -273,26 +289,36 @@ RootNodeRef Context::getRoot()
 	return mRoot;
 }
 
-void Context::start( NodeRef node )
+void Context::startRecursive( const NodeRef &node )
 {
 	if( ! node )
 		return;
 	for( auto& input : node->getInputs() )
-		start( input );
+		startRecursive( input );
 
 	if( node->isAutoEnabled() )
 		node->start();
 }
 
-void Context::stop( NodeRef node )
+void Context::stopRecursive( const NodeRef &node )
 {
 	if( ! node )
 		return;
 	for( auto& input : node->getInputs() )
-		stop( input );
+		stopRecursive( input );
 
 	if( node->isAutoEnabled() )
 		node->stop();
+}
+
+void Context::disconnectRecursive( const NodeRef &node )
+{
+	if( ! node )
+		return;
+	for( auto& input : node->getInputs() )
+		disconnectRecursive( input );
+
+	node->disconnect();
 }
 
 } // namespace audio2

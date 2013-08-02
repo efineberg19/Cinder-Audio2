@@ -73,6 +73,9 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void setInput( NodeRef input );
 	virtual void setInput( NodeRef input, size_t bus );
 
+	bool isConnectedToInput( const NodeRef &input ) const;
+	bool isConnectedToOutput( const NodeRef &output ) const;
+
 	size_t	getNumChannels() const	{ return mNumChannels; }
 
 	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
@@ -111,9 +114,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	const std::string& getTag()	const	{ return mTag; }
 
 	bool isInitialized() const	{ return mInitialized; }
-	bool isConnected() const	{ return mConnected; }
-	bool isEnabled() const		{ return mEnabled; }
 
+	bool isEnabled() const		{ return mEnabled; }
 	void setEnabled( bool b = true );
 
 	// TODO: make this protected if possible
@@ -134,7 +136,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	std::weak_ptr<Node>		mOutput;
 	std::weak_ptr<Context>	mContext;
 	bool					mInitialized;
-	std::atomic<bool>		mConnected, mEnabled;
+	std::atomic<bool>		mEnabled;
 	std::string				mTag;
 
 	size_t mNumChannels;
@@ -148,6 +150,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	  Node& operator=( Node const& );
 };
 
+// TODO: this seems safe to rename to OutputNode now.
+// - is this confusing when there is Node::getOutputs() ?
 class RootNode : public Node {
   public:
 	RootNode( const Format &format = Format() ) : Node( format ) {}
@@ -241,6 +245,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! convenience method to start / stop the graph via bool
 	void setEnabled( bool enabled = true );
 
+	void disconnectAllNodes();
 
 	size_t getSampleRate() const			{ return mSampleRate; }
 	size_t getNumFramesPerBlock() const		{ return mNumFramesPerBlock; }
@@ -248,8 +253,9 @@ class Context : public std::enable_shared_from_this<Context> {
   protected:
 	Context() : mInitialized( false ), mEnabled( false ) {}
 
-	virtual void start( NodeRef node );
-	virtual void stop( NodeRef node );
+	void startRecursive( const NodeRef &node );
+	void stopRecursive( const NodeRef &node );
+	void disconnectRecursive( const NodeRef &node );
 
 	RootNodeRef		mRoot;
 	bool			mInitialized, mEnabled;
