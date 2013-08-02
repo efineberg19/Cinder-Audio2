@@ -177,7 +177,7 @@ void BasicTestApp::setupUI()
 
 	mTestSelector.segments.push_back( "sine" );
 	mTestSelector.segments.push_back( "noise" );
-	mTestSelector.segments.push_back( "sum" );
+	mTestSelector.segments.push_back( "sine + noise" );
 	mTestSelector.bounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 
