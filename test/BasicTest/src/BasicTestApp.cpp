@@ -101,7 +101,7 @@ void BasicTestApp::setup()
 
 void BasicTestApp::setupSine()
 {
-	if( mNoise->isConnected() )
+	if( mGain->isConnectedToInput( mNoise ) )
 		mNoise->disconnect();
 
 	mSine->connect( mGain )->connect( mContext->getRoot() );
@@ -113,7 +113,7 @@ void BasicTestApp::setupSine()
 
 void BasicTestApp::setupNoise()
 {
-	if( mSine->isConnected() )
+	if( mGain->isConnectedToInput( mSine ) )
 		mSine->disconnect();
 
 	mNoise->connect( mGain )->connect( mContext->getRoot() );
@@ -241,7 +241,7 @@ void BasicTestApp::processTap( Vec2i pos )
 			setupSine();
 		if( currentTest == "noise" )
 			setupNoise();
-		if( currentTest == "sum" )
+		if( currentTest == "sine + noise" )
 			setupSumming();
 		initContext();
 
