@@ -63,8 +63,10 @@ namespace audio2 {
 
 	struct RingMod : public EffectNode {
 		RingMod( const Format &format = Format() ) : EffectNode( format ), mSineGen( 440.0f, 1.0f )	{ mTag = "RingMod"; }
+		virtual ~RingMod() {}
 
 		virtual void initialize() override {
+			EffectNode::initialize(); // TEMP
 			mSineGen.setSampleRate( getContext()->getSampleRate() );
 		}
 
