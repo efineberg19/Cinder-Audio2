@@ -179,7 +179,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
 	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( ctx->node );
 
-	lineOut->mInternalBuffer.zero();
+	lineOut->mInternalBuffer.zero(); // TODO: this might not be necessary, since it is done in process (sometimes)
 	ctx->context->setCurrentTimeStamp( timeStamp );
 	ctx->node->pullInputs( &lineOut->mInternalBuffer );
 	copyToBufferList( bufferList, &lineOut->mInternalBuffer );

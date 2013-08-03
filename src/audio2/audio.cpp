@@ -31,21 +31,27 @@ using namespace ci;
 
 namespace audio2 {
 
-void printGraph( ContextRef graph )
-{
-	function<void( NodeRef, size_t )> printNode = [&]( NodeRef node, size_t depth ) -> void {
+namespace {
+	void printRecursive( NodeRef node, size_t depth )
+	{
 		if( ! node )
 			return;
 		for( size_t i = 0; i < depth; i++ )
 			app::console() << "-- ";
+
 		app::console() << node->getTag() << "\t[ ch: " << node->getNumChannels();
 		app::console() << ", " << ( node->getBufferLayout() == Buffer::Layout::Interleaved ? "interleaved" : "non-interleaved" );
+		app::console() << ", " << ( node->processesInPlace() ? "in-place" : "sum" );
 		app::console() << " ]" << endl;
-		for( auto &input : node->getInputs() )
-			printNode( input, depth + 1 );
-	};
 
-	printNode( graph->getRoot(), 0 );
+		for( auto &input : node->getInputs() )
+			printRecursive( input, depth + 1 );
+	};
+}
+
+void printGraph( ContextRef graph )
+{
+	printRecursive( graph->getRoot(), 0 );
 }
 
 void printDevices()

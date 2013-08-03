@@ -130,7 +130,7 @@ protected:
 	//! If required Format properties are missing, fill in from \a otherFormat
 	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
 
-	void sumToInternalBuffer( const NodeRef &input );
+	void sumToInternalBuffer( const NodeRef &input, const Buffer *buffer );
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
@@ -172,7 +172,7 @@ public:
 	virtual size_t getNumFramesPerBlock() = 0;
 
 private:
-	// RootNode subclasses cannot connect to anything else
+	// RootNode does not have outputs
 	NodeRef connect( NodeRef dest ) override				{ return NodeRef(); }
 	NodeRef connect( NodeRef dest, size_t bus ) override	{ return NodeRef(); }
 };
