@@ -139,6 +139,7 @@ void Context::disconnectRecursive( const NodeRef &node )
 		disconnectRecursive( input );
 
 	node->disconnect();
+	node->getInputs().clear();
 }
 
 } // namespace audio2

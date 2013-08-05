@@ -105,7 +105,9 @@ public:
 	// TODO: consider making this protected / non-virtual
 	virtual void pullInputs( Buffer *inPlaceBuffer );
 
+	// TODO: it's probably a good idea to hide this structure
 	std::vector<NodeRef>& getInputs()			{ return mInputs; }
+
 	NodeRef getOutput()	const					{ return mOutput.lock(); }
 	void setOutput( NodeRef output )			{ mOutput = output; }
 
@@ -119,7 +121,9 @@ public:
 	bool isEnabled() const						{ return mEnabled; }
 	void setEnabled( bool b = true );
 
-	bool processesInPlace() const				{ return ! mUseSummingBuffer; }
+	bool getProcessInPlace() const				{ return mProcessInPlace; }
+
+	size_t getNumInputs() const;
 
 	// TODO: make this protected if possible
 	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
@@ -130,11 +134,13 @@ protected:
 	//! If required Format properties are missing, fill in from \a otherFormat
 	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
 
-	void sumToInternalBuffer( const NodeRef &input, const Buffer *buffer );
+	void sumToInternalBuffer( const Buffer *buffer );
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
-	void	setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
+	void setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
 	bool checkInput( const NodeRef &input );
+	void setProcessInPlace( bool b )		{ mProcessInPlace = b; }
+
 	void configureProcessing();
 
 	std::vector<NodeRef>	mInputs;
@@ -145,7 +151,7 @@ protected:
 
 	bool					mInitialized;
 	bool					mAutoEnabled;
-	bool					mUseSummingBuffer;
+	bool					mProcessInPlace;
 	bool					mWantsDefaultFormatFromOutput;
 	bool					mNumChannelsUnspecified;
 	size_t					mNumChannels;
