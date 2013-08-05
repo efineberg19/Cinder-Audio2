@@ -111,7 +111,7 @@ void BufferPlayerNode::process( Buffer *buffer )
 	size_t readCount = std::min( mNumFrames - readPos, numFrames );
 
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
-		std::memcpy( buffer->getChannel( ch ), &mBuffer->getChannel( ch )[readPos], readCount * sizeof( float ) );
+		memcpy( buffer->getChannel( ch ), &mBuffer->getChannel( ch )[readPos], readCount * sizeof( float ) );
 
 	if( readCount < numFrames  ) {
 		buffer->zero( readCount, numFrames - readCount );
