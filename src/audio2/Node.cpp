@@ -44,9 +44,12 @@ namespace audio2 {
 
 Node::Node( const Format &format )
 : mInitialized( false ), mEnabled( false ),	mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
-mNumChannels( format.getChannels() ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mProcessInPlace( true )
+mNumChannels( 1 ), mNumChannelsUnspecified( true ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mProcessInPlace( true )
 {
-	mNumChannelsUnspecified = ! format.getChannels();
+	if( format.getChannels() ) {
+		mNumChannels = format.getChannels();
+		mNumChannelsUnspecified = false;
+	}
 }
 
 Node::~Node()
@@ -178,46 +181,55 @@ void Node::setEnabled( bool enabled )
 
 // FIXME: mUseSummingBuffer is not thread-safe
 // - probably high-time to ditch atomic<bool> and go with std::mutex, since there are multiple pieces that need to be synchronized
-void Node::pullInputs( Buffer *inPlaceBuffer )
+void Node::pullInputs( Buffer *outputBuffer )
 {
 	if( mProcessInPlace ) {
 		for( NodeRef &input : mInputs ) {
 			if( ! input )
 				continue;
 
-			// FIXME: if input is summed and this node is in-place, input's samples are still in  input's internal buffer
-			input->pullInputs( inPlaceBuffer );
+			input->pullInputs( outputBuffer );
 		}
 
 		if( mEnabled )
-			process( inPlaceBuffer );
+			process( outputBuffer );
 
 		return;
 	}
 
-	CI_ASSERT( mInternalBuffer.getNumChannels() == inPlaceBuffer->getNumChannels() );
+	CI_ASSERT( mInternalBuffer.getNumChannels() == outputBuffer->getNumChannels() );
 
-	// TODO NEXT: see what happens here when input is mono and we are stereo, and vice-versa
-	// - also, mProcessInPlace should be false if either of these cases are true
 
 	mInternalBuffer.zero();
-	inPlaceBuffer->zero();
+	outputBuffer->zero();
 
 	for( NodeRef &input : mInputs ) {
 		if( ! input )
 			continue;
 
-		input->pullInputs( inPlaceBuffer );
-		if( input->getProcessInPlace() )
-			sumToInternalBuffer( inPlaceBuffer );
-		else
-			sumToInternalBuffer( input->getInternalBuffer() );
+		// FIXME: inPlaceBuffer is not suitable here when it is a differnt channel count than mInternalBuffer
+
+//		input->pullInputs( outputBuffer );
+//		if( input->getProcessInPlace() )
+//			sumToInternalBuffer( outputBuffer );
+//		else
+//			sumToInternalBuffer( input->getInternalBuffer() );
+
+		input->pullInputs( &mInternalBuffer );
+		sumInternalToOutput( outputBuffer );
+//		if( input->getProcessInPlace() )
+//			sumToInternalBuffer(  );
+//		else
+//			sumToInternalBuffer( input->getInternalBuffer() );
+
 	}
+
+	// FIXME NEXT: mInternalBuffer below no longer has accumulated samples, it just has the last input while summing went to outputBuffer
 
 	if( mEnabled )
 		process( &mInternalBuffer );
 
-	memcpy( inPlaceBuffer->getData(), mInternalBuffer.getData(), inPlaceBuffer->getSize() * sizeof( float ) );
+//	memcpy( outputBuffer->getData(), mInternalBuffer.getData(), outputBuffer->getSize() * sizeof( float ) );
 }
 
 size_t Node::getNumInputs() const
@@ -242,25 +254,19 @@ void Node::fillFormatParamsFromNode( const NodeRef &otherNode )
 
 void Node::configureProcessing()
 {
-#if 1 // node with multiple inputs is 'summing'
-
-	mProcessInPlace = ( getNumInputs() <= 1 ? true : false );
-
-#else // cascaded inputs are summing
-
-	if( getNumInputs() <= 1 ) {
-		mInputs[0]->setProcessInPlace( true );
+	if( getNumInputs() > 1 ) {
+		mProcessInPlace = false;
+		return;
 	}
-	else {
-		for( auto &input : mInputs ) {
-			if( ! input )
-				continue;
 
-			input->setProcessInPlace( false );
+	for( auto &input : mInputs ) {
+		if( input && input->getNumChannels() != mNumChannels ) {
+			mProcessInPlace = false;
+			return;
 		}
 	}
 
-#endif
+	mProcessInPlace = true;
 }
 
 void Node::sumToInternalBuffer( const Buffer *buffer )
@@ -276,6 +282,25 @@ void Node::sumToInternalBuffer( const Buffer *buffer )
 		// up-mix mono input to all of this Node's channels
 		for( size_t c = 0; c < mNumChannels; c++ )
 			sum( buffer->getChannel( 0 ), mInternalBuffer.getChannel( c ), mInternalBuffer.getChannel( c ), mInternalBuffer.getNumFrames() );
+	}
+	else
+		CI_ASSERT( 0 && "unhandled" );
+}
+
+// TODO: handle downmix from stereo to mono
+void Node::sumInternalToOutput( Buffer *outputBuffer )
+{
+	CI_ASSERT( ! mProcessInPlace );
+
+	size_t bufferChannels = outputBuffer->getNumChannels();
+	if( mNumChannels == bufferChannels ) {
+		for( size_t c = 0; c < bufferChannels; c++ )
+			sum( outputBuffer->getChannel( c ), mInternalBuffer.getChannel( c ), outputBuffer->getChannel( c ), mInternalBuffer.getNumFrames() );
+	}
+	else if( mNumChannels == 1 ) {
+		// up-mix mono input to all of this Node's channels
+		for( size_t c = 0; c < mNumChannels; c++ )
+			sum( outputBuffer->getChannel( 0 ), mInternalBuffer.getChannel( c ), outputBuffer->getChannel( c ), mInternalBuffer.getNumFrames() );
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );

@@ -138,6 +138,8 @@ public:
 	std::atomic<size_t> mFramesPerBlock;
 };
 
+// TODO: UGenNode's are starting to seem unnesecarry
+// - just make a GeneratorNode for all of the basic waveforms
 template <typename UGenT>
 struct UGenNode : public GeneratorNode {
 	UGenNode( const Format &format = Format() ) : GeneratorNode( format ) {
@@ -152,8 +154,11 @@ struct UGenNode : public GeneratorNode {
 	virtual void process( Buffer *buffer ) override {
 		size_t count = buffer->getNumFrames();
 		mGen.process( buffer->getChannel( 0 ), count );
-		for( size_t ch = 1; ch < buffer->getNumChannels(); ch++ )
-			memcpy( buffer->getChannel( ch ), buffer->getChannel( 0 ), count * sizeof( float ) );
+
+		// with implicit summing, it is also seeming unnecessary to accomodate channels > 1
+		// - this same copy will happen there
+//		for( size_t ch = 1; ch < buffer->getNumChannels(); ch++ )
+//			memcpy( buffer->getChannel( ch ), buffer->getChannel( 0 ), count * sizeof( float ) );
 	}
 
 	UGenT& getUGen()				{ return mGen; }

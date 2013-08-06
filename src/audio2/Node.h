@@ -101,9 +101,8 @@ public:
 	//! Override to perform processing or analysis on \t buffer
 	virtual void process( Buffer *buffer )	{}
 
-	//! Default implementation decides if it can use \t inPlaceBuffer when calling process and if not, instead uses it's own internal buffer
 	// TODO: consider making this protected / non-virtual
-	virtual void pullInputs( Buffer *inPlaceBuffer );
+	virtual void pullInputs( Buffer *outputBuffer );
 
 	// TODO: it's probably a good idea to hide this structure
 	std::vector<NodeRef>& getInputs()			{ return mInputs; }
@@ -114,7 +113,7 @@ public:
 	ContextRef getContext() const				{ return mContext.lock(); }
 	void setContext( ContextRef context )		{ mContext = context; }
 
-	const std::string& getTag()	const			{ return mTag; }
+	const std::string& getTag()	const			{ return mTag; } // TODO: make this a virtual method and get rid of mTag var
 
 	bool isInitialized() const					{ return mInitialized; }
 
@@ -135,6 +134,7 @@ protected:
 	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
 
 	void sumToInternalBuffer( const Buffer *buffer );
+	void sumInternalToOutput( Buffer *outputBuffer );
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
