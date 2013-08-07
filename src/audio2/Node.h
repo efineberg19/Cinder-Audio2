@@ -125,7 +125,8 @@ public:
 	size_t getNumInputs() const;
 
 	// TODO: make this protected if possible
-	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
+//	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
+	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
 
 protected:
 	Node( const Format &format );
@@ -133,8 +134,7 @@ protected:
 	//! If required Format properties are missing, fill in from \a otherFormat
 	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
 
-	void sumToInternalBuffer( const Buffer *buffer );
-	void sumInternalToOutput( Buffer *outputBuffer );
+	void setProcessWithSumming();
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
@@ -156,8 +156,8 @@ protected:
 	bool					mNumChannelsUnspecified;
 	size_t					mNumChannels;
 
-	Buffer::Layout			mBufferLayout; // TODO: remove, use mInternalBuffer.getLayout()
-	Buffer					mInternalBuffer;
+	Buffer::Layout			mBufferLayout; // TODO: consider removing and using mInternalBuffer.getLayout() instead
+	Buffer					mInternalBuffer, mSummingBuffer;
 
 private:
 	Node( Node const& );
