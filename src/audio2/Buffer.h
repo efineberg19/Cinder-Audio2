@@ -24,6 +24,7 @@
 #pragma once
 
 #include "audio2/CinderAssert.h"
+#include "audio2/Dsp.h"
 
 #include <vector>
 #include <memory>
@@ -179,6 +180,25 @@ inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonIn
 		right[i] = mixed[j + 1];
 	}
 }
+
+// TODO: I need 2 of these, one for summing and one for copying
+template<typename T>
+void submixBuffers( BufferT<T> *destBuffer, const BufferT<T> *sourceBuffer )
+{
+	size_t destChannels = destBuffer->getNumChannels();
+	if( destChannels == sourceBuffer->getNumChannels() ) {
+		for( size_t c = 0; c < destChannels; c++ )
+			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( c ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
+	}
+	else if( sourceBuffer->getNumChannels() == 1 ) {
+		// up-mix mono input to all of this Node's channels
+		for( size_t c = 0; c < destChannels; c++ )
+			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( 0 ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
+	}
+	else
+		CI_ASSERT( 0 && "unhandled" );
+}
+
 
 template<typename T>
 struct FreeDeleter {
