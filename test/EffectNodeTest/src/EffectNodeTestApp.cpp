@@ -16,7 +16,7 @@ using namespace ci::app;
 using namespace std;
 using namespace audio2;
 
-class EffectTestApp : public AppNative {
+class EffectNodeTestApp : public AppNative {
   public:
 	void setup();
 	void draw();
@@ -42,7 +42,7 @@ class EffectTestApp : public AppNative {
 	HSlider mGainSlider, mRingModFreqSlider;
 };
 
-void EffectTestApp::setup()
+void EffectNodeTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
 
@@ -65,14 +65,14 @@ void EffectTestApp::setup()
 	setupUI();
 }
 
-void EffectTestApp::setupOne()
+void EffectNodeTestApp::setupOne()
 {
 	mRingMod = make_shared<RingMod>();
 	mRingMod->mSineGen.setFreq( 20.0f );
 	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getRoot() );
 }
 
-void EffectTestApp::initContext()
+void EffectNodeTestApp::initContext()
 {
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph configuration: (before)" << endl;
@@ -85,7 +85,7 @@ void EffectTestApp::initContext()
 	printGraph( mContext );
 }
 
-void EffectTestApp::setupUI()
+void EffectNodeTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
@@ -122,7 +122,7 @@ void EffectTestApp::setupUI()
 	gl::enableAlphaBlending();
 }
 
-void EffectTestApp::processDrag( Vec2i pos )
+void EffectNodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
 		mGain->setGain( mGainSlider.valueScaled );
@@ -130,16 +130,16 @@ void EffectTestApp::processDrag( Vec2i pos )
 		mRingMod->mSineGen.setFreq( mRingModFreqSlider.valueScaled );
 }
 
-void EffectTestApp::processTap( Vec2i pos )
+void EffectNodeTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 }
 
-void EffectTestApp::draw()
+void EffectNodeTestApp::draw()
 {
 	gl::clear();
 	drawWidgets( mWidgets );
 }
 
-CINDER_APP_NATIVE( EffectTestApp, RendererGl )
+CINDER_APP_NATIVE( EffectNodeTestApp, RendererGl )
