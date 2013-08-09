@@ -111,7 +111,6 @@ NodeAudioUnit::~NodeAudioUnit()
 LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 : LineOutNode( device, format )
 {
-	mTag = "LineOutAudioUnit";
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
@@ -198,7 +197,6 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 : LineInNode( device, format ), mSynchroniousIO( false )
 {
-	mTag = "LineInAudioUnit";
 	mRenderBus = DeviceAudioUnit::Bus::Input;
 
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
@@ -354,7 +352,6 @@ OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlag
 EffectAudioUnit::EffectAudioUnit(  UInt32 effectSubType, const Format &format )
 : EffectNode( format ), mEffectSubType( effectSubType )
 {
-	mTag = "EffectAudioUnit";
 }
 
 EffectAudioUnit::~EffectAudioUnit()
@@ -435,7 +432,6 @@ void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 MixerAudioUnit::MixerAudioUnit( const Format &format )
 : MixerNode( format )
 {
-	mTag = "MixerAudioUnit";
 	mWantsDefaultFormatFromOutput = true;
 }
 

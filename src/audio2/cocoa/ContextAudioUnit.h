@@ -45,7 +45,7 @@ class NodeAudioUnit {
 
   protected:
 
-	::AudioUnit			mAudioUnit;
+	::AudioUnit			mAudioUnit; // TODO: store these in a unique_ptr with custom deleter - it should only be deleted when the node is
 	::AudioUnitScope	mRenderBus;
 	Buffer*				mProcessBuffer;
 
@@ -59,6 +59,8 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
   public:
 	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutAudioUnit() = default;
+
+	std::string virtual getTag() override			{ return "LineOutAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -84,6 +86,8 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
   public:
 	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~LineInAudioUnit();
+
+	std::string virtual getTag() override			{ return "LineInAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -112,6 +116,8 @@ class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
 	EffectAudioUnit( UInt32 subType, const Format &format = Format() );
 	virtual ~EffectAudioUnit();
 
+	std::string virtual getTag() override			{ return "EffectAudioUnit"; }
+
 	void initialize() override;
 	void uninitialize() override;
 	void process( Buffer *buffer ) override;
@@ -129,6 +135,8 @@ class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
   public:
 	MixerAudioUnit( const Format &format = Format() );
 	virtual ~MixerAudioUnit();
+
+	std::string virtual getTag() override			{ return "MixerAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;

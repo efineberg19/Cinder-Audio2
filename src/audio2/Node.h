@@ -113,7 +113,7 @@ public:
 	ContextRef getContext() const				{ return mContext.lock(); }
 	void setContext( ContextRef context )		{ mContext = context; }
 
-	const std::string& getTag()	const			{ return mTag; } // TODO: make this a virtual method and get rid of mTag var
+	std::string virtual getTag()				{ return "Node"; }
 
 	bool isInitialized() const					{ return mInitialized; }
 
@@ -146,7 +146,6 @@ protected:
 	std::vector<NodeRef>	mInputs;
 	std::weak_ptr<Node>		mOutput;
 	std::weak_ptr<Context>	mContext;
-	std::string				mTag;
 	std::atomic<bool>		mEnabled;
 
 	bool					mInitialized;

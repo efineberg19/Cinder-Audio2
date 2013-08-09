@@ -43,6 +43,8 @@ public:
 	TapNode( size_t windowSize = 1024, const Format &format = Format() );
 	virtual ~TapNode();
 
+	std::string virtual getTag() override			{ return "TapNode"; }
+
 	const float* getChannel( size_t ch = 0 );
 	const Buffer& getBuffer();
 
@@ -65,7 +67,9 @@ public:
 	//! If fftSize is not set, defaults to Context::getNumFramesPerBlock(). If window size is not set, defaults to fftSize
 	SpectrumTapNode( size_t fftSize = 0, size_t windowSize = 0, WindowType windowType = WindowType::BLACKMAN, const Format &format = Format() );
 	virtual ~SpectrumTapNode();
-	
+
+	std::string virtual getTag() override			{ return "SpectrumTapNode"; }
+
 	virtual void initialize() override;
 	virtual void process( Buffer *buffer ) override;
 

@@ -42,8 +42,10 @@ namespace audio2 {
 
 	class GainNode : public EffectNode {
 	public:
-		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) { mTag = "GainNode"; }
+		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
 		virtual ~GainNode() {}
+
+		std::string virtual getTag() override			{ return "GainNode"; }
 
 		void process( Buffer *buffer ) override {
 			multiply( buffer->getData(), mGain, buffer->getData(), buffer->getSize() );
@@ -62,8 +64,10 @@ namespace audio2 {
 	};
 
 	struct RingMod : public EffectNode {
-		RingMod( const Format &format = Format() ) : EffectNode( format ), mSineGen( 440.0f, 1.0f )	{ mTag = "RingMod"; }
+		RingMod( const Format &format = Format() ) : EffectNode( format ), mSineGen( 440.0f, 1.0f )	{}
 		virtual ~RingMod() {}
+
+		std::string virtual getTag() override			{ return "RingMod"; }
 
 		virtual void initialize() override {
 			mSineGen.setSampleRate( getContext()->getSampleRate() );

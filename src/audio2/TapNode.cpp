@@ -41,7 +41,6 @@ namespace audio2 {
 TapNode::TapNode( size_t windowSize, const Format &format )
 : Node( format ), mWindowSize( windowSize )
 {
-	mTag = "TapNode";
 	setAutoEnabled();
 }
 
@@ -101,8 +100,6 @@ SpectrumTapNode::SpectrumTapNode( size_t fftSize, size_t windowSize, WindowType 
 : Node( format ), mFftSize( fftSize ), mWindowSize( windowSize ), mWindowType( windowType ),
 	mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
 {
-	mTag = "SpectrumTapNode";
-	setAutoEnabled();
 }
 
 SpectrumTapNode::~SpectrumTapNode()
@@ -115,8 +112,7 @@ void SpectrumTapNode::initialize()
 		mFftSize = getContext()->getNumFramesPerBlock();
 	if( ! isPowerOf2( mFftSize ) )
 		mFftSize = nextPowerOf2( mFftSize );
-		
-
+	
 	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
 	mBuffer = audio2::Buffer( 1, mFftSize );
 	mMagSpectrum.resize( mFftSize / 2 );

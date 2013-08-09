@@ -42,6 +42,7 @@ class RingBuffer;
 class GeneratorNode : public Node {
 public:
 	GeneratorNode( const Format &format );
+	std::string virtual getTag() override			{ return "GeneratorNode"; }
 	virtual ~GeneratorNode() {}
 
 private:
@@ -57,6 +58,8 @@ public:
 	}
 	virtual ~LineInNode() {}
 
+	std::string virtual getTag() override			{ return "LineInNode"; }
+
 	virtual DeviceRef getDevice() = 0;
 };
 
@@ -66,8 +69,10 @@ public:
 //! \see FilePlayerNode
 class PlayerNode : public GeneratorNode {
 public:
-	PlayerNode( const Format &format = Format() ) : GeneratorNode( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) { mTag = "PlayerNode"; }
+	PlayerNode( const Format &format = Format() ) : GeneratorNode( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
 	virtual ~PlayerNode() {}
+
+	std::string virtual getTag() override			{ return "PlayerNode"; }
 
 	virtual void setReadPosition( size_t pos )	{ mReadPos = pos; }
 	virtual size_t getReadPosition() const	{ return mReadPos; }
@@ -89,6 +94,8 @@ public:
 	BufferPlayerNode( BufferRef buffer, const Format &format = Format() );
 	virtual ~BufferPlayerNode() {}
 
+	std::string virtual getTag() override			{ return "BufferPlayerNode"; }
+
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void process( Buffer *buffer );
@@ -106,6 +113,8 @@ public:
 	FilePlayerNode( const Format &format = Format() );
 	FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
 	virtual ~FilePlayerNode();
+
+	std::string virtual getTag() override			{ return "FilePlayerNode"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -143,9 +152,10 @@ public:
 template <typename UGenT>
 struct UGenNode : public GeneratorNode {
 	UGenNode( const Format &format = Format() ) : GeneratorNode( format ) {
-		mTag = "UGenNode";
 		setNumChannels( 1 );
 	}
+
+	std::string virtual getTag() override			{ return "UGenNode"; }
 
 	virtual void initialize() override {
 		mGen.setSampleRate( getContext()->getSampleRate() );

@@ -18,10 +18,11 @@ using namespace audio2;
 struct InterleavedPassThruNode : public Node {
 	InterleavedPassThruNode() : Node( Format() )
 	{
-		mTag = "InterleavedPassThruNode";
 		mBufferLayout = audio2::Buffer::Layout::Interleaved;
 		mAutoEnabled = true;
 	}
+
+	std::string virtual getTag() override			{ return "InterleavedPassThruNode"; }
 
 	void process( audio2::Buffer *buffer ) override
 	{

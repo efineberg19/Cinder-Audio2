@@ -48,13 +48,11 @@ GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
 BufferPlayerNode::BufferPlayerNode( const Format &format )
 : PlayerNode( format )
 {
-	mTag = "BufferPlayerNode";
 }
 
 BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
 : PlayerNode( format ), mBuffer( buffer )
 {
-	mTag = "BufferPlayerNode";
 	mNumFrames = mBuffer->getNumFrames();
 
 	if( mNumChannelsUnspecified )
@@ -143,7 +141,6 @@ FilePlayerNode::~FilePlayerNode()
 FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded, const Format &format )
 : PlayerNode( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
-	mTag = "FilePlayerNode";
 	mNumFrames = mSourceFile->getNumFrames();
 	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
 
