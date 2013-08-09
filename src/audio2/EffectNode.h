@@ -66,7 +66,6 @@ namespace audio2 {
 		virtual ~RingMod() {}
 
 		virtual void initialize() override {
-			EffectNode::initialize(); // TEMP
 			mSineGen.setSampleRate( getContext()->getSampleRate() );
 		}
 

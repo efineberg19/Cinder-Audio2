@@ -148,7 +148,6 @@ struct UGenNode : public GeneratorNode {
 	}
 
 	virtual void initialize() override {
-		Node::initialize(); // TEMP
 		mGen.setSampleRate( getContext()->getSampleRate() );
 	}
 

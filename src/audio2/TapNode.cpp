@@ -51,8 +51,6 @@ TapNode::~TapNode()
 
 void TapNode::initialize()
 {
-	Node::initialize();
-	
 	mCopiedBuffer = Buffer( getNumChannels(), mWindowSize );
 	for( size_t ch = 0; ch < getNumChannels(); ch++ )
 		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mWindowSize ) ) );

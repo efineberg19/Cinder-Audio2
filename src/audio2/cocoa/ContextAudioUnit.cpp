@@ -122,8 +122,6 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 
 void LineOutAudioUnit::initialize()
 {
-	LineOutNode::initialize();
-	
 	mDevice->setOutputConnected();
 
 	mRenderContext.node = this;
@@ -220,8 +218,6 @@ LineInAudioUnit::~LineInAudioUnit()
 
 void LineInAudioUnit::initialize()
 {
-	Node::initialize();
-
 	mRenderContext.node = this;
 	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
