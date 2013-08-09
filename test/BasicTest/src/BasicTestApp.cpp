@@ -36,9 +36,7 @@ struct InterleavedPassThruNode : public Node {
 
 class BasicTestApp : public AppNative {
 public:
-	void prepareSettings( Settings *settings );
 	void setup();
-	void update();
 	void draw();
 
 	void setupSine();
@@ -62,10 +60,6 @@ public:
 
 	enum Bus { Noise, Sine };
 };
-
-void BasicTestApp::prepareSettings( Settings *settings )
-{
-}
 
 void BasicTestApp::setup()
 {
@@ -187,7 +181,6 @@ void BasicTestApp::setupUI()
 	mGainSlider.title = "Gain";
 	mGainSlider.max = 1.0f;
 	mGainSlider.set( mGain->getGain() );
-
 	mWidgets.push_back( &mGainSlider );
 
 	mEnableSineButton.isToggle = true;
@@ -248,10 +241,6 @@ void BasicTestApp::processTap( Vec2i pos )
 		if( running )
 			mContext->start();
 	}
-}
-
-void BasicTestApp::update()
-{
 }
 
 void BasicTestApp::draw()
