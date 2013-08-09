@@ -144,6 +144,7 @@ template <typename UGenT>
 struct UGenNode : public GeneratorNode {
 	UGenNode( const Format &format = Format() ) : GeneratorNode( format ) {
 		mTag = "UGenNode";
+		setNumChannels( 1 );
 	}
 
 	virtual void initialize() override {
