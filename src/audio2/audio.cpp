@@ -39,9 +39,17 @@ namespace {
 		for( size_t i = 0; i < depth; i++ )
 			app::console() << "-- ";
 
+		string channelMode;
+		switch( node->getChannelMode() ) {
+			case Node::ChannelMode::SPECIFIED: channelMode = "specified"; break;
+			case Node::ChannelMode::MATCHES_INPUT: channelMode = "matches input"; break;
+			case Node::ChannelMode::MATCHES_OUTPUT: channelMode = "matches output"; break;
+		}
+
 		app::console() << node->getTag() << "\t[ ch: " << node->getNumChannels();
 		app::console() << ", " << ( node->getBufferLayout() == Buffer::Layout::Interleaved ? "interleaved" : "non-interleaved" );
-		app::console() << ", " << ( node->getProcessInPlace() ? "in-place" : "sum" );
+		app::console() << ", channel mode: " << channelMode;
+		app::console() << ", in-place: " << boolalpha << node->getProcessInPlace() << dec;
 		app::console() << " ]" << endl;
 
 		for( auto &input : node->getInputs() )

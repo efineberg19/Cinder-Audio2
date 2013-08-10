@@ -152,6 +152,7 @@ public:
 template <typename UGenT>
 struct UGenNode : public GeneratorNode {
 	UGenNode( const Format &format = Format() ) : GeneratorNode( format ) {
+		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 1 );
 	}
 

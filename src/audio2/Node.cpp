@@ -41,14 +41,15 @@ namespace audio2 {
 // TODO: seems fitting to pass in Context* as first argument to all Node's
 // - setting during init no longer necessary
 // - provides samplerate / num frames at init
+// - also a garunteed object to syncrhonize with
 
 Node::Node( const Format &format )
-: mInitialized( false ), mEnabled( false ),	mWantsDefaultFormatFromOutput( format.getWantsDefaultFormatFromOutput() ),
+: mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
 mNumChannels( 1 ), mNumChannelsUnspecified( true ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mProcessInPlace( true )
 {
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
-		mNumChannelsUnspecified = false;
+		mChannelMode = ChannelMode::SPECIFIED;
 	}
 }
 
@@ -142,32 +143,6 @@ bool Node::isConnectedToOutput( const NodeRef &output ) const
 	return ( getOutput() == output );
 }
 
-void Node::fillFormatParamsFromOutput()
-{
-	NodeRef output = getOutput();
-	CI_ASSERT( output );
-
-	while( output && ! mNumChannels ) {
-		fillFormatParamsFromNode( output );
-		output = output->getOutput();
-	}
-
-	CI_ASSERT( mNumChannels );
-}
-
-// TODO: consider using a map<index, NodeRef> instead of vector to hold nodes
-//	- pro: I can remove it from the map and the Node's bus remains
-//  - pro: no more empty slots
-void Node::fillFormatParamsFromInput()
-{
-	for( auto &input : mInputs ) {
-		if( input )
-			fillFormatParamsFromNode( input );
-	}
-
-	CI_ASSERT( mNumChannels );
-}
-
 void Node::setEnabled( bool enabled )
 {
 	if( enabled )
@@ -230,44 +205,82 @@ size_t Node::getNumInputs() const
 // MARK: - Protected
 // ----------------------------------------------------------------------------------------------------
 
-void Node::fillFormatParamsFromNode( const NodeRef &otherNode )
+void Node::setNumChannels( size_t numChannels )
 {
-	mNumChannels = otherNode->getNumChannels();
+	mNumChannels = numChannels;
+	mNumChannelsUnspecified = false;
 }
 
+// TODO: consider renaming to configureConnections()
 void Node::configureProcessing()
 {
-	if( getNumInputs() > 1 ) {
-		setProcessWithSumming();
-		return;
-	}
+	mProcessInPlace = true;
+
+	if( getNumInputs() > 1 )
+		mProcessInPlace = false;
 
 	for( auto &input : mInputs ) {
 		if( input && input->getNumChannels() != mNumChannels ) {
-			input->setProcessWithSumming();
-			setProcessWithSumming();
-			return;
+			if( mChannelMode == ChannelMode::MATCHES_INPUT ) {
+				// TODO: figure out the best thing to do when we have multiple inputs.
+				// - probably set num channels to equal the most channels any input has
+				setNumChannels( input->getNumChannels() );
+			}
+			else if( input->getChannelMode() == ChannelMode::MATCHES_OUTPUT ) {
+				input->setNumChannels( mNumChannels );
+				input->configureProcessing();
+			}
+			else {
+				mProcessInPlace = false;
+				input->setProcessWithSumming();
+			}
 		}
 	}
 
 	NodeRef output = getOutput();
 	if( output && output->getNumChannels() != mNumChannels ) {
-		setProcessWithSumming();
-		return;
+		if( output->getChannelMode() == ChannelMode::MATCHES_INPUT ) {
+			output->setNumChannels( mNumChannels );
+			output->configureProcessing();
+		}
+		else
+			mProcessInPlace = false;
 	}
 
-	mProcessInPlace = true;
+	if( ! mProcessInPlace )
+		setProcessWithSumming();
 }
 
-// TODO: don't recreate buffers if they are same dimensions
+// TODO: reallocations could be made more efficient by using DynamicBuffer
 void Node::setProcessWithSumming()
 {
+	mProcessInPlace = false;
+
 	//	size_t framesPerBlock = getContext()->getNumFramesPerBlock(); // TODO: use this
 	size_t framesPerBlock = 512;
 
-	mProcessInPlace = false;
+	if( mSummingBuffer.getNumChannels() == mNumChannels && mSummingBuffer.getNumFrames() == framesPerBlock )
+		return;
+
 	mSummingBuffer = Buffer( mNumChannels, framesPerBlock );
 	mInternalBuffer = Buffer( mNumChannels, framesPerBlock );
+}
+
+// TODO: I need 2 of these, one for summing and one for copying
+void Node::submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer )
+{
+	size_t destChannels = destBuffer->getNumChannels();
+	if( destChannels == sourceBuffer->getNumChannels() ) {
+		for( size_t c = 0; c < destChannels; c++ )
+			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( c ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
+	}
+	else if( sourceBuffer->getNumChannels() == 1 ) {
+		// up-mix mono input to all of this Node's channels
+		for( size_t c = 0; c < destChannels; c++ )
+			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( 0 ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
+	}
+	else
+		CI_ASSERT( 0 && "unhandled" );
 }
 
 bool Node::checkInput( const NodeRef &input )

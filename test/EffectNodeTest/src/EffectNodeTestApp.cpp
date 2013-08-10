@@ -22,14 +22,13 @@ class EffectNodeTestApp : public AppNative {
 	void draw();
 
 	void setupOne();
+	void setupForceStereo();
+	void setupDownMix();
 	void initContext();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
-
-	void updateLowpass();
-	void updateEcho();
 
 	ContextRef mContext;
 	GeneratorNodeRef mGen;
@@ -59,7 +58,8 @@ void EffectNodeTestApp::setup()
 	mGen = sine;
 	mGen->setAutoEnabled();
 
-	setupOne();
+//	setupOne();
+	setupForceStereo();
 
 	initContext();
 	setupUI();
@@ -70,6 +70,20 @@ void EffectNodeTestApp::setupOne()
 	mRingMod = make_shared<RingMod>();
 	mRingMod->mSineGen.setFreq( 20.0f );
 	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getRoot() );
+}
+
+// TODO NEXT: GainNode should be flexible in channel counts
+//	- it should accomodate any inpute channel count and always operates in-place
+void EffectNodeTestApp::setupForceStereo()
+{
+	mRingMod = make_shared<RingMod>( Node::Format().channels( 2 ) );
+	mRingMod->mSineGen.setFreq( 20.0f );
+	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getRoot() );
+}
+
+void EffectNodeTestApp::setupDownMix()
+{
+	// TODO
 }
 
 void EffectNodeTestApp::initContext()

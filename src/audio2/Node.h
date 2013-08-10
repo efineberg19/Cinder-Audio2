@@ -45,18 +45,24 @@ class Node : public std::enable_shared_from_this<Node> {
 public:
 	virtual ~Node();
 
+	enum ChannelMode {
+		SPECIFIED,
+		MATCHES_INPUT,
+		MATCHES_OUTPUT
+	};
+
 	struct Format {
-		Format() : mChannels( 0 ), mWantsDefaultFormatFromOutput( false ) {}
+		Format() : mChannels( 0 ), mChannelMode( ChannelMode::MATCHES_INPUT ) {}
 
 		Format& channels( size_t ch )							{ mChannels = ch; return *this; }
-		Format& wantsDefaultFormatFromOutput( bool b = true )	{ mWantsDefaultFormatFromOutput = b; return *this; }
+		Format& channelMode( ChannelMode mode )					{ mChannelMode = mode; return *this; }
 
 		size_t	getChannels() const								{ return mChannels; }
-		bool	getWantsDefaultFormatFromOutput() const			{ return mWantsDefaultFormatFromOutput; }
+		ChannelMode	getChannelMode() const						{ return mChannelMode; }
 
 	private:
 		size_t mChannels;
-		bool mWantsDefaultFormatFromOutput;
+		ChannelMode mChannelMode;
 	};
 
 	virtual void initialize();
@@ -76,10 +82,10 @@ public:
 	bool isConnectedToInput( const NodeRef &input ) const;
 	bool isConnectedToOutput( const NodeRef &output ) const;
 
-	size_t	getNumChannels() const	{ return mNumChannels; }
+	size_t	getNumChannels() const			{ return mNumChannels; }
+	ChannelMode getChannelMode() const		{ return mChannelMode; }
 
-	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
-	bool	getWantsDefaultFormatFromOutput() const			{ return mWantsDefaultFormatFromOutput; }
+//	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
 
 	//	void	setWantsDefaultFormatFromOutput( bool b = true )	{ mWantsDefaultFormatFromOutput = b; }
 
@@ -93,10 +99,10 @@ public:
 	virtual bool supportsSourceNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
 
 	//! If required Format properties are missing, fill in params from output
-	virtual void fillFormatParamsFromOutput();
-
-	//! If required Format properties are missing, fill in params from first input
-	virtual void fillFormatParamsFromInput();
+//	virtual void fillFormatParamsFromOutput();
+//
+//	//! If required Format properties are missing, fill in params from first input
+//	virtual void fillFormatParamsFromInput();
 
 	//! Override to perform processing or analysis on \t buffer
 	virtual void process( Buffer *buffer )	{}
@@ -131,16 +137,14 @@ public:
 protected:
 	Node( const Format &format );
 
-	//! If required Format properties are missing, fill in from \a otherFormat
-	virtual void fillFormatParamsFromNode( const NodeRef &otherNode );
+	virtual void submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer );
 
 	void setProcessWithSumming();
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
-	void setNumChannels( size_t numChannels )	{ mNumChannels = numChannels; mNumChannelsUnspecified = false; }
+	void setNumChannels( size_t numChannels );
 	bool checkInput( const NodeRef &input );
-	void setProcessInPlace( bool b )		{ mProcessInPlace = b; }
-
+	
 	void configureProcessing();
 
 	std::vector<NodeRef>	mInputs;
@@ -151,11 +155,11 @@ protected:
 	bool					mInitialized;
 	bool					mAutoEnabled;
 	bool					mProcessInPlace;
-	bool					mWantsDefaultFormatFromOutput;
 	bool					mNumChannelsUnspecified;
 	size_t					mNumChannels;
+	ChannelMode				mChannelMode;
 
-	Buffer::Layout			mBufferLayout; // TODO: consider removing and using mInternalBuffer.getLayout() instead
+	Buffer::Layout			mBufferLayout; // TODO: consider removing and using mInternalBuffer.getLayout() instead. - may be awkward if two internal Buffer's are really necessary
 	Buffer					mInternalBuffer, mSummingBuffer;
 
 private:
@@ -203,6 +207,8 @@ class MixerNode : public Node {
 public:
 	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
+
+	std::string virtual getTag()				{ return "MixerNode"; }
 
 	//! returns the number of connected busses.
 	virtual size_t getNumBusses() = 0;

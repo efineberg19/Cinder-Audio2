@@ -38,7 +38,9 @@ namespace audio2 {
 
 GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
 {
-	mWantsDefaultFormatFromOutput = true;
+	// GeneratorNode's don't have inputs, so disallow matches input channels
+	if( mChannelMode == ChannelMode::MATCHES_INPUT )
+		mChannelMode = ChannelMode::MATCHES_OUTPUT;
 }
 
 // ----------------------------------------------------------------------------------------------------
