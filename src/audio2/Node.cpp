@@ -45,7 +45,7 @@ namespace audio2 {
 
 Node::Node( const Format &format )
 : mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
-mNumChannels( 1 ), mNumChannelsUnspecified( true ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mProcessInPlace( true )
+mNumChannels( 1 ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mProcessInPlace( true )
 {
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
@@ -208,7 +208,6 @@ size_t Node::getNumInputs() const
 void Node::setNumChannels( size_t numChannels )
 {
 	mNumChannels = numChannels;
-	mNumChannelsUnspecified = false;
 }
 
 // TODO: consider renaming to configureConnections()

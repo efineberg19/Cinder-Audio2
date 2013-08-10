@@ -155,7 +155,6 @@ protected:
 	bool					mInitialized;
 	bool					mAutoEnabled;
 	bool					mProcessInPlace;
-	bool					mNumChannelsUnspecified;
 	size_t					mNumChannels;
 	ChannelMode				mChannelMode;
 

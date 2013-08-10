@@ -57,8 +57,13 @@ BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
 {
 	mNumFrames = mBuffer->getNumFrames();
 
-	if( mNumChannelsUnspecified )
-		setNumChannels( mBuffer->getNumChannels() );
+	// if channel mode is not already specified, set to stereo, mono sound files will be mixed up.
+	// TODO: reconsider if this is the best general case.
+	// - alternative would be that setting a buffer of different size than already exits triggers another configureConnections() call
+	if( mChannelMode != ChannelMode::SPECIFIED ) {
+		mChannelMode = ChannelMode::SPECIFIED;
+		setNumChannels( 2 );
+	}
 }
 
 void BufferPlayerNode::start()

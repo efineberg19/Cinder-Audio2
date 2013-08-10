@@ -114,13 +114,17 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
-	if( mNumChannelsUnspecified )
+	if( mChannelMode != ChannelMode::SPECIFIED ) {
+		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 2 );
-
+	}
 }
 
 void LineOutAudioUnit::initialize()
 {
+	// LineOut always needs an internal buffer to deliver to the ouput AU, so force one to be made.
+	setProcessWithSumming();
+
 	mDevice->setOutputConnected();
 
 	mRenderContext.node = this;
@@ -197,13 +201,14 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 : LineInNode( device, format ), mSynchroniousIO( false )
 {
-	mRenderBus = DeviceAudioUnit::Bus::Input;
+	mRenderBus = DeviceAudioUnit::Bus::Input; // TODO: remove, this shouldn't be necessary anymore
 
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
-	if( mNumChannelsUnspecified ) {
-		setNumChannels( 2 ); // TODO: should default input channels be 1?
+	if( mChannelMode != ChannelMode::SPECIFIED ) {
+		mChannelMode = ChannelMode::SPECIFIED;
+		setNumChannels( 2 );
 	}
 
 	CI_ASSERT( ! mDevice->isInputConnected() );
@@ -432,7 +437,7 @@ void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 MixerAudioUnit::MixerAudioUnit( const Format &format )
 : MixerNode( format )
 {
-	mWantsDefaultFormatFromOutput = true;
+	mChannelMode = ChannelMode::MATCHES_OUTPUT;
 }
 
 MixerAudioUnit::~MixerAudioUnit()
@@ -605,20 +610,11 @@ void ContextAudioUnit::initNode( NodeRef node )
 
 	node->setContext( shared_from_this() );
 
-	if( node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
-		node->fillFormatParamsFromOutput();
-
 	// recurse through inputs
 	for( NodeRef& inputNode : node->getInputs() )
 		initNode( inputNode );
 
-	// set default params from source
-	// TODO: move this to connect(), make enum with matchesInput / matchesOutput / specified
-	if( ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
-		node->fillFormatParamsFromInput();
-
 	node->initialize();
-
 }
 
 void ContextAudioUnit::uninitialize()
