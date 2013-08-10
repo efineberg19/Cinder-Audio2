@@ -137,6 +137,7 @@ public:
 protected:
 	Node( const Format &format );
 
+	virtual void configureConnections();
 	virtual void submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer );
 
 	void setProcessWithSumming();
@@ -145,7 +146,6 @@ protected:
 	void setNumChannels( size_t numChannels );
 	bool checkInput( const NodeRef &input );
 	
-	void configureProcessing();
 
 	std::vector<NodeRef>	mInputs;
 	std::weak_ptr<Node>		mOutput;

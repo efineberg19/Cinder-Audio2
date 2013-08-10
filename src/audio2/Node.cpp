@@ -106,14 +106,14 @@ void Node::setInput( NodeRef input )
 	for( size_t i = 0; i < mInputs.size(); i++ ) {
 		if( ! mInputs[i] ) {
 			mInputs[i] = input;
-			configureProcessing();
+			configureConnections();
 			return;
 		}
 	}
 
 	// or append
 	mInputs.push_back( input );
-	configureProcessing();
+	configureConnections();
 }
 
 
@@ -130,7 +130,7 @@ void Node::setInput( NodeRef input, size_t bus )
 
 	mInputs[bus] = input;
 	input->setOutput( shared_from_this() );
-	configureProcessing();
+	configureConnections();
 }
 
 bool Node::isConnectedToInput( const NodeRef &input ) const
@@ -210,8 +210,7 @@ void Node::setNumChannels( size_t numChannels )
 	mNumChannels = numChannels;
 }
 
-// TODO: consider renaming to configureConnections()
-void Node::configureProcessing()
+void Node::configureConnections()
 {
 	mProcessInPlace = true;
 
@@ -227,7 +226,7 @@ void Node::configureProcessing()
 			}
 			else if( input->getChannelMode() == ChannelMode::MATCHES_OUTPUT ) {
 				input->setNumChannels( mNumChannels );
-				input->configureProcessing();
+				input->configureConnections();
 			}
 			else {
 				mProcessInPlace = false;
@@ -240,7 +239,7 @@ void Node::configureProcessing()
 	if( output && output->getNumChannels() != mNumChannels ) {
 		if( output->getChannelMode() == ChannelMode::MATCHES_INPUT ) {
 			output->setNumChannels( mNumChannels );
-			output->configureProcessing();
+			output->configureConnections();
 		}
 		else
 			mProcessInPlace = false;
