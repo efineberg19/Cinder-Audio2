@@ -574,78 +574,6 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - ConverterAudioUnit
-// ----------------------------------------------------------------------------------------------------
-
-/*
-// TODO: remove these params - they are deduced once connected
-ConverterAudioUnit::ConverterAudioUnit( NodeRef input, NodeRef dest )
-: Node( Format() )
-{
-	mTag = "ConverterAudioUnit";
-
-	mNumChannels = dest->getNumChannels();
-	mInputNumChannels = input->getNumChannels();
-}
-
-ConverterAudioUnit::~ConverterAudioUnit()
-{
-}
-
-void ConverterAudioUnit::initialize()
-{
-	::AudioComponentDescription comp{ 0 };
-	comp.componentType = kAudioUnitType_FormatConverter;
-	comp.componentSubType = kAudioUnitSubType_AUConverter;
-	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
-
-	NodeRef inputNode = mInputs[0];
-	NodeRef destNode = getOutput();
-
-	mBufferLayout = destNode->getBufferLayout();
-
-	mRenderContext.currentNode = this;
-	mRenderContext.buffer = Buffer( inputNode->getNumChannels(), getContext()->getNumFramesPerBlock(), inputNode->getBufferLayout() );
-
-
-	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
-
-	size_t sampleRate = getContext()->getSampleRate();
-	::AudioStreamBasicDescription inputAsbd = cocoa::createFloatAsbd( inputNode->getNumChannels(), sampleRate, ( inputNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
-	::AudioStreamBasicDescription outputAsbd = cocoa::createFloatAsbd( destNode->getNumChannels(), sampleRate, ( destNode->getBufferLayout() == Buffer::Layout::Interleaved ) );
-
-//	LOG_V << "input ASBD:" << endl;
-//	cocoa::printASBD( inputAsbd );
-//	LOG_V << "output ASBD:" << endl;
-//	cocoa::printASBD( outputAsbd );
-
-	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &outputAsbd, sizeof( outputAsbd ) );
-	CI_ASSERT( status == noErr );
-
-	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &inputAsbd, sizeof( inputAsbd ) );
-	CI_ASSERT( status == noErr );
-
-	if( mInputNumChannels == 1 && getNumChannels() == 2 ) {
-		// map mono source to stereo out
-		UInt32 channelMap[2] = { 0, 0 };
-		status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &channelMap, sizeof( channelMap ) );
-		CI_ASSERT( status == noErr );
-	}
-
-	status = ::AudioUnitInitialize( mAudioUnit );
-	CI_ASSERT( status == noErr );
-
-	mInitialized = true;
-}
-
-void ConverterAudioUnit::uninitialize()
-{
-	mInitialized = false;
-	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
-	CI_ASSERT( status == noErr );
-}
-*/
-// ----------------------------------------------------------------------------------------------------
 // MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
@@ -665,11 +593,6 @@ void ContextAudioUnit::initialize()
 	mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
 
 	initNode( mRoot );
-
-//	mRenderContext.buffer = Buffer( mRoot->getNumChannels(), mNumFramesPerBlock );
-//	mRenderContext.currentNode = mRoot.get();
-
-//	connectRenderCallback( mRoot, &mRenderContext, &ContextAudioUnit::renderCallbackRoot, false );
 
 	mInitialized = true;
 	LOG_V << "graph initialize complete. samplerate: " << mSampleRate << ", frames per block: " << mNumFramesPerBlock << endl;
@@ -694,60 +617,9 @@ void ContextAudioUnit::initNode( NodeRef node )
 	if( ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
 		node->fillFormatParamsFromInput();
 
-//	for( size_t bus = 0; bus < node->getInputs().size(); bus++ ) {
-//		NodeRef inputNode = node->getInputs()[bus];
-//		if( ! inputNode )
-//			continue;
-//
-//		// TODO: if node is an LineOutAudioUnit, or Mixer, they can do the channel mapping and avoid the converter
-//		bool needsConverter = false;
-//		if( node->getNumChannels() != inputNode->getNumChannels() )
-//			needsConverter = true;
-//		else if( node->getBufferLayout() != inputNode->getBufferLayout() )
-//			needsConverter = true;
-//
-//		if( needsConverter ) {
-//			auto converter = make_shared<ConverterAudioUnit>( inputNode, node );
-//			converter->setContext( shared_from_this() );
-//			node->setInput( converter, bus );
-//			converter->setInput( inputNode );
-//			converter->initialize();
-//			connectRenderCallback( converter, &converter->mRenderContext, &ContextAudioUnit::renderCallbackConverter, true );
-//		}
-//	}
-
 	node->initialize();
 
-//	connectRenderCallback( node, &mRenderContext, &ContextAudioUnit::renderCallback, false );
 }
-
-// TODO: if both node and input are native, consider directly connecting instead of using render callback - diffuculty here is knowing when to use the generic process()
-//void ContextAudioUnit::connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive )
-//{
-//	CI_ASSERT( false && "don't use" );
-//
-//	CI_ASSERT( context );
-//
-//	NodeAudioUnit *nodeAU = dynamic_cast<NodeAudioUnit *>( node.get() );
-//	if( ! nodeAU || ! nodeAU->shouldUseGraphRenderCallback() )
-//		return;
-//
-//	::AudioUnit audioUnit = nodeAU->getAudioUnit();
-//	CI_ASSERT( audioUnit );
-//
-//	::AURenderCallbackStruct callbackStruct = { callback, context };
-//
-//	for( UInt32 bus = 0; bus < node->getInputs().size(); bus++ ) {
-//		NodeRef input = node->getInputs()[bus];
-//		if( ! input )
-//			continue;
-//		OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus, &callbackStruct, sizeof( callbackStruct ) );
-//		CI_ASSERT( status == noErr );
-//
-//		if( recursive )
-//			connectRenderCallback( input, context, callback, recursive );
-//	}
-//}
 
 void ContextAudioUnit::uninitialize()
 {
@@ -771,109 +643,6 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 		uninitNode( source );
 
 	node->uninitialize();
-
-	// throw away any ConverterNodes
-//	ConverterAudioUnit *converter = dynamic_cast<ConverterAudioUnit *>( node.get() );
-//	if( converter )
-//		converter->getOutput()->setInput( converter->getInputs()[0] );
 }
-
-//OSStatus ContextAudioUnit::renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
-//{
-//	static_cast<RenderCallbackContext *>( data )->buffer.zero();
-//
-//	// In rare cases (when all nodes are disabled, but graph is running), the bufferList can get passed to output unmodified. So zero it out too.
-//	// note: moved to end of renderCallback (source->isLeaf check)
-////	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-////		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
-//
-//	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
-//}
-
-//OSStatus ContextAudioUnit::renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
-//{
-//	static_cast<RenderCallbackContext *>( data )->buffer.zero();
-//
-////	for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-////		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
-//
-//	return renderCallback( data, flags, timeStamp, busNumber, numFrames, bufferList );
-//}
-
-// TODO: avoid multiple copies when generic nodes are chained together
-//OSStatus ContextAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
-//{
-//	CI_ASSERT( 0 && "don't use" );
-//
-//	RenderCallbackContext *renderContext = static_cast<RenderCallbackContext *>( data );
-//
-//	CI_ASSERT( renderContext->currentNode );
-//	CI_ASSERT( bus < renderContext->currentNode->getInputs().size() );
-//	CI_ASSERT( numFrames == renderContext->buffer.getNumFrames() );
-//
-//	NodeRef input = renderContext->currentNode->getInputs()[bus];
-//	NodeAudioUnit *inputAU = dynamic_cast<NodeAudioUnit *>( input.get() );
-//
-//	// check if this needs native rendering
-//	if( inputAU && inputAU->shouldUseGraphRenderCallback() ) {
-//		Node *thisNode = renderContext->currentNode;
-//		renderContext->currentNode = input.get();
-//		::AudioUnit audioUnit = inputAU->getAudioUnit();
-//		::AudioUnitScope renderBus = inputAU->getRenderBus();
-//		OSStatus status = ::AudioUnitRender( audioUnit, flags, timeStamp, renderBus, numFrames, bufferList );
-//		CI_ASSERT( status == noErr );
-//
-//		renderContext->currentNode = thisNode;
-//	}
-//	else {
-//		// render all children through this callback, since there is a possiblity they can fall into the native category
-//		bool didRenderChildren = false;
-//		for( size_t i = 0; i < input->getInputs().size(); i++ ) {
-//			if( ! input->getInputs()[i] )
-//				continue;
-//
-//			didRenderChildren = true;
-//			Node *thisNode = renderContext->currentNode;
-//			renderContext->currentNode = input.get();
-//
-//			renderCallback( renderContext, flags, timeStamp, 0, numFrames, bufferList );
-//
-//			renderContext->currentNode = thisNode;
-//		}
-//
-//		if( didRenderChildren ) {
-//			// copy samples from AudioBufferList to the generic buffer before generic render
-//			// TODO: consider adding methods for buffer copying to CinderCoreAudio
-//			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
-//				CI_ASSERT( bufferList->mNumberBuffers == 1 );
-//				memcpy( renderContext->buffer.getData(), bufferList->mBuffers[0].mData, bufferList->mBuffers[0].mDataByteSize );
-//			}
-//			else {
-//				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-//					memcpy( renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
-//			}
-//		}
-//
-//		if( input->isEnabled() ) {
-//			input->process( &renderContext->buffer );
-//
-//			// copy samples back to the output buffer
-//			if( renderContext->buffer.getLayout() == Buffer::Layout::Interleaved ) {
-//				CI_ASSERT( bufferList->mNumberBuffers == 1 );
-//				memcpy( bufferList->mBuffers[0].mData, renderContext->buffer.getData(), bufferList->mBuffers[0].mDataByteSize );
-//			}
-//			else {
-//				for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-//					memcpy( bufferList->mBuffers[i].mData, renderContext->buffer.getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
-//			}
-//		}
-//		else if( ! didRenderChildren && input->getInputs().empty() ) {
-//			for( size_t i = 0; i < bufferList->mNumberBuffers; i++ )
-//				memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
-//		}
-//	}
-//
-//	return noErr;
-//}
 
 } } // namespace audio2::cocoa

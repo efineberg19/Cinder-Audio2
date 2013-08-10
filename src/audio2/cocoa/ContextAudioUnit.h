@@ -74,11 +74,6 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
   private:
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
-//	struct RenderContext {
-//		LineOutAudioUnit *lineOut;
-//		ContextAudioUnit *context;
-//	} mRenderContext;
-
 	std::shared_ptr<DeviceAudioUnit> mDevice;
 };
 
@@ -156,24 +151,6 @@ class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
 	void checkBusIsValid( size_t bus );
 };
 
-/*
-class ConverterAudioUnit : public Node, public NodeAudioUnit {
-  public:
-	ConverterAudioUnit( NodeRef input, NodeRef dest );
-	virtual ~ConverterAudioUnit();
-
-	void initialize() override;
-	void uninitialize() override;
-
-  private:
-	size_t mInputNumChannels;
-	RenderCallbackContext mRenderContext;
-
-	friend class ContextAudioUnit;
-};
- 
-*/
-
 class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
@@ -193,19 +170,11 @@ class ContextAudioUnit : public Context {
 
   private:
 
-//	void connectRenderCallback( NodeRef node, RenderCallbackContext *context, ::AURenderCallback callback, bool recursive );
-
-//	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
-//	static OSStatus renderCallbackRoot( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
-//	static OSStatus renderCallbackConverter( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
-
 	// TODO: consider making these abstract methods in Context
 	void initNode( NodeRef node );
 	void uninitNode( NodeRef node );
 
 	const ::AudioTimeStamp *mCurrentTimeStamp;
-	
-//	RenderCallbackContext mRenderContext;
 };
 
 } } // namespace audio2::cocoa
