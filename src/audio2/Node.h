@@ -43,8 +43,6 @@ typedef std::shared_ptr<class FilePlayerNode> FilePlayerNodeRef;
 
 class Node : public std::enable_shared_from_this<Node> {
 public:
-	virtual ~Node();
-
 	enum ChannelMode {
 		SPECIFIED,
 		MATCHES_INPUT,
@@ -64,6 +62,9 @@ public:
 		size_t mChannels;
 		ChannelMode mChannelMode;
 	};
+
+	Node( const Format &format );
+	virtual ~Node();
 
 	virtual void initialize();
 	virtual void uninitialize()	{ mInitialized = false; }
@@ -135,7 +136,6 @@ public:
 	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
 
 protected:
-	Node( const Format &format );
 
 	virtual void configureConnections();
 	virtual void submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer );
