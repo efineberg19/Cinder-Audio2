@@ -86,10 +86,6 @@ public:
 	size_t	getNumChannels() const			{ return mNumChannels; }
 	ChannelMode getChannelMode() const		{ return mChannelMode; }
 
-//	bool	isNumChannelsUnspecified() const	{ return mNumChannelsUnspecified; }
-
-	//	void	setWantsDefaultFormatFromOutput( bool b = true )	{ mWantsDefaultFormatFromOutput = b; }
-
 	const Buffer::Layout& getBufferLayout() const { return mBufferLayout; }
 
 	//! controls whether the owning Context automatically enables / disables this Node
@@ -98,12 +94,6 @@ public:
 
 	//! Default implementation returns true if numChannels match our format
 	virtual bool supportsSourceNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
-
-	//! If required Format properties are missing, fill in params from output
-//	virtual void fillFormatParamsFromOutput();
-//
-//	//! If required Format properties are missing, fill in params from first input
-//	virtual void fillFormatParamsFromInput();
 
 	//! Override to perform processing or analysis on \t buffer
 	virtual void process( Buffer *buffer )	{}
