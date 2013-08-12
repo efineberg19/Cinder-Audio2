@@ -58,9 +58,9 @@ void EffectNodeTestApp::setup()
 	mGen = sine;
 	mGen->setAutoEnabled();
 
-//	setupOne();
+	setupOne();
 //	setupForceStereo();
-	setupDownMix();
+//	setupDownMix();
 
 	initContext();
 	setupUI();
@@ -105,7 +105,9 @@ void EffectNodeTestApp::setupUI()
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mPlayButton );
 
-	mTestSelector.segments.push_back( "ring mod" );
+	mTestSelector.segments.push_back( "one" );
+	mTestSelector.segments.push_back( "force stereo" );
+	mTestSelector.segments.push_back( "down-mix" );
 	mTestSelector.bounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 
@@ -121,7 +123,7 @@ void EffectNodeTestApp::setupUI()
 	mRingModFreqSlider.bounds = sliderRect;
 	mRingModFreqSlider.title = "RingMod Frequency";
 	mRingModFreqSlider.max = 500.0f;
-	mRingModFreqSlider.set( mGain->getGain() );
+	mRingModFreqSlider.set( mRingMod->mSineGen.getFreq() );
 	mWidgets.push_back( &mRingModFreqSlider );
 
 
@@ -148,6 +150,28 @@ void EffectNodeTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
+
+	size_t currentIndex = mTestSelector.currentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
+		string currentTest = mTestSelector.currentSection();
+		LOG_V << "selected: " << currentTest << endl;
+
+		bool running = mContext->isEnabled();
+		mContext->uninitialize();
+
+		mContext->disconnectAllNodes();
+
+		if( currentTest == "one" )
+			setupOne();
+		if( currentTest == "force stereo" )
+			setupForceStereo();
+		if( currentTest == "down-mix" )
+			setupDownMix();
+		initContext();
+
+		if( running )
+			mContext->start();
+	}
 }
 
 void EffectNodeTestApp::draw()
