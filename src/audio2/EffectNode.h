@@ -42,7 +42,15 @@ namespace audio2 {
 
 	class GainNode : public EffectNode {
 	public:
-		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
+
+		//! Default format for GainNode can support any channels
+		struct Format : public Node::Format {
+			Format() : Node::Format() { mChannelMode = ChannelMode::ANY; }
+		};
+
+		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f )
+		{
+		}
 		virtual ~GainNode() {}
 
 		std::string virtual getTag() override			{ return "GainNode"; }

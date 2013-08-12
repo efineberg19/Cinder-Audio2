@@ -42,6 +42,7 @@ namespace {
 		string channelMode;
 		switch( node->getChannelMode() ) {
 			case Node::ChannelMode::SPECIFIED: channelMode = "specified"; break;
+			case Node::ChannelMode::ANY: channelMode = "any"; break;
 			case Node::ChannelMode::MATCHES_INPUT: channelMode = "matches input"; break;
 			case Node::ChannelMode::MATCHES_OUTPUT: channelMode = "matches output"; break;
 		}
