@@ -76,6 +76,10 @@ struct SineGen : public UGen {
 	void setFreq( float freq )		{ mFreq = freq; computePhaseIncr(); }
 	void setAmp( float amp )		{ mAmp = amp; }
 
+	size_t getSampleRate() const	{ return mSampleRate; }
+	float getFreq() const			{ return mFreq; }
+	float getAmp() const			{ return mAmp; }
+
 	using UGen::process;
 	void process( float *channel, size_t count ) override {
 		float amp = mAmp;
