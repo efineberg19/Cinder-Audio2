@@ -267,15 +267,25 @@ void Node::setProcessWithSumming()
 // TODO: I need 2 of these, one for summing and one for copying
 void Node::submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer )
 {
+	CI_ASSERT( destBuffer->getNumFrames() == sourceBuffer->getNumFrames() );
+	CI_ASSERT( destBuffer->getLayout() == sourceBuffer->getLayout() ); // TODO: add support for layout conversions
+
 	size_t destChannels = destBuffer->getNumChannels();
+	size_t sourceChannels = sourceBuffer->getNumChannels();
 	if( destChannels == sourceBuffer->getNumChannels() ) {
 		for( size_t c = 0; c < destChannels; c++ )
 			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( c ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
 	}
-	else if( sourceBuffer->getNumChannels() == 1 ) {
-		// up-mix mono input to all of this Node's channels
+	else if( sourceChannels == 1 ) {
+		// up-mix mono sourceBuffer to destChannels
 		for( size_t c = 0; c < destChannels; c++ )
 			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( 0 ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
+	}
+	else if( destChannels == 1 ) {
+		// down-mix mono destBuffer to sourceChannels
+		// TODO: try equal power fading all channels to center
+		for( size_t c = 0; c < sourceChannels; c++ )
+			sum( destBuffer->getChannel( 0 ), sourceBuffer->getChannel( c ), destBuffer->getChannel( 0 ), destBuffer->getNumFrames() );
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );

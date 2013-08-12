@@ -59,7 +59,8 @@ void EffectNodeTestApp::setup()
 	mGen->setAutoEnabled();
 
 //	setupOne();
-	setupForceStereo();
+//	setupForceStereo();
+	setupDownMix();
 
 	initContext();
 	setupUI();
@@ -83,20 +84,19 @@ void EffectNodeTestApp::setupForceStereo()
 
 void EffectNodeTestApp::setupDownMix()
 {
-	// TODO
+	mRingMod = make_shared<RingMod>( Node::Format().channels( 2 ) );
+	mRingMod->mSineGen.setFreq( 20.0f );
+
+	auto monoPassThru = make_shared<Node>( Node::Format().channels( 1 ) );
+	mGen->connect( mRingMod )->connect( mGain )->connect( monoPassThru )->connect( mContext->getRoot() );
 }
 
 void EffectNodeTestApp::initContext()
 {
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 
 	mContext->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
-	printGraph( mContext );
 }
 
 void EffectNodeTestApp::setupUI()
