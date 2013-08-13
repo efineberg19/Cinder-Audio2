@@ -211,12 +211,14 @@ LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 		setNumChannels( 2 );
 	}
 
-	CI_ASSERT( ! mDevice->isInputConnected() );
-	mDevice->setInputConnected();
 }
 
 LineInAudioUnit::~LineInAudioUnit()
 {
+	if( mAudioUnit ) {
+		OSStatus status = ::AudioComponentInstanceDispose( mAudioUnit );
+		CI_ASSERT( status == noErr );
+	}
 }
 
 void LineInAudioUnit::initialize()
@@ -226,6 +228,9 @@ void LineInAudioUnit::initialize()
 
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
+
+	CI_ASSERT( ! mDevice->isInputConnected() );
+	mDevice->setInputConnected();
 
 	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
@@ -246,7 +251,7 @@ void LineInAudioUnit::initialize()
 		CI_ASSERT( status == noErr );
 	}
 	else {
-		LOG_V << "ASynchonous I/O, initiate ringbuffer" << endl;
+		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
 
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * getNumChannels() ) );
 		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() );
@@ -295,9 +300,9 @@ DeviceRef LineInAudioUnit::getDevice()
 	return mDevice->getComponentInstance();
 }
 
-// TODO: clean up the background thread logging
-// - the right thing to do here is probably store an underrun framestamp
-// - retrieved by getting Context::getCurrentSampleFrame()
+// TODO: do away with background thread logging
+// - the right thing to do here is store an underrun framestamp
+// - retrieved by getting Context::getCurrentSampleFrame(), UI can get last one in update() loop
 void LineInAudioUnit::process( Buffer *buffer )
 {
 	if( mSynchroniousIO ) {
