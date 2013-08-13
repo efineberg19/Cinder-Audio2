@@ -40,17 +40,17 @@ namespace audio2 {
 
 Context* Context::instance()
 {
-	static Context *sInstance = 0;
+	static ContextRef sInstance;
 	if( ! sInstance ) {
 #if defined( CINDER_COCOA )
-		sInstance = new cocoa::ContextAudioUnit();
+		sInstance = ContextRef( new cocoa::ContextAudioUnit() );
 #elif defined( CINDER_MSW )
-		sInstance = new msw::ContextXAudio();
+		sInstance = ContextRef( new msw::ContextXAudio() );
 #else
 		throw AudioContextExc( "no default context for this platform." );
 #endif
 	}
-	return sInstance;
+	return sInstance.get();
 }
 
 Context::~Context()
