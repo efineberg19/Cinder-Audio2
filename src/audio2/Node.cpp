@@ -43,10 +43,12 @@ namespace audio2 {
 // - provides samplerate / num frames at init
 // - also a garunteed object to syncrhonize with
 
-Node::Node( const Format &format )
-: mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
+Node::Node( const ContextRef &context, const Format &format )
+: mContext( context ), mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
 mNumChannels( 1 ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mProcessInPlace( true )
 {
+	CI_ASSERT( getContext() );
+
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
 		mChannelMode = ChannelMode::SPECIFIED;

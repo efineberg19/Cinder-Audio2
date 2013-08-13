@@ -40,7 +40,17 @@ typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
 
 class TapNode : public Node {
 public:
-	TapNode( size_t windowSize = 1024, const Format &format = Format() );
+	struct Format : public Node::Format {
+		Format() : mWindowSize( 1024 ) {}
+
+		Format& windowSize( size_t size )		{ mWindowSize = size; return *this; }
+		size_t getWindowSize() const			{ return mWindowSize; }
+
+	protected:
+		size_t mWindowSize;
+	};
+
+	TapNode( const ContextRef &context, const Format &format = Format() );
 	virtual ~TapNode();
 
 	std::string virtual getTag() override			{ return "TapNode"; }
@@ -64,8 +74,27 @@ private:
 
 class SpectrumTapNode : public Node {
 public:
-	//! If fftSize is not set, defaults to Context::getNumFramesPerBlock(). If window size is not set, defaults to fftSize
-	SpectrumTapNode( size_t fftSize = 0, size_t windowSize = 0, WindowType windowType = WindowType::BLACKMAN, const Format &format = Format() );
+	struct Format : public Node::Format {
+		Format() : mFftSize( 0 ), mWindowSize( 0 ), mWindowType( WindowType::BLACKMAN ) {}
+
+		//! defaults to Context's frames-per-block
+		Format&		fftSize( size_t size )			{ mFftSize = size; return *this; }
+		size_t		getFftSize() const				{ return mFftSize; }
+
+		//! If window size is not set, defaults to fftSize. If fftSize is not set, defaults to Context::getNumFramesPerBlock().
+		Format&		windowSize( size_t size )		{ mWindowSize = size; return *this; }
+		size_t		getWindowSize() const			{ return mWindowSize; }
+
+		//! defaults to WindowType::BLACKMAN
+		Format&		windowType( WindowType type )	{ mWindowType = type; return *this; }
+		WindowType	getWindowType() const			{ return mWindowType; }
+
+	protected:
+		size_t mWindowSize, mFftSize;
+		WindowType mWindowType;
+	};
+
+	SpectrumTapNode( const ContextRef &context, const Format &format = Format() );
 	virtual ~SpectrumTapNode();
 
 	std::string virtual getTag() override			{ return "SpectrumTapNode"; }

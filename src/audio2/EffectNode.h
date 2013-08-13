@@ -34,7 +34,7 @@ namespace audio2 {
 
 	class EffectNode : public Node {
 	public:
-		EffectNode( const Format &format = Format() ) : Node( format ) {
+		EffectNode( const ContextRef &context, const Format &format = Format() ) : Node( context, format ) {
 			setAutoEnabled();
 		}
 		virtual ~EffectNode() {}
@@ -48,7 +48,7 @@ namespace audio2 {
 			Format() : Node::Format() { mChannelMode = ChannelMode::ANY; }
 		};
 
-		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f )
+		GainNode( const ContextRef &context, const Format &format = Format() ) : EffectNode( context, format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f )
 		{
 		}
 		virtual ~GainNode() {}
@@ -72,7 +72,7 @@ namespace audio2 {
 	};
 
 	struct RingMod : public EffectNode {
-		RingMod( const Format &format = Format() ) : EffectNode( format ), mSineGen( 440.0f, 1.0f )	{}
+		RingMod( const ContextRef &context, const Format &format = Format() ) : EffectNode( context, format ), mSineGen( 440.0f, 1.0f )	{}
 		virtual ~RingMod() {}
 
 		std::string virtual getTag() override			{ return "RingMod"; }

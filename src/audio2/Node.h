@@ -64,7 +64,7 @@ public:
 		ChannelMode mChannelMode;
 	};
 
-	Node( const Format &format );
+	Node( const ContextRef &context, const Format &format );
 	virtual ~Node();
 
 	virtual void initialize();
@@ -109,7 +109,6 @@ public:
 	void setOutput( NodeRef output )			{ mOutput = output; }
 
 	ContextRef getContext() const				{ return mContext.lock(); }
-	void setContext( ContextRef context )		{ mContext = context; }
 
 	std::string virtual getTag()				{ return "Node"; }
 
@@ -161,7 +160,7 @@ private:
 // - is this confusing when there is Node::getOutputs() ?
 class RootNode : public Node {
 public:
-	RootNode( const Format &format = Format() ) : Node( format ) {}
+	RootNode( const ContextRef &context, const Format &format = Format() ) : Node( context, format ) {}
 	virtual ~RootNode() {}
 
 	// TODO: need to decide where user sets the samplerate / blocksize - on RootNode or Context?
@@ -180,7 +179,7 @@ class LineOutNode : public RootNode {
 public:
 
 	// ???: device param here necessary?
-	LineOutNode( DeviceRef device, const Format &format = Format() ) : RootNode( format ) {
+	LineOutNode( const ContextRef &context, DeviceRef device, const Format &format = Format() ) : RootNode( context, format ) {
 		setAutoEnabled();
 	}
 	virtual ~LineOutNode() {}
@@ -195,7 +194,7 @@ protected:
 
 class MixerNode : public Node {
 public:
-	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
+	MixerNode( const ContextRef &context, const Format &format = Format() ) : Node( context, format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
 
 	std::string virtual getTag()				{ return "MixerNode"; }

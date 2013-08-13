@@ -57,7 +57,7 @@ class NodeAudioUnit {
 
 class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
   public:
-	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
+	LineOutAudioUnit( const ContextRef &context, DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutAudioUnit() = default;
 
 	std::string virtual getTag() override			{ return "LineOutAudioUnit"; }
@@ -79,7 +79,7 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 
 class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
   public:
-	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
+	LineInAudioUnit( const ContextRef &context, DeviceRef device, const Format &format = Format() );
 	virtual ~LineInAudioUnit();
 
 	std::string virtual getTag() override			{ return "LineInAudioUnit"; }
@@ -108,7 +108,7 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used
 class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
   public:
-	EffectAudioUnit( UInt32 subType, const Format &format = Format() );
+	EffectAudioUnit( const ContextRef &context, UInt32 subType, const Format &format = Format() );
 	virtual ~EffectAudioUnit();
 
 	std::string virtual getTag() override			{ return "EffectAudioUnit"; }
@@ -128,7 +128,7 @@ class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
 
 class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
   public:
-	MixerAudioUnit( const Format &format = Format() );
+	MixerAudioUnit(  const ContextRef &context, const Format &format = Format() );
 	virtual ~MixerAudioUnit();
 
 	std::string virtual getTag() override			{ return "MixerAudioUnit"; }
@@ -155,10 +155,10 @@ class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
 
-	virtual ContextRef			createContext() override																{ return ContextRef( new ContextAudioUnit() ); }
-	virtual LineOutNodeRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return LineOutNodeRef( new LineOutAudioUnit( device, format ) ); }
-	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override	{ return LineInNodeRef( new LineInAudioUnit( device, format ) ); }
-	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) override						{ return MixerNodeRef( new MixerAudioUnit( format ) ); }
+	virtual ContextRef			createContext() override;
+	virtual LineOutNodeRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) override;
 
 	void initialize() override;
 	void uninitialize() override;

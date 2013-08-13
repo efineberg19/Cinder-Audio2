@@ -36,7 +36,7 @@ namespace audio2 {
 // MARK: - GeneratorNode
 // ----------------------------------------------------------------------------------------------------
 
-GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
+GeneratorNode::GeneratorNode( const ContextRef &context, const Format &format ) : Node( context, format )
 {
 	// GeneratorNode's don't have inputs, so disallow matches input channels
 	if( mChannelMode == ChannelMode::MATCHES_INPUT )
@@ -47,13 +47,13 @@ GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
 // MARK: - BufferPlayerNode
 // ----------------------------------------------------------------------------------------------------
 
-BufferPlayerNode::BufferPlayerNode( const Format &format )
-: PlayerNode( format )
+BufferPlayerNode::BufferPlayerNode( const ContextRef &context, const Format &format )
+: PlayerNode( context, format )
 {
 }
 
-BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
-: PlayerNode( format ), mBuffer( buffer )
+BufferPlayerNode::BufferPlayerNode( const ContextRef &context, BufferRef buffer, const Format &format )
+: PlayerNode( context, format ), mBuffer( buffer )
 {
 	mNumFrames = mBuffer->getNumFrames();
 
@@ -134,8 +134,8 @@ void BufferPlayerNode::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 
-FilePlayerNode::FilePlayerNode( const Format &format )
-: PlayerNode( format ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+FilePlayerNode::FilePlayerNode( const ContextRef &context, const Format &format )
+: PlayerNode( context, format ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
 }
 
@@ -143,8 +143,8 @@ FilePlayerNode::~FilePlayerNode()
 {
 }
 
-FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded, const Format &format )
-: PlayerNode( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+FilePlayerNode::FilePlayerNode( const ContextRef &context, SourceFileRef sourceFile, bool isMultiThreaded, const Format &format )
+: PlayerNode( context, format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
 	mNumFrames = mSourceFile->getNumFrames();
 	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
