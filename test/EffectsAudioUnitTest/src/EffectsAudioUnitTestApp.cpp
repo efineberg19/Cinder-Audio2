@@ -92,6 +92,8 @@ void EffectsAudioUnitTestApp::setupOne()
 {
 	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
 	mSource->connect( mEffect )->connect( mContext->getRoot() );
+
+	mBandpassSlider.hidden = true;
 }
 
 void EffectsAudioUnitTestApp::setupTwo()
@@ -102,6 +104,8 @@ void EffectsAudioUnitTestApp::setupTwo()
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
 	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
+
+	mBandpassSlider.hidden = false;
 }
 
 void EffectsAudioUnitTestApp::setupNativeThenGeneric()

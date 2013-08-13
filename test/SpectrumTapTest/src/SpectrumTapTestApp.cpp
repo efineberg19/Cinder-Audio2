@@ -75,8 +75,9 @@ void SpectrumTapTestApp::setup()
 	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
 
 
-	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
-	mSpectrumTap = make_shared<SpectrumTapNode>( FFT_SIZE, WINDOW_SIZE, WINDOW_TYPE );
+	mPlayerNode = make_shared<BufferPlayerNode>( mContext, audioBuffer );
+//	mSpectrumTap = make_shared<SpectrumTapNode>( FFT_SIZE, WINDOW_SIZE, WINDOW_TYPE );
+	mSpectrumTap = make_shared<SpectrumTapNode>( mContext, SpectrumTapNode::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) );
 
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 
@@ -220,7 +221,7 @@ void SpectrumTapTestApp::fileDrop( FileDropEvent event )
 	mContext->uninitialize();
 
 	mPlayerNode->disconnect();
-	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
+	mPlayerNode = make_shared<BufferPlayerNode>( mContext, audioBuffer );
 	mPlayerNode->connect( mSpectrumTap );
 
 	initContext();

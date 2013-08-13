@@ -16,7 +16,7 @@ using namespace std;
 using namespace audio2;
 
 struct InterleavedPassThruNode : public Node {
-	InterleavedPassThruNode() : Node( Format() )
+	InterleavedPassThruNode( const ContextRef &context ) : Node( context, Format() )
 	{
 		mBufferLayout = audio2::Buffer::Layout::Interleaved;
 		mAutoEnabled = true;
@@ -72,17 +72,15 @@ void BasicTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t frames per block: " << device->getNumFramesPerBlock() << endl;
 
-	auto output = Context::instance()->createLineOut( device );
 	mContext = Context::instance()->createContext();
-	mContext->setRoot( output );
-	mGain = make_shared<GainNode>();
+	mGain = make_shared<GainNode>( mContext );
 	mGain->setGain( 0.6f );
 
-	auto noise = make_shared<UGenNode<NoiseGen> >();
+	auto noise = make_shared<UGenNode<NoiseGen> >( mContext );
 	noise->getUGen().setAmp( 0.25f );
 	mNoise = noise;
 
-	auto sine = make_shared<UGenNode<SineGen> >();
+	auto sine = make_shared<UGenNode<SineGen> >( mContext );
 	sine->getUGen().setAmp( 0.25f );
 	sine->getUGen().setFreq( 440.0f );
 	mSine = sine;
@@ -138,13 +136,13 @@ void BasicTestApp::setupSumming()
 // TODO: this belongs in it's own test app - one for weird conversions
 void BasicTestApp::setupInterleavedPassThru()
 {
-	auto genNode = make_shared<UGenNode<SineGen> >();
+	auto genNode = make_shared<UGenNode<SineGen> >( mContext );
 	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 	mSine = genNode;
 
-	auto interleaved = make_shared<InterleavedPassThruNode>();
+	auto interleaved = make_shared<InterleavedPassThruNode>( mContext );
 
 	genNode->connect( interleaved )->connect( mContext->getRoot() );
 
