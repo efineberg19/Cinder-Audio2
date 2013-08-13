@@ -85,13 +85,15 @@ void Node::disconnect( size_t bus )
 
 	auto output = getOutput();
 	if( output ) {
+		// note: the output must be reset before resetting the output's reference to this Node,
+		// since that may cause this Node to be deallocated.
+		mOutput.reset();
+		
 		auto& parentInputs = output->getInputs();
 		for( size_t i = 0; i < parentInputs.size(); i++ ) {
 			if( parentInputs[i] == shared_from_this() )
 				parentInputs[i].reset();
 		}
-		//		mOutput.reset();
-		mOutput = std::weak_ptr<Node>();
 	}
 }
 
