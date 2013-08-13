@@ -57,12 +57,10 @@ BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
 {
 	mNumFrames = mBuffer->getNumFrames();
 
-	// if channel mode is not already specified, set to stereo, mono sound files will be mixed up.
-	// TODO: reconsider if this is the best general case.
-	// - alternative would be that setting a buffer of different size than already exits triggers another configureConnections() call
+	// if channel mode is not already specified, set to match buffer, which may cause an up or down mix later on.
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( 2 );
+		setNumChannels( buffer->getNumChannels() );
 	}
 }
 
@@ -87,10 +85,10 @@ void BufferPlayerNode::stop()
 }
 
 // TODO: decide how best to allow this BufferPlayerNode to load audio files of a different format. options:
-// a) use a converter that takes the passed in buffer and spits out a new buffer of the proper format
-// b) change this BufferPlayerNode's format to match
-//		- in the current system, requires an un-init, cleanup converters, re-init.
-//		- if there are no converters and channels are 'runtime mapped' by the Context graph, this will probably work.
+//		- now that Node's can change their configuration during dsp-time, a configureConnects() can be reissued from here
+//			- if the channels have changed, related Node's may change as well.
+//		- ???: should we support a stereo buffer node as default, which upmixes mono to stereo?
+//			- would prevent node connect / buffer changes during dsp-time
 void BufferPlayerNode::setBuffer( BufferRef buffer )
 {
 	if( buffer->getNumChannels() != mNumChannels || buffer->getLayout() != mBufferLayout ) {
