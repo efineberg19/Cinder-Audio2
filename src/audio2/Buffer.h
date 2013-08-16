@@ -127,7 +127,7 @@ public:
 	}
 
 protected:
-	std::vector<T> mData;
+	std::vector<T> mData; // TODO: switch to T*
 	size_t mNumChannels, mNumFrames;
 	bool mSilent;
 	Layout mLayout;

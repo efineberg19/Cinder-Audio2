@@ -31,6 +31,7 @@ class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
+	// TODO: make generic makeNode( Node * ) that returns a shared_ptr<T> and sets the context, remove context argument for Node classes
 	virtual ContextRef			createContext() = 0;
 	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) = 0;
 	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;

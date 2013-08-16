@@ -170,28 +170,28 @@ void Node::pullInputs( Buffer *outputBuffer )
 		if( mEnabled )
 			process( outputBuffer );
 
-		return;
 	}
+	else {
+		mInternalBuffer.zero();
+		mSummingBuffer.zero();
 
-	mInternalBuffer.zero();
-	mSummingBuffer.zero();
+		for( NodeRef &input : mInputs ) {
+			if( ! input )
+				continue;
 
-	for( NodeRef &input : mInputs ) {
-		if( ! input )
-			continue;
+			input->pullInputs( &mInternalBuffer );
+			if( input->getProcessInPlace() )
+				submixBuffers( &mSummingBuffer, &mInternalBuffer );
+			else
+				submixBuffers( &mSummingBuffer, input->getInternalBuffer() );
+		}
 
-		input->pullInputs( &mInternalBuffer );
-		if( input->getProcessInPlace() )
-			submixBuffers( &mSummingBuffer, &mInternalBuffer );
-		else
-			submixBuffers( &mSummingBuffer, input->getInternalBuffer() );
+		if( mEnabled )
+			process( &mSummingBuffer );
+
+		outputBuffer->zero();
+		submixBuffers( outputBuffer, &mSummingBuffer );
 	}
-
-	if( mEnabled )
-		process( &mSummingBuffer );
-
-	outputBuffer->zero();
-	submixBuffers( outputBuffer, &mSummingBuffer );
 }
 
 size_t Node::getNumInputs() const
@@ -214,6 +214,7 @@ void Node::setNumChannels( size_t numChannels )
 	mNumChannels = numChannels;
 }
 
+// TODO: if matches input and multiple inputs, find max channels of all inputs
 void Node::configureConnections()
 {
 	mProcessInPlace = true;
