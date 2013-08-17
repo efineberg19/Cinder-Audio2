@@ -43,12 +43,7 @@ namespace audio2 {
 	class GainNode : public EffectNode {
 	public:
 
-		//! Default format for GainNode can support any channels
-		struct Format : public Node::Format {
-			Format() : Node::Format() { mChannelMode = ChannelMode::ANY; }
-		};
-
-		GainNode( const ContextRef &context, const Format &format = Format() ) : EffectNode( context, format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f )
+		GainNode( const Format &format = Format() ) : EffectNode( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f )
 		{
 		}
 		virtual ~GainNode() {}

@@ -45,7 +45,6 @@ class Node : public std::enable_shared_from_this<Node> {
 public:
 	enum ChannelMode {
 		SPECIFIED,		//! Number of channels has been specified by user or is non-settable.
-		ANY,			//! Node can process any number of channels.
 		MATCHES_INPUT,	//! Node matches it's channels with it's input.
 		MATCHES_OUTPUT	//! Node matches it's channels with it's output.
 	};
