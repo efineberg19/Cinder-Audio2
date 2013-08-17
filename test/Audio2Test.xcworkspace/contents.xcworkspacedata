@@ -14,10 +14,10 @@
          location = "group:CAFileLoadingTest/xcode/CAFileLoadingTest.xcodeproj">
       </FileRef>
       <FileRef
-         location = "group:EffectsAudioUnitTest/xcode/EffectsAudioUnitTest.xcodeproj">
+         location = "group:EffectNodeTest/xcode/EffectNodeTest.xcodeproj">
       </FileRef>
       <FileRef
-         location = "group:EffectTest/xcode/EffectTest.xcodeproj">
+         location = "group:EffectsAudioUnitTest/xcode/EffectsAudioUnitTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:FileNodeTest/xcode/FileNodeTest.xcodeproj">
@@ -36,6 +36,9 @@
       location = "container:"
       name = "ios">
       <FileRef
+         location = "group:EffectNodeTest/xcode_ios/EffectNodeTest.xcodeproj">
+      </FileRef>
+      <FileRef
          location = "group:BasicTest/xcode_ios/BasicTest.xcodeproj">
       </FileRef>
       <FileRef
@@ -43,9 +46,6 @@
       </FileRef>
       <FileRef
          location = "group:EffectsAudioUnitTest/xcode_ios/EffectsAudioUnitTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:EffectTest/xcode_ios/EffectTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:FileNodeTest/xcode_ios/FileNodeTest.xcodeproj">
