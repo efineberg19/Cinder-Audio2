@@ -102,10 +102,17 @@ void Context::setEnabled( bool enabled )
 		stop();
 }
 
+void Context::setRoot( RootNodeRef root )
+{
+	mRoot = root;
+	mSampleRate = mRoot->getSampleRate();
+	mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
+}
+
 RootNodeRef Context::getRoot()
 {
 	if( ! mRoot )
-		mRoot = createLineOut();
+		setRoot( createLineOut() );
 	return mRoot;
 }
 

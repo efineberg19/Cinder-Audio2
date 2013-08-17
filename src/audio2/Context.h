@@ -41,7 +41,8 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	virtual void initialize();
 	virtual void uninitialize();
-	virtual void setRoot( RootNodeRef root )	{ mRoot = root; }
+
+	virtual void setRoot( RootNodeRef root );
 
 	//! If the root has not already been set, it is the default LineOutNode
 	virtual RootNodeRef getRoot();
