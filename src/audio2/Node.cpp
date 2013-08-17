@@ -43,12 +43,10 @@ namespace audio2 {
 // - provides samplerate / num frames at init
 // - also a garunteed object to syncrhonize with
 
-Node::Node( const ContextRef &context, const Format &format )
-: mContext( context ), mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
+Node::Node( const Format &format )
+: mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
 mNumChannels( 1 ), mBufferLayout( Buffer::Layout::NonInterleaved ), mAutoEnabled( false ), mProcessInPlace( true )
 {
-	CI_ASSERT( getContext() );
-
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
 		mChannelMode = ChannelMode::SPECIFIED;
@@ -159,6 +157,8 @@ void Node::setEnabled( bool enabled )
 // - probably high-time to ditch atomic<bool> and go with std::mutex, since there are multiple pieces that need to be synchronized
 void Node::pullInputs( Buffer *outputBuffer )
 {
+	CI_ASSERT( getContext() );
+	
 	if( mProcessInPlace ) {
 		for( NodeRef &input : mInputs ) {
 			if( ! input )
@@ -217,6 +217,8 @@ void Node::setNumChannels( size_t numChannels )
 // TODO: if matches input and multiple inputs, find max channels of all inputs
 void Node::configureConnections()
 {
+	CI_ASSERT( getContext() );
+
 	mProcessInPlace = true;
 
 	if( getNumInputs() > 1 )
@@ -257,10 +259,10 @@ void Node::configureConnections()
 // TODO: reallocations could be made more efficient by using DynamicBuffer
 void Node::setProcessWithSumming()
 {
-	mProcessInPlace = false;
+	CI_ASSERT( getContext() );
 
-	//	size_t framesPerBlock = getContext()->getNumFramesPerBlock(); // TODO: use this
-	size_t framesPerBlock = 512;
+	mProcessInPlace = false;
+	size_t framesPerBlock = getContext()->getNumFramesPerBlock();
 
 	if( mSummingBuffer.getNumChannels() == mNumChannels && mSummingBuffer.getNumFrames() == framesPerBlock )
 		return;

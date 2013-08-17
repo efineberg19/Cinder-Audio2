@@ -63,7 +63,7 @@ public:
 		ChannelMode mChannelMode;
 	};
 
-	Node( const ContextRef &context, const Format &format );
+	Node( const Format &format );
 	virtual ~Node();
 
 	virtual void initialize();
@@ -138,7 +138,6 @@ protected:
 
 	std::vector<NodeRef>	mInputs;
 	std::weak_ptr<Node>		mOutput;
-	std::weak_ptr<Context>	mContext;
 	std::atomic<bool>		mEnabled;
 
 	bool					mInitialized;
@@ -153,13 +152,19 @@ protected:
 private:
 	Node( Node const& );
 	Node& operator=( Node const& );
+
+	void setContext( const ContextRef &context )	{ mContext = context; }
+
+	std::weak_ptr<Context>	mContext;
+
+	friend class Context;
 };
 
 // TODO: this seems safe to rename to OutputNode now.
 // - is this confusing when there is Node::getOutputs() ?
 class RootNode : public Node {
 public:
-	RootNode( const ContextRef &context, const Format &format = Format() ) : Node( context, format ) {}
+	RootNode( const Format &format = Format() ) : Node( format ) {}
 	virtual ~RootNode() {}
 
 	// TODO: need to decide where user sets the samplerate / blocksize - on RootNode or Context?
@@ -178,7 +183,7 @@ class LineOutNode : public RootNode {
 public:
 
 	// ???: device param here necessary?
-	LineOutNode( const ContextRef &context, DeviceRef device, const Format &format = Format() ) : RootNode( context, format ) {
+	LineOutNode( DeviceRef device, const Format &format = Format() ) : RootNode( format ) {
 		setAutoEnabled();
 	}
 	virtual ~LineOutNode() {}
@@ -193,7 +198,7 @@ protected:
 
 class MixerNode : public Node {
 public:
-	MixerNode( const ContextRef &context, const Format &format = Format() ) : Node( context, format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
+	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
 
 	std::string virtual getTag()				{ return "MixerNode"; }

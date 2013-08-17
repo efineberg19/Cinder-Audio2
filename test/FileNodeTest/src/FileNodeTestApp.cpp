@@ -94,7 +94,7 @@ void FileNodeTestApp::setupBufferPlayer()
 
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
-	mPlayerNode = make_shared<BufferPlayerNode>( audioBuffer );
+	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
 	mPlayerNode->connect( mContext->getRoot() );
 }
 
@@ -105,10 +105,10 @@ void FileNodeTestApp::setupFilePlayer()
 //	mSourceFile->setNumFramesPerRead( 4096 );
 	mSourceFile->setNumFramesPerRead( 8192 );
 
-//	mPlayerNode = make_shared<FilePlayerNode>( mSourceFile );
-	mPlayerNode = make_shared<FilePlayerNode>( mSourceFile, false ); // synchronious file i/o
+//	mPlayerNode = mContext->makeNode( new FilePlayerNode( mSourceFile ) );
+	mPlayerNode = mContext->makeNode( new FilePlayerNode( mSourceFile, false ) ); // synchronous file i/o
 
-	mTap = make_shared<TapNode>( 512 );
+	mTap = mContext->makeNode( new TapNode( TapNode::Format().windowSize( 512 ) ) ); // TODO: why is this hard-coded?
 
 	mPlayerNode->connect( mTap )->connect( mContext->getRoot() );
 }

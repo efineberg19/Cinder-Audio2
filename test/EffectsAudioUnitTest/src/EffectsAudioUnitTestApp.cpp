@@ -10,6 +10,8 @@
 
 #include "Gui.h"
 
+// FIXME: EffectAudioUnit::process() is failing since Conext::makeNode()
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -71,13 +73,13 @@ void EffectsAudioUnitTestApp::setup()
 	mContext->setRoot( output );
 
 
-	auto noise = make_shared<UGenNode<NoiseGen> >();
+	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 	noise->setAutoEnabled();
 	noise->getUGen().setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
-//	auto test = make_shared<UGenNode<TestConstGen> >();
+//	auto test = mContext->makeNode( new UGenNode<TestConstGen>() );
 //	test->setAutoEnabled();
 //	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 //	mSource = test;
@@ -90,7 +92,7 @@ void EffectsAudioUnitTestApp::setup()
 
 void EffectsAudioUnitTestApp::setupOne()
 {
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
+	mEffect = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
 	mSource->connect( mEffect )->connect( mContext->getRoot() );
 
 	mBandpassSlider.hidden = true;
@@ -98,8 +100,8 @@ void EffectsAudioUnitTestApp::setupOne()
 
 void EffectsAudioUnitTestApp::setupTwo()
 {
-	mEffect = make_shared<EffectAudioUnit>( kAudioUnitSubType_LowPassFilter );
-	mEffect2 = make_shared<EffectAudioUnit>( kAudioUnitSubType_BandPassFilter );
+	mEffect = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
+	mEffect2 = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_BandPassFilter ) );
 
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 

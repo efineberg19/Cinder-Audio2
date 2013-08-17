@@ -16,7 +16,7 @@ using namespace std;
 using namespace audio2;
 
 struct InterleavedPassThruNode : public Node {
-	InterleavedPassThruNode( const ContextRef &context ) : Node( context, Format() )
+	InterleavedPassThruNode() : Node( Format() )
 	{
 		mBufferLayout = audio2::Buffer::Layout::Interleaved;
 		mAutoEnabled = true;
@@ -29,10 +29,9 @@ struct InterleavedPassThruNode : public Node {
 		CI_ASSERT( buffer->getLayout() == audio2::Buffer::Layout::Interleaved );
 		CI_ASSERT( buffer->getData()[0] == buffer->getData()[1] );
 
-		// In debug mode, this will trigger an assertion failure, since it is a user error.
+		// In debug mode, this should trigger an assertion failure, since it is a user error.
 		//buffer->getChannel( 0 );
 	}
-
 };
 
 class BasicTestApp : public AppNative {
@@ -73,14 +72,14 @@ void BasicTestApp::setup()
 	console() << "\t frames per block: " << device->getNumFramesPerBlock() << endl;
 
 	mContext = Context::instance()->createContext();
-	mGain = make_shared<GainNode>( mContext );
+	mGain = mContext->makeNode( new GainNode() );
 	mGain->setGain( 0.6f );
 
-	auto noise = make_shared<UGenNode<NoiseGen> >( mContext );
+	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 	noise->getUGen().setAmp( 0.25f );
 	mNoise = noise;
 
-	auto sine = make_shared<UGenNode<SineGen> >( mContext );
+	auto sine = mContext->makeNode( new UGenNode<SineGen>() );
 	sine->getUGen().setAmp( 0.25f );
 	sine->getUGen().setFreq( 440.0f );
 	mSine = sine;
@@ -133,16 +132,15 @@ void BasicTestApp::setupSumming()
 	mEnableNoiseButton.setEnabled( true );
 }
 
-// TODO: this belongs in it's own test app - one for weird conversions
 void BasicTestApp::setupInterleavedPassThru()
 {
-	auto genNode = make_shared<UGenNode<SineGen> >( mContext );
+	auto genNode = mContext->makeNode( new UGenNode<SineGen>() );
 	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 	mSine = genNode;
 
-	auto interleaved = make_shared<InterleavedPassThruNode>( mContext );
+	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
 
 	genNode->connect( interleaved )->connect( mContext->getRoot() );
 

@@ -45,14 +45,14 @@ void EffectNodeTestApp::setup()
 {
 	mContext = Context::instance()->createContext();
 
-	mGain = make_shared<GainNode>();
+	mGain = mContext->makeNode( new GainNode() );
 	mGain->setGain( 0.6f );
 
-//	auto noise = make_shared<UGenNode<NoiseGen> >();
+//	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 //	noise->getUGen().setAmp( 0.25f );
 //	mGen = noise;
 
-	auto sine = make_shared<UGenNode<SineGen> >();
+	auto sine = mContext->makeNode( new UGenNode<SineGen>() );
 	sine->getUGen().setAmp( 1.0f );
 	sine->getUGen().setFreq( 440.0f );
 	mGen = sine;
@@ -68,7 +68,7 @@ void EffectNodeTestApp::setup()
 
 void EffectNodeTestApp::setupOne()
 {
-	mRingMod = make_shared<RingMod>();
+	mRingMod = mContext->makeNode( new RingMod() );
 	mRingMod->mSineGen.setFreq( 20.0f );
 	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getRoot() );
 }
@@ -77,17 +77,17 @@ void EffectNodeTestApp::setupOne()
 //	- it should accomodate any inpute channel count and always operates in-place
 void EffectNodeTestApp::setupForceStereo()
 {
-	mRingMod = make_shared<RingMod>( Node::Format().channels( 2 ) );
+	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );
 	mRingMod->mSineGen.setFreq( 20.0f );
 	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getRoot() );
 }
 
 void EffectNodeTestApp::setupDownMix()
 {
-	mRingMod = make_shared<RingMod>( Node::Format().channels( 2 ) );
+	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );
 	mRingMod->mSineGen.setFreq( 20.0f );
 
-	auto monoPassThru = make_shared<Node>( Node::Format().channels( 1 ) );
+	auto monoPassThru = mContext->makeNode( new Node( Node::Format().channels( 1 ) ) );
 	mGen->connect( mRingMod )->connect( mGain )->connect( monoPassThru )->connect( mContext->getRoot() );
 }
 

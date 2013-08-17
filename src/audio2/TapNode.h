@@ -50,7 +50,7 @@ public:
 		size_t mWindowSize;
 	};
 
-	TapNode( const ContextRef &context, const Format &format = Format() );
+	TapNode( const Format &format = Format() );
 	virtual ~TapNode();
 
 	std::string virtual getTag() override			{ return "TapNode"; }
@@ -94,7 +94,7 @@ public:
 		WindowType mWindowType;
 	};
 
-	SpectrumTapNode( const ContextRef &context, const Format &format = Format() );
+	SpectrumTapNode( const Format &format = Format() );
 	virtual ~SpectrumTapNode();
 
 	std::string virtual getTag() override			{ return "SpectrumTapNode"; }

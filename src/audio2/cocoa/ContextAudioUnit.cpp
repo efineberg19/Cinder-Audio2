@@ -108,8 +108,8 @@ NodeAudioUnit::~NodeAudioUnit()
 // MARK: - LineOutAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineOutAudioUnit::LineOutAudioUnit( const ContextRef &context, DeviceRef device, const Format &format )
-: LineOutNode( context, device, format )
+LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
+: LineOutNode( device, format )
 {
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
@@ -198,8 +198,8 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 //	- only way I can think of to solve this is to keep a weak reference to Graph in both I and O units,
 //	  check graph->output->device in initialize to see if it's the same
 
-LineInAudioUnit::LineInAudioUnit( const ContextRef &context, DeviceRef device, const Format &format )
-: LineInNode( context, device, format ), mSynchroniousIO( false )
+LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
+: LineInNode( device, format ), mSynchroniousIO( false )
 {
 	mRenderBus = DeviceAudioUnit::Bus::Input; // TODO: remove, this shouldn't be necessary anymore
 
@@ -359,8 +359,8 @@ OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlag
 // MARK: - EffectAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-EffectAudioUnit::EffectAudioUnit( const ContextRef &context, UInt32 effectSubType, const Format &format )
-: EffectNode( context, format ), mEffectSubType( effectSubType )
+EffectAudioUnit::EffectAudioUnit( UInt32 effectSubType, const Format &format )
+: EffectNode( format ), mEffectSubType( effectSubType )
 {
 }
 
@@ -439,8 +439,8 @@ void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
 // MARK: - MixerAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-MixerAudioUnit::MixerAudioUnit( const ContextRef &context, const Format &format )
-: MixerNode( context, format )
+MixerAudioUnit::MixerAudioUnit( const Format &format )
+: MixerNode( format )
 {
 	mChannelMode = ChannelMode::MATCHES_OUTPUT;
 }
@@ -594,17 +594,17 @@ ContextRef ContextAudioUnit::createContext()
 
 LineOutNodeRef ContextAudioUnit::createLineOut( DeviceRef device, const Node::Format &format )
 {
-	return LineOutNodeRef( new LineOutAudioUnit( shared_from_this(), device, format ) );
+	return makeNode( new LineOutAudioUnit( device, format ) );
 }
 
 LineInNodeRef ContextAudioUnit::createLineIn( DeviceRef device, const Node::Format &format )
 {
-	return LineInNodeRef( new LineInAudioUnit( shared_from_this(), device, format ) );
+	return makeNode( new LineInAudioUnit( device, format ) );
 }
 
 MixerNodeRef ContextAudioUnit::createMixer( const Node::Format &format )
 {
-	return MixerNodeRef( new MixerAudioUnit( shared_from_this(), format ) );
+	return makeNode( new MixerAudioUnit( format ) );
 }
 
 ContextAudioUnit::~ContextAudioUnit()

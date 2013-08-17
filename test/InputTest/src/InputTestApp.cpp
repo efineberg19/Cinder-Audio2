@@ -42,6 +42,7 @@ class InputTestApp : public AppNative {
 
 	ContextRef mContext;
 	LineInNodeRef mLineIn;
+	LineOutNodeRef mLineOut;
 	TapNodeRef mTap;
 
 	VSelector mTestSelector;
@@ -50,10 +51,10 @@ class InputTestApp : public AppNative {
 
 void InputTestApp::setup()
 {
-	mContext = Context::instance()->createContext();
-
 //	LOG_V << "all devices: " << endl;
 //	printDevices();
+
+	mContext = Context::instance()->createContext();
 
 	setupDefaultDevices();
 	//setupDedicatedDevice();
@@ -73,21 +74,19 @@ void InputTestApp::setup()
 void InputTestApp::setupDefaultDevices()
 {
 	mLineIn = Context::instance()->createLineIn();
-
-	auto output = Context::instance()->createLineOut();
-	mContext->setRoot( output );
+	mLineOut = Context::instance()->createLineOut();
 
 	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
 	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
 	console() << "\t samplerate: " << mLineIn->getDevice()->getSampleRate() << endl;
 	console() << "\t block size: " << mLineIn->getDevice()->getNumFramesPerBlock() << endl;
 
-	LOG_V << "output device name: " << output->getDevice()->getName() << endl;
-	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << output->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << output->getDevice()->getNumFramesPerBlock() << endl;
+	LOG_V << "output device name: " << mLineOut->getDevice()->getName() << endl;
+	console() << "\t channels: " << mLineOut->getDevice()->getNumOutputChannels() << endl;
+	console() << "\t samplerate: " << mLineOut->getDevice()->getSampleRate() << endl;
+	console() << "\t block size: " << mLineOut->getDevice()->getNumFramesPerBlock() << endl;
 
-	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == output->getDevice() ) << dec << endl;
+	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
 }
 
 void InputTestApp::setupDedicatedDevice()
@@ -112,20 +111,20 @@ void InputTestApp::setupPassThrough()
 
 void InputTestApp::setupInProcessOut()
 {
-	auto ringMod = make_shared<RingMod>();
+	auto ringMod = mContext->makeNode( new RingMod() );
 	mLineIn->connect( ringMod )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInTapOut()
 {
-	mTap = make_shared<TapNode>();
+	mTap = mContext->makeNode( new TapNode() );
 	mLineIn->connect( mTap )->connect( mContext->getRoot() );
 }
 
 void InputTestApp::setupInTapProcessOut()
 {
-	mTap = make_shared<TapNode>();
-	auto ringMod = make_shared<RingMod>();
+	mTap = mContext->makeNode( new TapNode() );
+	auto ringMod = mContext->makeNode( new RingMod() );
 	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
 }
 

@@ -41,7 +41,7 @@ class RingBuffer;
 
 class GeneratorNode : public Node {
 public:
-	GeneratorNode( const ContextRef &context, const Format &format );
+	GeneratorNode( const Format &format );
 	std::string virtual getTag() override			{ return "GeneratorNode"; }
 	virtual ~GeneratorNode() {}
 
@@ -53,7 +53,7 @@ private:
 
 class LineInNode : public GeneratorNode {
 public:
-	LineInNode( const ContextRef &context, DeviceRef device, const Format &format ) : GeneratorNode( context, format ) {
+	LineInNode( DeviceRef device, const Format &format ) : GeneratorNode( format ) {
 		setAutoEnabled();
 	}
 	virtual ~LineInNode() {}
@@ -69,7 +69,7 @@ public:
 //! \see FilePlayerNode
 class PlayerNode : public GeneratorNode {
 public:
-	PlayerNode( const ContextRef &context, const Format &format = Format() ) : GeneratorNode( context, format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
+	PlayerNode( const Format &format = Format() ) : GeneratorNode( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
 	virtual ~PlayerNode() {}
 
 	std::string virtual getTag() override			{ return "PlayerNode"; }
@@ -90,8 +90,8 @@ protected:
 
 class BufferPlayerNode : public PlayerNode {
 public:
-	BufferPlayerNode( const ContextRef &context, const Format &format = Format() );
-	BufferPlayerNode( const ContextRef &context, BufferRef buffer, const Format &format = Format() );
+	BufferPlayerNode( const Format &format = Format() );
+	BufferPlayerNode( BufferRef buffer, const Format &format = Format() );
 	virtual ~BufferPlayerNode() {}
 
 	std::string virtual getTag() override			{ return "BufferPlayerNode"; }
@@ -110,8 +110,8 @@ protected:
 // TODO: use a thread pool to keep the overrall number of read threads to a minimum.
 class FilePlayerNode : public PlayerNode {
 public:
-	FilePlayerNode( const ContextRef &context, const Format &format = Format() );
-	FilePlayerNode( const ContextRef &context, SourceFileRef sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
+	FilePlayerNode( const Format &format = Format() );
+	FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
 	virtual ~FilePlayerNode();
 
 	std::string virtual getTag() override			{ return "FilePlayerNode"; }
@@ -151,7 +151,7 @@ public:
 // - just make a GeneratorNode for all of the basic waveforms
 template <typename UGenT>
 struct UGenNode : public GeneratorNode {
-	UGenNode( const ContextRef &context, const Format &format = Format() ) : GeneratorNode( context, format ) {
+	UGenNode( const Format &format = Format() ) : GeneratorNode( format ) {
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 1 );
 	}

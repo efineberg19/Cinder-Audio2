@@ -17,10 +17,11 @@ using namespace audio2;
 struct InterleavedPassThruNode : public Node {
 	InterleavedPassThruNode() : Node( Format() )
 	{
-		mTag = "InterleavedPassThruNode";
 		mBufferLayout = audio2::Buffer::Layout::Interleaved;
 		mAutoEnabled = true;
 	}
+
+	std::string getTag() override			{ return "InterleavedPassThruNode"; }
 
 	void process( audio2::Buffer *buffer ) override
 	{
@@ -89,7 +90,7 @@ void MixerTestApp::setup()
 
 void MixerTestApp::setupSine()
 {
-	auto genNode = make_shared<UGenNode<SineGen> >( Node::Format().channels( 1 ) );
+	auto genNode = mContext->makeNode( new UGenNode<SineGen>( Node::Format().channels( 1 ) ) );
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 
@@ -104,7 +105,7 @@ void MixerTestApp::setupSine()
 
 void MixerTestApp::setupNoise()
 {
-	auto genNode = make_shared<UGenNode<NoiseGen> >();
+	auto genNode = mContext->makeNode( new UGenNode<NoiseGen>() );
 	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 
@@ -119,11 +120,11 @@ void MixerTestApp::setupNoise()
 
 void MixerTestApp::setupMixer()
 {
-	auto noise = make_shared<UGenNode<NoiseGen> >();
+	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 	noise->getUGen().setAmp( 0.25f );
 	mNoise = noise;
 
-	auto sine = make_shared<UGenNode<SineGen> >();
+	auto sine = mContext->makeNode( new UGenNode<SineGen>() );
 	sine->getUGen().setAmp( 0.25f );
 	sine->getUGen().setFreq( 440.0f );
 	mSine = sine;
@@ -149,13 +150,13 @@ void MixerTestApp::setupMixer()
 // TODO: this belongs in it's own test app - one for weird conversions
 void MixerTestApp::setupInterleavedPassThru()
 {
-	auto genNode = make_shared<UGenNode<SineGen> >();
+	auto genNode = mContext->makeNode( new UGenNode<SineGen>() );
 	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 	mSine = genNode;
 
-	auto interleaved = make_shared<InterleavedPassThruNode>();
+	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
 
 	genNode->connect( interleaved )->connect( mContext->getRoot() );
 

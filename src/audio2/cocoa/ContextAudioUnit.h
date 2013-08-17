@@ -57,7 +57,7 @@ class NodeAudioUnit {
 
 class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
   public:
-	LineOutAudioUnit( const ContextRef &context, DeviceRef device, const Format &format = Format() );
+	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutAudioUnit() = default;
 
 	std::string virtual getTag() override			{ return "LineOutAudioUnit"; }
@@ -79,7 +79,7 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 
 class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
   public:
-	LineInAudioUnit( const ContextRef &context, DeviceRef device, const Format &format = Format() );
+	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~LineInAudioUnit();
 
 	std::string virtual getTag() override			{ return "LineInAudioUnit"; }
@@ -108,7 +108,7 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used
 class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
   public:
-	EffectAudioUnit( const ContextRef &context, UInt32 subType, const Format &format = Format() );
+	EffectAudioUnit( UInt32 subType, const Format &format = Format() );
 	virtual ~EffectAudioUnit();
 
 	std::string virtual getTag() override			{ return "EffectAudioUnit"; }
@@ -128,7 +128,7 @@ class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
 
 class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
   public:
-	MixerAudioUnit(  const ContextRef &context, const Format &format = Format() );
+	MixerAudioUnit( const Format &format = Format() );
 	virtual ~MixerAudioUnit();
 
 	std::string virtual getTag() override			{ return "MixerAudioUnit"; }

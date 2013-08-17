@@ -38,8 +38,8 @@ namespace audio2 {
 // MARK: - TapNode
 // ----------------------------------------------------------------------------------------------------
 
-TapNode::TapNode( const ContextRef &context, const Format &format )
-: Node( context, format ), mWindowSize( format.getWindowSize() )
+TapNode::TapNode( const Format &format )
+: Node( format ), mWindowSize( format.getWindowSize() )
 {
 	setAutoEnabled();
 }
@@ -96,8 +96,8 @@ float TapNode::getVolume( size_t channel )
 // MARK: - SpectrumTapNode
 // ----------------------------------------------------------------------------------------------------
 
-SpectrumTapNode::SpectrumTapNode(  const ContextRef &context, const Format &format )
-: Node( context, format ), mFftSize( format.getFftSize() ), mWindowSize( format.getWindowSize() ),
+SpectrumTapNode::SpectrumTapNode( const Format &format )
+: Node( format ), mFftSize( format.getFftSize() ), mWindowSize( format.getWindowSize() ),
 	mWindowType( format.getWindowType() ), mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
 {
 }

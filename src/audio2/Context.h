@@ -31,12 +31,15 @@ class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
-	// TODO: make generic makeNode( Node * ) that returns a shared_ptr<T> and sets the context, remove context argument for Node classes
 	virtual ContextRef			createContext() = 0;
 	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) = 0;
 	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
 	virtual LineInNodeRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
+	template<typename NodeT>
+	std::shared_ptr<NodeT>		makeNode( NodeT *node );
+
+	// TODO: consider making this private, it is only needed to call into the virtual methods (or static replicants)
 	static Context* instance();
 
 	virtual void initialize();
@@ -73,5 +76,13 @@ class Context : public std::enable_shared_from_this<Context> {
 	bool			mInitialized, mEnabled;
 	size_t			mSampleRate, mNumFramesPerBlock;
 };
+
+template<typename NodeT>
+std::shared_ptr<NodeT> Context::makeNode( NodeT *node )
+{
+	std::shared_ptr<NodeT> result( node );
+	result->setContext( shared_from_this() );
+	return result;
+}
 
 } // namespace audio2
