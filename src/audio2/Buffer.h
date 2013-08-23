@@ -58,9 +58,9 @@ template <typename T>
 class BufferT {
 public:
 	typedef T SampleType;
-	enum Layout { Interleaved, NonInterleaved };
+	enum Layout { CONTIGUOUS, INTERLEAVED };
 
-	BufferT( size_t numChannels = 0, size_t numFrames = 0, Layout layout = Layout::NonInterleaved )
+	BufferT( size_t numChannels = 0, size_t numFrames = 0, Layout layout = CONTIGUOUS )
 	: mNumChannels( numChannels ), mNumFrames( numFrames ), mLayout( layout ), mSilent( true )
 	{
 		mData.resize( numChannels * numFrames );
@@ -68,13 +68,13 @@ public:
 
 	// TODO: consider adding getChannelIter, which knows how to iterate over both interleaved and non-interleaved samples
 	T* getChannel( size_t ch ) {
-		CI_ASSERT_MSG( mLayout == NonInterleaved, "Cannot get raw pointer to channel from an interleaved Buffer" );
+		CI_ASSERT_MSG( mLayout == CONTIGUOUS, "Cannot get raw pointer to channel from an interleaved Buffer" );
 		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
 		return &mData[ch * mNumFrames];
 	}
 
 	const T* getChannel( size_t ch ) const {
-		CI_ASSERT_MSG( mLayout == NonInterleaved, "Cannot get raw pointer to channel from an interleaved Buffer" );
+		CI_ASSERT_MSG( mLayout == CONTIGUOUS, "Cannot get raw pointer to channel from an interleaved Buffer" );
 		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
 		return &mData[ch * mNumFrames];
 	}
@@ -85,7 +85,7 @@ public:
 	
 	void zero( size_t startFrame, size_t numFrames ) {
 		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-		if( mLayout == Interleaved )
+		if( mLayout == Layout::INTERLEAVED )
 			std::memset( &mData[startFrame * mNumChannels], 0, numFrames * mNumChannels * sizeof( T ) );
 		else {
 			for( size_t ch = 0; ch < mNumChannels; ch++ )

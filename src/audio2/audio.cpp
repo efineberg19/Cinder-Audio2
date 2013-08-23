@@ -48,7 +48,7 @@ namespace {
 
 		app::console() << node->getTag() << "\t[ ch: " << node->getNumChannels();
 		app::console() << ", ch mode: " << channelMode;
-		app::console() << ", " << ( node->getBufferLayout() == Buffer::Layout::Interleaved ? "interleaved" : "non-interleaved" );
+		app::console() << ", " << ( node->getBufferLayout() == Buffer::Layout::INTERLEAVED ? "interleaved" : "contiguous" );
 		app::console() << ", " << ( node->getProcessInPlace() ? "in-place" : "sum" );
 		app::console() << " ]" << endl;
 

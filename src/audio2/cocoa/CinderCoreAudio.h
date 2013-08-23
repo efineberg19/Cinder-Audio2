@@ -75,7 +75,7 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 
 inline void copyToBufferList( ::AudioBufferList *bufferList, const Buffer *buffer )
 {
-	if( buffer->getLayout() == Buffer::Layout::Interleaved ) {
+	if( buffer->getLayout() == Buffer::Layout::INTERLEAVED ) {
 		CI_ASSERT( bufferList->mNumberBuffers == 1 );
 		memcpy( bufferList->mBuffers[0].mData, buffer->getData(), bufferList->mBuffers[0].mDataByteSize );
 	}
@@ -87,7 +87,7 @@ inline void copyToBufferList( ::AudioBufferList *bufferList, const Buffer *buffe
 
 inline void copyFromBufferList( Buffer *buffer, const ::AudioBufferList *bufferList )
 {
-	if( buffer->getLayout() == Buffer::Layout::Interleaved ) {
+	if( buffer->getLayout() == Buffer::Layout::INTERLEAVED ) {
 		CI_ASSERT( bufferList->mNumberBuffers == 1 );
 		memcpy( buffer->getData(), bufferList->mBuffers[0].mData, bufferList->mBuffers[0].mDataByteSize );
 	}
