@@ -183,9 +183,7 @@ class LineOutNode : public RootNode {
 public:
 
 	// ???: device param here necessary?
-	LineOutNode( DeviceRef device, const Format &format = Format() ) : RootNode( format ) {
-		setAutoEnabled();
-	}
+	LineOutNode( DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutNode() {}
 
 	virtual DeviceRef getDevice() = 0;

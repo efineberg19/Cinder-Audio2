@@ -303,5 +303,16 @@ bool Node::checkInput( const NodeRef &input )
 	return ( input && ( input != shared_from_this() ) && ! isConnectedToInput( input ) );
 }
 
+LineOutNode::LineOutNode( DeviceRef device, const Format &format )
+: RootNode( format )
+{
+	setAutoEnabled();
+
+	if( mChannelMode != ChannelMode::SPECIFIED ) {
+		mChannelMode = ChannelMode::SPECIFIED;
+		setNumChannels( 2 );
+	}
+}
+
 
 } } // namespace cinder::audio2
