@@ -79,20 +79,9 @@
 		11B04218179B90450034BEE2 /* Device.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47817754A6E003EAA2B /* Device.h */; };
 		11B0421D179B92CB0034BEE2 /* DeviceManagerAudioSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46C17754A6E003EAA2B /* DeviceManagerAudioSession.cpp */; };
 		11B0421E179B92D10034BEE2 /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46E17754A6E003EAA2B /* DeviceManagerCoreAudio.cpp */; };
-		11B92E1917A0B76E003D6346 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1104F3C917753F10003EAA2B /* libAudio2.a */; };
 		11C58DE9177943DA00DF99F8 /* CinderCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C58DE7177943DA00DF99F8 /* CinderCoreAudio.cpp */; };
 		11C58DEA177943DA00DF99F8 /* CinderCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 11C58DE8177943DA00DF99F8 /* CinderCoreAudio.h */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		11B92E1717A0B768003D6346 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1104F3C117753F10003EAA2B /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1104F3C817753F10003EAA2B;
-			remoteInfo = "Audio2-mac";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1104F3C917753F10003EAA2B /* libAudio2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAudio2.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -165,7 +154,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11B92E1917A0B76E003D6346 /* libAudio2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -383,7 +371,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				11B92E1817A0B768003D6346 /* PBXTargetDependency */,
 			);
 			name = "Audio2-ios";
 			productName = Audio2Mac;
@@ -463,14 +450,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		11B92E1817A0B768003D6346 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1104F3C817753F10003EAA2B /* Audio2-mac */;
-			targetProxy = 11B92E1717A0B768003D6346 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1104F3EB17753F10003EAA2B /* Debug */ = {

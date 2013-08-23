@@ -10,7 +10,7 @@
 		00748058165D41390024B57A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 00748057165D41390024B57A /* assets */; };
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
-		11B0429C179C76260034BEE2 /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B04299179C76190034BEE2 /* libAudio2-ios.a */; };
+		11D820B217A4EE9200EFE02A /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11D820AF17A4EE8300EFE02A /* libAudio2-ios.a */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -27,23 +27,23 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		11B04296179C76190034BEE2 /* PBXContainerItemProxy */ = {
+		11D820AC17A4EE8300EFE02A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B04291179C76190034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 11D820A717A4EE8300EFE02A /* Audio2.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 1104F3C917753F10003EAA2B;
 			remoteInfo = "Audio2-mac";
 		};
-		11B04298179C76190034BEE2 /* PBXContainerItemProxy */ = {
+		11D820AE17A4EE8300EFE02A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B04291179C76190034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 11D820A717A4EE8300EFE02A /* Audio2.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 11B0421C179B90450034BEE2;
 			remoteInfo = "Audio2-ios";
 		};
-		11B0429A179C761E0034BEE2 /* PBXContainerItemProxy */ = {
+		11D820B017A4EE8B00EFE02A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B04291179C76190034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 11D820A717A4EE8300EFE02A /* Audio2.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 11B041F2179B90450034BEE2;
 			remoteInfo = "Audio2-ios";
@@ -57,7 +57,7 @@
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		0DAB23D9839E44C89899BD82 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
-		11B04291179C76190034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "/Volumes/ssd/code/cinder/audio-rewrite/audio2/test/../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
+		11D820A717A4EE8300EFE02A /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
 		1AF64A926F78484A8D49D6FA /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = CinderApp_ios.png; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -79,7 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11B0429C179C76260034BEE2 /* libAudio2-ios.a in Frameworks */,
+				11D820B217A4EE9200EFE02A /* libAudio2-ios.a in Frameworks */,
 				C725E001121DAC8F00FA186B /* AVFoundation.framework in Frameworks */,
 				C725DFFE121DAC7F00FA186B /* CoreMedia.framework in Frameworks */,
 				C725E001121DAC8FFFFA18FF /* ImageIO.framework in Frameworks */,
@@ -101,7 +101,7 @@
 		00692BC414FF149000D0A05E = {
 			isa = PBXGroup;
 			children = (
-				11B04291179C76190034BEE2 /* Audio2.xcodeproj */,
+				11D820A717A4EE8300EFE02A /* Audio2.xcodeproj */,
 				99692BD914FF149000D0A05F /* Headers */,
 				00692BD914FF149000D0A05E /* Source */,
 				00692BD914FF149000D0FFFF /* Resources */,
@@ -156,11 +156,11 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
-		11B04292179C76190034BEE2 /* Products */ = {
+		11D820A817A4EE8300EFE02A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				11B04297179C76190034BEE2 /* libAudio2.a */,
-				11B04299179C76190034BEE2 /* libAudio2-ios.a */,
+				11D820AD17A4EE8300EFE02A /* libAudio2.a */,
+				11D820AF17A4EE8300EFE02A /* libAudio2-ios.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -188,7 +188,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				11B0429B179C761E0034BEE2 /* PBXTargetDependency */,
+				11D820B117A4EE8B00EFE02A /* PBXTargetDependency */,
 			);
 			name = MixerTest;
 			productName = MixerTest;
@@ -214,8 +214,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 11B04292179C76190034BEE2 /* Products */;
-					ProjectRef = 11B04291179C76190034BEE2 /* Audio2.xcodeproj */;
+					ProductGroup = 11D820A817A4EE8300EFE02A /* Products */;
+					ProjectRef = 11D820A717A4EE8300EFE02A /* Audio2.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -226,18 +226,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		11B04297179C76190034BEE2 /* libAudio2.a */ = {
+		11D820AD17A4EE8300EFE02A /* libAudio2.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libAudio2.a;
-			remoteRef = 11B04296179C76190034BEE2 /* PBXContainerItemProxy */;
+			remoteRef = 11D820AC17A4EE8300EFE02A /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		11B04299179C76190034BEE2 /* libAudio2-ios.a */ = {
+		11D820AF17A4EE8300EFE02A /* libAudio2-ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = "libAudio2-ios.a";
-			remoteRef = 11B04298179C76190034BEE2 /* PBXContainerItemProxy */;
+			remoteRef = 11D820AE17A4EE8300EFE02A /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -267,10 +267,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		11B0429B179C761E0034BEE2 /* PBXTargetDependency */ = {
+		11D820B117A4EE8B00EFE02A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Audio2-ios";
-			targetProxy = 11B0429A179C761E0034BEE2 /* PBXContainerItemProxy */;
+			targetProxy = 11D820B017A4EE8B00EFE02A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

@@ -36,13 +36,13 @@
       location = "container:"
       name = "ios">
       <FileRef
-         location = "group:EffectNodeTest/xcode_ios/EffectNodeTest.xcodeproj">
-      </FileRef>
-      <FileRef
          location = "group:BasicTest/xcode_ios/BasicTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:CAFileLoadingTest/xcode_ios/CAFileLoadingTest.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:EffectNodeTest/xcode_ios/EffectNodeTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:EffectsAudioUnitTest/xcode_ios/EffectsAudioUnitTest.xcodeproj">
