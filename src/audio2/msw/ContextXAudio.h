@@ -73,10 +73,12 @@ class NodeXAudio {
 
 class DeviceOutputXAudio;
 
-class OutputXAudio : public OutputNode, public NodeXAudio {
+class LineOutXAudio : public LineOutNode, public NodeXAudio {
   public:
-	OutputXAudio( DeviceRef device );
-	virtual ~OutputXAudio() {}
+	LineOutXAudio( DeviceRef device, const Format &format = Format() );
+	virtual ~LineOutXAudio() {}
+
+	std::string virtual getTag()				{ return "LineOutXAudio"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -97,6 +99,8 @@ struct VoiceCallbackImpl;
 class SourceVoiceXAudio : public Node, public NodeXAudio {
   public:
 	virtual	~SourceVoiceXAudio();
+
+	std::string virtual getTag()				{ return "SourceVoiceXAudio"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -128,6 +132,8 @@ public:
 	EffectXAudioXapo( XapoType type, const Format &format = Format() );
 	virtual ~EffectXAudioXapo();
 
+	std::string virtual getTag()				{ return "EffectXAudioXapo"; }
+
 	void initialize() override;
 	void uninitialize() override;
 
@@ -157,6 +163,8 @@ public:
 	EffectXAudioFilter( const Format &format = Format() );
 	virtual ~EffectXAudioFilter();
 
+	std::string virtual getTag()				{ return "EffectXAudioFilter"; }
+
 	void initialize() override;
 	void uninitialize() override;
 
@@ -172,6 +180,8 @@ class MixerXAudio : public MixerNode, public NodeXAudio {
 public:
 	MixerXAudio();
 	virtual ~MixerXAudio();
+
+	std::string virtual getTag()				{ return "MixerXAudio"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -196,30 +206,15 @@ public:
 	::IXAudio2SubmixVoice *mSubmixVoice;
 };
 
-//class ConverterXAudio : public Node, public XAudioNode {
-//  public:
-//	ConverterXAudio( NodeRef source, NodeRef dest, size_t outputBlockSize );
-//	virtual ~ConverterXAudio();
-//
-//	void initialize() override;
-//	void uninitialize() override;
-//
-//  private:
-//	Node::Format mSourceFormat;
-//	RenderContext mRenderContext;
-//
-//};
-
 class ContextXAudio : public Context {
   public:
 	virtual ~ContextXAudio();
 
-	virtual ContextRef		createContext() override	{ return ContextRef( new ContextXAudio() ); }
-	virtual MixerNodeRef	createMixer() override	{ return MixerNodeRef( new MixerXAudio() ); }
-	virtual OutputNodeRef	createLineOut( DeviceRef device ) override	{ return OutputNodeRef( new OutputXAudio( device ) ); }
-
-	//! If deployment target is 0x601 (win xp) or greater, uses InputWasapi
-	virtual LineInNodeRef	createLineIn( DeviceRef device ) override;
+	virtual ContextRef		createContext() override;
+	virtual LineOutNodeRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	//! If deployment target is 0x601 (win xp) or greater, uses InputWasapi, else returns an empty DeviceRef
+	virtual LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
+	virtual MixerNodeRef	createMixer( const Node::Format &format = Node::Format() ) override;
 
 	void initialize() override;
 	void uninitialize() override;

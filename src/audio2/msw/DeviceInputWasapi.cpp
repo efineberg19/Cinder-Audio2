@@ -100,12 +100,8 @@ void DeviceInputWasapi::stop()
 LineInWasapi::LineInWasapi( DeviceRef device, const Format &format )
 : LineInNode( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
-	mTag = "InputWasapi";
-
 	mDevice = dynamic_pointer_cast<DeviceInputWasapi>( device );
-	CI_ASSERT( mDevice );
-
-	
+	CI_ASSERT( mDevice );	
 
 	DeviceManagerWasapi *manager = dynamic_cast<DeviceManagerWasapi *>( DeviceManagerWasapi::instance() );
 	CI_ASSERT( manager );

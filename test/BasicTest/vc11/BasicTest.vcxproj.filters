@@ -42,9 +42,6 @@
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\Gui.h">
       <Filter>Blocks\Audio2\src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\assert.h">
-      <Filter>Blocks\Audio2\src\audio2</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Atomic.h">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
@@ -87,6 +84,12 @@
     <ClCompile Include="..\..\..\src\audio2\GeneratorNode.cpp">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\audio2\Node.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio2\Dsp.cpp">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
@@ -123,6 +126,12 @@
       <Filter>Blocks\Audio2\src\audio2\msw</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio2\Context.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\Node.h">
+      <Filter>Blocks\Audio2\src\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio2\CinderAssert.h">
       <Filter>Blocks\Audio2\src\audio2</Filter>
     </ClInclude>
   </ItemGroup>

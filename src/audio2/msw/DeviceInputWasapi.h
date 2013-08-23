@@ -55,6 +55,8 @@ class LineInWasapi : public LineInNode {
 	LineInWasapi( DeviceRef device, const Format &format = Format() );
 	virtual ~LineInWasapi();
 
+	std::string virtual getTag()				{ return "LineInWasapi"; }
+
 	void initialize() override;
 	void uninitialize() override;
 

@@ -113,11 +113,6 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 {
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
-
-	if( mChannelMode != ChannelMode::SPECIFIED ) {
-		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( 2 );
-	}
 }
 
 void LineOutAudioUnit::initialize()
