@@ -32,7 +32,7 @@ namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit : public Device {
   public:
-	enum Bus { Output = 0, Input = 1 };
+	enum Bus { OUTPUT = 0, INPUT = 1 };
 
 	virtual ~DeviceAudioUnit();
 

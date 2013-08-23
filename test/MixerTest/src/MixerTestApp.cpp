@@ -60,7 +60,7 @@ public:
 	VSelector mTestSelector;
 	HSlider mNoisePanSlider, mSinePanSlider, mNoiseVolumeSlider, mFreqVolumeSlider;
 
-	enum Bus { Noise, Sine };
+	enum Bus { NOISE, SINE };
 };
 
 void MixerTestApp::prepareSettings( Settings *settings )
@@ -136,8 +136,8 @@ void MixerTestApp::setupMixer()
 	//	sine->connect( mMixer )->connect( mContext->getRoot() );
 
 	// or connect by index
-	noise->connect( mMixer, Bus::Noise );
-	sine->connect( mMixer, Bus::Sine )->connect( mContext->getRoot() );
+	noise->connect( mMixer, Bus::NOISE );
+	sine->connect( mMixer, Bus::SINE )->connect( mContext->getRoot() );
 
 	mSine->start();
 	mNoise->start();
@@ -182,8 +182,8 @@ void MixerTestApp::initContext()
 		// reduce default bus volumes
 		// FIXME: setting params fails before Graph::initialize(), so there isn't an audio unit yet.
 		//		- can I overcome this by lazy-loading the AudioUnit, just create when first asked for?
-		mMixer->setBusVolume( Bus::Noise, 0.65f );
-		mMixer->setBusVolume( Bus::Sine, 0.65f );
+		mMixer->setBusVolume( Bus::NOISE, 0.65f );
+		mMixer->setBusVolume( Bus::SINE, 0.65f );
 
 		LOG_V << "mixer stats:" << endl;
 		size_t numBusses = mMixer->getNumBusses();
@@ -194,10 +194,10 @@ void MixerTestApp::initContext()
 			console() << ", pan: " << mMixer->getBusPan( i ) << endl;
 		}
 
-		mNoisePanSlider.set( mMixer->getBusPan( Bus::Noise ) );
-		mSinePanSlider.set( mMixer->getBusPan( Bus::Sine ) );
-		mNoiseVolumeSlider.set( mMixer->getBusVolume( Bus::Noise ) );
-		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::Sine ) );
+		mNoisePanSlider.set( mMixer->getBusPan( Bus::NOISE ) );
+		mSinePanSlider.set( mMixer->getBusPan( Bus::SINE ) );
+		mNoiseVolumeSlider.set( mMixer->getBusVolume( Bus::NOISE ) );
+		mFreqVolumeSlider.set( mMixer->getBusVolume( Bus::SINE ) );
 	}
 }
 
@@ -269,13 +269,13 @@ void MixerTestApp::processDrag( Vec2i pos )
 {
 	if( mMixer ) {
 		if( mNoisePanSlider.hitTest( pos ) )
-			mMixer->setBusPan( Bus::Noise, mNoisePanSlider.valueScaled );
+			mMixer->setBusPan( Bus::NOISE, mNoisePanSlider.valueScaled );
 		if( mSinePanSlider.hitTest( pos ) )
-			mMixer->setBusPan( Bus::Sine, mSinePanSlider.valueScaled );
+			mMixer->setBusPan( Bus::SINE, mSinePanSlider.valueScaled );
 		if( mNoiseVolumeSlider.hitTest( pos ) )
-			mMixer->setBusVolume( Bus::Noise, mNoiseVolumeSlider.valueScaled );
+			mMixer->setBusVolume( Bus::NOISE, mNoiseVolumeSlider.valueScaled );
 		if( mFreqVolumeSlider.hitTest( pos ) )
-			mMixer->setBusVolume( Bus::Sine, mFreqVolumeSlider.valueScaled );
+			mMixer->setBusVolume( Bus::SINE, mFreqVolumeSlider.valueScaled );
 	}
 }
 

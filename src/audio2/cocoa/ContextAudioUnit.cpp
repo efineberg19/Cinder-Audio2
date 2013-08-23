@@ -135,12 +135,12 @@ void LineOutAudioUnit::initialize()
 
 	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
-	OSStatus status = ::AudioUnitSetProperty( getAudioUnit(), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &asbd, sizeof( asbd ) );
+	OSStatus status = ::AudioUnitSetProperty( getAudioUnit(), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::OUTPUT, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
 	// TODO: move to NodeAudioUnit method
 	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, &mRenderContext };
-	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, DeviceAudioUnit::Bus::Output, &callbackStruct, sizeof( callbackStruct ) );
+	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, DeviceAudioUnit::Bus::OUTPUT, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
 	mDevice->initialize();
@@ -201,7 +201,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 : LineInNode( device, format ), mSynchroniousIO( false )
 {
-	mRenderBus = DeviceAudioUnit::Bus::Input; // TODO: remove, this shouldn't be necessary anymore
+	mRenderBus = DeviceAudioUnit::Bus::INPUT; // TODO: remove, this shouldn't be necessary anymore
 
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
@@ -234,7 +234,7 @@ void LineInAudioUnit::initialize()
 
 	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
-	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::Input, &asbd, sizeof( asbd ) );
+	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::INPUT, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
 	if( mDevice->isOutputConnected() ) {
@@ -257,7 +257,7 @@ void LineInAudioUnit::initialize()
 		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() );
 
 		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
-		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::Input, &callbackStruct, sizeof( callbackStruct ) );
+		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::INPUT, &callbackStruct, sizeof( callbackStruct ) );
 		CI_ASSERT( status == noErr );
 
 		mDevice->initialize();
@@ -311,7 +311,7 @@ void LineInAudioUnit::process( Buffer *buffer )
 
 		::AudioUnitRenderActionFlags flags = 0;
 		const ::AudioTimeStamp *timeStamp = mRenderContext.context->getCurrentTimeStamp();
-		OSStatus status = ::AudioUnitRender( getAudioUnit(), &flags, timeStamp, DeviceAudioUnit::Bus::Input, (UInt32)buffer->getNumFrames(), mBufferList.get() );
+		OSStatus status = ::AudioUnitRender( getAudioUnit(), &flags, timeStamp, DeviceAudioUnit::Bus::INPUT, (UInt32)buffer->getNumFrames(), mBufferList.get() );
 		CI_ASSERT( status == noErr );
 
 		copyFromBufferList( buffer, mBufferList.get() );
@@ -345,7 +345,7 @@ OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlag
 	CI_ASSERT( lineIn->mRingBuffer );
 	
 	::AudioBufferList *nodeBufferList = lineIn->mBufferList.get();
-	OSStatus status = ::AudioUnitRender( lineIn->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::Input, numFrames, nodeBufferList );
+	OSStatus status = ::AudioUnitRender( lineIn->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::INPUT, numFrames, nodeBufferList );
 	CI_ASSERT( status == noErr );
 
 	for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {

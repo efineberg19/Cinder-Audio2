@@ -58,7 +58,7 @@ public:
 	VSelector mTestSelector;
 	HSlider mGainSlider;
 
-	enum Bus { Noise, Sine };
+	enum Bus { NOISE, SINE };
 };
 
 void BasicTestApp::setup()
@@ -122,8 +122,8 @@ void BasicTestApp::setupSumming()
 	mSine->connect( mGain )->connect( mContext->getRoot() );
 
 	// or connect by index
-//	mNoise->connect( mGain, Bus::Noise );
-//	mSine->connect( mGain, Bus::Sine )->connect( mContext->getRoot() );
+//	mNoise->connect( mGain, Bus::NOISE );
+//	mSine->connect( mGain, Bus::SINE )->connect( mContext->getRoot() );
 
 	mSine->start();
 	mNoise->start();
