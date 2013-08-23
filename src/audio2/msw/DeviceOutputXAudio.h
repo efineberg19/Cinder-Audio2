@@ -26,7 +26,7 @@
 #include "audio2/Device.h"
 #include "audio2/msw/xaudio.h"
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 class DeviceOutputXAudio : public Device {
   public:
@@ -51,4 +51,4 @@ class DeviceOutputXAudio : public Device {
 	friend class DeviceManagerWasapi;
 };
 
-}} // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

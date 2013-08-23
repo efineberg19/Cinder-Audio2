@@ -28,7 +28,7 @@
 #include <CoreAudio/CoreAudio.h>
 #include <map>
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceManagerCoreAudio : public DeviceManager {
 public:
@@ -54,4 +54,4 @@ public:
 	std::map<DeviceRef,::AudioDeviceID> mDeviceIds;
 };
 
-} } // audio2::cocoa
+} } } // namespace::audio2::cocoa

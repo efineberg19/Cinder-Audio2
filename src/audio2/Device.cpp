@@ -36,7 +36,7 @@
 	#include "audio2/msw/DeviceManagerWasapi.h"
 #endif
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Device
@@ -141,4 +141,4 @@ DeviceRef DeviceManager::findDeviceByKey( const std::string &key )
 	return DeviceRef();
 }
 
-} // namespace audio2
+} } // namespace cinder::audio2

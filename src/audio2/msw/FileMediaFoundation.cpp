@@ -43,7 +43,7 @@
 using namespace std;
 using namespace ci;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - SourceFileMediaFoundation
@@ -336,4 +336,4 @@ void SourceFileMediaFoundation::storeAttributes()
 	LOG_V << "can seek: " << mCanSeek << endl;
 }
 
-} } // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

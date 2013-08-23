@@ -31,7 +31,7 @@
 #include "audio2/msw/FileMediaFoundation.h"
 #endif
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 // TODO: this should be replaced with a genericized registrar derived from the ImageIo stuff.
 
@@ -45,4 +45,4 @@ SourceFileRef SourceFile::create(  ci::DataSourceRef dataSource, size_t numChann
 }
 	
 
-} // namespace audio2
+} } // namespace cinder::audio2

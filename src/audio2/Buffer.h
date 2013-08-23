@@ -30,7 +30,7 @@
 #include <memory>
 #include <cstdlib>
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 // TODO: following paper provides a 0(N) solution for interleaving: "A Simple In-Place Algorithm for In-Shuffle"
 // - http://arxiv.org/abs/0805.1598
@@ -207,4 +207,4 @@ typedef std::shared_ptr<Bufferd> BufferdRef;
 typedef std::shared_ptr<DynamicBuffer> DynamicBufferRef;
 typedef std::shared_ptr<DynamicBufferd> DynamicdBufferRef;
 
-} // namespace audio2
+} } // namespace cinder::audio2

@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 Context* Context::instance()
 {
@@ -148,4 +148,4 @@ void Context::disconnectRecursive( const NodeRef &node )
 	node->disconnect();
 }
 
-} // namespace audio2
+} } // namespace cinder::audio2

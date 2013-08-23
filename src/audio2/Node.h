@@ -30,7 +30,7 @@
 #include <memory>
 #include <vector>
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Context> ContextRef;
 typedef std::shared_ptr<class Node> NodeRef;
@@ -229,4 +229,4 @@ protected:
 	size_t mMaxNumBusses;
 };
 
-} // namespace audio2
+} } // namespace cinder::audio2

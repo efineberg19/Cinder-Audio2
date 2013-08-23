@@ -27,7 +27,7 @@
 #include "audio2/Dsp.h"
 #include "cinder/CinderMath.h"
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 	typedef std::shared_ptr<class EffectNode> EffectNodeRef;
 	typedef std::shared_ptr<class GainNode> GainNodeRef;
@@ -93,4 +93,4 @@ namespace audio2 {
 		std::vector<float> mSineBuffer;
 	};
 
-} // namespace audio2
+} } // namespace cinder::audio2

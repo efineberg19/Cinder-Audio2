@@ -33,7 +33,7 @@
 using namespace std;
 using namespace ci;
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 static void printExtensions()
 {
@@ -174,4 +174,4 @@ void SourceFileCoreAudio::updateOutputFormat()
 	mBufferList = audio2::cocoa::createNonInterleavedBufferListShallow( mNumChannels );
 }
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

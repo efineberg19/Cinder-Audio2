@@ -36,7 +36,7 @@
 #include <cmath>
 #include <vector>
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 struct UGen {
 	UGen( size_t sampleRate = 0 ) : mSampleRate( sampleRate )	{}
@@ -167,4 +167,4 @@ void sum( const float *arrayA, const float *arrayB, float *result, size_t length
 //! returns the Root-Mean-Squared value of \a array
 float rms( const float *array, size_t length );
 
-} // namespace audio2
+} } // namespace cinder::audio2

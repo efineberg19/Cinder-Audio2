@@ -28,7 +28,7 @@
 #include "cinder/Cinder.h"
 #include "cinder/Exception.h"
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 class Converter {
   public:
@@ -89,4 +89,4 @@ public:
 	AudioFileExc( const std::string &description ) : AudioExc( description )	{}
 };
 
-} // namespace audio2
+} } // namespace cinder::audio2

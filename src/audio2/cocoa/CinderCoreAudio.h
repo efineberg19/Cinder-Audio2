@@ -30,7 +30,7 @@
 
 struct AudioStreamBasicDescription;
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 class ConverterCoreAudio : public Converter {
 public:
@@ -97,4 +97,4 @@ inline void copyFromBufferList( Buffer *buffer, const ::AudioBufferList *bufferL
 	}
 }
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

@@ -29,7 +29,7 @@
 
 #include <AudioToolbox/ExtendedAudioFile.h>
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 class SourceFileCoreAudio : public SourceFile {
   public:
@@ -50,4 +50,4 @@ class SourceFileCoreAudio : public SourceFile {
 	size_t mReadPos;
 };
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

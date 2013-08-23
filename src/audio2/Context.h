@@ -25,7 +25,7 @@
 
 #include "audio2/Node.h"
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 class Context : public std::enable_shared_from_this<Context> {
   public:
@@ -85,4 +85,4 @@ std::shared_ptr<NodeT> Context::makeNode( NodeT *node )
 	return result;
 }
 
-} // namespace audio2
+} } // namespace cinder::audio2

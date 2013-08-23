@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Node
@@ -304,4 +304,4 @@ bool Node::checkInput( const NodeRef &input )
 }
 
 
-} // namespace audio2
+} } // namespace cinder::audio2

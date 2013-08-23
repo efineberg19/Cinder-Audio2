@@ -31,7 +31,7 @@
 
 using namespace ci;
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 #if defined( CINDER_AUDIO_DSP_ACCELERATE )
 
@@ -172,4 +172,4 @@ void generateWindow( WindowType windowType, float *window, size_t length )
 	}
 }
 
-} // namespace audio2
+} } // namespace cinder::audio2

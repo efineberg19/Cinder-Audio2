@@ -32,7 +32,7 @@
 	#include <Accelerate/Accelerate.h>
 #endif
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 class Fft {
 public:
@@ -66,4 +66,4 @@ protected:
 
 };
 
-} // namespace audio2
+} } // namespace cinder::audio2

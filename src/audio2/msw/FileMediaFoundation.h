@@ -29,7 +29,7 @@
 
 struct IMFSourceReader;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 class SourceFileMediaFoundation : public SourceFile {
   public:
@@ -57,4 +57,4 @@ class SourceFileMediaFoundation : public SourceFile {
 	bool mCanSeek;
 };
 
-} } // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

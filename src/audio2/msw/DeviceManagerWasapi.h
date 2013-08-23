@@ -27,7 +27,7 @@
 
 struct IMMDevice;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 // TODO: minimal DeviceManagerXp
 
@@ -67,4 +67,4 @@ class DeviceManagerWasapi : public DeviceManager {
 	  std::vector<DeviceInfo> mDeviceInfoArray;
 };
 
-}} // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

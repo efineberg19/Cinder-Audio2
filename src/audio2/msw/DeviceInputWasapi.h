@@ -30,7 +30,7 @@
 #include "audio2/Device.h"
 #include "audio2/GeneratorNode.h"
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 class DeviceInputWasapi : public Device {
 public:
@@ -75,4 +75,4 @@ class InputWasapi : public InputNode {
 	size_t mCaptureBlockSize; // per channel. TODO: this should be user settable
 };
 
-}} // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

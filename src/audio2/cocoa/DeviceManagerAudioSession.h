@@ -26,7 +26,7 @@
 #include "audio2/audio.h"
 #include "audio2/Device.h"
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
 
@@ -64,4 +64,4 @@ class DeviceManagerAudioSession : public DeviceManager {
 	bool mSessionIsActive;
 };
 
-} } // audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

@@ -30,7 +30,7 @@
 using namespace ci;
 using namespace std;
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - GeneratorNode
@@ -289,4 +289,4 @@ void FilePlayerNode::readFile()
 	}
 }
 
-} // namespace audio2
+} } // namespace cinder::audio2

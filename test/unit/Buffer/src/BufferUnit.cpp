@@ -5,7 +5,7 @@
 
 #include "audio2/Buffer.h"
 
-using namespace audio2;
+using namespace ci::audio2;
 
 BOOST_AUTO_TEST_CASE( TestSize )
 {

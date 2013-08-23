@@ -31,7 +31,7 @@
 #include "cinder/DataSource.h"
 #include "cinder/Thread.h"
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class PlayerNode>		PlayerNodeRef;
 typedef std::shared_ptr<class BufferPlayerNode> BufferPlayerNodeRef;
@@ -179,4 +179,4 @@ protected:
 	UGenT mGen;
 };
 
-} // namespace audio2
+} } // namespace cinder::audio2

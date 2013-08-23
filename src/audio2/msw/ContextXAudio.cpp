@@ -34,7 +34,7 @@
 
 using namespace std;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 static bool isNodeNativeXAudio( NodeRef node ) {
 	return dynamic_pointer_cast<NodeXAudio>( node );
@@ -783,5 +783,4 @@ void ContextXAudio::initEffects( NodeRef node )
 	}
 }
 
-
-}} // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

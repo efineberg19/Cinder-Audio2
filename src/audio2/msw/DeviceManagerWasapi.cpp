@@ -47,7 +47,7 @@ DEFINE_GUID(DEVINTERFACE_AUDIO_CAPTURE, 0x2eef81be, 0x33fa, 0x4800, 0x96, 0x70, 
 
 using namespace std;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManagerWasapi
@@ -313,4 +313,4 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 	}
 }
 
-}} // namespace audio2::msw
+}} } // namespace cinder::audio2::msw

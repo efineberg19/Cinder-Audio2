@@ -31,7 +31,7 @@
 
 using namespace std;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 DeviceOutputXAudio::DeviceOutputXAudio( const std::string &key )
 : Device( key )
@@ -135,4 +135,4 @@ void DeviceOutputXAudio::stop()
 	LOG_V "stopped" << endl;
 }
 
-}} // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

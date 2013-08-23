@@ -28,7 +28,7 @@
 #include "audio2/Device.h"
 #include <AudioUnit/AudioUnit.h>
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit : public Device {
   public:
@@ -65,4 +65,4 @@ class DeviceAudioUnit : public Device {
 #endif
 };
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

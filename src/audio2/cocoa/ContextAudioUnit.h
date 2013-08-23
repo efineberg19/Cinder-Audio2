@@ -31,7 +31,7 @@
 
 #include <AudioUnit/AudioUnit.h>
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
 class ContextAudioUnit;
@@ -177,4 +177,4 @@ class ContextAudioUnit : public Context {
 	const ::AudioTimeStamp *mCurrentTimeStamp;
 };
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

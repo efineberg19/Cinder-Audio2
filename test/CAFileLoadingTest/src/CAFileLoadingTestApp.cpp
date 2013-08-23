@@ -23,7 +23,7 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-using namespace audio2;
+using namespace ci::audio2;
 
 class CAFileLoadingTestApp : public AppNative {
 public:

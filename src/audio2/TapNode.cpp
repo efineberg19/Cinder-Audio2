@@ -32,7 +32,7 @@
 using namespace std;
 using namespace ci;
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - TapNode
@@ -189,4 +189,4 @@ void SpectrumTapNode::setSmoothingFactor( float factor )
 	mSmoothingFactor = ( factor < 0.0f ) ? 0.0f : ( ( factor > 1.0f ) ? 1.0f : factor );
 }
 
-} // namespace audio2
+} } // namespace cinder::audio2

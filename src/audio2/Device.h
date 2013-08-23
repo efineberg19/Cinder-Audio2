@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Device> DeviceRef;
 
@@ -90,4 +90,4 @@ protected:
 	std::vector<DeviceRef> mDevices;
 };
 
-} // namespace audio2
+} } // namespace cinder::audio2

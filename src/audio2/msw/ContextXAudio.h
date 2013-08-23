@@ -32,7 +32,7 @@
 // TODO: all IXAudio2Voice's should only be Destroy()'d when their containing object
 //       is destroyed - not uninitialize. Use unique_ptr's for this
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 class SourceVoiceXAudio;
 class NodeXAudio;
@@ -232,4 +232,4 @@ class ContextXAudio : public Context {
 	void initEffects( NodeRef node );
 };
 
-} } // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

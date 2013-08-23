@@ -28,7 +28,7 @@
 struct tWAVEFORMATEX;
 typedef struct tWAVEFORMATEX WAVEFORMATEX;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 struct ComReleaser {
 	template <typename T>
@@ -51,4 +51,4 @@ inline std::unique_ptr<T, VoiceDeleter> makeVoiceUnique( T *p )	{ return std::un
 //! return pointer type is actually a WAVEFORMATEXTENSIBLE, identifiable by the wFormat tag
 std::shared_ptr<::WAVEFORMATEX> interleavedFloatWaveFormat( size_t numChannels, size_t sampleRate );
 
-} } // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

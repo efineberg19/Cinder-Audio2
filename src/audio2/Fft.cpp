@@ -25,7 +25,7 @@
 #include "audio2/CinderAssert.h"
 #include "audio2/audio.h"
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 Fft::Fft( size_t fftSize )
 : mSize( fftSize )
@@ -70,4 +70,4 @@ void Fft::compute( Buffer *buffer )
 }
 
 
-} // namespace audio2
+} } // namespace cinder::audio2

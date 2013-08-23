@@ -46,6 +46,6 @@
 #endif
 
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
-} } // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

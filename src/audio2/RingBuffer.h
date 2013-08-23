@@ -32,7 +32,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 #include <vector>
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 class RingBuffer {
   public:
@@ -82,4 +82,4 @@ class RingBuffer {
 	size_t mSize;
 };
 
-}
+} } // namespace cinder::audio2

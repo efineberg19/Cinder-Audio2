@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Audio Unit Helper Functions
@@ -666,4 +666,4 @@ void ContextAudioUnit::uninitNode( NodeRef node )
 	node->uninitialize();
 }
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

@@ -32,7 +32,7 @@
 using namespace std;
 using namespace ci;
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 // some private helpers, not sure yet how widely useful these are
 ::AudioObjectPropertyAddress audioObjectProperty( ::AudioObjectPropertySelector propertySelector, ::AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
@@ -240,4 +240,4 @@ size_t deviceNumChannels( ::AudioObjectID objectId, bool isInput )
 	return numChannels;
 }
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa

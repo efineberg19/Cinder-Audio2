@@ -29,7 +29,7 @@
 using namespace std;
 using namespace ci;
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 namespace {
 	void printRecursive( NodeRef node, size_t depth )
@@ -73,4 +73,4 @@ void printDevices()
 	}
 }
 
-} // namespace audio2
+} } // namespace cinder::audio2

@@ -30,7 +30,7 @@
 #include "audio2/Context.h"
 #include "audio2/Dsp.h"
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 
 class RingBuffer;
 class Fft;
@@ -128,4 +128,4 @@ private:
 	float mSmoothingFactor;
 };
 
-} // namespace audio2
+} } // namespace cinder::audio2

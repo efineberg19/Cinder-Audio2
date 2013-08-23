@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 struct InputWasapi::Impl {
 	Impl() : mNumSamplesBuffered( 0 ) {}
@@ -306,4 +306,4 @@ void InputWasapi::Impl::captureAudio()
 	}
 }
 
-}} // namespace audio2::msw
+} } } // namespace cinder::audio2::msw

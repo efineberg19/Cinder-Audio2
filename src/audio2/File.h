@@ -27,7 +27,7 @@
 
 #include "cinder/DataSource.h"
 
-namespace audio2 {
+namespace cinder { namespace audio2 {
 	
 typedef std::shared_ptr<class SourceFile> SourceFileRef;
 typedef std::shared_ptr<class TargetFile> TargetFileRef;
@@ -71,4 +71,4 @@ class TargetFile {
 
 //BufferRef loadAudio( SourceFileRef sourcefile );
 
-} // namespace audio2
+} } // namespace cinder::audio2

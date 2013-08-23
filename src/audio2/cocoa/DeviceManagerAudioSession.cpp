@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace audio2 { namespace cocoa {
+namespace cinder { namespace audio2 { namespace cocoa {
 
 const string kRemoteIOKey = "iOS-RemoteIO";
 
@@ -179,4 +179,4 @@ uint32_t DeviceManagerAudioSession::getSessionCategory()
 	return static_cast<uint32_t>( result );
 }
 
-} } // namespace audio2::cocoa
+} } } // namespace cinder::audio2::cocoa
