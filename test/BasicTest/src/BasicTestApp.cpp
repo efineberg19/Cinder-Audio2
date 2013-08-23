@@ -98,7 +98,10 @@ void BasicTestApp::setupSine()
 
 	mSine->connect( mGain )->connect( mContext->getRoot() );
 
+	// FIXME: on MSW, this starts the gen but there is no SourceVoiceXaudio started yet
+	// - option: when mSine is connected, install source voice and make it auto-enabled
 	mSine->start();
+
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
 }

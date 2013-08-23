@@ -135,7 +135,7 @@ void sum( const float *arrayA, const float *arrayB, float *result, size_t length
 
 float rms( const float *array, size_t length )
 {
-	float sumSquared = 0;
+	float sumSquared( 0.0f );
 	for( size_t i = 0; i < length; i++ ) {
 		float val = array[i];
 		sumSquared += val * val;
