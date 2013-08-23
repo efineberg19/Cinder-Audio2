@@ -33,12 +33,12 @@
 
 class Waveform {
   public:
-	enum CalcMode { MinMax, Average };
+	enum CalcMode { MIN_MAX, AVERAGE };
     Waveform() {}
-    Waveform( const std::vector<float> &samples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MinMax )	{ load( samples.data(), samples.size(), waveSize, pixelsPerVertex, mode ); }
-    Waveform( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MinMax )	{ load( samples, numSamples, waveSize, pixelsPerVertex, mode ); }
+    Waveform( const std::vector<float> &samples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MIN_MAX )	{ load( samples.data(), samples.size(), waveSize, pixelsPerVertex, mode ); }
+    Waveform( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MIN_MAX )	{ load( samples, numSamples, waveSize, pixelsPerVertex, mode ); }
 
-	void load( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MinMax );
+	void load( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex = 2, CalcMode mode = MIN_MAX );
 
     const ci::PolyLine2f& getOutline() const	{ return mOutline; }
 	const ci::TriMesh2d& getMesh() const		{ return mMesh; };

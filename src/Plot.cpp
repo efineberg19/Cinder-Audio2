@@ -31,20 +31,20 @@ using namespace std;
 using namespace ci;
 using namespace ci::audio2;
 
-inline void calcMinMaxForSection( const float *buffer, int samplesPerSection, float &max, float &min ) {
+inline void calcMinMaxForSection( const float *buffer, size_t samplesPerSection, float &max, float &min ) {
 	max = 0.0f;
 	min = 0.0f;
-	for( int k = 0; k < samplesPerSection; k++ ) {
+	for( size_t k = 0; k < samplesPerSection; k++ ) {
 		float s = buffer[k];
 		max = math<float>::max( max, s );
 		min = math<float>::min( min, s );
 	}
 }
 
-inline void calcAverageForSection( const float *buffer, int samplesPerSection, float &upper, float &lower ) {
+inline void calcAverageForSection( const float *buffer, size_t samplesPerSection, float &upper, float &lower ) {
 	upper = 0.0f;
 	lower = 0.0f;
-	for( int k = 0; k < samplesPerSection; k++ ) {
+	for( size_t k = 0; k < samplesPerSection; k++ ) {
 		float s = buffer[k];
 		if( s > 0.0f ) {
 			upper += s;
@@ -59,8 +59,8 @@ inline void calcAverageForSection( const float *buffer, int samplesPerSection, f
 void Waveform::load( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex, CalcMode mode )
 {
     float height = waveSize.y / 2.0f;
-    int numSections = waveSize.x / pixelsPerVertex + 1;
-    int samplesPerSection = numSamples / numSections;
+    size_t numSections = waveSize.x / pixelsPerVertex + 1;
+    size_t samplesPerSection = numSamples / numSections;
 
 	vector<Vec2f> &points = mOutline.getPoints();
 	points.resize( numSections * 2 );
@@ -68,7 +68,7 @@ void Waveform::load( const float *samples, size_t numSamples, const ci::Vec2i &w
     for( int i = 0; i < numSections; i++ ) {
 		float x = i * pixelsPerVertex;
 		float yUpper, yLower;
-		if( mode == CalcMode::MinMax ) {
+		if( mode == CalcMode::MIN_MAX ) {
 			calcMinMaxForSection( &samples[i * samplesPerSection], samplesPerSection, yUpper, yLower );
 		} else {
 			calcAverageForSection( &samples[i * samplesPerSection], samplesPerSection, yUpper, yLower );
@@ -88,8 +88,8 @@ void WaveformPlot::load( const std::vector<float> &samples, const ci::Rectf &bou
 	mWaveforms.clear();
 
 	Vec2i waveSize = bounds.getSize();
-	mWaveforms.push_back( Waveform( samples, waveSize, pixelsPerVertex, Waveform::CalcMode::MinMax ) );
-	mWaveforms.push_back( Waveform( samples, waveSize, pixelsPerVertex, Waveform::CalcMode::Average ) );
+	mWaveforms.push_back( Waveform( samples, waveSize, pixelsPerVertex, Waveform::CalcMode::MIN_MAX ) );
+	mWaveforms.push_back( Waveform( samples, waveSize, pixelsPerVertex, Waveform::CalcMode::AVERAGE ) );
 }
 
 void WaveformPlot::load( BufferRef buffer, const ci::Rectf &bounds, size_t pixelsPerVertex )
@@ -97,12 +97,12 @@ void WaveformPlot::load( BufferRef buffer, const ci::Rectf &bounds, size_t pixel
 	mBounds = bounds;
 	mWaveforms.clear();
 
-	int numChannels = buffer->getNumChannels();
+	size_t numChannels = buffer->getNumChannels();
 	Vec2i waveSize = bounds.getSize();
 	waveSize.y /= numChannels;
-	for( int ch = 0; ch < numChannels; ch++ ) {
-		mWaveforms.push_back( Waveform( buffer->getChannel( ch ), buffer->getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::MinMax ) );
-		mWaveforms.push_back( Waveform( buffer->getChannel( ch ), buffer->getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::Average ) );
+	for( size_t ch = 0; ch < numChannels; ch++ ) {
+		mWaveforms.push_back( Waveform( buffer->getChannel( ch ), buffer->getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::MIN_MAX ) );
+		mWaveforms.push_back( Waveform( buffer->getChannel( ch ), buffer->getNumFrames(), waveSize, pixelsPerVertex, Waveform::CalcMode::AVERAGE ) );
 	}
 }
 
