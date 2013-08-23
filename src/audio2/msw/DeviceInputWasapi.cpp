@@ -37,7 +37,7 @@ using namespace std;
 
 namespace cinder { namespace audio2 { namespace msw {
 
-struct InputWasapi::Impl {
+struct LineInWasapi::Impl {
 	Impl() : mNumSamplesBuffered( 0 ) {}
 	~Impl() {}
 
@@ -97,8 +97,8 @@ void DeviceInputWasapi::stop()
 // TODO: audio client activation should be in Device, maybe audio client should even be in there
 // TODO: default block sizes should be set in one place and propagate down the graph
 //  - update: it's now at getContext()->getNumFramesPerBlock() - can get it there
-InputWasapi::InputWasapi( DeviceRef device, const Format &format )
-: InputNode( device, format ), mImpl( new InputWasapi::Impl() ), mCaptureBlockSize( 1024 )
+LineInWasapi::LineInWasapi( DeviceRef device, const Format &format )
+: LineInNode( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
 	mTag = "InputWasapi";
 
@@ -131,11 +131,11 @@ InputWasapi::InputWasapi( DeviceRef device, const Format &format )
 	LOG_V << "activated audio client" << endl;
 }
 
-InputWasapi::~InputWasapi()
+LineInWasapi::~LineInWasapi()
 {
 }
 
-void InputWasapi::initialize()
+void LineInWasapi::initialize()
 {
 	size_t sampleRate = getContext()->getSampleRate();
 
@@ -175,7 +175,7 @@ void InputWasapi::initialize()
 }
 
 // TODO: consider uninitializing device
-void InputWasapi::uninitialize()
+void LineInWasapi::uninitialize()
 {
 	if( ! mInitialized )
 		return;
@@ -186,7 +186,7 @@ void InputWasapi::uninitialize()
 	mInitialized = false;
 }
 
-void InputWasapi::start()
+void LineInWasapi::start()
 {
 	if( ! mInitialized ) {
 		LOG_E << "not initialized" << endl;
@@ -200,7 +200,7 @@ void InputWasapi::start()
 	LOG_V << "started " << mDevice->getName() << endl;
 }
 
-void InputWasapi::stop()
+void LineInWasapi::stop()
 {
 	if( ! mInitialized ) {
 		LOG_E << "not initialized" << endl;
@@ -214,13 +214,13 @@ void InputWasapi::stop()
 	LOG_V << "stopped " << mDevice->getName() << endl;
 }
 
-DeviceRef InputWasapi::getDevice()
+DeviceRef LineInWasapi::getDevice()
 {
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
 // TODO: decide what to do when there is a buffer under/over run. LOG_V / app::console() is not thread-safe..
-void InputWasapi::process( Buffer *buffer )
+void LineInWasapi::process( Buffer *buffer )
 {
 	mImpl->captureAudio();
 
@@ -247,7 +247,7 @@ void InputWasapi::process( Buffer *buffer )
 // MARK: - InputWasapi::Impl
 // ----------------------------------------------------------------------------------------------------
 
-void InputWasapi::Impl::initCapture( size_t numFrames, size_t numChannels ) {
+void LineInWasapi::Impl::initCapture( size_t numFrames, size_t numChannels ) {
 	CI_ASSERT( mAudioClient );
 
 	mNumChannels = numChannels;
@@ -260,7 +260,7 @@ void InputWasapi::Impl::initCapture( size_t numFrames, size_t numChannels ) {
 	mRingBuffer.reset( new RingBuffer( numFrames * numChannels ) );
 }
 
-void InputWasapi::Impl::captureAudio()
+void LineInWasapi::Impl::captureAudio()
 {
 	UINT32 sizeNextPacket;
 	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket ); // TODO: treat this accordingly for stereo (2x)

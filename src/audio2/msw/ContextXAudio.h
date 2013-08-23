@@ -219,7 +219,7 @@ class ContextXAudio : public Context {
 	virtual OutputNodeRef	createLineOut( DeviceRef device ) override	{ return OutputNodeRef( new OutputXAudio( device ) ); }
 
 	//! If deployment target is 0x601 (win xp) or greater, uses InputWasapi
-	virtual InputNodeRef	createLineIn( DeviceRef device ) override;
+	virtual LineInNodeRef	createLineIn( DeviceRef device ) override;
 
 	void initialize() override;
 	void uninitialize() override;

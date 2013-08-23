@@ -50,10 +50,10 @@ private:
 };
 
 
-class InputWasapi : public InputNode {
+class LineInWasapi : public LineInNode {
   public:
-	InputWasapi( DeviceRef device, const Format &format = Format() );
-	virtual ~InputWasapi();
+	LineInWasapi( DeviceRef device, const Format &format = Format() );
+	virtual ~LineInWasapi();
 
 	void initialize() override;
 	void uninitialize() override;
