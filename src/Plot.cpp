@@ -29,8 +29,7 @@
 
 using namespace std;
 using namespace ci;
-
-namespace audio2 {
+using namespace ci::audio2;
 
 inline void calcMinMaxForSection( const float *buffer, int samplesPerSection, float &max, float &min ) {
 	max = 0.0f;
@@ -135,6 +134,3 @@ void WaveformPlot::draw( const Vec2i &offset, float scale, const ColorA &colorMi
 		gl::popMatrices();
 	}
 }
-
-
-} // namespace audio2
