@@ -175,46 +175,15 @@ private:
 
 };
 
-
-class MixerXAudio : public MixerNode, public NodeXAudio {
-public:
-	MixerXAudio();
-	virtual ~MixerXAudio();
-
-	std::string virtual getTag()				{ return "MixerXAudio"; }
-
-	void initialize() override;
-	void uninitialize() override;
-
-	size_t getNumBusses() override;
-	void setNumBusses( size_t count ) override;
-	void setMaxNumBusses( size_t count ) override;
-	bool isBusEnabled( size_t bus ) override;
-	void setBusEnabled( size_t bus, bool enabled = true ) override;
-	void setBusVolume( size_t bus, float volume ) override;
-	float getBusVolume( size_t bus ) override;
-	void setBusPan( size_t bus, float pan ) override;
-	float getBusPan( size_t bus ) override;
-
-	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSubmixVoice ), this ); }
-
-	bool supportsSourceNumChannels( size_t numChannels ) const override;
-
-  private:
-	void checkBusIsValid( size_t bus );
-
-	::IXAudio2SubmixVoice *mSubmixVoice;
-};
-
 class ContextXAudio : public Context {
   public:
 	virtual ~ContextXAudio();
 
-	virtual ContextRef		createContext() override;
-	virtual LineOutNodeRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	ContextRef		createContext() override;
+	LineOutNodeRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	//! If deployment target is 0x601 (win xp) or greater, uses InputWasapi, else returns an empty DeviceRef
-	virtual LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
-	virtual MixerNodeRef	createMixer( const Node::Format &format = Node::Format() ) override;
+	LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
+	MixerNodeRef	createMixer( const Node::Format &format = Node::Format() ) override;
 
 	void initialize() override;
 	void uninitialize() override;

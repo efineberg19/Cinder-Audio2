@@ -384,173 +384,6 @@ void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - MixerXAudio
-// ----------------------------------------------------------------------------------------------------
-
-MixerXAudio::MixerXAudio()
-: MixerNode( Format() )
-{
-	mChannelMode = ChannelMode::MATCHES_OUTPUT;
-}
-
-MixerXAudio::~MixerXAudio()
-{		
-}
-
-void MixerXAudio::initialize()
-{
-	HRESULT hr = mXAudio->CreateSubmixVoice( &mSubmixVoice, getNumChannels(), getContext()->getSampleRate());
-
-	::XAUDIO2_SEND_DESCRIPTOR sendDesc = { 0, mSubmixVoice };
-	::XAUDIO2_VOICE_SENDS sendList = { 1, &sendDesc };
-
-	// find source voices and set this node's submix voice to be their output
-	// graph should have already inserted a native source voice on this end of the mixer if needed.
-	// TODO:: test with generic effects
-	for( NodeRef node : getInputs() ) {
-		if( ! node )
-			continue;
-
-		auto nodeXAudio = getXAudioNode( node );
-		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
-		v.voice->SetOutputVoices( &sendList );
-	}
-
-	mInitialized = true;
-	LOG_V << "initialize complete. " << endl;
-}
-
-void MixerXAudio::uninitialize()
-{
-	// TODO: methinks this should be done at destruction, not un-init
-	if( mSubmixVoice ) {
-		LOG_V << "about to destroy submix voice: " << hex << mSubmixVoice << dec << endl;
-		mSubmixVoice->DestroyVoice();
-	}
-	mInitialized = false;
-}
-
-size_t MixerXAudio::getNumBusses()
-{
-	size_t result = 0;
-	for( NodeRef node : getInputs() ) {
-		if( node )
-			result++;
-	}
-	return result;
-}
-
-void MixerXAudio::setNumBusses( size_t count )
-{
-	// TODO: set what to do here, if anything. probably should be removed.
-}
-
-void MixerXAudio::setMaxNumBusses( size_t count )
-{
-	size_t numActive = getNumBusses();
-	if( count < numActive )
-		throw AudioExc( string( "don't know how to resize max num busses to " ) + ci::toString( count ) + "when there are " + ci::toString( numActive ) + "active busses." );
-
-	mMaxNumBusses = count;
-}
-
-bool MixerXAudio::isBusEnabled( size_t bus )
-{
-	checkBusIsValid( bus );
-
-	NodeRef node = getInputs()[bus];
-	auto sourceVoice = getSourceVoice( node );
-
-	return sourceVoice->isEnabled();
-}
-
-void MixerXAudio::setBusEnabled( size_t bus, bool enabled )
-{
-	checkBusIsValid( bus );
-
-	NodeRef node = getInputs()[bus];
-	auto sourceVoice = getSourceVoice( node );
-
-	if( enabled )
-		sourceVoice->stop();
-	else
-		sourceVoice->start();
-}
-
-void MixerXAudio::setBusVolume( size_t bus, float volume )
-{
-	checkBusIsValid( bus );
-	
-	NodeRef node = getInputs()[bus];
-	auto nodeXAudio = getXAudioNode( node );
-	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node ).voice;
-
-	HRESULT hr = voice->SetVolume( volume );
-	CI_ASSERT( hr == S_OK );
-}
-
-float MixerXAudio::getBusVolume( size_t bus )
-{
-	checkBusIsValid( bus );
-
-	NodeRef node = getInputs()[bus];
-	auto nodeXAudio = getXAudioNode( node );
-	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node ).voice;
-
-	float volume;
-	voice->GetVolume( &volume );
-	return volume;
-}
-
-// panning explained here: http://msdn.microsoft.com/en-us/library/windows/desktop/hh405043(v=vs.85).aspx
-// TODO: panning should be done on an equal power scale, this is linear
-void MixerXAudio::setBusPan( size_t bus, float pan )
-{
-	checkBusIsValid( bus );
-
-	size_t numChannels = getNumChannels(); 
-	if( numChannels == 1 )
-		return; // mono is no-op
-	if( numChannels > 2 )
-		throw AudioParamExc( string( "Don't know how to pan " ) + ci::toString( numChannels ) + " channels" );
-
-	float left = 0.5f - pan / 2.0f;
-	float right = 0.5f + pan / 2.0f; 
-
-	vector<float> outputMatrix( 4 );
-	outputMatrix[0] = left;
-	outputMatrix[1] = left;
-	outputMatrix[2] = right;
-	outputMatrix[3] = right;
-
-	NodeRef node = getInputs()[bus];
-	auto nodeXAudio = getXAudioNode( node );
-	::IXAudio2Voice *voice = nodeXAudio->getXAudioVoice( node ).voice;
-	HRESULT hr = voice->SetOutputMatrix( nullptr, node->getNumChannels(), numChannels, outputMatrix.data() );
-	CI_ASSERT( hr == S_OK );
-}
-
-float MixerXAudio::getBusPan( size_t bus )
-{
-	checkBusIsValid( bus );
-	// TODO: implement
-	return 0.0f;
-}
-
-void MixerXAudio::checkBusIsValid( size_t bus )
-{
-	if( bus >= getMaxNumBusses() )
-		throw AudioParamExc( "Bus index out of range: " + bus );
-	if( ! getInputs()[bus] )
-		throw AudioParamExc( "There is no node at bus index: " + bus );
-}
-
-bool MixerXAudio::supportsSourceNumChannels( size_t numChannels ) const
-{
-	return true;
-}
-
-// ----------------------------------------------------------------------------------------------------
 // MARK: - ContextXAudio
 // ----------------------------------------------------------------------------------------------------
 
@@ -577,7 +410,7 @@ LineInNodeRef ContextXAudio::createLineIn( DeviceRef device, const Node::Format 
 
 MixerNodeRef ContextXAudio::createMixer( const Node::Format &format )
 {
-	return makeNode( new MixerXAudio() );
+	return MixerNodeRef(); // note: remove because of MixerXAudio's wonkiness
 }
 
 void ContextXAudio::initialize()
@@ -626,7 +459,6 @@ void ContextXAudio::initialize()
 //			sourceVoice = getSourceVoice( source );
 //			if( ! sourceVoice ) {
 //				// first check if any child is a native node - if it is, that indicates we need a custom XAPO
-//				// TODO: implement custom Xapo and insert for this. make sure EffectXAudioFilter is handled appropriately as well
 //				if( getXAudioNode( source ) )
 //					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 //
