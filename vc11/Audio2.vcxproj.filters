@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\audio2">
+      <UniqueIdentifier>{018fb5c6-5337-4ae7-9a93-b6f80ed54026}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\audio2\msw">
+      <UniqueIdentifier>{9f1c20d0-b081-4e04-b8a8-2c6969440fea}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\audio2\Atomic.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\audio.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\Buffer.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\CinderAssert.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\Context.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\Debug.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\Device.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\Dsp.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\EffectNode.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\Fft.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\File.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\GeneratorNode.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\Node.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\RingBuffer.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\TapNode.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Gui.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Plot.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\ContextXAudio.h">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\DeviceInputWasapi.h">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\DeviceManagerWasapi.h">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\DeviceOutputXAudio.h">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\FileMediaFoundation.h">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\util.h">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\xaudio.h">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\audio2\audio.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\Context.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\Device.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\Dsp.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\Fft.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\File.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\GeneratorNode.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\Node.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\TapNode.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Plot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\msw\ContextXAudio.cpp">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\msw\DeviceInputWasapi.cpp">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\msw\DeviceManagerWasapi.cpp">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\msw\DeviceOutputXAudio.cpp">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\msw\FileMediaFoundation.cpp">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\msw\util.cpp">
+      <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
