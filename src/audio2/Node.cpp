@@ -79,7 +79,8 @@ void Node::disconnect( size_t bus )
 {
 	stop();
 
-	mInputs.clear();
+	for( NodeRef &input : mInputs )
+		input.reset();
 
 	auto output = getOutput();
 	if( output ) {
