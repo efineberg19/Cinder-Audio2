@@ -66,6 +66,10 @@ public:
 	Node( const Format &format );
 	virtual ~Node();
 
+	std::string virtual getTag()				{ return "Node"; }
+
+	ContextRef getContext() const				{ return mContext.lock(); }
+
 	virtual void initialize();
 	virtual void uninitialize()	{ mInitialized = false; }
 	virtual void start()		{ mEnabled = true; }
@@ -106,10 +110,6 @@ public:
 
 	NodeRef getOutput()	const					{ return mOutput.lock(); }
 	void setOutput( NodeRef output )			{ mOutput = output; }
-
-	ContextRef getContext() const				{ return mContext.lock(); }
-
-	std::string virtual getTag()				{ return "Node"; }
 
 	bool isInitialized() const					{ return mInitialized; }
 
