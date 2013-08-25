@@ -76,7 +76,7 @@ public:
 
 	virtual void disconnect( size_t bus = 0 );
 
-	//! insert in first available slot or append the node if called without a bus number.
+	//! insert in first available slot or append the node if called without a bus number. TODO: consider a more descriptive name (not really obvious this will append )
 	virtual void setInput( NodeRef input );
 	virtual void setInput( NodeRef input, size_t bus );
 

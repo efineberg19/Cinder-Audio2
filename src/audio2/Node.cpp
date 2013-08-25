@@ -75,8 +75,6 @@ NodeRef Node::connect( NodeRef dest, size_t bus )
 	return dest;
 }
 
-// TODO: need 2 variants
-// - if multi-output is supported, use getOutput( bus )->getInputs()
 void Node::disconnect( size_t bus )
 {
 	stop();

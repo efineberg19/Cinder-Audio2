@@ -114,7 +114,6 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	SourceVoiceXAudio();
 
 	void submitNextBuffer();
-	void renderNode( NodeRef node );
 
 	::IXAudio2SourceVoice						*mSourceVoice;
 	::XAUDIO2_BUFFER							mXAudio2Buffer;

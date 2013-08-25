@@ -155,6 +155,7 @@ void SourceVoiceXAudio::initialize()
 	// TODO: consider whether this should handle higher channel counts, or disallow in graph configure / node format
 	CI_ASSERT( getNumChannels() <= 2 ); 
 
+	// TODO: use mInternalBuffer
 	mBuffer = Buffer( getNumChannels(), getContext()->getNumFramesPerBlock() );
 	
 	size_t numSamples = mBuffer.getSize();
@@ -215,22 +216,13 @@ void SourceVoiceXAudio::submitNextBuffer()
 	CI_ASSERT( mSourceVoice );
 
 	mBuffer.zero();
-	renderNode( getInputs()[0] );
+	pullInputs( &mBuffer );
 
 	if( getNumChannels() == 2 )
 		interleaveStereoBuffer( &mBuffer, &mBufferInterleaved );
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
 	CI_ASSERT( hr == S_OK );
-}
-
-void SourceVoiceXAudio::renderNode( NodeRef node )
-{
-	if( ! node->getInputs().empty() )
-		renderNode( node->getInputs()[0] );
-
-	if( node->isEnabled() )
-		node->process( &mBuffer );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -412,64 +404,6 @@ void ContextXAudio::initialize()
 	LOG_V << "graph initialize complete. output channels: " << getRoot()->getNumChannels() << endl;
 }
 
-
-//void ContextXAudio::initNode( NodeRef node )
-//{
-//	if( ! node )
-//		return;
-//
-//	setContext( node );
-//
-//	// recurse through sources
-//	for( size_t i = 0; i < node->getInputs().size(); i++ ) {
-//		NodeRef source = node->getInputs()[i];
-//
-//		if( ! source )
-//			continue;
-//
-//		// if source is generic, if it does it needs a SourceXAudio so add one implicitly
-//		shared_ptr<SourceVoiceXAudio> sourceVoice;
-//
-//		if( ! isNodeNativeXAudio( source ) ) {
-//			sourceVoice = getSourceVoice( source );
-//			if( ! sourceVoice ) {
-//				// first check if any child is a native node - if it is, that indicates we need a custom XAPO
-//				if( getXAudioNode( source ) )
-//					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
-//
-//				sourceVoice = shared_ptr<SourceVoiceXAudio>( new SourceVoiceXAudio() );
-//				node->getInputs()[i] = sourceVoice;
-//				sourceVoice->setParent( node );
-//				sourceVoice->setInput( source );
-//			}
-//		}
-//
-//		initNode( source );
-//
-//		// initialize source voice after node
-//		if( sourceVoice && ! sourceVoice->isInitialized() ) {
-//			sourceVoice->setNumChannels( source->getNumChannels() );
-//			setContext( sourceVoice );
-//			sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
-//			sourceVoice->initialize();
-//		}
-//	}
-//
-//	for( size_t bus = 0; bus < node->getInputs().size(); bus++ ) {
-//		NodeRef& sourceNode = node->getInputs()[bus];
-//		if( ! sourceNode )
-//			continue;
-//
-//		if( ! node->supportsSourceNumChannels( sourceNode->getNumChannels() ) ) {
-//			CI_ASSERT( 0 && "ConverterXAudio not yet implemented" );
-//
-//			// TODO: insert Converter based on xaudio2 submix voice
-//		}
-//	}
-//
-//	node->initialize();
-//}
-
 void ContextXAudio::initNode( NodeRef node )
 {
 	if( ! node )
@@ -494,24 +428,30 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 		if( ! isNodeNativeXAudio( input ) ) {
 			shared_ptr<SourceVoiceXAudio> sourceVoice = findUpstreamNode<SourceVoiceXAudio>( input );
 			if( ! sourceVoice ) {
-				// first check if any child is a native node - if it is, that indicates we need a custom XAPO. TODO: this logic is outdated now
-				if( findDownStreamNode<NodeXAudio>( input ) ) {
-					//throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
-					LOG_E << "Detected generic node after native Xapo, custom Xapo's not implemented." << endl;
-					continue;
+				// see if there is already a downstream source voice
+				sourceVoice = findDownStreamNode<SourceVoiceXAudio>( input );
+				if( sourceVoice ) {
+					LOG_V << "detected downstream source node, shuffling." << endl;
+					// FIXME: account account for multiple inputs in both input and sourceVoice
+					NodeRef sourceInput = sourceVoice->getInputs()[0];
+					sourceVoice->disconnect();
+					node->setInput( sourceVoice, i );
+					sourceVoice->setInput( input );
+					input->setInput( sourceInput, 0 );
 				}
+				else if( findDownStreamNode<NodeXAudio>( input ) )
+					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
+				else {
+					LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
 
-				LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
+					sourceVoice = makeNode( new SourceVoiceXAudio() );
+					sourceVoice->setNumChannels( input->getNumChannels() ); // TODO: this probably isn't necessary, should be taken care of in setInput if format is setup correct
+					sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
+					sourceVoice->initialize();
 
-				sourceVoice = makeNode( new SourceVoiceXAudio() );
-				sourceVoice->setOutput( node );
-				sourceVoice->setInput( input );
-
-				sourceVoice->setNumChannels( input->getNumChannels() );
-				sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
-				sourceVoice->initialize();
-
-				node->setInput( sourceVoice, i );
+					node->setInput( sourceVoice, i );
+					sourceVoice->setInput( input );
+				}
 			}
 		}
 	}
