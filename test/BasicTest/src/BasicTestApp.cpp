@@ -152,14 +152,10 @@ void BasicTestApp::setupInterleavedPassThru()
 
 void BasicTestApp::initContext()
 {
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mContext );
-
 	mContext->initialize();
 
 	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
+	console() << "Graph initialized, configuration:" << endl;
 	printGraph( mContext );
 }
 

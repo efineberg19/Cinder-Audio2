@@ -105,8 +105,6 @@ void Context::setEnabled( bool enabled )
 void Context::setRoot( RootNodeRef root )
 {
 	mRoot = root;
-	mSampleRate = mRoot->getSampleRate();
-	mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
 }
 
 RootNodeRef Context::getRoot()

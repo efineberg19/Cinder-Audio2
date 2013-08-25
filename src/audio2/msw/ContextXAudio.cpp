@@ -55,6 +55,7 @@ static shared_ptr<NodeXAudio> getXAudioNode( NodeRef node )
 	return shared_ptr<NodeXAudio>();
 }
 
+//! SourceVoiceXAudio resides downstream from all native nodes, so we fallow outputs to see if we can find one
 static shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node )
 {
 	CI_ASSERT( node );
@@ -62,7 +63,7 @@ static shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node )
 		auto sourceVoice = dynamic_pointer_cast<SourceVoiceXAudio>( node );
 		if( sourceVoice )
 			return sourceVoice;
-		node = node->getOutput(); // FIXME: shouldn't this be going through inputs?
+		node = node->getOutput();
 	}
 	LOG_V << "No SourceVoiceXAudio in this tree." << endl;
 	return shared_ptr<SourceVoiceXAudio>();
@@ -200,8 +201,9 @@ void SourceVoiceXAudio::initialize()
 
 	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), getContext()->getSampleRate() );
 
+	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
 	UINT32 flags = ( mFilterEnabled ? XAUDIO2_VOICE_USEFILTER : 0 );
-	HRESULT hr = mXAudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
+	HRESULT hr = xaudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
 	mVoiceCallback->setInputVoice( mSourceVoice );
 
@@ -346,7 +348,6 @@ EffectXAudioFilter::~EffectXAudioFilter()
 
 void EffectXAudioFilter::initialize()
 {
-
 	XAudioVoice v = getXAudioVoice( shared_from_this() );
 
 	if( v.node->isFilterConnected() )
@@ -410,7 +411,18 @@ LineInNodeRef ContextXAudio::createLineIn( DeviceRef device, const Node::Format 
 
 MixerNodeRef ContextXAudio::createMixer( const Node::Format &format )
 {
-	return MixerNodeRef(); // note: remove because of MixerXAudio's wonkiness
+	return MixerNodeRef(); // note: removed because of MixerXAudio's wonkiness, MixerNode should be used instead
+}
+
+RootNodeRef ContextXAudio::getRoot()
+{
+	if( ! mRoot ) {
+		// TODO: allow for variable channel / samplerate
+		mRoot = createLineOut( Device::getDefaultOutput() );
+		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<LineOutXAudio>( mRoot )->getDevice().get() );
+		outputXAudio->initialize();
+	}
+	return mRoot;
 }
 
 void ContextXAudio::initialize()
@@ -419,31 +431,23 @@ void ContextXAudio::initialize()
 		return;
 	CI_ASSERT( mRoot );
 
-	mSampleRate = mRoot->getSampleRate();
-	mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
-
-	// TODO: what about when outputting to file? Do we still need a device?
-	// - probably requires abstracting to RootXAudio - if not a device output, we implicitly have one but it is muted
-	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<LineOutXAudio>( mRoot )->getDevice().get() );
-	outputXAudio->initialize();
+	//mSampleRate = mRoot->getSampleRate();
+	//mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
 
 	initNode( mRoot );
 	initEffects( mRoot->getInputs().front() );
 
 	mInitialized = true;
-	LOG_V << "graph initialize complete. output channels: " <<outputXAudio->getNumOutputChannels() << endl;
+	LOG_V << "graph initialize complete. output channels: " << getRoot()->getNumChannels() << endl;
 }
 
-// TODO: every NodeXaudio should be able to get the current IXAudio2 instance via Context
+
 //void ContextXAudio::initNode( NodeRef node )
 //{
 //	if( ! node )
 //		return;
 //
 //	setContext( node );
-//
-//	if( node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
-//		node->fillFormatParamsFromParent();
 //
 //	// recurse through sources
 //	for( size_t i = 0; i < node->getInputs().size(); i++ ) {
@@ -480,10 +484,6 @@ void ContextXAudio::initialize()
 //		}
 //	}
 //
-//	// set default params from source
-//	if( ! node->getWantsDefaultFormatFromOutput() && node->isNumChannelsUnspecified() )
-//		node->fillFormatParamsFromSource();
-//
 //	for( size_t bus = 0; bus < node->getInputs().size(); bus++ ) {
 //		NodeRef& sourceNode = node->getInputs()[bus];
 //		if( ! sourceNode )
@@ -509,6 +509,41 @@ void ContextXAudio::initNode( NodeRef node )
 		initNode( inputNode );
 
 	node->initialize();
+}
+
+void ContextXAudio::connectionsDidChange( const NodeRef &node )
+{
+	// recurse through inputs
+	for( size_t i = 0; i < node->getInputs().size(); i++ ) {
+		NodeRef input = node->getInputs()[i];
+		if( ! input )
+			continue;
+
+		// if input is generic, it needs a SourceXAudio so add one implicitly
+		if( ! isNodeNativeXAudio( input ) ) {
+			shared_ptr<SourceVoiceXAudio> sourceVoice = getSourceVoice( input );
+			if( ! sourceVoice ) {
+				// first check if any child is a native node - if it is, that indicates we need a custom XAPO. TODO: this logic is outdated now
+				if( getXAudioNode( input ) ) {
+					//throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
+					LOG_E << "Detected generic node after native Xapo, custom Xapo's not implemented." << endl;
+					continue;
+				}
+
+				LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
+
+				sourceVoice = makeNode( new SourceVoiceXAudio() );
+				sourceVoice->setOutput( node );
+				sourceVoice->setInput( input );
+
+				sourceVoice->setNumChannels( input->getNumChannels() );
+				sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
+				sourceVoice->initialize();
+
+				node->setInput( sourceVoice, i );
+			}
+		}
+	}
 }
 
 void ContextXAudio::uninitialize()
@@ -554,6 +589,12 @@ void ContextXAudio::initEffects( NodeRef node )
 		HRESULT hr = v.voice->SetEffectChain( &effectsChain );
 		CI_ASSERT( hr == S_OK );
 	}
+}
+
+IXAudio2* ContextXAudio::getXAudio()
+{
+	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<LineOutXAudio>( mRoot )->getDevice().get() );
+	return outputXAudio->getXAudio();
 }
 
 } } } // namespace cinder::audio2::msw

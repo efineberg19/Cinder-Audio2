@@ -49,7 +49,7 @@ class NodeXAudio {
 	NodeXAudio() : mFilterEnabled( false ), mFilterConnected( false ) {}
 	virtual ~NodeXAudio();
 
-	void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
+	//void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
 
 	// Subclasses override these methods to return their xaudio voice if they have one,
 	// otherwise the default implementation recurses through sources to find the goods.
@@ -65,7 +65,7 @@ class NodeXAudio {
 	bool isFilterConnected() const			{ return mFilterConnected; }
 
   protected:
-	::IXAudio2 *mXAudio;
+	//::IXAudio2 *mXAudio;
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR> mEffectsDescriptors;
 
 	bool								mFilterEnabled, mFilterConnected;
@@ -181,12 +181,18 @@ class ContextXAudio : public Context {
 
 	ContextRef		createContext() override;
 	LineOutNodeRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
-	//! If deployment target is 0x601 (win xp) or greater, uses InputWasapi, else returns an empty DeviceRef
+	//! If deployment target is 0x601 (win vista) or greater, uses InputWasapi, else returns an empty DeviceRef
 	LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
 	MixerNodeRef	createMixer( const Node::Format &format = Node::Format() ) override;
 
 	void initialize() override;
 	void uninitialize() override;
+	void connectionsDidChange( const NodeRef &node ) override; 
+
+	//! ContextXAudio's \a RootNode is always an instance of LineOutXAudio
+	virtual RootNodeRef getRoot() override;
+
+	IXAudio2* getXAudio();
 
   private:
 

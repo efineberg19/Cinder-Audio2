@@ -51,19 +51,19 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual RootNodeRef getRoot();
 	virtual void start();
 	virtual void stop();
-
-
-	bool isInitialized() const	{ return mInitialized; }
-
-	bool isEnabled() const		{ return mEnabled; }
-
-	//! convenience method to start / stop the graph via bool
+	//! start / stop the graph via bool
 	void setEnabled( bool enabled = true );
 
-	void disconnectAllNodes();
+	bool isInitialized() const	{ return mInitialized; }
+	bool isEnabled() const		{ return mEnabled; }
 
-	size_t getSampleRate() const			{ return mSampleRate; }
-	size_t getNumFramesPerBlock() const		{ return mNumFramesPerBlock; }
+	//! Disconnect all Node's related by this Context
+	virtual void disconnectAllNodes();
+	//! Called by \a node when it's connections have changed, default implementation is empty.
+	virtual void connectionsDidChange( const NodeRef &node ) {} 
+
+	size_t getSampleRate()					{ return getRoot()->getSampleRate(); }
+	size_t getNumFramesPerBlock()			{ return getRoot()->getNumFramesPerBlock(); }
 
   protected:
 	Context() : mInitialized( false ), mEnabled( false ) {}
@@ -74,7 +74,6 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	RootNodeRef		mRoot;
 	bool			mInitialized, mEnabled;
-	size_t			mSampleRate, mNumFramesPerBlock;
 };
 
 template<typename NodeT>

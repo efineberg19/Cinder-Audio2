@@ -127,8 +127,8 @@ void Node::setInput( NodeRef input, size_t bus )
 
 	if( bus > mInputs.size() )
 		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
-	if( mInputs[bus] )
-		throw AudioExc(  string( "bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." );
+	//if( mInputs[bus] )
+	//	throw AudioExc(  string( "bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." );
 
 	mInputs[bus] = input;
 	input->setOutput( shared_from_this() );
@@ -254,6 +254,8 @@ void Node::configureConnections()
 
 	if( ! mProcessInPlace )
 		setProcessWithSumming();
+
+	getContext()->connectionsDidChange( shared_from_this() );
 }
 
 // TODO: reallocations could be made more efficient by using DynamicBuffer
