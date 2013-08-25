@@ -45,7 +45,7 @@ namespace cinder { namespace audio2 {
 
 Node::Node( const Format &format )
 : mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
-mNumChannels( 1 ), mBufferLayout( Buffer::Layout::CONTIGUOUS ), mAutoEnabled( false ), mProcessInPlace( true )
+mNumChannels( 1 ), mInputs( 1 ), mBufferLayout( Buffer::Layout::CONTIGUOUS ), mAutoEnabled( false ), mProcessInPlace( true )
 {
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
