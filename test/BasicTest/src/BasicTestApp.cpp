@@ -9,6 +9,8 @@
 
 #include "Gui.h"
 
+// TODO: rename to NodeTest
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -93,10 +95,9 @@ void BasicTestApp::setup()
 
 void BasicTestApp::setupSine()
 {
-	if( mGain->isConnectedToInput( mNoise ) )
-		mNoise->disconnect();
+	mGain->disconnect();
 
-	mSine->connect( mGain )->connect( mContext->getRoot() );
+	mSine->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
 
 	// FIXME: on MSW, this starts the gen but there is no SourceVoiceXaudio started yet
 	// - option: when mSine is connected, install source voice and make it auto-enabled
@@ -108,10 +109,9 @@ void BasicTestApp::setupSine()
 
 void BasicTestApp::setupNoise()
 {
-	if( mGain->isConnectedToInput( mSine ) )
-		mSine->disconnect();
+	mGain->disconnect();
 
-	mNoise->connect( mGain )->connect( mContext->getRoot() );
+	mNoise->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
 
 	mNoise->start();
 	mEnableSineButton.setEnabled( false );
@@ -121,12 +121,13 @@ void BasicTestApp::setupNoise()
 void BasicTestApp::setupSumming()
 {
 	// connect by appending
-	mNoise->connect( mGain );
-	mSine->connect( mGain )->connect( mContext->getRoot() );
+	//mNoise->connect( mGain );
+	//mSine->connect( mGain )->connect( mContext->getRoot(), 0 );
 
-	// or connect by index
-//	mNoise->connect( mGain, Bus::NOISE );
-//	mSine->connect( mGain, Bus::SINE )->connect( mContext->getRoot() );
+	// connect by index
+	mGain->getInputs().resize( 2 );
+	mNoise->connect( mGain, Bus::NOISE );
+	mSine->connect( mGain, Bus::SINE )->connect( mContext->getRoot(), 0 );
 
 	mSine->start();
 	mNoise->start();
