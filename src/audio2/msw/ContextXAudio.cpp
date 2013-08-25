@@ -40,35 +40,6 @@ static bool isNodeNativeXAudio( NodeRef node ) {
 	return dynamic_pointer_cast<NodeXAudio>( node );
 }
 
-static shared_ptr<NodeXAudio> getXAudioNode( NodeRef node )
-{
-	while( node ) {
-		auto nodeXAudio = dynamic_pointer_cast<NodeXAudio>( node );
-		if( nodeXAudio )
-			return nodeXAudio;
-		else if( node->getInputs().empty() )
-			break;
-
-		node = node->getInputs().front();
-	}
-	LOG_V << "No XAudioNode in this tree." << endl;
-	return shared_ptr<NodeXAudio>();
-}
-
-//! SourceVoiceXAudio resides downstream from all native nodes, so we fallow outputs to see if we can find one
-static shared_ptr<SourceVoiceXAudio> getSourceVoice( NodeRef node )
-{
-	CI_ASSERT( node );
-	while( node ) {
-		auto sourceVoice = dynamic_pointer_cast<SourceVoiceXAudio>( node );
-		if( sourceVoice )
-			return sourceVoice;
-		node = node->getOutput();
-	}
-	LOG_V << "No SourceVoiceXAudio in this tree." << endl;
-	return shared_ptr<SourceVoiceXAudio>();
-}
-
 struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 
 	VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
@@ -521,10 +492,10 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 
 		// if input is generic, it needs a SourceXAudio so add one implicitly
 		if( ! isNodeNativeXAudio( input ) ) {
-			shared_ptr<SourceVoiceXAudio> sourceVoice = getSourceVoice( input );
+			shared_ptr<SourceVoiceXAudio> sourceVoice = findUpstreamNode<SourceVoiceXAudio>( input );
 			if( ! sourceVoice ) {
 				// first check if any child is a native node - if it is, that indicates we need a custom XAPO. TODO: this logic is outdated now
-				if( getXAudioNode( input ) ) {
+				if( findDownStreamNode<NodeXAudio>( input ) ) {
 					//throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 					LOG_E << "Detected generic node after native Xapo, custom Xapo's not implemented." << endl;
 					continue;

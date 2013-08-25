@@ -227,4 +227,34 @@ protected:
 	size_t mMaxNumBusses;
 };
 
+//! Helper routine for finding an upstream \a NodeT of a specific type (traverses outputs).
+template <typename NodeT>
+static std::shared_ptr<NodeT> findUpstreamNode( NodeRef node )
+{
+	while( node ) {
+		auto castedNode = std::dynamic_pointer_cast<NodeT>( node );
+		if( castedNode )
+			return castedNode;
+		node = node->getOutput();
+	}
+	return std::shared_ptr<NodeT>();
+}
+
+//! Helper routine for finding a downstream \a NodeT of a specific type (traverses inputs ).
+// FIXME: account for multiple inputs
+template <typename NodeT>
+static std::shared_ptr<NodeT> findDownStreamNode( NodeRef node )
+{
+	while( node ) {
+		auto castedNode =std::dynamic_pointer_cast<NodeT>( node );
+		if( castedNode )
+			return castedNode;
+		else if( node->getInputs().empty() )
+			break;
+
+		node = node->getInputs().front();
+	}
+	return std::shared_ptr<NodeT>();
+}
+
 } } // namespace cinder::audio2
