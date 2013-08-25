@@ -199,7 +199,7 @@ struct VSelector : public TestWidget {
 		if( b ) {
 			int offset = pos.y - (int)bounds.y1;
 			int sectionHeight = (int)bounds.getHeight() / segments.size();
-			currentSectionIndex = offset / sectionHeight;
+			currentSectionIndex = std::min<size_t>( offset / sectionHeight, segments.size() - 1 );
 		}
 		return b;
 	}
