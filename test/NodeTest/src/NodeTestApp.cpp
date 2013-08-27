@@ -95,10 +95,10 @@ void NodeTestApp::setupSine()
 {
 	mGain->disconnect();
 
+	// TODO: on msw, the 0 index for gain -> root is needed when switching between different tests,
+	// but now cocoa (check). see if this can be avoided
 	mSine->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
 
-	// FIXME: on MSW, this starts the gen but there is no SourceVoiceXaudio started yet
-	// - option: when mSine is connected, install source voice and make it auto-enabled
 	mSine->start();
 
 	mEnableNoiseButton.setEnabled( false );
@@ -109,9 +109,8 @@ void NodeTestApp::setupNoise()
 {
 	mGain->disconnect();
 
-	// TODO: make this test connect in reverse order
-
-	mNoise->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
+	mContext->getRoot()->setInput( mGain, 0 );
+	mGain->setInput( mNoise, 0 );
 
 	mNoise->start();
 	mEnableSineButton.setEnabled( false );
@@ -167,7 +166,7 @@ void NodeTestApp::setupUI()
 	mWidgets.push_back( &mPlayButton );
 
 	mTestSelector.segments.push_back( "sine" );
-	mTestSelector.segments.push_back( "noise" );
+	mTestSelector.segments.push_back( "noise (reverse)" );
 	mTestSelector.segments.push_back( "sine + noise" );
 	mTestSelector.bounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
@@ -229,7 +228,7 @@ void NodeTestApp::processTap( Vec2i pos )
 
 		if( currentTest == "sine" )
 			setupSine();
-		if( currentTest == "noise" )
+		if( currentTest == "noise (reverse)" )
 			setupNoise();
 		if( currentTest == "sine + noise" )
 			setupSumming();
