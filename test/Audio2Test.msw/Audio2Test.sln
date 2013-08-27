@@ -3,12 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio2", "..\..\vc11\Audio2.vcxproj", "{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BasicTest", "..\BasicTest\vc11\BasicTest.vcxproj", "{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffectNodeTest", "..\EffectNodeTest\vc11\EffectNodeTest.vcxproj", "{A4E4C761-C966-49BC-B393-7DB37AD2D367}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6} = {F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffectNodeTest", "..\EffectNodeTest\vc11\EffectNodeTest.vcxproj", "{A4E4C761-C966-49BC-B393-7DB37AD2D367}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NodeTest", "..\NodeTest\vc11\NodeTest.vcxproj", "{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6} = {F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}
 	EndProjectSection
@@ -23,14 +23,14 @@ Global
 		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}.Debug|Win32.Build.0 = Debug|Win32
 		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}.Release|Win32.ActiveCfg = Release|Win32
 		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}.Release|Win32.Build.0 = Release|Win32
-		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Debug|Win32.ActiveCfg = Debug|Win32
-		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Debug|Win32.Build.0 = Debug|Win32
-		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Release|Win32.ActiveCfg = Release|Win32
-		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Release|Win32.Build.0 = Release|Win32
 		{A4E4C761-C966-49BC-B393-7DB37AD2D367}.Debug|Win32.ActiveCfg = Debug|Win32
 		{A4E4C761-C966-49BC-B393-7DB37AD2D367}.Debug|Win32.Build.0 = Debug|Win32
 		{A4E4C761-C966-49BC-B393-7DB37AD2D367}.Release|Win32.ActiveCfg = Release|Win32
 		{A4E4C761-C966-49BC-B393-7DB37AD2D367}.Release|Win32.Build.0 = Release|Win32
+		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Debug|Win32.Build.0 = Debug|Win32
+		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Release|Win32.ActiveCfg = Release|Win32
+		{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

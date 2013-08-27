@@ -9,8 +9,6 @@
 
 #include "Gui.h"
 
-// TODO: rename to NodeTest
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -36,7 +34,7 @@ struct InterleavedPassThruNode : public Node {
 	}
 };
 
-class BasicTestApp : public AppNative {
+class NodeTestApp : public AppNative {
 public:
 	void setup();
 	void draw();
@@ -63,7 +61,7 @@ public:
 	enum Bus { NOISE, SINE };
 };
 
-void BasicTestApp::setup()
+void NodeTestApp::setup()
 {
 	DeviceRef device = Device::getDefaultOutput();
 
@@ -93,7 +91,7 @@ void BasicTestApp::setup()
 	setupUI();
 }
 
-void BasicTestApp::setupSine()
+void NodeTestApp::setupSine()
 {
 	mGain->disconnect();
 
@@ -107,9 +105,11 @@ void BasicTestApp::setupSine()
 	mEnableSineButton.setEnabled( true );
 }
 
-void BasicTestApp::setupNoise()
+void NodeTestApp::setupNoise()
 {
 	mGain->disconnect();
+
+	// TODO: make this test connect in reverse order
 
 	mNoise->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
 
@@ -118,7 +118,7 @@ void BasicTestApp::setupNoise()
 	mEnableNoiseButton.setEnabled( true );
 }
 
-void BasicTestApp::setupSumming()
+void NodeTestApp::setupSumming()
 {
 	// connect by appending
 	//mNoise->connect( mGain );
@@ -136,7 +136,7 @@ void BasicTestApp::setupSumming()
 	mEnableNoiseButton.setEnabled( true );
 }
 
-void BasicTestApp::setupInterleavedPassThru()
+void NodeTestApp::setupInterleavedPassThru()
 {
 	auto genNode = mContext->makeNode( new UGenNode<SineGen>() );
 	genNode->setAutoEnabled();
@@ -151,7 +151,7 @@ void BasicTestApp::setupInterleavedPassThru()
 	mEnableSineButton.setEnabled( true );
 }
 
-void BasicTestApp::initContext()
+void NodeTestApp::initContext()
 {
 	mContext->initialize();
 
@@ -160,7 +160,7 @@ void BasicTestApp::initContext()
 	printGraph( mContext );
 }
 
-void BasicTestApp::setupUI()
+void NodeTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
@@ -204,13 +204,13 @@ void BasicTestApp::setupUI()
 	gl::enableAlphaBlending();
 }
 
-void BasicTestApp::processDrag( Vec2i pos )
+void NodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
 		mGain->setGain( mGainSlider.valueScaled );
 }
 
-void BasicTestApp::processTap( Vec2i pos )
+void NodeTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
@@ -240,10 +240,10 @@ void BasicTestApp::processTap( Vec2i pos )
 	}
 }
 
-void BasicTestApp::draw()
+void NodeTestApp::draw()
 {
 	gl::clear();
 	drawWidgets( mWidgets );
 }
 
-CINDER_APP_NATIVE( BasicTestApp, RendererGl )
+CINDER_APP_NATIVE( NodeTestApp, RendererGl )
