@@ -152,23 +152,23 @@ SourceVoiceXAudio::~SourceVoiceXAudio()
 
 void SourceVoiceXAudio::initialize()
 {
-	// TODO: consider whether this should handle higher channel counts, or disallow in graph configure / node format
+	// TODO: handle higher channel counts
+	// - use case: LineIn connected to 4 microphones
 	CI_ASSERT( getNumChannels() <= 2 ); 
 
-	// TODO: use mInternalBuffer
-	mBuffer = Buffer( getNumChannels(), getContext()->getNumFramesPerBlock() );
-	
-	size_t numSamples = mBuffer.getSize();
+	setProcessWithSumming();
+	size_t numSamples = mInternalBuffer.getSize();
 
 	memset( &mXAudio2Buffer, 0, sizeof( mXAudio2Buffer ) );
 	mXAudio2Buffer.AudioBytes = numSamples * sizeof( float );
 	if( getNumChannels() == 2 ) {
 		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
-		mBufferInterleaved = Buffer( mBuffer.getNumChannels(), mBuffer.getNumFrames(), Buffer::Layout::INTERLEAVED );
+		mBufferInterleaved = Buffer( mInternalBuffer.getNumChannels(), mInternalBuffer.getNumFrames(), Buffer::Layout::INTERLEAVED );
 		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.getData() );
-	} else {
+	}
+	else {
 		// setup mono
-		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>(  mBuffer.getData() );
+		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mInternalBuffer.getData() );
 	}
 
 	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), getContext()->getSampleRate() );
@@ -187,14 +187,19 @@ void SourceVoiceXAudio::uninitialize()
 {
 	mInitialized = false;
 
-	if( mSourceVoice )
+	if( mSourceVoice ) {
 		mSourceVoice->DestroyVoice();
+		mSourceVoice = nullptr;
+	}
 }
 
 // TODO: source voice must be made during initialize() pass, so there is a chance start/stop can be called
 // before. Decide on throwing, silently failing, or a something better.
 void SourceVoiceXAudio::start()
 {
+	if( mEnabled )
+		return;
+
 	CI_ASSERT( mSourceVoice );
 	mEnabled = true;
 	mSourceVoice->Start();
@@ -205,6 +210,9 @@ void SourceVoiceXAudio::start()
 
 void SourceVoiceXAudio::stop()
 {
+	if( ! mEnabled )
+		return;
+
 	CI_ASSERT( mSourceVoice );
 	mEnabled = false;
 	mSourceVoice->Stop();
@@ -215,11 +223,11 @@ void SourceVoiceXAudio::submitNextBuffer()
 {
 	CI_ASSERT( mSourceVoice );
 
-	mBuffer.zero();
-	pullInputs( &mBuffer );
+	mInternalBuffer.zero();
+	pullInputs( &mInternalBuffer );
 
 	if( getNumChannels() == 2 )
-		interleaveStereoBuffer( &mBuffer, &mBufferInterleaved );
+		interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
 	CI_ASSERT( hr == S_OK );

@@ -9,8 +9,6 @@
 
 #include "Gui.h"
 
-// TODO: make some native effects like EffectNativeReverb, EffectNativeDelay, and replace those below
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
