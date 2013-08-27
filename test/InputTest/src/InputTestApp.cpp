@@ -10,9 +10,6 @@
 
 #include "Gui.h"
 
-// FIXME: switching through tests repeatedly eventually leads to a deep, obscure thud.
-//	- related to teh AudioComponentInstance in AudioUnitDevice
-
 // TODO: test multiple formats for input
 // - make sure inputs and outputs with different samplerates somehow works correctly (which was default for my win8 laptop)
 
