@@ -2,17 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <AUDIO2_COMPILER_TOOLSET>vc110</AUDIO2_COMPILER_TOOLSET>
     <CINDER_PATH>..\..\..\cinder</CINDER_PATH>
     <AUDIO2_DEPLOYMENT_TARGET>_WIN32_WINNT_WIN8</AUDIO2_DEPLOYMENT_TARGET>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
   <ItemGroup>
-    <BuildMacro Include="AUDIO2_COMPILER_TOOLSET">
-      <Value>$(AUDIO2_COMPILER_TOOLSET)</Value>
-      <EnvironmentVariable>true</EnvironmentVariable>
-    </BuildMacro>
     <BuildMacro Include="CINDER_PATH">
       <Value>$(CINDER_PATH)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
