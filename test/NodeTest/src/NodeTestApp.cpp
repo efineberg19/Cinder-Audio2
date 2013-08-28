@@ -162,33 +162,33 @@ void NodeTestApp::initContext()
 void NodeTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
-	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mPlayButton );
 
-	mTestSelector.segments.push_back( "sine" );
-	mTestSelector.segments.push_back( "noise (reverse)" );
-	mTestSelector.segments.push_back( "sine + noise" );
-	mTestSelector.bounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.mSegments.push_back( "sine" );
+	mTestSelector.mSegments.push_back( "noise (reverse)" );
+	mTestSelector.mSegments.push_back( "sine + noise" );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0.0f, (float)getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
-	mGainSlider.bounds = sliderRect;
-	mGainSlider.title = "Gain";
-	mGainSlider.max = 1.0f;
+	mGainSlider.mBounds = sliderRect;
+	mGainSlider.mTitle = "Gain";
+	mGainSlider.mMax = 1.0f;
 	mGainSlider.set( mGain->getGain() );
 	mWidgets.push_back( &mGainSlider );
 
-	mEnableSineButton.isToggle = true;
-	mEnableSineButton.titleNormal = "sine disabled";
-	mEnableSineButton.titleEnabled = "sine enabled";
-	mEnableSineButton.bounds = Rectf( 0, 70, 200, 120 );
+	mEnableSineButton.mIsToggle = true;
+	mEnableSineButton.mTitleNormal = "sine disabled";
+	mEnableSineButton.mTitleEnabled = "sine enabled";
+	mEnableSineButton.mBounds = Rectf( 0, 70, 200, 120 );
 	mWidgets.push_back( &mEnableSineButton );
 
-	mEnableNoiseButton.isToggle = true;
-	mEnableNoiseButton.titleNormal = "noise disabled";
-	mEnableNoiseButton.titleEnabled = "noise enabled";
-	mEnableNoiseButton.bounds = mEnableSineButton.bounds + Vec2f( 0.0f, mEnableSineButton.bounds.getHeight() + 10.0f );
+	mEnableNoiseButton.mIsToggle = true;
+	mEnableNoiseButton.mTitleNormal = "noise disabled";
+	mEnableNoiseButton.mTitleEnabled = "noise enabled";
+	mEnableNoiseButton.mBounds = mEnableSineButton.mBounds + Vec2f( 0.0f, mEnableSineButton.mBounds.getHeight() + 10.0f );
 	mWidgets.push_back( &mEnableNoiseButton );
 
 
@@ -206,7 +206,7 @@ void NodeTestApp::setupUI()
 void NodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.valueScaled );
+		mGain->setGain( mGainSlider.mValueScaled );
 }
 
 void NodeTestApp::processTap( Vec2i pos )
@@ -218,8 +218,8 @@ void NodeTestApp::processTap( Vec2i pos )
 	if( mNoise && mEnableNoiseButton.hitTest( pos ) )
 		mNoise->setEnabled( ! mNoise->isEnabled() );
 
-	size_t currentIndex = mTestSelector.currentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 

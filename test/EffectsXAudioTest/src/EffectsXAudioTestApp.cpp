@@ -166,31 +166,31 @@ void EffectXAudioTestApp::setupNativeThenGeneric()
 void EffectXAudioTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
-	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
-	mNoisePanSlider.bounds = sliderRect;
-	mNoisePanSlider.title = "Pan (Noise)";
-	mNoisePanSlider.min = -1.0f;
-	mNoisePanSlider.max = 1.0f;
+	mNoisePanSlider.mBounds = sliderRect;
+	mNoisePanSlider.mTitle = "Pan (Noise)";
+	mNoisePanSlider.mMin = -1.0f;
+	mNoisePanSlider.mMax = 1.0f;
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mFreqPanSlider.bounds = sliderRect;
-	mFreqPanSlider.title = "Pan (Freq)";
-	mFreqPanSlider.min = -1.0f;
-	mFreqPanSlider.max = 1.0f;
+	mFreqPanSlider.mBounds = sliderRect;
+	mFreqPanSlider.mTitle = "Pan (Freq)";
+	mFreqPanSlider.mMin = -1.0f;
+	mFreqPanSlider.mMax = 1.0f;
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mLowpassCutoffSlider.bounds = sliderRect;
-	mLowpassCutoffSlider.title = "Lowpass Cutoff";
-	mLowpassCutoffSlider.max = 1500.0f;
+	mLowpassCutoffSlider.mBounds = sliderRect;
+	mLowpassCutoffSlider.mTitle = "Lowpass Cutoff";
+	mLowpassCutoffSlider.mMax = 1500.0f;
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mEchoDelaySlider.bounds = sliderRect;
-	mEchoDelaySlider.title = "Echo Delay";
-	mEchoDelaySlider.min = 1.0f;
-	mEchoDelaySlider.max = 2000.0f;
+	mEchoDelaySlider.mBounds = sliderRect;
+	mEchoDelaySlider.mTitle = "Echo Delay";
+	mEchoDelaySlider.mMin = 1.0f;
+	mEchoDelaySlider.mMax = 2000.0f;
 
 	gl::enableAlphaBlending();
 }
@@ -211,7 +211,7 @@ void EffectXAudioTestApp::processEvent( Vec2i pos )
 void EffectXAudioTestApp::updateLowpass()
 {
 	if( mFilterEffect ) {
-		mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.valueScaled, mContext->getSampleRate() );
+		mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.mValueScaled, mContext->getSampleRate() );
 		mFilterEffect->setParams( mFilterParams );
 	}
 }
@@ -219,7 +219,7 @@ void EffectXAudioTestApp::updateLowpass()
 void EffectXAudioTestApp::updateEcho()
 {
 	if( mEffect2 ) {
-		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mEchoDelaySlider.valueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
+		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mEchoDelaySlider.mValueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
 		mEffect2->setParams( mEchoParams );
 	}
 }

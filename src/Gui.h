@@ -26,7 +26,6 @@
 #pragma once
 
 #include "cinder/gl/gl.h"
-//#include "cinder/app/App.h"
 #include "cinder/gl/TextureFont.h"
 #include <boost/format.hpp>
 
@@ -42,16 +41,16 @@ static gl::TextureFontRef getTestWidgetTexFont() {
 }
 
 struct TestWidget {
-	TestWidget() : hidden( false ), padding( 10.0f ) {}
+	TestWidget() : mHidden( false ), mPadding( 10.0f ) {}
 
 	virtual void draw() {}
 
-	Rectf bounds;
-	ColorA backgroundColor;
+	Rectf mBounds;
+	ColorA mBackgroundColor;
 
-	gl::TextureFontRef texFont;
-	bool hidden;
-	float padding;
+	gl::TextureFontRef mTexFont;
+	bool mHidden;
+	float mPadding;
 };
 
 inline void drawWidgets( const std::vector<TestWidget *> &widgets ) {
@@ -61,36 +60,36 @@ inline void drawWidgets( const std::vector<TestWidget *> &widgets ) {
 
 struct Button : public TestWidget {
 	Button( bool isToggle = false, const std::string& titleNormal = "", const std::string& titleEnabled = "" )
-	: TestWidget(), isToggle( isToggle ), titleNormal( titleNormal ), titleEnabled( titleEnabled )
+	: TestWidget(), mIsToggle( isToggle ), mTitleNormal( titleNormal ), mTitleEnabled( titleEnabled )
 	{
-		textColor = Color::white();
-		normalColor = Color( 0.3f, 0.3f, 0.3f );
-		enabledColor = Color( 0.0f, 0.0f, 0.7f );
+		mTextColor = Color::white();
+		mNormalColor = Color( 0.3f, 0.3f, 0.3f );
+		mEnabledColor = Color( 0.0f, 0.0f, 0.7f );
 		setEnabled( false );
-		timeout = 30;
-		fadeFrames = 0;
+		mTimeout = 30;
+		mFadeFrames = 0;
 	}
 
 	void setEnabled( bool b ) {
 		if( b ) {
-			backgroundColor = enabledColor;
+			mBackgroundColor = mEnabledColor;
 		} else {
-			backgroundColor = normalColor;
+			mBackgroundColor = mNormalColor;
 		}
-		enabled = b;
+		mEnabled = b;
 	}
 
 	bool hitTest( const Vec2i &pos ) {
-		if( hidden )
+		if( mHidden )
 			return false;
 
-		bool b = bounds.contains( pos );
+		bool b = mBounds.contains( pos );
 		if( b ) {
-			if( isToggle )
-				setEnabled( ! enabled );
+			if( mIsToggle )
+				setEnabled( ! mEnabled );
 			else {
 				setEnabled( true );
-				fadeFrames = timeout;
+				mFadeFrames = mTimeout;
 			}
 		}
 
@@ -98,147 +97,147 @@ struct Button : public TestWidget {
 	}
 
 	void draw() {
-		if( hidden )
+		if( mHidden )
 			return;
-		if( ! texFont )
-			texFont = getTestWidgetTexFont();
+		if( ! mTexFont )
+			mTexFont = getTestWidgetTexFont();
 
-		if( isToggle || ! fadeFrames )
-			gl::color( backgroundColor );
+		if( mIsToggle || ! mFadeFrames )
+			gl::color( mBackgroundColor );
 		else {
-			fadeFrames--;
+			mFadeFrames--;
 			setEnabled( false );
-			gl::color( lerp( normalColor, enabledColor, (float)fadeFrames / (float)timeout ) );
+			gl::color( lerp( mNormalColor, mEnabledColor, (float)mFadeFrames / (float)mTimeout ) );
 		}
 
-		gl::drawSolidRoundedRect( bounds, 4 );
+		gl::drawSolidRoundedRect( mBounds, 4 );
 
-		std::string& title = enabled ? titleEnabled : titleNormal;
+		std::string& title = mEnabled ? mTitleEnabled : mTitleNormal;
 
-		gl::color( textColor );
-		texFont->drawString( title, Vec2f( bounds.x1 + padding, bounds.getCenter().y + texFont->getFont().getDescent() ) );
+		gl::color( mTextColor );
+		mTexFont->drawString( title, Vec2f( mBounds.x1 + mPadding, mBounds.getCenter().y + mTexFont->getFont().getDescent() ) );
 	}
 
-	ColorA textColor;
-	std::string titleNormal, titleEnabled;
-	ColorA normalColor, enabledColor;
-	bool enabled, isToggle;
-	size_t timeout, fadeFrames;
+	ColorA mTextColor;
+	std::string mTitleNormal, mTitleEnabled;
+	ColorA mNormalColor, mEnabledColor;
+	bool mEnabled, mIsToggle;
+	size_t mTimeout, mFadeFrames;
 };
 
 struct HSlider : public TestWidget {
 	HSlider() : TestWidget() {
-		value = valueScaled = 0.0f;
-		min = 0.0f;
-		max = 1.0f;
-		backgroundColor = ColorA( 0.0f, 1.0f , 0.0f, 0.3f );
-		valueColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
-		textColor = Color::white();
+		mValue = mValueScaled = 0.0f;
+		mMin = 0.0f;
+		mMax = 1.0f;
+		mBackgroundColor = ColorA( 0.0f, 1.0f , 0.0f, 0.3f );
+		mValueColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
+		mTextColor = Color::white();
 	}
 
 	void set( float val ) {
-		valueScaled = val;
-		value = ( valueScaled - min ) / ( max - min );
+		mValueScaled = val;
+		mValue = ( mValueScaled - mMin ) / ( mMax - mMin );
 	}
 
 	bool hitTest( const Vec2i &pos ) {
-		if( hidden )
+		if( mHidden )
 			return false;
 
-		bool b = bounds.contains( pos );
+		bool b = mBounds.contains( pos );
 		if( b ) {
-			value = ( pos.x - bounds.x1 ) / bounds.getWidth();
-			valueScaled = (max - min) * value + min;
+			mValue = ( pos.x - mBounds.x1 ) / mBounds.getWidth();
+			mValueScaled = (mMax - mMin) * mValue + mMin;
 		}
 		return b;
 	}
 
 	void draw() {
-		if( hidden )
+		if( mHidden )
 			return;
-		if( ! texFont )
-			texFont = getTestWidgetTexFont();
+		if( ! mTexFont )
+			mTexFont = getTestWidgetTexFont();
 
-		gl::color( backgroundColor );
-		gl::drawSolidRect( bounds );
+		gl::color( mBackgroundColor );
+		gl::drawSolidRect( mBounds );
 
-		auto valFormatted = boost::format( "%0.3f" ) % valueScaled;
+		auto valFormatted = boost::format( "%0.3f" ) % mValueScaled;
 
-		std::string str = title + ": " + valFormatted.str();
-		gl::color( textColor );
-		texFont->drawString( str, Vec2f( bounds.x1 + padding, bounds.getCenter().y + texFont->getFont().getDescent() ) );
+		std::string str = mTitle + ": " + valFormatted.str();
+		gl::color( mTextColor );
+		mTexFont->drawString( str, Vec2f( mBounds.x1 + mPadding, mBounds.getCenter().y + mTexFont->getFont().getDescent() ) );
 
-		gl::color( valueColor );
-		gl::drawStrokedRect( bounds );
+		gl::color( mValueColor );
+		gl::drawStrokedRect( mBounds );
 
-		float offset = bounds.x1 + bounds.getWidth() * value;
+		float offset = mBounds.x1 + mBounds.getWidth() * mValue;
 		float w = 2.0f;
-		Rectf valRect( offset - w, bounds.y1, offset + w, bounds.y2 );
+		Rectf valRect( offset - w, mBounds.y1, offset + w, mBounds.y2 );
 		gl::drawSolidRoundedRect( valRect, w );
 
 	}
 
-	float value, valueScaled, min, max;
-	ColorA textColor, valueColor;
-	std::string title;
+	float mValue, mValueScaled, mMin, mMax;
+	ColorA mTextColor, mValueColor;
+	std::string mTitle;
 };
 
 struct VSelector : public TestWidget {
 	VSelector() : TestWidget() {
-		currentSectionIndex = 0;
-		backgroundColor = ColorA( 0.0f, 0.0f , 1.0f, 0.3f );
-		selectedColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
-		unselectedColor = ColorA::gray( 0.5 );
+		mCurrentSectionIndex = 0;
+		mBackgroundColor = ColorA( 0.0f, 0.0f , 1.0f, 0.3f );
+		mSelectedColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
+		mUnselectedColor = ColorA::gray( 0.5 );
 	}
 
 	bool hitTest( const Vec2i &pos ) {
-		if( hidden )
+		if( mHidden )
 			return false;
 
-		bool b = bounds.contains( pos );
+		bool b = mBounds.contains( pos );
 		if( b ) {
-			int offset = pos.y - (int)bounds.y1;
-			int sectionHeight = (int)bounds.getHeight() / segments.size();
-			currentSectionIndex = std::min<size_t>( offset / sectionHeight, segments.size() - 1 );
+			int offset = pos.y - (int)mBounds.y1;
+			int sectionHeight = (int)mBounds.getHeight() / mSegments.size();
+			mCurrentSectionIndex = std::min<size_t>( offset / sectionHeight, mSegments.size() - 1 );
 		}
 		return b;
 	}
 
-	const std::string& currentSection() const	{ return segments[currentSectionIndex]; }
+	const std::string& currentSection() const	{ return mSegments[mCurrentSectionIndex]; }
 
 	void draw() {
-		if( hidden )
+		if( mHidden )
 			return;
 
-		if( ! texFont )
-			texFont = getTestWidgetTexFont();
+		if( ! mTexFont )
+			mTexFont = getTestWidgetTexFont();
 
-		gl::color( backgroundColor );
-		gl::drawSolidRect( bounds );
+		gl::color( mBackgroundColor );
+		gl::drawSolidRect( mBounds );
 
-		float sectionHeight = bounds.getHeight() / segments.size();
-		Rectf section( bounds.x1, bounds.y1, bounds.x2, bounds.y1 + sectionHeight );
-		gl::color( unselectedColor );
-		for( size_t i = 0; i < segments.size(); i++ ) {
-			if( i != currentSectionIndex ) {
+		float sectionHeight = mBounds.getHeight() / mSegments.size();
+		Rectf section( mBounds.x1, mBounds.y1, mBounds.x2, mBounds.y1 + sectionHeight );
+		gl::color( mUnselectedColor );
+		for( size_t i = 0; i < mSegments.size(); i++ ) {
+			if( i != mCurrentSectionIndex ) {
 				gl::drawStrokedRect( section );
-				gl::color( unselectedColor );
-				texFont->drawString( segments[i], Vec2f( section.x1 + padding, section.getCenter().y + texFont->getFont().getDescent() ) );
+				gl::color( mUnselectedColor );
+				mTexFont->drawString( mSegments[i], Vec2f( section.x1 + mPadding, section.getCenter().y + mTexFont->getFont().getDescent() ) );
 			}
 			section += Vec2f( 0.0f, sectionHeight );
 		}
 
-		gl::color( selectedColor );
+		gl::color( mSelectedColor );
 
-		section.y1 = currentSectionIndex * sectionHeight;
+		section.y1 = mCurrentSectionIndex * sectionHeight;
 		section.y2 = section.y1 + sectionHeight;
 		gl::drawStrokedRect( section );
 
-		gl::color( selectedColor );
-		texFont->drawString( segments[currentSectionIndex], Vec2f( section.x1 + padding, section.getCenter().y + texFont->getFont().getDescent() ) );
+		gl::color( mSelectedColor );
+		mTexFont->drawString( mSegments[mCurrentSectionIndex], Vec2f( section.x1 + mPadding, section.getCenter().y + mTexFont->getFont().getDescent() ) );
 	}
 
-	std::vector<std::string> segments;
-	ColorA selectedColor, unselectedColor;
-	size_t currentSectionIndex;
+	std::vector<std::string> mSegments;
+	ColorA mSelectedColor, mUnselectedColor;
+	size_t mCurrentSectionIndex;
 };

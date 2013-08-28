@@ -100,27 +100,27 @@ void EffectNodeTestApp::initContext()
 void EffectNodeTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
-	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
+	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mPlayButton );
 
-	mTestSelector.segments.push_back( "one" );
-	mTestSelector.segments.push_back( "force stereo" );
-	mTestSelector.segments.push_back( "down-mix" );
-	mTestSelector.bounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.mSegments.push_back( "one" );
+	mTestSelector.mSegments.push_back( "force stereo" );
+	mTestSelector.mSegments.push_back( "down-mix" );
+	mTestSelector.mBounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
-	mGainSlider.bounds = sliderRect;
-	mGainSlider.title = "Gain";
-	mGainSlider.max = 1.0f;
+	mGainSlider.mBounds = sliderRect;
+	mGainSlider.mTitle = "Gain";
+	mGainSlider.mMax = 1.0f;
 	mGainSlider.set( mGain->getGain() );
 	mWidgets.push_back( &mGainSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
-	mRingModFreqSlider.bounds = sliderRect;
-	mRingModFreqSlider.title = "RingMod Frequency";
-	mRingModFreqSlider.max = 500.0f;
+	mRingModFreqSlider.mBounds = sliderRect;
+	mRingModFreqSlider.mTitle = "RingMod Frequency";
+	mRingModFreqSlider.mMax = 500.0f;
 	mRingModFreqSlider.set( mRingMod->mSineGen.getFreq() );
 	mWidgets.push_back( &mRingModFreqSlider );
 
@@ -139,9 +139,9 @@ void EffectNodeTestApp::setupUI()
 void EffectNodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.valueScaled );
+		mGain->setGain( mGainSlider.mValueScaled );
 	if( mRingModFreqSlider.hitTest( pos ) )
-		mRingMod->mSineGen.setFreq( mRingModFreqSlider.valueScaled );
+		mRingMod->mSineGen.setFreq( mRingModFreqSlider.mValueScaled );
 }
 
 void EffectNodeTestApp::processTap( Vec2i pos )
@@ -149,8 +149,8 @@ void EffectNodeTestApp::processTap( Vec2i pos )
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 
-	size_t currentIndex = mTestSelector.currentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 

@@ -142,18 +142,18 @@ void InputTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 
-	mTestSelector.segments.push_back( "pass through" );
-	mTestSelector.segments.push_back( "in tap out" );
-	mTestSelector.segments.push_back( "in process out" );
-	mTestSelector.segments.push_back( "in tap process out" );
-	mTestSelector.currentSectionIndex = 1;
+	mTestSelector.mSegments.push_back( "pass through" );
+	mTestSelector.mSegments.push_back( "in tap out" );
+	mTestSelector.mSegments.push_back( "in process out" );
+	mTestSelector.mSegments.push_back( "in tap process out" );
+	mTestSelector.mCurrentSectionIndex = 1;
 
 #if defined( CINDER_COCOA_TOUCH )
-	mPlayButton.bounds = Rectf( 0, 0, 120, 60 );
-	mTestSelector.bounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
+	mPlayButton.mBounds = Rectf( 0, 0, 120, 60 );
+	mTestSelector.mBounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
 #else
-	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
-	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
+	mTestSelector.mBounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 #endif
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
@@ -167,8 +167,8 @@ void InputTestApp::processTap( Vec2i pos )
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 
-	size_t currentIndex = mTestSelector.currentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
