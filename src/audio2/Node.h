@@ -75,14 +75,14 @@ public:
 	virtual void start()		{ mEnabled = true; }
 	virtual void stop()			{ mEnabled = false; }
 
-	virtual NodeRef connect( NodeRef dest );
-	virtual NodeRef connect( NodeRef dest, size_t bus );
+	virtual const NodeRef& connect( const NodeRef &dest );
+	virtual const NodeRef& connect( const NodeRef &dest, size_t bus );
 
 	virtual void disconnect( size_t bus = 0 );
 
 	//! insert in first available slot or append the node if called without a bus number. TODO: consider a more descriptive name (not really obvious this will append )
-	virtual void setInput( NodeRef input );
-	virtual void setInput( NodeRef input, size_t bus );
+	virtual void setInput( const NodeRef &input );
+	virtual void setInput( const NodeRef &input, size_t bus );
 
 	bool isConnectedToInput( const NodeRef &input ) const;
 	bool isConnectedToOutput( const NodeRef &output ) const;
@@ -109,7 +109,7 @@ public:
 	std::vector<NodeRef>& getInputs()			{ return mInputs; }
 
 	NodeRef getOutput()	const					{ return mOutput.lock(); }
-	void setOutput( NodeRef output )			{ mOutput = output; }
+	void setOutput( const NodeRef &output )		{ mOutput = output; }
 
 	bool isInitialized() const					{ return mInitialized; }
 
@@ -175,15 +175,15 @@ public:
 
 private:
 	// RootNode does not have outputs
-	NodeRef connect( NodeRef dest ) override				{ return NodeRef(); }
-	NodeRef connect( NodeRef dest, size_t bus ) override	{ return NodeRef(); }
+	const NodeRef& connect( const NodeRef &dest ) override				{ return dest; }
+	const NodeRef& connect( const NodeRef &dest, size_t bus ) override	{ return dest; }
 };
 
 class LineOutNode : public RootNode {
 public:
 
 	// ???: device param here necessary?
-	LineOutNode( DeviceRef device, const Format &format = Format() );
+	LineOutNode( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineOutNode() {}
 
 	virtual DeviceRef getDevice() = 0;
@@ -242,6 +242,7 @@ static std::shared_ptr<NodeT> findUpstreamNode( NodeRef node )
 
 //! Helper routine for finding a downstream \a NodeT of a specific type (traverses inputs ).
 // FIXME: account for multiple inputs
+// TODO: pass as const&, but requires switching to recursive traversal
 template <typename NodeT>
 static std::shared_ptr<NodeT> findDownStreamNode( NodeRef node )
 {

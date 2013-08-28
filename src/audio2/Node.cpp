@@ -63,13 +63,13 @@ void Node::initialize()
 	mInitialized = true;
 }
 
-NodeRef Node::connect( NodeRef dest )
+const NodeRef& Node::connect( const NodeRef &dest )
 {
 	dest->setInput( shared_from_this() );
 	return dest;
 }
 
-NodeRef Node::connect( NodeRef dest, size_t bus )
+const NodeRef& Node::connect( const NodeRef &dest, size_t bus )
 {
 	dest->setInput( shared_from_this(), bus );
 	return dest;
@@ -96,7 +96,7 @@ void Node::disconnect( size_t bus )
 	}
 }
 
-void Node::setInput( NodeRef input )
+void Node::setInput( const NodeRef &input )
 {
 	if( ! checkInput( input ) )
 		return;
@@ -119,7 +119,7 @@ void Node::setInput( NodeRef input )
 
 
 // TODO: figure out how to best handle node replacements
-void Node::setInput( NodeRef input, size_t bus )
+void Node::setInput( const NodeRef &input, size_t bus )
 {
 	if( ! checkInput( input ) )
 		return;
@@ -304,7 +304,7 @@ bool Node::checkInput( const NodeRef &input )
 	return ( input && ( input != shared_from_this() ) && ! isConnectedToInput( input ) );
 }
 
-LineOutNode::LineOutNode( DeviceRef device, const Format &format )
+LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
 : RootNode( format )
 {
 	setAutoEnabled();

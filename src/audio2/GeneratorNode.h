@@ -47,8 +47,8 @@ public:
 
 private:
 	// note: GeneratorNode's cannot have any sources
-	void setInput( NodeRef input ) override {}
-	void setInput( NodeRef input, size_t bus ) override {}
+	void setInput( const NodeRef &input ) override {}
+	void setInput( const NodeRef &input, size_t bus ) override {}
 };
 
 class LineInNode : public GeneratorNode {
