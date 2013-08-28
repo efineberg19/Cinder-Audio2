@@ -97,7 +97,7 @@ void DeviceInputWasapi::stop()
 // TODO: audio client activation should be in Device, maybe audio client should even be in there
 // TODO: default block sizes should be set in one place and propagate down the graph
 //  - update: it's now at getContext()->getNumFramesPerBlock() - can get it there
-LineInWasapi::LineInWasapi( DeviceRef device, const Format &format )
+LineInWasapi::LineInWasapi( const DeviceRef &device, const Format &format )
 : LineInNode( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
 	mDevice = dynamic_pointer_cast<DeviceInputWasapi>( device );

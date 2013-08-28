@@ -34,7 +34,7 @@ typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
 class SourceFile {
   public:
-	static SourceFileRef create(  ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate ); 
+	static SourceFileRef create( const ci::DataSourceRef &dataSource, size_t numChannels, size_t sampleRate ); 
 
 	virtual size_t	getSampleRate() const				{ return mSampleRate; }
 	virtual void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
@@ -58,7 +58,7 @@ class SourceFile {
 
 
   protected:
-	SourceFile( ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
+	SourceFile( const ci::DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 	: mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mNumChannels( numChannels ), mSampleRate( sampleRate ), mNumFramesPerRead( 4096 )
 	{}
 

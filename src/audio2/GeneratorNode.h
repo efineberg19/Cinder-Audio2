@@ -53,7 +53,7 @@ private:
 
 class LineInNode : public GeneratorNode {
 public:
-	LineInNode( DeviceRef device, const Format &format ) : GeneratorNode( format ) {
+	LineInNode( const DeviceRef &device, const Format &format ) : GeneratorNode( format ) {
 		setAutoEnabled();
 	}
 	virtual ~LineInNode() {}
@@ -91,7 +91,7 @@ protected:
 class BufferPlayerNode : public PlayerNode {
 public:
 	BufferPlayerNode( const Format &format = Format() );
-	BufferPlayerNode( BufferRef buffer, const Format &format = Format() );
+	BufferPlayerNode( const BufferRef &buffer, const Format &format = Format() );
 	virtual ~BufferPlayerNode() {}
 
 	std::string virtual getTag() override			{ return "BufferPlayerNode"; }
@@ -101,7 +101,7 @@ public:
 	virtual void process( Buffer *buffer );
 
 	BufferRef getBuffer() const	{ return mBuffer; }
-	void setBuffer( BufferRef buffer );
+	void setBuffer( const BufferRef &buffer );
 
 protected:
 	BufferRef mBuffer;
@@ -111,7 +111,7 @@ protected:
 class FilePlayerNode : public PlayerNode {
 public:
 	FilePlayerNode( const Format &format = Format() );
-	FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
+	FilePlayerNode( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
 	virtual ~FilePlayerNode();
 
 	std::string virtual getTag() override			{ return "FilePlayerNode"; }

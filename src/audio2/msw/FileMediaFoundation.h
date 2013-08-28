@@ -35,7 +35,7 @@ class SourceFileMediaFoundation : public SourceFile {
   public:
 	enum Format { INT_16, FLOAT_32 };
 
-	SourceFileMediaFoundation( ci::DataSourceRef dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
+	SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
 	virtual ~SourceFileMediaFoundation();
 
 	size_t		read( Buffer *buffer ) override;

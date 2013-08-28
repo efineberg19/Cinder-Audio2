@@ -35,7 +35,7 @@ namespace cinder { namespace audio2 {
 
 // TODO: this should be replaced with a genericized registrar derived from the ImageIo stuff.
 
-SourceFileRef SourceFile::create(  ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
+SourceFileRef SourceFile::create( const ci::DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 {
 #if defined( CINDER_COCOA )
 	return SourceFileRef( new cocoa::SourceFileCoreAudio( dataSource, numChannels, sampleRate ) );

@@ -92,7 +92,7 @@ void WaveformPlot::load( const std::vector<float> &samples, const ci::Rectf &bou
 	mWaveforms.push_back( Waveform( samples, waveSize, pixelsPerVertex, Waveform::CalcMode::AVERAGE ) );
 }
 
-void WaveformPlot::load( BufferRef buffer, const ci::Rectf &bounds, size_t pixelsPerVertex )
+void WaveformPlot::load( const BufferRef &buffer, const ci::Rectf &bounds, size_t pixelsPerVertex )
 {
 	mBounds = bounds;
 	mWaveforms.clear();

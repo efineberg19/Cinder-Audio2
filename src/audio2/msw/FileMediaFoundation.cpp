@@ -55,7 +55,7 @@ namespace cinder { namespace audio2 { namespace msw {
 
 // TODO: test setting MF_LOW_LATENCY attribute
 
-SourceFileMediaFoundation::SourceFileMediaFoundation( ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
+SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 : SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 ), mCanSeek( false ), mSeconds( 0.0f )
 {
 	 HRESULT hr = ::MFStartup( MF_VERSION ); // TODO: try passing in MFSTARTUP_NOSOCKET and see if load is faster

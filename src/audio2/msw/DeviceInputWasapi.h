@@ -52,7 +52,7 @@ private:
 
 class LineInWasapi : public LineInNode {
   public:
-	LineInWasapi( DeviceRef device, const Format &format = Format() );
+	LineInWasapi( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineInWasapi();
 
 	std::string virtual getTag()				{ return "LineInWasapi"; }

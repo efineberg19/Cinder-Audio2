@@ -54,7 +54,7 @@ BufferPlayerNode::BufferPlayerNode( const Format &format )
 {
 }
 
-BufferPlayerNode::BufferPlayerNode( BufferRef buffer, const Format &format )
+BufferPlayerNode::BufferPlayerNode( const BufferRef &buffer, const Format &format )
 : PlayerNode( format ), mBuffer( buffer )
 {
 	mNumFrames = mBuffer->getNumFrames();
@@ -91,7 +91,7 @@ void BufferPlayerNode::stop()
 //			- if the channels have changed, related Node's may change as well.
 //		- ???: should we support a stereo buffer node as default, which upmixes mono to stereo?
 //			- would prevent node connect / buffer changes during dsp-time
-void BufferPlayerNode::setBuffer( BufferRef buffer )
+void BufferPlayerNode::setBuffer( const BufferRef &buffer )
 {
 	if( buffer->getNumChannels() != mNumChannels || buffer->getLayout() != mBufferLayout ) {
 		LOG_E << "swapping in another BufferRef is currently limited to one with the same format as this BufferPlayerNode." << endl;
@@ -145,7 +145,7 @@ FilePlayerNode::~FilePlayerNode()
 {
 }
 
-FilePlayerNode::FilePlayerNode( SourceFileRef sourceFile, bool isMultiThreaded, const Format &format )
+FilePlayerNode::FilePlayerNode( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
 : PlayerNode( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
 	mNumFrames = mSourceFile->getNumFrames();
