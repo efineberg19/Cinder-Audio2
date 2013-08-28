@@ -41,7 +41,8 @@ struct LineInWasapi::Impl {
 	Impl() : mNumSamplesBuffered( 0 ) {}
 	~Impl() {}
 
-	void initCapture( size_t numFrames, size_t numChannels );
+	void initAudioClient( const string &deviceId );
+	void initCapture( size_t numFrames );
 	void captureAudio();
 
 	std::unique_ptr<::IAudioClient, ComReleaser>			mAudioClient;
@@ -102,29 +103,6 @@ LineInWasapi::LineInWasapi( const DeviceRef &device, const Format &format )
 {
 	mDevice = dynamic_pointer_cast<DeviceInputWasapi>( device );
 	CI_ASSERT( mDevice );	
-
-	DeviceManagerWasapi *manager = dynamic_cast<DeviceManagerWasapi *>( DeviceManagerWasapi::instance() );
-	CI_ASSERT( manager );
-
-	shared_ptr<::IMMDevice> immDevice = manager->getIMMDevice( mDevice->getKey() );
-
-	::IAudioClient *audioClient;
-	HRESULT hr = immDevice->Activate( __uuidof(::IAudioClient), CLSCTX_ALL, NULL, (void**)&audioClient );
-	CI_ASSERT( hr == S_OK );
-	mImpl->mAudioClient = makeComUnique( audioClient );
-
-	// set default format to match the audio client's defaults
-
-	::WAVEFORMATEX *mixFormat;
-	hr = mImpl->mAudioClient->GetMixFormat( &mixFormat );
-	CI_ASSERT( hr == S_OK );
-
-	setNumChannels( mixFormat->nChannels );
-
-	LOG_V << "initial mix format samplerate: " << mixFormat->nSamplesPerSec << ", num channels: " << mixFormat->nChannels << endl;
-	CoTaskMemFree( mixFormat );
-
-	LOG_V << "activated audio client" << endl;
 }
 
 LineInWasapi::~LineInWasapi()
@@ -133,6 +111,9 @@ LineInWasapi::~LineInWasapi()
 
 void LineInWasapi::initialize()
 {
+	CI_ASSERT( ! mImpl->mAudioClient );
+	mImpl->initAudioClient( mDevice->getKey() );
+
 	size_t sampleRate = getContext()->getSampleRate();
 
 	auto wfx = interleavedFloatWaveFormat( mNumChannels, sampleRate );
@@ -160,7 +141,7 @@ void LineInWasapi::initialize()
 	double captureDurationMs = (double) numFrames * 1000.0 / (double) wfx->nSamplesPerSec;
 
 	mCaptureBlockSize = numFrames;
-	mImpl->initCapture( numFrames, mNumChannels );
+	mImpl->initCapture( numFrames );
 
 	mInterleavedBuffer = Buffer( mNumChannels, numFrames, Buffer::Layout::INTERLEAVED );
 	
@@ -176,9 +157,7 @@ void LineInWasapi::uninitialize()
 	if( ! mInitialized )
 		return;
 
-	HRESULT hr = mImpl->mAudioClient->Reset();
-	CI_ASSERT( hr == S_OK );
-
+	mImpl->mAudioClient.reset(); // calls Release() on the maintained IAudioClient
 	mInitialized = false;
 }
 
@@ -215,7 +194,7 @@ DeviceRef LineInWasapi::getDevice()
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
-// TODO: decide what to do when there is a buffer under/over run. LOG_V / app::console() is not thread-safe..
+// TODO: set buffer over/under run atomic flags when they occur
 void LineInWasapi::process( Buffer *buffer )
 {
 	mImpl->captureAudio();
@@ -228,12 +207,11 @@ void LineInWasapi::process( Buffer *buffer )
 
 	if( buffer->getNumChannels() == 2 ) {
 		size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.getData(), samplesNeeded );
-		CI_ASSERT( numRead == samplesNeeded );
-
+		//CI_ASSERT( numRead == samplesNeeded );
 		deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
 	} else {
 		size_t numRead = mImpl->mRingBuffer->read( buffer->getData(), samplesNeeded );
-		CI_ASSERT( numRead == samplesNeeded );
+		//CI_ASSERT( numRead == samplesNeeded );
 	}
 
 	mImpl->mNumSamplesBuffered -= samplesNeeded;
@@ -243,17 +221,46 @@ void LineInWasapi::process( Buffer *buffer )
 // MARK: - InputWasapi::Impl
 // ----------------------------------------------------------------------------------------------------
 
-void LineInWasapi::Impl::initCapture( size_t numFrames, size_t numChannels ) {
-	CI_ASSERT( mAudioClient );
+void LineInWasapi::Impl::initAudioClient( const string &deviceKey )
+{
+	CI_ASSERT( ! mAudioClient );
 
-	mNumChannels = numChannels;
+	DeviceManagerWasapi *manager = dynamic_cast<DeviceManagerWasapi *>( DeviceManagerWasapi::instance() );
+	CI_ASSERT( manager );
+
+	shared_ptr<::IMMDevice> immDevice = manager->getIMMDevice( deviceKey );
+
+	::IAudioClient *audioClient;
+	HRESULT hr = immDevice->Activate( __uuidof(::IAudioClient), CLSCTX_ALL, NULL, (void**)&audioClient );
+	CI_ASSERT( hr == S_OK );
+	mAudioClient = makeComUnique( audioClient );
+
+	// set default format to match the audio client's defaults
+
+	::WAVEFORMATEX *mixFormat;
+	hr = mAudioClient->GetMixFormat( &mixFormat );
+	CI_ASSERT( hr == S_OK );
+
+	// TODO: sort out how to specify channels
+	// - count
+	// - index (ex 4, 5, 8, 9)
+	mNumChannels = mixFormat->nChannels;
+
+	LOG_V << "initial mix format samplerate: " << mixFormat->nSamplesPerSec << ", num channels: " << mixFormat->nChannels << endl;
+	::CoTaskMemFree( mixFormat );
+
+	LOG_V << "activated audio client" << endl;
+}
+
+void LineInWasapi::Impl::initCapture( size_t numFrames ) {
+	CI_ASSERT( mAudioClient );
 
 	::IAudioCaptureClient *captureClient;
 	HRESULT hr = mAudioClient->GetService( __uuidof(::IAudioCaptureClient), (void**)&captureClient );
 	CI_ASSERT( hr == S_OK );
 	mCaptureClient = makeComUnique( captureClient );
 
-	mRingBuffer.reset( new RingBuffer( numFrames * numChannels ) );
+	mRingBuffer.reset( new RingBuffer( numFrames * mNumChannels ) );
 }
 
 void LineInWasapi::Impl::captureAudio()
