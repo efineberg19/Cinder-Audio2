@@ -3,7 +3,7 @@
 
 #include "cinder/CinderMath.h"
 
-//using ci::math;
+using ci::math;
 
 template<typename T> void cftfsub(int n, T *a, int *ip, int nw, T *w);
 template<typename T> void makewt(int nw, int *ip, T *w);
@@ -46,26 +46,26 @@ void makewt(int nw, int *ip, T *w)
 	if (nw > 2)
 	{
 		nwh = nw >> 1;
-		delta = atan((T)1.0) / nwh;
-		wn4r = cos(delta * nwh);
+		delta = math<T>::atan((T)1.0) / nwh;
+		wn4r = math<T>::cos(delta * nwh);
 		w[0] = 1;
 		w[1] = wn4r;
 		if (nwh == 4)
 		{
-			w[2] = cos(delta * 2);
-			w[3] = sin(delta * 2);
+			w[2] = math<T>::cos(delta * 2);
+			w[3] = math<T>::sin(delta * 2);
 		}
 		else if (nwh > 4)
 		{
 			makeipt(nw, ip);
-			w[2] = (T)0.5 / cos(delta * 2);
-			w[3] = (T)0.5 / cos(delta * 6);
+			w[2] = (T)0.5 / math<T>::cos(delta * 2);
+			w[3] = (T)0.5 / math<T>::cos(delta * 6);
 			for (j = 4; j < nwh; j += 4)
 			{
-				w[j] = cos(delta * j);
-				w[j + 1] = sin(delta * j);
-				w[j + 2] = cos(3 * delta * j);
-				w[j + 3] = -sin(3 * delta * j);
+				w[j] = math<T>::cos(delta * j);
+				w[j + 1] = math<T>::sin(delta * j);
+				w[j + 2] = math<T>::cos(3 * delta * j);
+				w[j + 3] = -math<T>::sin(3 * delta * j);
 			}
 		}
 		nw0 = 0;
@@ -136,13 +136,13 @@ void makect(int nc, int *ip, T *c)
 	if (nc > 1)
 	{
 		nch = nc >> 1;
-		delta = atan((T)1.0) / nch;
-		c[0] = cos(delta * nch);
+		delta = math<T>::atan((T)1.0) / nch;
+		c[0] = math<T>::cos(delta * nch);
 		c[nch] = (T)0.5 * c[0];
 		for (j = 1; j < nch; j++)
 		{
-			c[j] = (T)0.5 * cos(delta * j);
-			c[nc - j] = (T)0.5 * sin(delta * j);
+			c[j] = (T)0.5 * math<T>::cos(delta * j);
+			c[nc - j] = (T)0.5 * math<T>::sin(delta * j);
 		}
 	}
 }
