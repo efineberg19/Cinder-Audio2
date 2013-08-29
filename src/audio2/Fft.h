@@ -26,10 +26,14 @@
 #include "audio2/Buffer.h"
 #include "audio2/Dsp.h"
 
+#include "cinder/Cinder.h"
+
 #include <vector>
 
-#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+#if defined( CINDER_AUDIO_DSP_ACCELERATE ) // TODO: rename CINDER_AUDIO_VDSP
 	#include <Accelerate/Accelerate.h>
+#else
+	#define CINDER_AUDIO_OOURA
 #endif
 
 namespace cinder { namespace audio2 {
@@ -60,8 +64,9 @@ protected:
 	size_t mLog2FftSize;
 	::FFTSetup mFftSetup;
 	::DSPSplitComplex mSplitComplexFrame;
-#else
-	// TODO: use cross-platform FFT library
+#elif defined( CINDER_AUDIO_OOURA )
+	int *mOouraIp;
+	float *mOouraW;
 #endif
 
 };

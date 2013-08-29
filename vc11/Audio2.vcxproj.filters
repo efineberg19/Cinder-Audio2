@@ -11,6 +11,9 @@
     <Filter Include="Source Files\audio2\msw">
       <UniqueIdentifier>{9f1c20d0-b081-4e04-b8a8-2c6969440fea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\audio2\ooura">
+      <UniqueIdentifier>{0f4e2960-be74-4d55-80f0-2928251961ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\audio2\Atomic.h">
@@ -85,6 +88,9 @@
     <ClInclude Include="..\src\audio2\msw\xaudio.h">
       <Filter>Source Files\audio2\msw</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\audio2\ooura\fftsg.h">
+      <Filter>Source Files\audio2\ooura</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio2\audio.cpp">
@@ -134,6 +140,9 @@
     </ClCompile>
     <ClCompile Include="..\src\audio2\msw\util.cpp">
       <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\ooura\fftsg.cpp">
+      <Filter>Source Files\audio2\ooura</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

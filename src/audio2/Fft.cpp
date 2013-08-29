@@ -25,6 +25,10 @@
 #include "audio2/CinderAssert.h"
 #include "audio2/audio.h"
 
+#if defined( CINDER_AUDIO_OOURA )
+	#include "audio2/ooura/fftsg.h"
+#endif
+
 namespace cinder { namespace audio2 {
 
 Fft::Fft( size_t fftSize )
@@ -43,8 +47,11 @@ Fft::Fft( size_t fftSize )
 	mLog2FftSize = log2f( mSize );
 	mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
 	CI_ASSERT( mFftSetup );
+#elif defined( CINDER_AUDIO_OOURA )
+	mOouraIp = (int *)calloc( sqrt( fftSize ) + 2, sizeof( int ) );
+	mOouraW = (float *)calloc( fftSize * 5 / 4, sizeof( float ) );
 #else
-	CI_ASSERT_MSG( 0, "fft only implemented on mac so far" );
+	CI_ASSERT_MSG( 0, "no specified FFT implementation" );
 #endif
 
 }
@@ -53,7 +60,10 @@ Fft::~Fft()
 {
 #if defined( CINDER_AUDIO_DSP_ACCELERATE )
 	vDSP_destroy_fftsetup( mFftSetup );
-#endif // defined( CINDER_AUDIO_FFT_ACCELERATE )
+#elif defined( CINDER_AUDIO_OOURA )
+	free( mOouraIp );
+	free( mOouraW );
+#endif
 }
 
 
@@ -66,7 +76,11 @@ void Fft::compute( Buffer *buffer )
 	vDSP_ctoz( ( ::DSPComplex *)buffer->getData(), 2, &mSplitComplexFrame, 1, mSize / 2 );
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 
-#endif // defined( CINDER_AUDIO_FFT_ACCELERATE )
+#elif defined( CINDER_AUDIO_OOURA )
+
+	rdft( mSize, 1, buffer->getData(), mOouraIp, mOouraW );
+
+#endif
 }
 
 

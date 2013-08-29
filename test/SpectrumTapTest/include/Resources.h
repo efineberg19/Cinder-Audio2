@@ -1,12 +1,6 @@
 #pragma once
 #include "cinder/CinderResources.h"
 
-//#define RES_MY_RES			CINDER_RESOURCE( ../resources/, image_name.png, 128, IMAGE )
-
-
-
-
-
-
-
+// FIXME: blah..
+//#define RES_CASH_MP3			CINDER_RESOURCE( ../../../assets/, "cash_satisfied_mind.mp3", 128, MP3 )
 

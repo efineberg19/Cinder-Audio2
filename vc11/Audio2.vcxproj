@@ -31,6 +31,7 @@
     <ClInclude Include="..\src\audio2\msw\util.h" />
     <ClInclude Include="..\src\audio2\msw\xaudio.h" />
     <ClInclude Include="..\src\audio2\Node.h" />
+    <ClInclude Include="..\src\audio2\ooura\fftsg.h" />
     <ClInclude Include="..\src\audio2\RingBuffer.h" />
     <ClInclude Include="..\src\audio2\TapNode.h" />
     <ClInclude Include="..\src\Gui.h" />
@@ -51,6 +52,7 @@
     <ClCompile Include="..\src\audio2\msw\FileMediaFoundation.cpp" />
     <ClCompile Include="..\src\audio2\msw\util.cpp" />
     <ClCompile Include="..\src\audio2\Node.cpp" />
+    <ClCompile Include="..\src\audio2\ooura\fftsg.cpp" />
     <ClCompile Include="..\src\audio2\TapNode.cpp" />
     <ClCompile Include="..\src\Plot.cpp" />
   </ItemGroup>

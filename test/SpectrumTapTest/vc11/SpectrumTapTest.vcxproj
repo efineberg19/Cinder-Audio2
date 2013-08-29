@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -32,9 +33,11 @@
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\vc11\PropertySheet.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\vc11\PropertySheet.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -49,7 +52,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\cinder-dev\include";"..\..\..\..\..\cinder-dev\boost";..\..\..\..\..\cinder-dev\blocks\audio2\src;$(DXSDK_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\src;..\include;$(CINDER_PATH)\include;$(CINDER_PATH)\boost</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=0x0502;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -63,8 +66,8 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\cinder-dev\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"..\..\..\..\..\cinder-dev\lib";"..\..\..\..\..\cinder-dev\lib\msw";$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder_d.lib;audio2_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\lib\msw;$(CINDER_PATH)\lib;$(CINDER_PATH)\lib\msw;$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -75,7 +78,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\cinder-dev\include";"..\..\..\..\..\cinder-dev\boost";..\..\..\..\..\cinder-dev\blocks\audio2\src;$(DXSDK_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\src;$(CINDER_PATH)\include;$(CINDER_PATH)\boost</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=0x0502;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -90,8 +93,8 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\cinder-dev\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"..\..\..\..\..\cinder-dev\lib";"..\..\..\..\..\cinder-dev\lib\msw";$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder.lib;audio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\lib\msw;$(CINDER_PATH)\lib;$(CINDER_PATH)\lib\msw;$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
@@ -107,42 +110,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\SpectrumTapTestApp.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Context.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Device.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\File.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\GeneratorNode.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Plot.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\ContextXAudio.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\DeviceInputWasapi.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\DeviceManagerWasapi.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\DeviceOutputXAudio.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\FileMediaFoundation.cpp" />
-    <ClCompile Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\Gui.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Assert.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Atomic.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\audio.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Buffer.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Context.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Debug.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Device.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Dsp.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\EffectNode.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\File.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\GeneratorNode.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\Plot.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\RingBuffer.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\ContextXAudio.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\DeviceInputWasapi.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\DeviceManagerWasapi.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\DeviceOutputXAudio.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\FileMediaFoundation.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\util.h" />
-    <ClInclude Include="..\..\..\..\..\cinder-dev\blocks\audio2\src\audio2\msw\xaudio.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

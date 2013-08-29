@@ -9,14 +9,14 @@
 #include "audio2/Dsp.h"
 
 #include "Gui.h"
-
-#include <Accelerate/Accelerate.h>
+#include "Resources.h"
 
 //#define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 #define SOUND_FILE "cash_satisfied_mind.mp3"
 
+// TODO: the goal is for all of these to be runtime configurable
 #define FFT_SIZE 2048
 #define WINDOW_SIZE 1024
 #define WINDOW_TYPE WindowType::BLACKMAN
@@ -66,7 +66,9 @@ void SpectrumTapTestApp::setup()
 
 	mContext = Context::instance()->createContext();
 
-	DataSourceRef dataSource = loadResource( SOUND_FILE );
+	// FIXME: dataSource on windows...
+	//DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+	DataSourceRef dataSource;
 	auto sourceFile = SourceFile::create( dataSource, 0, 44100 );
 	LOG_V << "output samplerate: " << sourceFile->getSampleRate() << endl;
 
@@ -108,46 +110,46 @@ void SpectrumTapTestApp::setupUI()
 {
 	Rectf buttonRect( 0.0f, 0.0f, 200.0f, mSpectroMargin - 2.0f );
 	float padding = 10.0f;
-	mEnableGraphButton.isToggle = true;
-	mEnableGraphButton.titleNormal = "graph off";
-	mEnableGraphButton.titleEnabled = "graph on";
-	mEnableGraphButton.bounds = buttonRect;
+	mEnableGraphButton.mIsToggle = true;
+	mEnableGraphButton.mTitleNormal = "graph off";
+	mEnableGraphButton.mTitleEnabled = "graph on";
+	mEnableGraphButton.mBounds = buttonRect;
 	mWidgets.push_back( &mEnableGraphButton );
 
 	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
-	mPlaybackButton.isToggle = true;
-	mPlaybackButton.titleNormal = "play sample";
-	mPlaybackButton.titleEnabled = "stop sample";
-	mPlaybackButton.bounds = buttonRect;
+	mPlaybackButton.mIsToggle = true;
+	mPlaybackButton.mTitleNormal = "play sample";
+	mPlaybackButton.mTitleEnabled = "stop sample";
+	mPlaybackButton.mBounds = buttonRect;
 	mWidgets.push_back( &mPlaybackButton );
 
 	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
-	mLoopButton.isToggle = true;
-	mLoopButton.titleNormal = "loop off";
-	mLoopButton.titleEnabled = "loop on";
-	mLoopButton.bounds = buttonRect;
+	mLoopButton.mIsToggle = true;
+	mLoopButton.mTitleNormal = "loop off";
+	mLoopButton.mTitleEnabled = "loop on";
+	mLoopButton.mBounds = buttonRect;
 	mWidgets.push_back( &mLoopButton );
 
 	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
-	mApplyWindowButton.isToggle = true;
-	mApplyWindowButton.titleNormal = "apply window";
-	mApplyWindowButton.titleEnabled = "apply window";
-	mApplyWindowButton.bounds = buttonRect;
+	mApplyWindowButton.mIsToggle = true;
+	mApplyWindowButton.mTitleNormal = "apply window";
+	mApplyWindowButton.mTitleEnabled = "apply window";
+	mApplyWindowButton.mBounds = buttonRect;
 	mWidgets.push_back( &mApplyWindowButton );
 
 	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
-	mScaleDecibelsButton.isToggle = true;
-	mScaleDecibelsButton.titleNormal = "linear";
-	mScaleDecibelsButton.titleEnabled = "decibels";
-	mScaleDecibelsButton.bounds = buttonRect;
+	mScaleDecibelsButton.mIsToggle = true;
+	mScaleDecibelsButton.mTitleNormal = "linear";
+	mScaleDecibelsButton.mTitleEnabled = "decibels";
+	mScaleDecibelsButton.mBounds = buttonRect;
 	mWidgets.push_back( &mScaleDecibelsButton );
 
 	Vec2f sliderSize( 200.0f, 30.0f );
 	Rectf sliderRect( getWindowWidth() - sliderSize.x - mSpectroMargin, buttonRect.y2 + padding, getWindowWidth() - mSpectroMargin, buttonRect.y2 + padding + sliderSize.y );
-	mSmoothingFactorSlider.bounds = sliderRect;
-	mSmoothingFactorSlider.title = "Smoothing";
-	mSmoothingFactorSlider.min = 0.0f;
-	mSmoothingFactorSlider.max = 1.0f;
+	mSmoothingFactorSlider.mBounds = sliderRect;
+	mSmoothingFactorSlider.mTitle = "Smoothing";
+	mSmoothingFactorSlider.mMin = 0.0f;
+	mSmoothingFactorSlider.mMax = 1.0f;
 	mSmoothingFactorSlider.set( mSpectrumTap->getSmoothingFactor() );
 	mWidgets.push_back( &mSmoothingFactorSlider );
 
@@ -199,7 +201,7 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 void SpectrumTapTestApp::processDrag( Vec2i pos )
 {
 	if( mSmoothingFactorSlider.hitTest( pos ) )
-		mSpectrumTap->setSmoothingFactor( mSmoothingFactorSlider.valueScaled );
+		mSpectrumTap->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
 }
 
 void SpectrumTapTestApp::fileDrop( FileDropEvent event )
