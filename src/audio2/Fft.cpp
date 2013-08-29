@@ -48,7 +48,7 @@ Fft::Fft( size_t fftSize )
 	mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
 	CI_ASSERT( mFftSetup );
 #elif defined( CINDER_AUDIO_OOURA )
-	mOouraIp = (int *)calloc( sqrt( fftSize ) + 2, sizeof( int ) );
+	mOouraIp = (int *)calloc( (int)sqrt( fftSize ) + 2, sizeof( int ) );
 	mOouraW = (float *)calloc( fftSize * 5 / 4, sizeof( float ) );
 #else
 	CI_ASSERT_MSG( 0, "no specified FFT implementation" );
