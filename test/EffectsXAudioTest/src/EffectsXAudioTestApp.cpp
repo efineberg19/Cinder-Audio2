@@ -21,22 +21,18 @@ using namespace audio2::msw;
 class EffectXAudioTestApp : public AppNative {
 public:
 	void setup();
-	void keyDown( KeyEvent event );
-	void touchesBegan( TouchEvent event ) override;
-	void touchesMoved( TouchEvent event ) override;
-	void mouseDown( MouseEvent event ) override;
-	void mouseDrag( MouseEvent event ) override;
-	void update();
 	void draw();
 
 	void setupOne();
 	void setupTwo();
 	void setupFilter();
-	void setupFilterDelay();
+	void setupFilterThenDelay();
 	void setupNativeThenGeneric();
 
 	void setupUI();
-	void processEvent( Vec2i pos );
+	void processDrag( Vec2i pos );
+	void processTap( Vec2i pos );
+	void initContext();
 	void updateLowpass();
 	void updateEcho();
 
@@ -50,46 +46,24 @@ public:
 	shared_ptr<EffectXAudioFilter> mFilterEffect;
 	XAUDIO2_FILTER_PARAMETERS mFilterParams;
 
+	vector<TestWidget *> mWidgets;
 	Button mPlayButton;
-	HSlider mNoisePanSlider, mFreqPanSlider, mLowpassCutoffSlider, mEchoDelaySlider;
+	VSelector mTestSelector;
+	HSlider mLowpassCutoffSlider, mEchoDelaySlider;
 };
 
 void EffectXAudioTestApp::setup()
 {
-	DeviceRef device = Device::getDefaultOutput();
-
-	LOG_V << "device name: " << device->getName() << endl;
-	console() << "\t input channels: " << device->getNumInputChannels() << endl;
-	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t frames per block: " << device->getNumFramesPerBlock() << endl;
-
-	auto output = Context::instance()->createLineOut( device );
 	mContext = Context::instance()->createContext();
-	mContext->setRoot( output );
 
-	auto noise = make_shared<UGenNode<NoiseGen> >();
+	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 	noise->getUGen().setAmp( 0.25f );
 	noise->setAutoEnabled();
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
-	//setupOne();
-	//setupTwo(); // TODO: check this is working, sounds like maybe it isn't
-	//setupFilter();
-	setupFilterDelay();
-	//setupNativeThenGeneric(); // TODO: not yet implemented, throws...
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mContext );
-
-	mContext->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
-	printGraph( mContext );
-
+	setupOne();
+	initContext();
 	setupUI();
 
 	if( mEffect ) {
@@ -121,9 +95,17 @@ void EffectXAudioTestApp::setup()
 	}
 }
 
+void EffectXAudioTestApp::initContext()
+{
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
+	printGraph( mContext );
+
+	mContext->initialize();
+}
+
 void EffectXAudioTestApp::setupOne()
 {
-	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
+	mEffect =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
 	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
 
 	mSource->connect( mEffect )->connect( mContext->getRoot() );
@@ -134,31 +116,33 @@ void EffectXAudioTestApp::setupTwo()
 	Node::Format format;
 	//format.channels( 2 ); // force stereo
 
-	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ, format );
-	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
+	mEffect = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ, format ) );
+	mEffect2 = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
 
 	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
 }
 
 void EffectXAudioTestApp::setupFilter()
 {
-	mFilterEffect = make_shared<EffectXAudioFilter>();
+	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
 
 	mSource->connect( mFilterEffect )->connect( mContext->getRoot() );
 }
 
-void EffectXAudioTestApp::setupFilterDelay()
+void EffectXAudioTestApp::setupFilterThenDelay()
 {
-	mFilterEffect = make_shared<EffectXAudioFilter>();
-	mEffect2 = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEcho );
+	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
+	mEffect2 =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
 
 	mSource->connect( mFilterEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
 }
 
 void EffectXAudioTestApp::setupNativeThenGeneric()
 {
-	mEffect = make_shared<EffectXAudioXapo>( EffectXAudioXapo::XapoType::FXEQ );
-	auto ringMod = make_shared<RingMod>();
+	// TODO: catch exception
+
+	mEffect = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
+	auto ringMod =  mContext->makeNode( new RingMod() );
 
 	mSource->connect( mEffect )->connect( ringMod )->connect( mContext->getRoot() );
 }
@@ -167,45 +151,39 @@ void EffectXAudioTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
+	mWidgets.push_back( &mPlayButton );
+
+	mTestSelector.mSegments.push_back( "one" );
+	mTestSelector.mSegments.push_back( "two" );
+	mTestSelector.mSegments.push_back( "filter" );
+	mTestSelector.mSegments.push_back( "filter -> delay" );
+	mTestSelector.mSegments.push_back( "native -> generic" );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0.0f, (float)getWindowWidth(), 160.0f );
+	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
-	mNoisePanSlider.mBounds = sliderRect;
-	mNoisePanSlider.mTitle = "Pan (Noise)";
-	mNoisePanSlider.mMin = -1.0f;
-	mNoisePanSlider.mMax = 1.0f;
-
-	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mFreqPanSlider.mBounds = sliderRect;
-	mFreqPanSlider.mTitle = "Pan (Freq)";
-	mFreqPanSlider.mMin = -1.0f;
-	mFreqPanSlider.mMax = 1.0f;
-
-	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mLowpassCutoffSlider.mBounds = sliderRect;
 	mLowpassCutoffSlider.mTitle = "Lowpass Cutoff";
 	mLowpassCutoffSlider.mMax = 1500.0f;
+	mWidgets.push_back( &mLowpassCutoffSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mEchoDelaySlider.mBounds = sliderRect;
 	mEchoDelaySlider.mTitle = "Echo Delay";
 	mEchoDelaySlider.mMin = 1.0f;
 	mEchoDelaySlider.mMax = 2000.0f;
+	mWidgets.push_back( &mEchoDelaySlider );
+
+	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
+	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
+	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
+	getWindow()->getSignalTouchesMoved().connect( [this] ( TouchEvent &event ) {
+		for( const TouchEvent::Touch &touch : getActiveTouches() )
+			processDrag( touch.getPos() );
+	} );
 
 	gl::enableAlphaBlending();
-}
-
-void EffectXAudioTestApp::keyDown( KeyEvent event )
-{
-}
-
-void EffectXAudioTestApp::processEvent( Vec2i pos )
-{
-	if( mLowpassCutoffSlider.hitTest( pos ) )
-		updateLowpass();
-
-	if( mEchoDelaySlider.hitTest( pos ) )
-		updateEcho();
 }
 
 void EffectXAudioTestApp::updateLowpass()
@@ -224,43 +202,52 @@ void EffectXAudioTestApp::updateEcho()
 	}
 }
 
-void EffectXAudioTestApp::mouseDown( MouseEvent event )
+void EffectXAudioTestApp::processDrag( Vec2i pos )
 {
-	if( mPlayButton.hitTest( event.getPos() ) )
+	if( mLowpassCutoffSlider.hitTest( pos ) )
+		updateLowpass();
+	
+	if( mEchoDelaySlider.hitTest( pos ) )
+		updateEcho();
+}
+
+void EffectXAudioTestApp::processTap( Vec2i pos )
+{
+	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-}
 
-void EffectXAudioTestApp::mouseDrag( MouseEvent event )
-{
-	processEvent( event.getPos() );
-}
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
+		string currentTest = mTestSelector.currentSection();
+		LOG_V << "selected: " << currentTest << endl;
 
-void EffectXAudioTestApp::touchesBegan( TouchEvent event )
-{
-	if( mPlayButton.hitTest( event.getTouches().front().getPos() ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
-}
+		bool running = mContext->isEnabled();
+		mContext->uninitialize();
 
-void EffectXAudioTestApp::touchesMoved( TouchEvent event )
-{
-	for( const TouchEvent::Touch &touch : getActiveTouches() ) {
-		processEvent( touch.getPos() );
+		mContext->disconnectAllNodes();
+
+		if( currentTest == "one" )
+			setupOne();
+		if( currentTest == "two" )
+			setupTwo();
+		if( currentTest == "filter" )
+			setupFilter();
+		if( currentTest == "filter -> delay" )
+			setupFilterThenDelay();
+		if( currentTest == "native -> generic" )
+			setupNativeThenGeneric();
+
+		initContext();
+
+		if( running )
+			mContext->start();
 	}
-}
-
-void EffectXAudioTestApp::update()
-{
 }
 
 void EffectXAudioTestApp::draw()
 {
 	gl::clear();
-
-	mPlayButton.draw();
-	mNoisePanSlider.draw();
-	mFreqPanSlider.draw();
-	mLowpassCutoffSlider.draw();
-	mEchoDelaySlider.draw();
+	drawWidgets( mWidgets );
 }
 
 CINDER_APP_NATIVE( EffectXAudioTestApp, RendererGl )

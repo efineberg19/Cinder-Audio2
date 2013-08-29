@@ -126,6 +126,7 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 
 class EffectXAudioXapo : public EffectNode, public NodeXAudio {
 public:
+	//! These enum names match the class uuid names in xapofx.h. TODO: consider just passing in the REFCLSID
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
 	EffectXAudioXapo( XapoType type, const Format &format = Format() );
