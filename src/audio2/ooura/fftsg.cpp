@@ -46,7 +46,7 @@ void makewt(int nw, int *ip, T *w)
 	if (nw > 2)
 	{
 		nwh = nw >> 1;
-		delta = atan(1.0) / nwh;
+		delta = atan((T)1.0) / nwh;
 		wn4r = cos(delta * nwh);
 		w[0] = 1;
 		w[1] = wn4r;
@@ -58,8 +58,8 @@ void makewt(int nw, int *ip, T *w)
 		else if (nwh > 4)
 		{
 			makeipt(nw, ip);
-			w[2] = 0.5 / cos(delta * 2);
-			w[3] = 0.5 / cos(delta * 6);
+			w[2] = (T)0.5 / cos(delta * 2);
+			w[3] = (T)0.5 / cos(delta * 6);
 			for (j = 4; j < nwh; j += 4)
 			{
 				w[j] = cos(delta * j);
@@ -86,8 +86,8 @@ void makewt(int nw, int *ip, T *w)
 			{
 				wk1r = w[nw0 + 4];
 				wk3r = w[nw0 + 6];
-				w[nw1 + 2] = 0.5 / wk1r;
-				w[nw1 + 3] = 0.5 / wk3r;
+				w[nw1 + 2] = (T)0.5 / wk1r;
+				w[nw1 + 3] = (T)0.5 / wk3r;
 				for (j = 4; j < nwh; j += 4)
 				{
 					wk1r = w[nw0 + 2 * j];
@@ -136,13 +136,13 @@ void makect(int nc, int *ip, T *c)
 	if (nc > 1)
 	{
 		nch = nc >> 1;
-		delta = atan(1.0) / nch;
+		delta = atan((T)1.0) / nch;
 		c[0] = cos(delta * nch);
-		c[nch] = 0.5 * c[0];
+		c[nch] = (T)0.5 * c[0];
 		for (j = 1; j < nch; j++)
 		{
-			c[j] = 0.5 * cos(delta * j);
-			c[nc - j] = 0.5 * sin(delta * j);
+			c[j] = (T)0.5 * cos(delta * j);
+			c[nc - j] = (T)0.5 * sin(delta * j);
 		}
 	}
 }
@@ -203,7 +203,7 @@ void rdft(int n, int isgn, T *a, int *ip, T *w)
     }
     else
     {
-        a[1] = 0.5 * (a[0] - a[1]);
+        a[1] = (T)0.5 * (a[0] - a[1]);
         a[0] -= a[1];
         if (n > 4)
         {
@@ -343,7 +343,7 @@ template <typename T>
 void dfct(int n, T *a, T *t, int *ip, T *w)
 {
     int j, k, l, m, mh, nw, nc;
-    double xr, xi, yr, yi;
+    T xr, xi, yr, yi;
 
     nw = ip[0];
     if (n > (nw << 3))
@@ -2888,7 +2888,7 @@ void rftfsub(int n, T *a, int nc, T *c)
     {
         k = n - j;
         kk += ks;
-        wkr = 0.5 - c[nc - kk];
+        wkr = (T)0.5 - c[nc - kk];
         wki = c[kk];
         xr = a[j] - a[k];
         xi = a[j + 1] + a[k + 1];
@@ -2914,7 +2914,7 @@ void rftbsub(int n, T *a, int nc, T *c)
     {
         k = n - j;
         kk += ks;
-        wkr = 0.5 - c[nc - kk];
+        wkr = (T)0.5 - c[nc - kk];
         wki = c[kk];
         xr = a[j] - a[k];
         xi = a[j + 1] + a[k + 1];
