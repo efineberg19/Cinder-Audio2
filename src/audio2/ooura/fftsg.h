@@ -3,17 +3,18 @@
 This is the OOURA implementation of various FFT algorithms, which was found at:
 http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html
 
-The original package contains multiple implementations, we are using ftsg.c, also
-called 'Fast Version III (Split-Radix)'.  Details of the algorithm are included below,
-along with the rest of the originally included documentation.
+The original package contains multiple implementations, we are using ffttsg.c, also
+called 'Fast Version III (Split-Radix)'. Documentation of the algorithms and their
+parameters remain in the corresponding implementation file.
 
-Modifications:
-The functions have been templated on the scalar type, which was originally double.
-Definitions for T = float and double have been declared at the bottom of fftsg.cpp
+Modifications (August 2013):
+- The functions have been templated on the scalar type, which was originally double.
+Definitions for T = float and double are declared at the bottom of fftsg.cpp
+- Removed pthreads support.
 
 ========================================================================
 
-Original docs from the OOURA's readme.txt:
+Original docs from OOURA's readme.txt:
 
 General Purpose FFT (Fast Fourier/Cosine/Sine Transform) Package
 
