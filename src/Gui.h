@@ -229,7 +229,7 @@ struct VSelector : public TestWidget {
 
 		gl::color( mSelectedColor );
 
-		section.y1 = mCurrentSectionIndex * sectionHeight;
+		section.y1 = mBounds.y1 + mCurrentSectionIndex * sectionHeight;
 		section.y2 = section.y1 + sectionHeight;
 		gl::drawStrokedRect( section );
 
