@@ -58,7 +58,7 @@ public:
 
 protected:
 	std::vector<float> mReal, mImag;
-	size_t mSize;
+	size_t mSize, mSizeOverTwo;
 
 #if defined( CINDER_AUDIO_VDSP )
 	size_t mLog2FftSize;
