@@ -286,12 +286,14 @@ Appendix :
 
 using ci::math;
 
-template<typename T> void cftfsub(int n, T *a, int *ip, int nw, T *w);
-template<typename T> void makewt(int nw, int *ip, T *w);
-template<typename T> void cftfsub(int n, T *a, int *ip, int nw, T *w);
-template<typename T> void cftbsub(int n, T *a, int *ip, int nw, T *w);
-template<typename T> void rftfsub(int n, T *a, int nc, T *c);
-template<typename T> void rftbsub(int n, T *a, int nc, T *c);
+namespace cinder { namespace audio2 { namespace ooura {
+
+template <typename T> void cftfsub(int n, T *a, int *ip, int nw, T *w);
+template <typename T> void makewt(int nw, int *ip, T *w);
+template <typename T> void cftfsub(int n, T *a, int *ip, int nw, T *w);
+template <typename T> void cftbsub(int n, T *a, int *ip, int nw, T *w);
+template <typename T> void rftfsub(int n, T *a, int nc, T *c);
+template <typename T> void rftbsub(int n, T *a, int nc, T *c);
 template <typename T> void dctsub(int n, T *a, int nc, T *c);
 template <typename T> void dstsub(int n, T *a, int nc, T *c);
 template <typename T> void bitrv2(int n, int *ip, T *a);
@@ -301,8 +303,9 @@ template <typename T> void bitrv216neg(T *a);
 template <typename T> void bitrv208(T *a);
 template <typename T> void bitrv208neg(T *a);
 template <typename T> void cftb1st(int n, T *a, T *w);
+template <typename T> void cftf1st(int n, T *a, T *w);
 template <typename T> void cftrec4(int n, T *a, int nw, T *w);
-template <typename T> int cfttree(int n, int j, int k, T *a, int nw, T *w);
+template <typename T> int  cfttree(int n, int j, int k, T *a, int nw, T *w);
 template <typename T> void cftleaf(int n, int isplt, T *a, int nw, T *w);
 template <typename T> void cftmdl1(int n, T *a, T *w);
 template <typename T> void cftmdl2(int n, T *a, T *w);
@@ -3267,3 +3270,5 @@ template void ddct<double>(int n, int isgn, double *a, int *ip, double *w);
 template void ddst<double>(int n, int isgn, double *a, int *ip, double *w);
 template void dfct<double>(int n, double *a, double *t, int *ip, double *w);
 template void dfst<double>(int n, double *a, double *t, int *ip, double *w);
+
+} } } // namespace cinder::audio2::ooura

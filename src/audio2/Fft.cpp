@@ -78,7 +78,7 @@ void Fft::compute( Buffer *buffer )
 
 #elif defined( CINDER_AUDIO_OOURA )
 
-	rdft( mSize, 1, buffer->getData(), mOouraIp, mOouraW );
+	ooura::rdft( mSize, 1, buffer->getData(), mOouraIp, mOouraW );
 
 #endif
 }
