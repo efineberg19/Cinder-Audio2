@@ -67,7 +67,7 @@ Fft::~Fft()
 }
 
 
-void Fft::compute( Buffer *buffer )
+void Fft::forward( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumFrames() == mSize );
 	

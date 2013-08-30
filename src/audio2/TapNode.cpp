@@ -163,7 +163,7 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 		if( mApplyWindow )
 			multiply( mBuffer.getData(), mWindow.get(), mBuffer.getData(), mWindowSize );
 
-		mFft->compute( &mBuffer );
+		mFft->forward( &mBuffer );
 
 		auto &real = mFft->getReal();
 		auto &imag = mFft->getImag();

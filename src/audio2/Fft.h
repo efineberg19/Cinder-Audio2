@@ -43,10 +43,10 @@ public:
 	Fft( size_t fftSize = 512 );
 	~Fft();
 
-	void compute( Buffer *buffer );
+	void forward( Buffer *buffer );
 
 	// TODO: implement
-	void computeInverse() {}
+	void inverse() {}
 
 	size_t getSize() const	{ return mSize; }
 
