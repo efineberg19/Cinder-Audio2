@@ -58,6 +58,9 @@ public:
 	const std::vector<float>& getImag()	const	{ return mImag; }
 
 protected:
+
+	void init();
+
 	std::vector<float> mReal, mImag;
 	size_t mSize, mSizeOverTwo;
 

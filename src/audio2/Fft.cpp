@@ -38,52 +38,65 @@ Fft::Fft( size_t fftSize )
 		throw AudioExc( "invalid fftSize" );
 
 	mSizeOverTwo = mSize / 2;
-
 	mReal.resize( mSizeOverTwo );
 	mImag.resize( mSizeOverTwo );
 
+	init();
+}
+
 #if defined( CINDER_AUDIO_VDSP )
+
+void Fft::init()
+{
 	mSplitComplexFrame.realp = mReal.data();
 	mSplitComplexFrame.imagp = mImag.data();
 
 	mLog2FftSize = log2f( mSize );
 	mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
 	CI_ASSERT( mFftSetup );
-#elif defined( CINDER_AUDIO_OOURA )
-	mOouraIp = (int *)calloc( 2 + sqrt( mSizeOverTwo ), sizeof( int ) );
-	mOouraW = (float *)calloc( mSizeOverTwo, sizeof( float ) );
-#else
-	CI_ASSERT_MSG( 0, "no specified FFT implementation" );
-#endif
-
 }
 
 Fft::~Fft()
 {
-#if defined( CINDER_AUDIO_VDSP )
 	vDSP_destroy_fftsetup( mFftSetup );
-#elif defined( CINDER_AUDIO_OOURA )
-	free( mOouraIp );
-	free( mOouraW );
-#endif
 }
 
 
 void Fft::forward( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumFrames() == mSize );
-	
-#if defined( CINDER_AUDIO_VDSP )
 
 	vDSP_ctoz( (::DSPComplex *)buffer->getData(), 2, &mSplitComplexFrame, 1, mSizeOverTwo );
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
+}
 
 #elif defined( CINDER_AUDIO_OOURA )
 
-	ooura::rdft( mSize, 1, buffer->getData(), mOouraIp, mOouraW );
-
-#endif
+void Fft::init()
+{
+	mOouraIp = (int *)calloc( 2 + sqrt( mSizeOverTwo ), sizeof( int ) );
+	mOouraW = (float *)calloc( mSizeOverTwo, sizeof( float ) );
 }
 
+Fft::~Fft()
+{
+	free( mOouraIp );
+	free( mOouraW );
+}
+
+
+void Fft::forward( Buffer *buffer )
+{
+	CI_ASSERT( buffer->getNumFrames() == mSize );
+
+	//	output data
+	//		a[2*k] = R[k], 0<=k<n/2
+	//		a[2*k+1] = I[k], 0<k<n/2
+	//		a[1] = R[n/2]
+
+	ooura::rdft( (int)mSize, 1, buffer->getData(), mOouraIp, mOouraW );
+}
+
+#endif // defined( CINDER_AUDIO_OOURA )
 
 } } // namespace cinder::audio2
