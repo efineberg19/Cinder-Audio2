@@ -1,6 +1,5 @@
 #pragma once
 #include "cinder/CinderResources.h"
 
-// FIXME: blah..
-//#define RES_CASH_MP3			CINDER_RESOURCE( ../../../assets/, "cash_satisfied_mind.mp3", 128, MP3 )
+#define RES_CASH_MP3			CINDER_RESOURCE( ../../../assets/, cash_satisfied_mind.mp3, 128, MP3 )
 

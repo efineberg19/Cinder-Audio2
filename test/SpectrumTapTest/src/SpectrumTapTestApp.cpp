@@ -66,9 +66,7 @@ void SpectrumTapTestApp::setup()
 
 	mContext = Context::instance()->createContext();
 
-	// FIXME: dataSource on windows...
-	//DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
-	DataSourceRef dataSource;
+	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 	auto sourceFile = SourceFile::create( dataSource, 0, 44100 );
 	LOG_V << "output samplerate: " << sourceFile->getSampleRate() << endl;
 
