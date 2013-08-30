@@ -89,12 +89,16 @@ void Fft::forward( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumFrames() == mSize );
 
-	//	output data
-	//		a[2*k] = R[k], 0<=k<n/2
-	//		a[2*k+1] = I[k], 0<k<n/2
-	//		a[1] = R[n/2]
+	float *data = buffer->getData();
+	ooura::rdft( (int)mSize, 1, data, mOouraIp, mOouraW );
 
-	ooura::rdft( (int)mSize, 1, buffer->getData(), mOouraIp, mOouraW );
+	mReal[0] = data[0];
+	mImag[1] = data[1];
+
+	for( size_t k = 1; k < mSizeOverTwo; k++ ) {
+		mReal[k] = data[k * 2];
+		mImag[k] = data[k * 2 + 1];
+	}
 }
 
 #endif // defined( CINDER_AUDIO_OOURA )
