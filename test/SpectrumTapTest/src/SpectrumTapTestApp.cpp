@@ -11,6 +11,9 @@
 #include "Gui.h"
 #include "Resources.h"
 
+// TODO: pull in spec plot from RoofiesLED
+// TODO: unit test Fft
+
 //#define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
@@ -36,21 +39,26 @@ class SpectrumTapTestApp : public AppNative {
 	void draw();
 
 	void initContext();
+	void setupSine();
+	void setupSample();
 	void setupUI();
 	void processTap( Vec2i pos );
 	void processDrag( Vec2i pos );
 	void printBinFreq( size_t xPos );
 
-	ContextRef mContext;
-	PlayerNodeRef mPlayerNode;
 
-	SpectrumTapNodeRef mSpectrumTap;
+	ContextRef						mContext;
+	PlayerNodeRef					mPlayerNode;
+	shared_ptr<UGenNode<SineGen> >	mSine;
+	SpectrumTapNodeRef				mSpectrumTap;
+	SourceFileRef					mSourceFile;
 
-	vector<TestWidget *> mWidgets;
-	Button mEnableGraphButton, mPlaybackButton, mLoopButton, mApplyWindowButton, mScaleDecibelsButton;
-	HSlider mSmoothingFactorSlider;
-	bool mScaleDecibels;
-	float mSpectroMargin;
+	vector<TestWidget *>			mWidgets;
+	Button							mEnableGraphButton, mPlaybackButton, mLoopButton, mApplyWindowButton, mScaleDecibelsButton;
+	VSelector						mTestSelector;
+	HSlider							mSmoothingFactorSlider, mFreqSlider;
+	bool							mScaleDecibels;
+	float							mSpectroMargin;
 };
 
 
@@ -66,19 +74,21 @@ void SpectrumTapTestApp::setup()
 
 	mContext = Context::instance()->createContext();
 
-	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
-	auto sourceFile = SourceFile::create( dataSource, 0, 44100 );
-	LOG_V << "output samplerate: " << sourceFile->getSampleRate() << endl;
-
-	auto audioBuffer = sourceFile->loadBuffer();
-
-	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
-
-
-	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
 	mSpectrumTap = mContext->makeNode( new SpectrumTapNode( SpectrumTapNode::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 
-	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
+	mSine = mContext->makeNode( new UGenNode<SineGen>() );
+	mSine->getUGen().setAmp( 0.25f );
+	mSine->getUGen().setFreq( 440.0f );
+
+	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
+
+	auto audioBuffer = mSourceFile->loadBuffer();
+	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
+
+	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
+
+	setupSine();
 
 	initContext();
 	setupUI();
@@ -91,16 +101,23 @@ void SpectrumTapTestApp::setup()
 	mScaleDecibelsButton.setEnabled( mScaleDecibels );
 }
 
+void SpectrumTapTestApp::setupSine()
+{
+	mSine->connect( mSpectrumTap )->connect( mContext->getRoot() );
+}
+
+void SpectrumTapTestApp::setupSample()
+{
+	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
+	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
+}
+
 void SpectrumTapTestApp::initContext()
 {
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mContext );
-
 	mContext->initialize();
 
 	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
+	console() << "Graph configuration" << endl;
 	printGraph( mContext );
 }
 
@@ -116,8 +133,8 @@ void SpectrumTapTestApp::setupUI()
 
 	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
 	mPlaybackButton.mIsToggle = true;
-	mPlaybackButton.mTitleNormal = "play sample";
-	mPlaybackButton.mTitleEnabled = "stop sample";
+	mPlaybackButton.mTitleNormal = "play";
+	mPlaybackButton.mTitleEnabled = "stop";
 	mPlaybackButton.mBounds = buttonRect;
 	mWidgets.push_back( &mPlaybackButton );
 
@@ -143,13 +160,27 @@ void SpectrumTapTestApp::setupUI()
 	mWidgets.push_back( &mScaleDecibelsButton );
 
 	Vec2f sliderSize( 200.0f, 30.0f );
-	Rectf sliderRect( getWindowWidth() - sliderSize.x - mSpectroMargin, buttonRect.y2 + padding, getWindowWidth() - mSpectroMargin, buttonRect.y2 + padding + sliderSize.y );
+	Rectf selectorRect( getWindowWidth() - sliderSize.x - mSpectroMargin, buttonRect.y2 + padding, getWindowWidth() - mSpectroMargin, buttonRect.y2 + padding + sliderSize.y * 2 );
+	mTestSelector.mSegments.push_back( "sine" );
+	mTestSelector.mSegments.push_back( "sample" );
+	mTestSelector.mBounds = selectorRect;
+	mWidgets.push_back( &mTestSelector );
+
+	Rectf sliderRect( selectorRect.x1, selectorRect.y2 + padding, selectorRect.x2, selectorRect.y2 + padding + sliderSize.y );
 	mSmoothingFactorSlider.mBounds = sliderRect;
 	mSmoothingFactorSlider.mTitle = "Smoothing";
 	mSmoothingFactorSlider.mMin = 0.0f;
 	mSmoothingFactorSlider.mMax = 1.0f;
 	mSmoothingFactorSlider.set( mSpectrumTap->getSmoothingFactor() );
 	mWidgets.push_back( &mSmoothingFactorSlider );
+
+	sliderRect += Vec2f( 0.0f, sliderSize.y + padding );
+	mFreqSlider.mBounds = sliderRect;
+	mFreqSlider.mTitle = "Sine Freq";
+	mFreqSlider.mMin = 0.0f;
+	mFreqSlider.mMax = mContext->getSampleRate() / 2.0f;
+	mFreqSlider.set( mSine->getUGen().getFreq() );
+	mWidgets.push_back( &mFreqSlider );
 
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
@@ -184,8 +215,12 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-	else if( mPlaybackButton.hitTest( pos ) )
-		mPlayerNode->setEnabled( ! mPlayerNode->isEnabled() );
+	else if( mPlaybackButton.hitTest( pos ) ) {
+		if( mTestSelector.currentSection() == "sine" )
+			mSine->setEnabled( ! mSine->isEnabled() );
+		else
+			mPlayerNode->setEnabled( ! mPlayerNode->isEnabled() );
+	}
 	else if( mLoopButton.hitTest( pos ) )
 		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
 	else if( mApplyWindowButton.hitTest( pos ) )
@@ -194,12 +229,35 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 		mScaleDecibels = ! mScaleDecibels;
 	else
 		printBinFreq( pos.x );
+
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
+		string currentTest = mTestSelector.currentSection();
+		LOG_V << "selected: " << currentTest << endl;
+
+		// TODO: finish test switching
+		
+//		bool running = mContext->isEnabled();
+//		mContext->uninitialize();
+//
+//		if( currentTest == "sine" )
+//			setupSine();
+//		if( currentTest == "sample" )
+//			setupNoise();
+//		initContext();
+//
+//		if( running )
+//			mContext->start();
+	}
+
 }
 
 void SpectrumTapTestApp::processDrag( Vec2i pos )
 {
 	if( mSmoothingFactorSlider.hitTest( pos ) )
 		mSpectrumTap->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
+	if( mFreqSlider.hitTest( pos ) )
+		mSine->getUGen().setFreq( mFreqSlider.mValueScaled );
 }
 
 void SpectrumTapTestApp::fileDrop( FileDropEvent event )
