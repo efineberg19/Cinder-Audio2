@@ -62,8 +62,8 @@ ConverterCoreAudio::~ConverterCoreAudio()
 void ConverterCoreAudio::convert( Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	if( mSourceFormat.getSampleRate() == mDestFormat.getSampleRate() ) {
-		UInt32 inputDataSize = sourceBuffer->getSize() * sizeof( Buffer::SampleType );
-		UInt32 outputDataSize = destBuffer->getSize() * sizeof( Buffer::SampleType );
+		UInt32 inputDataSize = (UInt32)sourceBuffer->getSize() * sizeof( Buffer::SampleType );
+		UInt32 outputDataSize = (UInt32)destBuffer->getSize() * sizeof( Buffer::SampleType );
 		OSStatus status = ::AudioConverterConvertBuffer( mAudioConverter, inputDataSize, sourceBuffer->getData(), &outputDataSize, destBuffer->getData() );
 		CI_ASSERT( status == noErr );
 	} else {
@@ -138,18 +138,18 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 
 ::AudioStreamBasicDescription createFloatAsbd( size_t numChannels, size_t sampleRate, bool isInterleaved )
 {
-	const size_t kBytesPerSample = sizeof( float );
+	const UInt32 kBytesPerSample = sizeof( float );
 	::AudioStreamBasicDescription asbd{ 0 };
-	asbd.mSampleRate = sampleRate;
-	asbd.mFormatID = kAudioFormatLinearPCM;
-	asbd.mFramesPerPacket    = 1;
-	asbd.mChannelsPerFrame = numChannels;
-	asbd.mBitsPerChannel     = 8 * kBytesPerSample;
+	asbd.mSampleRate		= sampleRate;
+	asbd.mFormatID			= kAudioFormatLinearPCM;
+	asbd.mFramesPerPacket	= 1;
+	asbd.mChannelsPerFrame	= (UInt32)numChannels;
+	asbd.mBitsPerChannel	= 8 * kBytesPerSample;
 
 	if( isInterleaved ) {
 		asbd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kLinearPCMFormatFlagIsPacked;
-		asbd.mBytesPerPacket = kBytesPerSample * numChannels;
-		asbd.mBytesPerFrame = kBytesPerSample * numChannels;
+		asbd.mBytesPerPacket = kBytesPerSample * (UInt32)numChannels;
+		asbd.mBytesPerFrame = kBytesPerSample * (UInt32)numChannels;
 	}
 	else {
 		// paraphrasing comment in CoreAudioTypes.h: for non-interleaved, the ABSD describes the format of

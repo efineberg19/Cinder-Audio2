@@ -35,25 +35,25 @@ using namespace ci;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
-static void printExtensions()
-{
-	::CFArrayRef extensionsCF;
-	UInt32 propSize = sizeof( extensionsCF );
-	OSStatus status = ::AudioFileGetGlobalInfo( kAudioFileGlobalInfo_AllExtensions, 0, NULL, &propSize, &extensionsCF );
-	CI_ASSERT( status == noErr );
-
-	CFIndex extCount = ::CFArrayGetCount( extensionsCF );
-	LOG_V << "extension count: " << extCount << endl;
-	vector<string> extensions;
-	for( CFIndex index = 0; index < extCount; ++index ) {
-		string ext = ci::cocoa::convertCfString( (CFStringRef)::CFArrayGetValueAtIndex( extensionsCF, index ) );
-		cout << ext << ", ";
-		extensions.push_back( ext );
-	}
-	std::cout << endl;
-
-	::CFRelease( extensionsCF );
-}
+//static void printExtensions()
+//{
+//	::CFArrayRef extensionsCF;
+//	UInt32 propSize = sizeof( extensionsCF );
+//	OSStatus status = ::AudioFileGetGlobalInfo( kAudioFileGlobalInfo_AllExtensions, 0, NULL, &propSize, &extensionsCF );
+//	CI_ASSERT( status == noErr );
+//
+//	CFIndex extCount = ::CFArrayGetCount( extensionsCF );
+//	LOG_V << "extension count: " << extCount << endl;
+//	vector<string> extensions;
+//	for( CFIndex index = 0; index < extCount; ++index ) {
+//		string ext = ci::cocoa::convertCfString( (CFStringRef)::CFArrayGetValueAtIndex( extensionsCF, index ) );
+//		cout << ext << ", ";
+//		extensions.push_back( ext );
+//	}
+//	std::cout << endl;
+//
+//	::CFRelease( extensionsCF );
+//}
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - SourceFileCoreAudio
@@ -104,7 +104,7 @@ size_t SourceFileCoreAudio::read( Buffer *buffer )
 	if( mReadPos >= mNumFrames )
 		return 0;
 
-	UInt32 frameCount = std::min( mNumFrames - mReadPos, mNumFramesPerRead );
+	UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, mNumFramesPerRead );
 	for( int i = 0; i < mNumChannels; i++ ) {
 		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
 		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
@@ -126,7 +126,7 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 
 	size_t currReadPos = 0;
 	while( currReadPos < mNumFrames ) {
-		UInt32 frameCount = std::min( mNumFrames - currReadPos, mNumFramesPerRead );
+		UInt32 frameCount = (UInt32)std::min( mNumFrames - currReadPos, mNumFramesPerRead );
 
         for( int i = 0; i < mNumChannels; i++ ) {
             mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
