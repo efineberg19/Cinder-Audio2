@@ -40,7 +40,7 @@ Fft::Fft( size_t fftSize )
 	mReal.resize( mSize );
 	mImag.resize( mSize );
 
-#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+#if defined( CINDER_AUDIO_VDSP )
 	mSplitComplexFrame.realp = mReal.data();
 	mSplitComplexFrame.imagp = mImag.data();
 
@@ -58,7 +58,7 @@ Fft::Fft( size_t fftSize )
 
 Fft::~Fft()
 {
-#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+#if defined( CINDER_AUDIO_VDSP )
 	vDSP_destroy_fftsetup( mFftSetup );
 #elif defined( CINDER_AUDIO_OOURA )
 	free( mOouraIp );
@@ -71,7 +71,7 @@ void Fft::compute( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumFrames() == mSize );
 	
-#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+#if defined( CINDER_AUDIO_VDSP )
 
 	vDSP_ctoz( ( ::DSPComplex *)buffer->getData(), 2, &mSplitComplexFrame, 1, mSize / 2 );
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );

@@ -30,7 +30,7 @@
 
 #include <vector>
 
-#if defined( CINDER_AUDIO_DSP_ACCELERATE ) // TODO: rename CINDER_AUDIO_VDSP
+#if defined( CINDER_AUDIO_VDSP )
 	#include <Accelerate/Accelerate.h>
 #else
 	#define CINDER_AUDIO_OOURA
@@ -60,7 +60,7 @@ protected:
 	std::vector<float> mReal, mImag;
 	size_t mSize;
 
-#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+#if defined( CINDER_AUDIO_VDSP )
 	size_t mLog2FftSize;
 	::FFTSetup mFftSetup;
 	::DSPSplitComplex mSplitComplexFrame;

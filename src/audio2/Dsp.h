@@ -30,7 +30,7 @@
 #include "cinder/Rand.h"
 
 #if defined( CINDER_COCOA )
-	#define CINDER_AUDIO_DSP_ACCELERATE
+	#define CINDER_AUDIO_VDSP
 #endif
 
 #include <cmath>

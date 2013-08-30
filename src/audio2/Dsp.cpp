@@ -25,7 +25,7 @@
 
 #include "cinder/CinderMath.h"
 
-#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+#if defined( CINDER_AUDIO_VDSP )
 	#include <Accelerate/Accelerate.h>
 #endif
 
@@ -33,7 +33,7 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
-#if defined( CINDER_AUDIO_DSP_ACCELERATE )
+#if defined( CINDER_AUDIO_VDSP )
 
 void generateBlackmanWindow( float *window, size_t length )
 {
@@ -86,7 +86,7 @@ void multiply( const float *arrayA, const float *arrayB, float *result, size_t l
 	vDSP_vmul( arrayA, 1, arrayB, 1, result, 1, length );
 }
 
-#else // ! defined( CINDER_AUDIO_DSP_ACCELERATE )
+#else // ! defined( CINDER_AUDIO_VDSP )
 
 // from WebKit's applyWindow in RealtimeAnalyser.cpp
 void generateBlackmanWindow( float *window, size_t length )
@@ -156,7 +156,7 @@ void multiply( const float *arrayA, const float *arrayB, float *result, size_t l
 		result[i] = arrayA[i] * arrayB[i];
 }
 
-#endif // ! defined( CINDER_AUDIO_DSP_ACCELERATE )
+#endif // ! defined( CINDER_AUDIO_VDSP )
 
 
 void generateWindow( WindowType windowType, float *window, size_t length )
