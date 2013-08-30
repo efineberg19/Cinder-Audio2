@@ -38,9 +38,10 @@
 
 namespace cinder { namespace audio2 {
 
+//! Real Discrete Fourier Transform
 class Fft {
 public:
-	Fft( size_t fftSize = 512 );
+	Fft( size_t fftSize );
 	~Fft();
 
 	void forward( Buffer *buffer );
