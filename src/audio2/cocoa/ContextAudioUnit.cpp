@@ -614,13 +614,10 @@ void ContextAudioUnit::initialize()
 		return;
 	CI_ASSERT( mRoot );
 
-	mSampleRate = mRoot->getSampleRate();
-	mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
-
 	initNode( mRoot );
 
 	mInitialized = true;
-	LOG_V << "graph initialize complete. samplerate: " << mSampleRate << ", frames per block: " << mNumFramesPerBlock << endl;
+	LOG_V << "graph initialize complete. samplerate: " << getSampleRate() << ", frames per block: " << getNumFramesPerBlock() << endl;
 }
 
 void ContextAudioUnit::initNode( NodeRef node )
@@ -628,9 +625,6 @@ void ContextAudioUnit::initNode( NodeRef node )
 	if( ! node )
 		return;
 
-//	node->setContext( shared_from_this() );
-
-	// recurse through inputs
 	for( NodeRef& inputNode : node->getInputs() )
 		initNode( inputNode );
 

@@ -95,7 +95,7 @@ void EffectsAudioUnitTestApp::setupOne()
 	mEffect = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
 	mSource->connect( mEffect )->connect( mContext->getRoot() );
 
-	mBandpassSlider.hidden = true;
+	mBandpassSlider.mHidden = true;
 }
 
 void EffectsAudioUnitTestApp::setupTwo()
@@ -107,7 +107,7 @@ void EffectsAudioUnitTestApp::setupTwo()
 
 	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
 
-	mBandpassSlider.hidden = false;
+	mBandpassSlider.mHidden = false;
 }
 
 void EffectsAudioUnitTestApp::setupNativeThenGeneric()
@@ -144,7 +144,7 @@ void EffectsAudioUnitTestApp::setupUI()
 	mPlayButton = Button( true, "stopped", "playing" );
 //	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
 
-	mTestSelector.segments = { "one", "two", "native -> generic" };
+	mTestSelector.mSegments = { "one", "two", "native -> generic" };
 //	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 
 //#if defined( CINDER_COCOA_TOUCH )
@@ -153,23 +153,23 @@ void EffectsAudioUnitTestApp::setupUI()
 //	mTestSelector.bounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
 //	mTestSelector.textIsCentered = false;
 //#else
-	mPlayButton.bounds = Rectf( 0, 0, 200, 60 );
-	mTestSelector.bounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
+	mTestSelector.mBounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 //#endif
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mLowpassCutoffSlider.bounds = sliderRect;
-	mLowpassCutoffSlider.title = "Lowpass Cutoff";
-	mLowpassCutoffSlider.max = 1500.0f;
+	mLowpassCutoffSlider.mBounds = sliderRect;
+	mLowpassCutoffSlider.mTitle = "Lowpass Cutoff";
+	mLowpassCutoffSlider.mMax = 1500.0f;
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mBandpassSlider.bounds = sliderRect;
-	mBandpassSlider.title = "Bandpass";
-	mBandpassSlider.min = 100.0f;
-	mBandpassSlider.max = 2000.0f;
+	mBandpassSlider.mBounds = sliderRect;
+	mBandpassSlider.mTitle = "Bandpass";
+	mBandpassSlider.mMin = 100.0f;
+	mBandpassSlider.mMax = 2000.0f;
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -185,10 +185,10 @@ void EffectsAudioUnitTestApp::setupUI()
 void EffectsAudioUnitTestApp::processDrag( Vec2i pos )
 {
 	if( mEffect && mLowpassCutoffSlider.hitTest( pos ) )
-		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.valueScaled );
+		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.mValueScaled );
 
 	if( mEffect2 && mBandpassSlider.hitTest( pos ) )
-		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandpassSlider.valueScaled );
+		mEffect2->setParameter( kBandpassParam_CenterFrequency, mBandpassSlider.mValueScaled );
 }
 
 void EffectsAudioUnitTestApp::processTap( Vec2i pos )
@@ -196,8 +196,8 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 
-	size_t currentIndex = mTestSelector.currentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.currentSectionIndex ) {
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 

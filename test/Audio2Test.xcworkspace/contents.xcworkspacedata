@@ -8,7 +8,7 @@
       location = "container:"
       name = "osx">
       <FileRef
-         location = "container:BasicTest/xcode/BasicTest.xcodeproj">
+         location = "group:NodeTest/xcode/NodeTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:CAFileLoadingTest/xcode/CAFileLoadingTest.xcodeproj">
@@ -36,7 +36,7 @@
       location = "container:"
       name = "ios">
       <FileRef
-         location = "group:BasicTest/xcode_ios/BasicTest.xcodeproj">
+         location = "group:NodeTest/xcode_ios/NodeTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:CAFileLoadingTest/xcode_ios/CAFileLoadingTest.xcodeproj">
