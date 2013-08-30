@@ -81,6 +81,10 @@
 		11B0421E179B92D10034BEE2 /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46E17754A6E003EAA2B /* DeviceManagerCoreAudio.cpp */; };
 		11C58DE9177943DA00DF99F8 /* CinderCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C58DE7177943DA00DF99F8 /* CinderCoreAudio.cpp */; };
 		11C58DEA177943DA00DF99F8 /* CinderCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 11C58DE8177943DA00DF99F8 /* CinderCoreAudio.h */; };
+		11D6946017D0475000B0D2BB /* fftsg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11D6945E17D0475000B0D2BB /* fftsg.cpp */; };
+		11D6946117D0475000B0D2BB /* fftsg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11D6945E17D0475000B0D2BB /* fftsg.cpp */; };
+		11D6946217D0475000B0D2BB /* fftsg.h in Headers */ = {isa = PBXBuildFile; fileRef = 11D6945F17D0475000B0D2BB /* fftsg.h */; };
+		11D6946317D0475000B0D2BB /* fftsg.h in Headers */ = {isa = PBXBuildFile; fileRef = 11D6945F17D0475000B0D2BB /* fftsg.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -140,6 +144,8 @@
 		11B0421C179B90450034BEE2 /* libAudio2-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libAudio2-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		11C58DE7177943DA00DF99F8 /* CinderCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderCoreAudio.cpp; sourceTree = "<group>"; };
 		11C58DE8177943DA00DF99F8 /* CinderCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderCoreAudio.h; sourceTree = "<group>"; };
+		11D6945E17D0475000B0D2BB /* fftsg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fftsg.cpp; path = ooura/fftsg.cpp; sourceTree = "<group>"; };
+		11D6945F17D0475000B0D2BB /* fftsg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fftsg.h; path = ooura/fftsg.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -212,6 +218,7 @@
 			children = (
 				1104F46717754A6E003EAA2B /* cocoa */,
 				1104F48217754A6E003EAA2B /* msw */,
+				11D6945D17D0436A00B0D2BB /* ooura */,
 				1104F46317754A6E003EAA2B /* Atomic.h */,
 				1104F46417754A6E003EAA2B /* audio.cpp */,
 				1104F46517754A6E003EAA2B /* audio.h */,
@@ -279,6 +286,15 @@
 			path = msw;
 			sourceTree = "<group>";
 		};
+		11D6945D17D0436A00B0D2BB /* ooura */ = {
+			isa = PBXGroup;
+			children = (
+				11D6945E17D0475000B0D2BB /* fftsg.cpp */,
+				11D6945F17D0475000B0D2BB /* fftsg.h */,
+			);
+			name = ooura;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -291,6 +307,7 @@
 				1104F49C17754A6E003EAA2B /* ContextAudioUnit.h in Headers */,
 				1104F49E17754A6E003EAA2B /* DeviceAudioUnit.h in Headers */,
 				11C58DEA177943DA00DF99F8 /* CinderCoreAudio.h in Headers */,
+				11D6946217D0475000B0D2BB /* fftsg.h in Headers */,
 				1104F4B417754A6E003EAA2B /* GeneratorNode.h in Headers */,
 				1104F4B217754A6E003EAA2B /* File.h in Headers */,
 				1104F4A817754A6E003EAA2B /* Context.h in Headers */,
@@ -320,6 +337,7 @@
 				11B04206179B90450034BEE2 /* ContextAudioUnit.h in Headers */,
 				11B04207179B90450034BEE2 /* DeviceAudioUnit.h in Headers */,
 				11B04208179B90450034BEE2 /* CinderCoreAudio.h in Headers */,
+				11D6946317D0475000B0D2BB /* fftsg.h in Headers */,
 				11B04209179B90450034BEE2 /* GeneratorNode.h in Headers */,
 				11B0420A179B90450034BEE2 /* File.h in Headers */,
 				11B0420B179B90450034BEE2 /* Context.h in Headers */,
@@ -413,6 +431,7 @@
 				1104F49D17754A6E003EAA2B /* DeviceAudioUnit.cpp in Sources */,
 				11C58DE9177943DA00DF99F8 /* CinderCoreAudio.cpp in Sources */,
 				1104F4AC17754A6E003EAA2B /* Dsp.cpp in Sources */,
+				11D6946017D0475000B0D2BB /* fftsg.cpp in Sources */,
 				1104F4AA17754A6E003EAA2B /* Device.cpp in Sources */,
 				1104F4C517754A6E003EAA2B /* TapNode.cpp in Sources */,
 				1104F4A717754A6E003EAA2B /* Context.cpp in Sources */,
@@ -435,6 +454,7 @@
 				11B041F4179B90450034BEE2 /* GeneratorNode.cpp in Sources */,
 				11B041F5179B90450034BEE2 /* DeviceAudioUnit.cpp in Sources */,
 				11B041F6179B90450034BEE2 /* CinderCoreAudio.cpp in Sources */,
+				11D6946117D0475000B0D2BB /* fftsg.cpp in Sources */,
 				11B041F7179B90450034BEE2 /* Dsp.cpp in Sources */,
 				11B041F8179B90450034BEE2 /* Device.cpp in Sources */,
 				11B041F9179B90450034BEE2 /* TapNode.cpp in Sources */,
