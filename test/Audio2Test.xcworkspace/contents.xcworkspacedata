@@ -64,7 +64,7 @@
       location = "container:"
       name = "unit">
       <FileRef
-         location = "group:unit/Buffer/xcode/Buffer.xcodeproj">
+         location = "group:unit/xcode/Audio2Unit.xcodeproj">
       </FileRef>
    </Group>
 </Workspace>
