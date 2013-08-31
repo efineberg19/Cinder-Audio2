@@ -115,6 +115,7 @@ void Fft::inverse( Buffer *waveform, const std::vector<float>& real, const std::
 	}
 
 	ooura::rdft( (int)mSize, -1, a, mOouraIp, mOouraW );
+	multiply( a, 2.0f / (float)mSize, a, mSize );
 }
 
 #endif // defined( CINDER_AUDIO_OOURA )
