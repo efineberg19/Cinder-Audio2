@@ -6,7 +6,7 @@
 	author="Richard Eakin"
 	license="BSD"
 	summary="development block for Cinder audio rewrite"
-	git="git://github.com/reakinator/Cinder-Audio2.git"
+	git="git://github.com/richardeakin/Cinder-Audio2.git"
 	version="0.1"
 	libraryUrl="www.libcinder.org"
 	>
