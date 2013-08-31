@@ -62,11 +62,11 @@ Fft::~Fft()
 }
 
 
-void Fft::forward( Buffer *buffer )
+void Fft::forward( Buffer *waveform )
 {
-	CI_ASSERT( buffer->getNumFrames() == mSize );
+	CI_ASSERT( waveform->getNumFrames() == mSize );
 
-	vDSP_ctoz( (::DSPComplex *)buffer->getData(), 2, &mSplitComplexFrame, 1, mSizeOverTwo );
+	vDSP_ctoz( (::DSPComplex *)waveform->getData(), 2, &mSplitComplexFrame, 1, mSizeOverTwo );
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 }
 
@@ -85,20 +85,36 @@ Fft::~Fft()
 }
 
 
-void Fft::forward( Buffer *buffer )
+void Fft::forward( Buffer *waveform )
 {
-	CI_ASSERT( buffer->getNumFrames() == mSize );
+	CI_ASSERT( waveform->getNumFrames() == mSize );
 
-	float *data = buffer->getData();
-	ooura::rdft( (int)mSize, 1, data, mOouraIp, mOouraW );
+	float *a = waveform->getData();
+	ooura::rdft( (int)mSize, 1, a, mOouraIp, mOouraW );
 
-	mReal[0] = data[0];
-	mImag[1] = data[1];
+	mReal[0] = a[0];
+	mImag[1] = a[1];
 
 	for( size_t k = 1; k < mSizeOverTwo; k++ ) {
-		mReal[k] = data[k * 2];
-		mImag[k] = data[k * 2 + 1];
+		mReal[k] = a[k * 2];
+		mImag[k] = a[k * 2 + 1];
 	}
+}
+
+void Fft::inverse( Buffer *waveform, const std::vector<float>& real, const std::vector<float>& imag )
+{
+	CI_ASSERT( waveform->getNumFrames() == mSize );
+
+	float *a = waveform->getData();
+	a[0] = mReal[0];
+	a[1] = mImag[0];
+
+	for( size_t k = 1; k < mSizeOverTwo; k++ ) {
+		a[k * 2] = mReal[k];
+		a[k * 2 + 1] = mImag[k];
+	}
+
+	ooura::rdft( (int)mSize, -1, a, mOouraIp, mOouraW );
 }
 
 #endif // defined( CINDER_AUDIO_OOURA )

@@ -38,16 +38,27 @@
 
 namespace cinder { namespace audio2 {
 
-//! Real Discrete Fourier Transform
+// TODO: consider better names to represent the math functionality rather than algo impl.
+// - option 1: rename to Dft or RDft
+// - option 2: leave this as Fft, but it's method names are more describtive
+//		- ex. forwardDft, forwardComplexDft, inverseDct
+
+//! Real Discrete Fourier Transform (DFT)
 class Fft {
 public:
 	Fft( size_t fftSize );
 	~Fft();
 
-	void forward( Buffer *buffer );
+	//! Computes the Forward DFT
+	void forward( Buffer *waveform );
 
-	// TODO: implement
-	void inverse() {}
+	// TODO: sort out what form the freq-domain data should be passed in as.
+	// - will sort this out at the same time as frequency-domain context
+	// - possible: FreqBuffer that is either in time or freq domain
+	//		- in time domain, it's data is considered one channel of a waveform
+	//		- in freq domain, channels 0 = real, 1 = imag
+	//! Computes the Inverse DFT
+	void inverse( Buffer *waveform, const std::vector<float>& real, const std::vector<float>& imag );
 
 	size_t getSize() const	{ return mSize; }
 
