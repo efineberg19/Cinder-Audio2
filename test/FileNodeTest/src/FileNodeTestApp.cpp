@@ -115,22 +115,22 @@ void FileNodeTestApp::setupFilePlayer()
 
 void FileNodeTestApp::setupUI()
 {
-	mEnableGraphButton.isToggle = true;
-	mEnableGraphButton.titleNormal = "graph off";
-	mEnableGraphButton.titleEnabled = "graph on";
-	mEnableGraphButton.bounds = Rectf( 0, 0, 200, 60 );
+	mEnableGraphButton.mIsToggle = true;
+	mEnableGraphButton.mTitleNormal = "graph off";
+	mEnableGraphButton.mTitleEnabled = "graph on";
+	mEnableGraphButton.mBounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mEnableGraphButton );
 
-	mStartPlaybackButton.isToggle = false;
-	mStartPlaybackButton.titleNormal = "sample playing";
-	mStartPlaybackButton.titleEnabled = "sample stopped";
-	mStartPlaybackButton.bounds = mEnableGraphButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
+	mStartPlaybackButton.mIsToggle = false;
+	mStartPlaybackButton.mTitleNormal = "sample playing";
+	mStartPlaybackButton.mTitleEnabled = "sample stopped";
+	mStartPlaybackButton.mBounds = mEnableGraphButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + 10.0f, 0.0f );
 	mWidgets.push_back( &mStartPlaybackButton );
 
-	mLoopButton.isToggle = true;
-	mLoopButton.titleNormal = "loop off";
-	mLoopButton.titleEnabled = "loop on";
-	mLoopButton.bounds = mStartPlaybackButton.bounds + Vec2f( mEnableGraphButton.bounds.getWidth() + 10.0f, 0.0f );
+	mLoopButton.mIsToggle = true;
+	mLoopButton.mTitleNormal = "loop off";
+	mLoopButton.mTitleEnabled = "loop on";
+	mLoopButton.mBounds = mStartPlaybackButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + 10.0f, 0.0f );
 	mWidgets.push_back( &mLoopButton );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );

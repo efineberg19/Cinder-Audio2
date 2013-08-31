@@ -51,8 +51,8 @@ class Waveform {
 };
 
 class WaveformPlot {
-public:
-	WaveformPlot()	{}
+  public:
+	WaveformPlot( const ci::ColorA &colorMinMax = ci::ColorA::gray( 0.5f ), const ci::ColorA &colorAverage = ci::ColorA::gray( 0.75f ) ) : mColorMinMax( colorMinMax ), mColorAverage( colorAverage )	{}
 
 	void load( const std::vector<float> &samples, const ci::Rectf &bounds, size_t pixelsPerVertex = 2 );
 
@@ -61,10 +61,10 @@ public:
 	const std::vector<Waveform>& getWaveforms() const	{ return mWaveforms; }
 	const ci::Rectf& getBounds() const					{ return mBounds; }
 
-	// TODO: move the colors to member vars
-	void draw( const ci::Vec2i &offset = ci::Vec2i::zero(), float scale = 1.0f, const ci::ColorA &colorMinMax = ci::ColorA::gray( 0.5f ), const ci::ColorA &colorAverage = ci::ColorA::gray( 0.75f ) );
+	void draw();
 
 private:
 	std::vector<Waveform> mWaveforms;
 	ci::Rectf mBounds;
+	ci::ColorA mColorMinMax, mColorAverage;
 };

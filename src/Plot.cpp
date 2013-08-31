@@ -106,29 +106,27 @@ void WaveformPlot::load( const BufferRef &buffer, const ci::Rectf &bounds, size_
 	}
 }
 
-// TODO: account for larger size (channels) waveforms
-// TODO: use offset and scale
-void WaveformPlot::draw( const Vec2i &offset, float scale, const ColorA &colorMinMax, const ColorA &colorAverage )
+void WaveformPlot::draw()
 {
 	auto &waveforms = getWaveforms();
 	if( waveforms.empty() ) {
 		return;
 	}
 
-	gl::color( colorMinMax );
+	gl::color( mColorMinMax );
 	gl::draw( waveforms[0].getMesh() );
 
-	gl::color( colorAverage );
+	gl::color( mColorAverage );
 	gl::draw( waveforms[1].getMesh() );
 
 	if( waveforms.size() > 2 ) {
 		gl::pushMatrices();
 		gl::translate( 0.0f, getBounds().getHeight() / 2 );
 
-		gl::color( colorMinMax );
+		gl::color( mColorMinMax );
 		gl::draw( waveforms[2].getMesh() );
 
-		gl::color( colorAverage );
+		gl::color( mColorAverage );
 		gl::draw( waveforms[3].getMesh() );
 		
 		gl::popMatrices();
