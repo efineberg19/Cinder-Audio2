@@ -68,3 +68,22 @@ private:
 	ci::Rectf mBounds;
 	ci::ColorA mColorMinMax, mColorAverage;
 };
+
+class SpectrumPlot {
+public:
+	SpectrumPlot() : mScaleDecibels( true ) {}
+	
+	void setBounds( const ci::Rectf &bounds )	{ mBounds = bounds; }
+	const ci::Rectf& getBounds() const			{ return mBounds; }
+
+	void setScaleDecibels( bool b = true )		{ mScaleDecibels = b; }
+	bool getScaleDecibels() const				{ return mScaleDecibels; }
+	
+	void draw( const std::vector<float> &magSpectrum );
+
+private:
+	ci::Rectf				mBounds;
+	bool					mScaleDecibels;
+	std::vector<ci::Vec2f>	mVerts;
+	std::vector<ci::Color>	mColors;
+};

@@ -9,10 +9,8 @@
 #include "audio2/Dsp.h"
 
 #include "Gui.h"
+#include "Plot.h"
 #include "Resources.h"
-
-// TODO: pull in spec plot from RoofiesLED
-// TODO: unit test Fft
 
 //#define SOUND_FILE "tone440.wav"
 //#define SOUND_FILE "tone440L220R.wav"
@@ -57,7 +55,7 @@ class SpectrumTapTestApp : public AppNative {
 	Button							mEnableGraphButton, mPlaybackButton, mLoopButton, mApplyWindowButton, mScaleDecibelsButton;
 	VSelector						mTestSelector;
 	HSlider							mSmoothingFactorSlider, mFreqSlider;
-	bool							mScaleDecibels;
+	SpectrumPlot					mSpectrumPlot;
 	float							mSpectroMargin;
 };
 
@@ -69,7 +67,6 @@ void SpectrumTapTestApp::prepareSettings( Settings *settings )
 
 void SpectrumTapTestApp::setup()
 {
-	mScaleDecibels = true;
 	mSpectroMargin = 40.0f;
 
 	mContext = Context::instance()->createContext();
@@ -99,7 +96,7 @@ void SpectrumTapTestApp::setup()
 	mEnableGraphButton.setEnabled( true );
 
 	mApplyWindowButton.setEnabled( mSpectrumTap->isWindowingEnabled() );
-	mScaleDecibelsButton.setEnabled( mScaleDecibels );
+	mScaleDecibelsButton.setEnabled( mSpectrumPlot.getScaleDecibels() );
 }
 
 void SpectrumTapTestApp::setupSine()
@@ -230,7 +227,7 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 	else if( mApplyWindowButton.hitTest( pos ) )
 		mSpectrumTap->setWindowingEnabled( ! mSpectrumTap->isWindowingEnabled() );
 	else if( mScaleDecibelsButton.hitTest( pos ) )
-		mScaleDecibels = ! mScaleDecibels;
+		mSpectrumPlot.setScaleDecibels( ! mSpectrumPlot.getScaleDecibels() );
 	else
 		printBinFreq( pos.x );
 
@@ -288,31 +285,13 @@ void SpectrumTapTestApp::draw()
 	gl::clear();
 
 	// draw magnitude spectrum bins
-
 	auto &mag = mSpectrumTap->getMagSpectrum();
-	size_t numBins = mag.size();
-	float padding = 0.0f;
-	float binWidth = ( (float)getWindowWidth() - mSpectroMargin * 2.0f - padding * ( numBins - 1 ) ) / (float)numBins;
-	float binYScaler = ( (float)getWindowHeight() - mSpectroMargin * 2.0f );
-
-	Rectf bin( mSpectroMargin, getWindowHeight() - mSpectroMargin, mSpectroMargin + binWidth, getWindowHeight() - mSpectroMargin );
-	for( size_t i = 0; i < numBins; i++ ) {
-		float h = mag[i];
-		if( mScaleDecibels ) {
-			h = toDecibels( h ) / 100.0f;
-//			if( h < 0.3f )
-//				h = 0.0f;
-		}
-		bin.y1 = bin.y2 - h * binYScaler;
-		gl::color( 0.0f, 0.9f, 0.0f );
-		gl::drawSolidRect( bin );
-
-		bin += Vec2f( binWidth + padding, 0.0f );
-	}
-
+	mSpectrumPlot.setBounds( Rectf( mSpectroMargin, mSpectroMargin, getWindowWidth() - mSpectroMargin, getWindowHeight() - mSpectroMargin ) );
+	mSpectrumPlot.draw( mag );
+	
 	// draw rect around spectrogram boundary
 	gl::color( Color::gray( 0.5 ) );
-	gl::drawStrokedRect( Rectf( mSpectroMargin, mSpectroMargin, getWindowWidth() - mSpectroMargin, getWindowHeight() - mSpectroMargin ) );
+	gl::drawStrokedRect( mSpectrumPlot.getBounds() );
 
 	auto min = min_element( mag.begin(), mag.end() );
 	auto max = max_element( mag.begin(), mag.end() );

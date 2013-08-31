@@ -31,6 +31,10 @@ using namespace std;
 using namespace ci;
 using namespace ci::audio2;
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - WaveformPlot
+// ----------------------------------------------------------------------------------------------------
+
 inline void calcMinMaxForSection( const float *buffer, size_t samplesPerSection, float &max, float &min ) {
 	max = 0.0f;
 	min = 0.0f;
@@ -132,3 +136,58 @@ void WaveformPlot::draw()
 		gl::popMatrices();
 	}
 }
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - SpectrumPlot
+// ----------------------------------------------------------------------------------------------------
+
+void SpectrumPlot::draw( const vector<float> &magSpectrum )
+{
+	Color bottomColor( 0.0f, 0.0f, 0.7f );
+
+	float width = mBounds.getWidth();
+	float height = mBounds.getHeight();
+	size_t numBins = magSpectrum.size();
+	float padding = 0.0f;
+	float binWidth = ( width - padding * ( numBins - 1 ) ) / (float)numBins;
+
+	size_t numVerts = magSpectrum.size() * 2 + 2;
+	if( mVerts.size() < numVerts ) {
+		mVerts.resize( numVerts );
+		mColors.resize( numVerts );
+	}
+
+	size_t currVertex = 0;
+	Rectf bin( mBounds.x1, mBounds.y1, mBounds.x1 + binWidth, mBounds.y2 );
+	for( size_t i = 0; i < numBins; i++ ) {
+		float m = magSpectrum[i];
+		if( mScaleDecibels )
+			m = toDecibels( m ) / 100.0f;
+
+		bin.y1 = bin.y2 - m * height;
+
+		mVerts[currVertex] = bin.getLowerLeft();
+		mColors[currVertex] = bottomColor;
+		mVerts[currVertex + 1] = bin.getUpperLeft();
+		mColors[currVertex + 1] = Color( 0.0f, m, 0.7f );
+
+		bin += Vec2f( binWidth + padding, 0.0f );
+		currVertex += 2;
+	}
+
+	mVerts[currVertex] = bin.getLowerLeft();
+	mColors[currVertex] = bottomColor;
+	mVerts[currVertex + 1] = bin.getUpperLeft();
+	mColors[currVertex + 1] = mColors[currVertex - 1];
+
+	gl::color( 0.0f, 0.9f, 0.0f );
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_COLOR_ARRAY );
+	glVertexPointer( 2, GL_FLOAT, 0, mVerts.data() );
+	glColorPointer( 3, GL_FLOAT, 0, mColors.data() );
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, (GLsizei)mVerts.size() );
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
+}
+
