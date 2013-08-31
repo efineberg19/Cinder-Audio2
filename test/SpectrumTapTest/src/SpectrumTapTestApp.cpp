@@ -48,7 +48,7 @@ class SpectrumTapTestApp : public AppNative {
 
 
 	ContextRef						mContext;
-	PlayerNodeRef					mPlayerNode;
+	BufferPlayerNodeRef				mPlayerNode;
 	shared_ptr<UGenNode<SineGen> >	mSine;
 	SpectrumTapNodeRef				mSpectrumTap;
 	SourceFileRef					mSourceFile;
@@ -75,6 +75,7 @@ void SpectrumTapTestApp::setup()
 	mContext = Context::instance()->createContext();
 
 	mSpectrumTap = mContext->makeNode( new SpectrumTapNode( SpectrumTapNode::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
+	mSpectrumTap->setAutoEnabled();
 
 	mSine = mContext->makeNode( new UGenNode<SineGen>() );
 	mSine->getUGen().setAmp( 0.25f );
@@ -82,6 +83,7 @@ void SpectrumTapTestApp::setup()
 
 	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
+	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
 	auto audioBuffer = mSourceFile->loadBuffer();
 	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
@@ -93,7 +95,6 @@ void SpectrumTapTestApp::setup()
 	initContext();
 	setupUI();
 
-	mSpectrumTap->start();
 	mContext->start();
 	mEnableGraphButton.setEnabled( true );
 
@@ -104,12 +105,15 @@ void SpectrumTapTestApp::setup()
 void SpectrumTapTestApp::setupSine()
 {
 	mSine->connect( mSpectrumTap )->connect( mContext->getRoot() );
+	if( mPlaybackButton.mEnabled )
+		mSine->start();
 }
 
 void SpectrumTapTestApp::setupSample()
 {
-	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
+	if( mPlaybackButton.mEnabled )
+		mPlayerNode->start();
 }
 
 void SpectrumTapTestApp::initContext()
@@ -235,19 +239,17 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		// TODO: finish test switching
-		
-//		bool running = mContext->isEnabled();
-//		mContext->uninitialize();
-//
-//		if( currentTest == "sine" )
-//			setupSine();
-//		if( currentTest == "sample" )
-//			setupNoise();
-//		initContext();
-//
-//		if( running )
-//			mContext->start();
+		bool running = mContext->isEnabled();
+		mContext->disconnectAllNodes();
+
+		if( currentTest == "sine" )
+			setupSine();
+		if( currentTest == "sample" )
+			setupSample();
+
+		initContext();
+		if( running )
+			mContext->start();
 	}
 
 }
@@ -266,30 +268,18 @@ void SpectrumTapTestApp::fileDrop( FileDropEvent event )
 	LOG_V << "File dropped: " << filePath << endl;
 
 	DataSourceRef dataSource = loadFile( filePath );
-	auto sourceFile = SourceFile::create( dataSource, 0, 44100 );
-	LOG_V << "output samplerate: " << sourceFile->getSampleRate() << endl;
+	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
+	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
-	auto audioBuffer = sourceFile->loadBuffer();
+	mPlayerNode->setBuffer( mSourceFile->loadBuffer() );
 
-	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
-
-
-	bool running = mContext->isEnabled();
-	mContext->uninitialize();
-
-	mPlayerNode->disconnect();
-	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
-	mPlayerNode->connect( mSpectrumTap );
-
-	initContext();
-	if( running )
-		mContext->start();
+	LOG_V << "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() << endl;
 }
 
 void SpectrumTapTestApp::update()
 {
 	// update playback button, since the player node may stop itself at the end of a file.
-	if( ! mPlayerNode->isEnabled() )
+	if( mTestSelector.currentSection() == "sample" && ! mPlayerNode->isEnabled() )
 		mPlaybackButton.setEnabled( false );
 }
 
