@@ -83,8 +83,8 @@ void Fft::inverse( Buffer *waveform, const std::vector<float>& real, const std::
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_INVERSE );
 	vDSP_ztoc( &mSplitComplexFrame, 1, (::DSPComplex *)data, 2, mSizeOverTwo );
 
-    float scale = 1.0f / float( 2 * mSize );
-    vDSP_vsmul(	data, 1, &scale, data, 1, mSize );
+	float scale = 1.0f / float( 2 * mSize );
+	vDSP_vsmul( data, 1, &scale, data, 1, mSize );
 }
 
 #elif defined( CINDER_AUDIO_OOURA )
