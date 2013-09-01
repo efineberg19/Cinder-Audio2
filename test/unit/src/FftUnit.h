@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "audio2/Fft.h"
 
+#include <iostream>
+
 BOOST_AUTO_TEST_SUITE( test_fft )
 
 using namespace ci::audio2;
@@ -20,6 +22,8 @@ namespace {
 		fft.inverse( &data, fft.getReal(), fft.getImag() );
 
 		float maxErr = maxError( data, dataCopy );
+		std::cout << "\tsizeFft: " << sizeFft << ", max error: " << maxErr << std::endl;
+
 		BOOST_REQUIRE( maxErr < ACCEPTABLE_FLOAT_ERROR );
 	}
 
@@ -27,6 +31,7 @@ namespace {
 
 BOOST_AUTO_TEST_CASE( test_round_trip )
 {
+	std::cout << "... round trip max error: " << ACCEPTABLE_FLOAT_ERROR << std::endl;
 	for( size_t i = 0; i < 14; i ++ )
 		computeRoundTrip( 2 << i );
 }
