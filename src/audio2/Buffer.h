@@ -31,28 +31,6 @@
 #include <cstdlib>
 
 namespace cinder { namespace audio2 {
-
-// TODO: following paper provides a 0(N) solution for interleaving: "A Simple In-Place Algorithm for In-Shuffle"
-// - http://arxiv.org/abs/0805.1598
-// - also explained in: http://cs.stackexchange.com/q/332
-//
-// - can also do optimized de-interleaving with apple's vDSP:
-// - http://stackoverflow.com/questions/10361974/de-interleave-and-interleave-buffer-with-vdsp-ctoz-and-vdsp-ztoz
-
-// http://stackoverflow.com/q/7780279/506584
-template<typename T>
-void deinterleaveInplacePow2( T* arr, int length ) {
-	if(length<=1) return;
-
-	int i = 1;
-	for(i = 1; i*2<length; i++){
-		//swap i with i*2
-		T temp = arr[i];
-		arr[i] = arr[i*2];
-		arr[i*2] = temp;
-	}
-	deinterleaveInplacePow2( arr+i, length-i );
-}
 	
 template <typename T>
 class BufferT {
