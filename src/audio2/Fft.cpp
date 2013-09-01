@@ -84,7 +84,8 @@ Fft::~Fft()
 	free( mOouraW );
 }
 
-
+// TODO: this modifies waveform. Decide whether this is ok and, if so, document
+// - will be considered when deciding on format for freq-domain buffer (SpecBuffer ?)
 void Fft::forward( Buffer *waveform )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
@@ -93,7 +94,7 @@ void Fft::forward( Buffer *waveform )
 	ooura::rdft( (int)mSize, 1, a, mOouraIp, mOouraW );
 
 	mReal[0] = a[0];
-	mImag[1] = a[1];
+	mImag[0] = a[1];
 
 	for( size_t k = 1; k < mSizeOverTwo; k++ ) {
 		mReal[k] = a[k * 2];
