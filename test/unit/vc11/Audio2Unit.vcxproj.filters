@@ -35,6 +35,9 @@
     <ClInclude Include="..\src\FftUnit.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\utils.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources.rc">

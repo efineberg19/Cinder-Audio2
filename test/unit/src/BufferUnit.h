@@ -1,4 +1,7 @@
+#pragma once
+
 #include "audio2/Buffer.h"
+#include "utils.h"
 
 BOOST_AUTO_TEST_SUITE( test_buffer )
 
@@ -11,7 +14,24 @@ BOOST_AUTO_TEST_CASE( test_size )
     BOOST_REQUIRE_EQUAL( buffer.getSize(), 8 );
 }
 
-BOOST_AUTO_TEST_CASE( test_in_place )
+BOOST_AUTO_TEST_CASE( test_copy )
+{
+	Buffer a( 2, 4 );
+	fillRandom( &a );
+	Buffer b( a );
+
+	BOOST_REQUIRE_EQUAL( a.getSize(), b.getSize() );
+	BOOST_REQUIRE_EQUAL( a.getNumFrames(), b.getNumFrames() );
+	BOOST_REQUIRE_EQUAL( a.getNumChannels(), b.getNumChannels() );
+	BOOST_REQUIRE_EQUAL( a.getLayout(), b.getLayout() );
+	BOOST_REQUIRE_EQUAL( a.isSilent(), b.isSilent() );
+
+	float maxErr = maxError( a, b );
+	BOOST_CHECK( maxErr < ACCEPTABLE_FLOAT_ERROR );
+}
+
+
+BOOST_AUTO_TEST_CASE( test_interleave_in_place )
 {
 	std::vector<int> arr( 4 );
 	arr[0] = 0;
@@ -27,7 +47,7 @@ BOOST_AUTO_TEST_CASE( test_in_place )
     BOOST_CHECK_EQUAL( arr[3], 3 );
 }
 
-BOOST_AUTO_TEST_CASE( test_out_of_place )
+BOOST_AUTO_TEST_CASE( test_interleave_out_of_place )
 {
 	BufferT<int> interleaved( 2, 4, BufferT<int>::Layout::INTERLEAVED );
 	BufferT<int> nonInterleaved( 2, 4 );

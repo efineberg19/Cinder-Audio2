@@ -60,6 +60,8 @@ public:
 	typedef T SampleType;
 	enum Layout { CONTIGUOUS, INTERLEAVED };
 
+	// TODO: i think a better default is with numFrames = 0 first, then numChannels = 1 second
+	// - this will take careful refactoring....
 	BufferT( size_t numChannels = 0, size_t numFrames = 0, Layout layout = CONTIGUOUS )
 	: mNumChannels( numChannels ), mNumFrames( numFrames ), mLayout( layout ), mSilent( true )
 	{
