@@ -31,7 +31,7 @@ namespace {
 
 BOOST_AUTO_TEST_CASE( test_round_trip )
 {
-	std::cout << "... round trip max error: " << ACCEPTABLE_FLOAT_ERROR << std::endl;
+	std::cout << "... Fft round trip max acceptable error: " << ACCEPTABLE_FLOAT_ERROR << std::endl;
 	for( size_t i = 0; i < 14; i ++ )
 		computeRoundTrip( 2 << i );
 }

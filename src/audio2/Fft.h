@@ -49,6 +49,8 @@ public:
 	Fft( size_t fftSize );
 	~Fft();
 
+	// TODO: this modifies waveform. Decide whether this is ok and, if so, document
+	// - will be considered when deciding on format for freq-domain buffer (SpecBuffer ?)
 	//! Computes the Forward DFT
 	void forward( Buffer *waveform );
 

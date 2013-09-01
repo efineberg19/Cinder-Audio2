@@ -70,6 +70,23 @@ void Fft::forward( Buffer *waveform )
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 }
 
+void Fft::inverse( Buffer *waveform, const std::vector<float>& real, const std::vector<float>& imag )
+{
+	CI_ASSERT( waveform->getSize() == mSize );
+	CI_ASSERT( real.size() == mSizeOverTwo );
+	CI_ASSERT( imag.size() == mSizeOverTwo );
+
+	mReal = real;
+	mImag = imag;
+	float *data = waveform->getData();
+
+	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_INVERSE );
+	vDSP_ztoc( &mSplitComplexFrame, 1, (::DSPComplex *)data, 2, mSizeOverTwo );
+
+    float scale = 1.0f / float( 2 * mSize );
+    vDSP_vsmul(	data, 1, &scale, data, 1, mSize );
+}
+
 #elif defined( CINDER_AUDIO_OOURA )
 
 void Fft::init()
@@ -84,8 +101,6 @@ Fft::~Fft()
 	free( mOouraW );
 }
 
-// TODO: this modifies waveform. Decide whether this is ok and, if so, document
-// - will be considered when deciding on format for freq-domain buffer (SpecBuffer ?)
 void Fft::forward( Buffer *waveform )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
