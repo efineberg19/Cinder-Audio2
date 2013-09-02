@@ -111,7 +111,6 @@ class BufferT : public BufferBaseT<T> {
 	void zero( size_t startFrame, size_t numFrames )
 	{
 		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-
 		for( size_t ch = 0; ch < mNumChannels; ch++ )
 			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
 	}
@@ -130,11 +129,30 @@ public:
 	void zero( size_t startFrame, size_t numFrames )
 	{
 		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-
 		std::memset( &mData[startFrame * mNumChannels], 0, numFrames * mNumChannels * sizeof( T ) );
 	}
+};
 
+template <typename T>
+class BufferSpectralT : public BufferBaseT<T> {
+public:
 
+	BufferSpectralT( size_t numFrames = 0 ) : BufferBaseT<T>( numFrames, 2 ) {}
+
+	T* getReal()				{ return &mData[0]; }
+	const T* getReal() const	{ return &mData[0]; }
+
+	T* getImag()				{ return &mData[mNumFrames]; }
+	const T* getImag() const	{ return &mData[mNumFrames]; }
+
+	using BufferBaseT<T>::zero;
+
+	void zero( size_t startFrame, size_t numFrames )
+	{
+		CI_ASSERT( startFrame + numFrames <= mNumFrames );
+		for( size_t ch = 0; ch < mNumChannels; ch++ )
+			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
+	}
 };
 
 //! DynamicBufferT is a resizable BufferT
@@ -206,10 +224,12 @@ typedef std::unique_ptr<float, FreeDeleter<float>> AlignedArrayPtr;
 
 typedef BufferT<float>				Buffer;
 typedef BufferInterleavedT<float>	BufferInterleaved;
+typedef BufferSpectralT<float>		BufferSpectral;
 typedef DynamicBufferT<float>		DynamicBuffer;
 
 typedef std::shared_ptr<Buffer>				BufferRef;
 typedef std::shared_ptr<BufferInterleaved>	BufferInterleavedRef;
+typedef std::shared_ptr<BufferSpectral>		BufferSpectralRef;
 typedef std::shared_ptr<DynamicBuffer>		DynamicBufferRef;
 
 } } // namespace cinder::audio2
