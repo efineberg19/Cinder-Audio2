@@ -122,7 +122,7 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 	if( mReadPos != 0 )
 		seek( 0 );
 	
-	BufferRef result( new Buffer( mNumChannels, mNumFrames ) );
+	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
 	size_t currReadPos = 0;
 	while( currReadPos < mNumFrames ) {

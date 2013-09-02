@@ -14,7 +14,7 @@ namespace {
 	void computeRoundTrip( size_t sizeFft )
 	{
 		Fft fft( sizeFft );
-		Buffer data( 1, sizeFft );
+		Buffer data( sizeFft );
 		fillRandom( &data );
 		Buffer dataCopy( data );
 

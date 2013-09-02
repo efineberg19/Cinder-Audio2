@@ -31,17 +31,16 @@
 #include <cstdlib>
 
 namespace cinder { namespace audio2 {
-	
+
+//! Audio buffer that stores channels of type \a T in contiguous arrays.
 template <typename T>
 class BufferT {
 public:
 	typedef T SampleType;
 	enum Layout { CONTIGUOUS, INTERLEAVED };
 
-	// TODO: i think a better default is with numFrames = 0 first, then numChannels = 1 second
-	// - this will take careful refactoring....
-	BufferT( size_t numChannels = 0, size_t numFrames = 0, Layout layout = CONTIGUOUS )
-	: mNumChannels( numChannels ), mNumFrames( numFrames ), mLayout( layout ), mSilent( true )
+	BufferT( size_t numFrames = 0, size_t numChannels = 1, Layout layout = CONTIGUOUS )
+	: mNumFrames( numFrames ), mNumChannels( numChannels ), mLayout( layout ), mSilent( true )
 	{
 		mData.resize( numChannels * numFrames );
 	}
@@ -119,7 +118,7 @@ template <typename T>
 class DynamicBufferT : public BufferT<T> {
   public:
 
-	void resize( size_t numChannels, size_t numFrames ) {
+	void resize( size_t numFrames, size_t numChannels ) {
 		BufferT<T>::mNumFrames = numFrames;
 		BufferT<T>::mNumChannels = numChannels;
 		BufferT<T>::mData.resize( BufferT<T>::mNumFrames * BufferT<T>::mNumChannels );

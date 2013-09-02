@@ -161,7 +161,7 @@ void FilePlayerNode::initialize()
 	mSourceFile->setSampleRate( mSampleRate );
 
 	size_t paddingMultiplier = 2; // TODO: expose
-	mReadBuffer = Buffer( getNumChannels(), mSourceFile->getNumFramesPerRead() );
+	mReadBuffer = Buffer( mSourceFile->getNumFramesPerRead(), getNumChannels() );
 	mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( getNumChannels() * mSourceFile->getNumFramesPerRead() * paddingMultiplier ) );
 
 	if( mMultiThreaded ) {

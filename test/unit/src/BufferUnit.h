@@ -10,13 +10,13 @@ using namespace ci::audio2;
 
 BOOST_AUTO_TEST_CASE( test_size )
 {
-	Buffer buffer( 2, 4 );
+	Buffer buffer( 4, 2 );
     BOOST_REQUIRE_EQUAL( buffer.getSize(), 8 );
 }
 
 BOOST_AUTO_TEST_CASE( test_copy )
 {
-	Buffer a( 2, 4 );
+	Buffer a( 4, 2 );
 	fillRandom( &a );
 	Buffer b( a );
 
@@ -30,27 +30,10 @@ BOOST_AUTO_TEST_CASE( test_copy )
 	BOOST_CHECK( maxErr < ACCEPTABLE_FLOAT_ERROR );
 }
 
-
-BOOST_AUTO_TEST_CASE( test_interleave_in_place )
-{
-	std::vector<int> arr( 4 );
-	arr[0] = 0;
-	arr[1] = 2;
-	arr[2] = 1;
-	arr[3] = 3;
-
-	deinterleaveInplacePow2( arr.data(), arr.size() );
-
-    BOOST_CHECK_EQUAL( arr[0], 0 );
-    BOOST_CHECK_EQUAL( arr[1], 1 );
-    BOOST_CHECK_EQUAL( arr[2], 2 );
-    BOOST_CHECK_EQUAL( arr[3], 3 );
-}
-
 BOOST_AUTO_TEST_CASE( test_interleave_out_of_place )
 {
-	BufferT<int> interleaved( 2, 4, BufferT<int>::Layout::INTERLEAVED );
-	BufferT<int> nonInterleaved( 2, 4 );
+	BufferT<int> interleaved( 4, 2, BufferT<int>::Layout::INTERLEAVED );
+	BufferT<int> nonInterleaved( 4, 2 );
 
 	nonInterleaved[0] = 10;
 	nonInterleaved[1] = 11;
@@ -86,8 +69,8 @@ BOOST_AUTO_TEST_CASE( test_interleave_out_of_place )
 
 BOOST_AUTO_TEST_CASE( test_mismatched_deinterleave )
 {
-	BufferT<int> interleaved( 2, 4, BufferT<int>::Layout::INTERLEAVED );
-	BufferT<int> nonInterleaved( 2, 3 );
+	BufferT<int> interleaved( 4, 2, BufferT<int>::Layout::INTERLEAVED );
+	BufferT<int> nonInterleaved( 3, 2 );
 
 	interleaved[0] = 10;
 	interleaved[1] = 20;
@@ -110,8 +93,8 @@ BOOST_AUTO_TEST_CASE( test_mismatched_deinterleave )
 
 BOOST_AUTO_TEST_CASE( test_mismatched_interleave )
 {
-	BufferT<int> interleaved( 2, 3, BufferT<int>::Layout::INTERLEAVED );
-	BufferT<int> nonInterleaved( 2, 4 );
+	BufferT<int> interleaved( 3, 2, BufferT<int>::Layout::INTERLEAVED );
+	BufferT<int> nonInterleaved( 4, 2 );
 
 	nonInterleaved[0] = 10;
 	nonInterleaved[1] = 11;

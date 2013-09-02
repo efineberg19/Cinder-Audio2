@@ -163,7 +163,7 @@ void SourceVoiceXAudio::initialize()
 	mXAudio2Buffer.AudioBytes = numSamples * sizeof( float );
 	if( getNumChannels() == 2 ) {
 		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
-		mBufferInterleaved = Buffer( mInternalBuffer.getNumChannels(), mInternalBuffer.getNumFrames(), Buffer::Layout::INTERLEAVED );
+		mBufferInterleaved = Buffer( mInternalBuffer.getNumFrames(), mInternalBuffer.getNumChannels(), Buffer::Layout::INTERLEAVED );
 		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.getData() );
 	}
 	else {

@@ -50,7 +50,7 @@ TapNode::~TapNode()
 
 void TapNode::initialize()
 {
-	mCopiedBuffer = Buffer( getNumChannels(), mWindowSize );
+	mCopiedBuffer = Buffer( mWindowSize, getNumChannels() );
 	for( size_t ch = 0; ch < getNumChannels(); ch++ )
 		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mWindowSize ) ) );
 
@@ -114,7 +114,7 @@ void SpectrumTapNode::initialize()
 		mFftSize = nextPowerOf2( mFftSize );
 	
 	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
-	mBuffer = audio2::Buffer( 1, mFftSize );
+	mBuffer = audio2::Buffer( mFftSize );
 	mMagSpectrum.resize( mFftSize / 2 );
 
 	if( ! mWindowSize  )

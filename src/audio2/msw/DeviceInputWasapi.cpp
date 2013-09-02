@@ -143,7 +143,7 @@ void LineInWasapi::initialize()
 	mCaptureBlockSize = numFrames;
 	mImpl->initCapture( numFrames );
 
-	mInterleavedBuffer = Buffer( mNumChannels, numFrames, Buffer::Layout::INTERLEAVED );
+	mInterleavedBuffer = Buffer( numFrames, mNumChannels, Buffer::Layout::INTERLEAVED );
 	
 	LOG_V << "numFrames: " << numFrames << ", buffer size: " << mInterleavedBuffer.getSize() << ", actual duration: " << captureDurationMs << "ms" << endl;
 

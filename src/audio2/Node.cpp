@@ -268,8 +268,8 @@ void Node::setProcessWithSumming()
 	if( mSummingBuffer.getNumChannels() == mNumChannels && mSummingBuffer.getNumFrames() == framesPerBlock )
 		return;
 
-	mSummingBuffer = Buffer( mNumChannels, framesPerBlock );
-	mInternalBuffer = Buffer( mNumChannels, framesPerBlock );
+	mSummingBuffer = Buffer( framesPerBlock, mNumChannels );
+	mInternalBuffer = Buffer( framesPerBlock, mNumChannels );
 }
 
 // TODO: I need 2 of these, one for summing and one for copying
