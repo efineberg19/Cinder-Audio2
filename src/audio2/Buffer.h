@@ -53,9 +53,9 @@ class BufferBaseT {
 	size_t getNumChannels() const	{ return mNumChannels; }
 	size_t getSize() const			{ return mData.size(); }
 
-	// TODO: comment out for now, it isn't used
-	void setSilent( bool b = true )	{ mSilent = b; }
-	bool isSilent() const			{ return mSilent; }
+	// TODO: use these
+	//void setSilent( bool b = true )	{ mSilent = b; }
+	//bool isSilent() const			{ return mSilent; }
 
 //	bool isCompatible( const BufferT *other ) { return mNumChannels == other->mNumChannels && mNumFrames == other->mNumFrames && mLayout == other->mLayout; }
 
