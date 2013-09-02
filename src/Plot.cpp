@@ -143,6 +143,9 @@ void WaveformPlot::draw()
 
 void SpectrumPlot::draw( const vector<float> &magSpectrum )
 {
+	if( magSpectrum.empty() )
+		return;
+
 	Color bottomColor( 0.0f, 0.0f, 0.7f );
 
 	float width = mBounds.getWidth();

@@ -293,11 +293,13 @@ void SpectrumTapTestApp::draw()
 	gl::color( Color::gray( 0.5 ) );
 	gl::drawStrokedRect( mSpectrumPlot.getBounds() );
 
-	auto min = min_element( mag.begin(), mag.end() );
-	auto max = max_element( mag.begin(), mag.end() );
+	if( ! mag.empty() ) {
+		auto min = min_element( mag.begin(), mag.end() );
+		auto max = max_element( mag.begin(), mag.end() );
 
-	string info = string( "min: " ) + toString( *min ) + string( ", max: " ) + toString( *max );
-	gl::drawString( info, Vec2f( mSpectroMargin, getWindowHeight() - 30.0f ) );
+		string info = string( "min: " ) + toString( *min ) + string( ", max: " ) + toString( *max );
+		gl::drawString( info, Vec2f( mSpectroMargin, getWindowHeight() - 30.0f ) );
+	}
 
 	drawWidgets( mWidgets );
 }
