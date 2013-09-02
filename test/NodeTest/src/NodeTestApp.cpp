@@ -18,20 +18,28 @@ using namespace ci::audio2;
 struct InterleavedPassThruNode : public Node {
 	InterleavedPassThruNode() : Node( Format() )
 	{
-		mBufferLayout = audio2::Buffer::Layout::INTERLEAVED;
 		mAutoEnabled = true;
+		mChannelMode = ChannelMode::SPECIFIED;
+		setNumChannels( 2 );
 	}
 
 	std::string virtual getTag() override			{ return "InterleavedPassThruNode"; }
 
+	virtual void initialize() override
+	{
+		mBufferInterleaved = BufferInterleaved( getContext()->getNumFramesPerBlock(), 2 );
+	}
+
 	void process( audio2::Buffer *buffer ) override
 	{
-		CI_ASSERT( buffer->getLayout() == audio2::Buffer::Layout::INTERLEAVED );
-		CI_ASSERT( buffer->getData()[0] == buffer->getData()[1] );
+		CI_ASSERT( buffer->getNumChannels() == 2 );
 
-		// In debug mode, this should trigger an assertion failure, since it is a user error.
-		//buffer->getChannel( 0 );
+		interleaveStereoBuffer( buffer, &mBufferInterleaved );
+		deinterleaveStereoBuffer( &mBufferInterleaved, buffer );
 	}
+
+private:
+	BufferInterleaved mBufferInterleaved;
 };
 
 class NodeTestApp : public AppNative {
@@ -40,7 +48,7 @@ public:
 	void draw();
 
 	void setupSine();
-	void setupNoise();
+	void setupNoiseReverse();
 	void setupSumming();
 	void setupInterleavedPassThru();
 	void initContext();
@@ -105,7 +113,7 @@ void NodeTestApp::setupSine()
 	mEnableSineButton.setEnabled( true );
 }
 
-void NodeTestApp::setupNoise()
+void NodeTestApp::setupNoiseReverse()
 {
 	mGain->disconnect();
 
@@ -137,16 +145,12 @@ void NodeTestApp::setupSumming()
 
 void NodeTestApp::setupInterleavedPassThru()
 {
-	auto genNode = mContext->makeNode( new UGenNode<SineGen>() );
-	genNode->setAutoEnabled();
-	genNode->getUGen().setAmp( 0.2f );
-	genNode->getUGen().setFreq( 440.0f );
-	mSine = genNode;
+	mGain->disconnect();
 
 	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
+	mSine->connect( interleaved )->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
 
-	genNode->connect( interleaved )->connect( mContext->getRoot() );
-
+	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
 }
 
@@ -168,6 +172,7 @@ void NodeTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "sine" );
 	mTestSelector.mSegments.push_back( "noise (reverse)" );
 	mTestSelector.mSegments.push_back( "sine + noise" );
+	mTestSelector.mSegments.push_back( "interleave pass-thru" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0.0f, (float)getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
 
@@ -229,9 +234,11 @@ void NodeTestApp::processTap( Vec2i pos )
 		if( currentTest == "sine" )
 			setupSine();
 		if( currentTest == "noise (reverse)" )
-			setupNoise();
+			setupNoiseReverse();
 		if( currentTest == "sine + noise" )
 			setupSumming();
+		if( currentTest == "interleave pass-thru" )
+			setupInterleavedPassThru();
 		initContext();
 
 		if( running )

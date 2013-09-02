@@ -93,11 +93,6 @@ void BufferPlayerNode::stop()
 //			- would prevent node connect / buffer changes during dsp-time
 void BufferPlayerNode::setBuffer( const BufferRef &buffer )
 {
-	if( buffer->getNumChannels() != mNumChannels || buffer->getLayout() != mBufferLayout ) {
-		LOG_E << "swapping in another BufferRef is currently limited to one with the same format as this BufferPlayerNode." << endl;
-		return;
-	}
-
 	bool enabled = mEnabled;
 	if( mEnabled )
 		stop();

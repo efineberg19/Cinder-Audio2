@@ -38,14 +38,9 @@ namespace cinder { namespace audio2 {
 // MARK: - Node
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: seems fitting to pass in Context* as first argument to all Node's
-// - setting during init no longer necessary
-// - provides samplerate / num frames at init
-// - also a garunteed object to syncrhonize with
-
 Node::Node( const Format &format )
 : mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
-mNumChannels( 1 ), mInputs( 1 ), mBufferLayout( Buffer::Layout::CONTIGUOUS ), mAutoEnabled( false ), mProcessInPlace( true )
+mNumChannels( 1 ), mInputs( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
 {
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
@@ -58,6 +53,7 @@ Node::~Node()
 
 }
 
+// TODO: move this bool set outside to Context so that subclasses don't need to call this.
 void Node::initialize()
 {
 	mInitialized = true;
@@ -276,7 +272,6 @@ void Node::setProcessWithSumming()
 void Node::submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer )
 {
 	CI_ASSERT( destBuffer->getNumFrames() == sourceBuffer->getNumFrames() );
-	CI_ASSERT( destBuffer->getLayout() == sourceBuffer->getLayout() ); // TODO: add support for layout conversions
 
 	size_t destChannels = destBuffer->getNumChannels();
 	size_t sourceChannels = sourceBuffer->getNumChannels();

@@ -118,7 +118,7 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	::IXAudio2SourceVoice						*mSourceVoice;
 	::XAUDIO2_BUFFER							mXAudio2Buffer;
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-	Buffer										mBufferInterleaved; // TODO: remove this once Node can mix interleaved stereo
+	BufferInterleaved							mBufferInterleaved;
 	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
 
 	friend class ContextXAudio;

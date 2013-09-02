@@ -48,7 +48,6 @@ namespace {
 
 		app::console() << node->getTag() << "\t[ ch: " << node->getNumChannels();
 		app::console() << ", ch mode: " << channelMode;
-		app::console() << ", " << ( node->getBufferLayout() == Buffer::Layout::INTERLEAVED ? "interleaved" : "contiguous" );
 		app::console() << ", " << ( node->getProcessInPlace() ? "in-place" : "sum" );
 		app::console() << " ]" << endl;
 
@@ -69,7 +68,6 @@ void printDevices()
 		app::console() << "\t key: " << device->getKey() << endl;
 		app::console() << "\t inputs: " << device->getNumInputChannels() << ", outputs: " << device->getNumOutputChannels() << endl;
 		app::console() << "\t samplerate: " << device->getSampleRate() << ", frames per block: " << device->getNumFramesPerBlock() << endl;
-
 	}
 }
 

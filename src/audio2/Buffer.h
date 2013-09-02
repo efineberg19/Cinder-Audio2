@@ -34,49 +34,26 @@ namespace cinder { namespace audio2 {
 
 //! Audio buffer that stores channels of type \a T in contiguous arrays.
 template <typename T>
-class BufferT {
-public:
+class BufferBaseT {
+  public:
 	typedef T SampleType;
-	enum Layout { CONTIGUOUS, INTERLEAVED };
 
-	BufferT( size_t numFrames = 0, size_t numChannels = 1, Layout layout = CONTIGUOUS )
-	: mNumFrames( numFrames ), mNumChannels( numChannels ), mLayout( layout ), mSilent( true )
+	BufferBaseT( size_t numFrames, size_t numChannels )
+	: mNumFrames( numFrames ), mNumChannels( numChannels ), mSilent( true )
 	{
 		mData.resize( numChannels * numFrames );
 	}
 
-	// TODO: consider adding getChannelIter, which knows how to iterate over both interleaved and non-interleaved samples
-	T* getChannel( size_t ch ) {
-		CI_ASSERT_MSG( mLayout == CONTIGUOUS, "Cannot get raw pointer to channel from an interleaved Buffer" );
-		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
-		return &mData[ch * mNumFrames];
-	}
-
-	const T* getChannel( size_t ch ) const {
-		CI_ASSERT_MSG( mLayout == CONTIGUOUS, "Cannot get raw pointer to channel from an interleaved Buffer" );
-		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
-		return &mData[ch * mNumFrames];
-	}
-
-	void zero() {
+	void zero()
+	{
 		std::memset( mData.data(), 0, mData.size() * sizeof( T ) );
 	}
 	
-	void zero( size_t startFrame, size_t numFrames ) {
-		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-		if( mLayout == Layout::INTERLEAVED )
-			std::memset( &mData[startFrame * mNumChannels], 0, numFrames * mNumChannels * sizeof( T ) );
-		else {
-			for( size_t ch = 0; ch < mNumChannels; ch++ )
-				std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
-		}
-	}
-
 	size_t getNumFrames() const		{ return mNumFrames; }
 	size_t getNumChannels() const	{ return mNumChannels; }
 	size_t getSize() const			{ return mData.size(); }
-	Layout getLayout() const		{ return mLayout; }
 
+	// TODO: comment out for now, it isn't used
 	void setSilent( bool b = true )	{ mSilent = b; }
 	bool isSilent() const			{ return mSilent; }
 
@@ -96,9 +73,9 @@ public:
 	}
 
 	// TODO: add copy constructor different OtherT
-	// FIXME: this breaks when non-interleaved and sizes don't match
+	// FIXME: this breaks when sizes don't match
 	template <typename OtherT>
-	void set( const BufferT<OtherT> &other )
+	void set( const BufferBaseT<OtherT> &other )
 	{
 		size_t count = std::min( getSize(), other.getSize() );
 		for( size_t i = 0; i < count; i++ )
@@ -109,7 +86,55 @@ protected:
 	std::vector<T> mData; // TODO: switch to T*
 	size_t mNumChannels, mNumFrames;
 	bool mSilent;
-	Layout mLayout;
+};
+
+template <typename T>
+class BufferT : public BufferBaseT<T> {
+  public:
+
+	BufferT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferBaseT<T>( numFrames, numChannels ) {}
+
+	T* getChannel( size_t ch )
+	{
+		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
+		return &mData[ch * mNumFrames];
+	}
+
+	const T* getChannel( size_t ch ) const
+	{
+		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
+		return &mData[ch * mNumFrames];
+	}
+
+	using BufferBaseT<T>::zero;
+
+	void zero( size_t startFrame, size_t numFrames )
+	{
+		CI_ASSERT( startFrame + numFrames <= mNumFrames );
+
+		for( size_t ch = 0; ch < mNumChannels; ch++ )
+			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
+	}
+
+
+};
+
+template <typename T>
+class BufferInterleavedT : public BufferBaseT<T> {
+public:
+
+	BufferInterleavedT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferBaseT<T>( numFrames, numChannels ) {}
+
+	using BufferBaseT<T>::zero;
+
+	void zero( size_t startFrame, size_t numFrames )
+	{
+		CI_ASSERT( startFrame + numFrames <= mNumFrames );
+
+		std::memset( &mData[startFrame * mNumChannels], 0, numFrames * mNumChannels * sizeof( T ) );
+	}
+
+
 };
 
 //! DynamicBufferT is a resizable BufferT
@@ -125,8 +150,11 @@ class DynamicBufferT : public BufferT<T> {
 	}
 };
 
+// TODO: move these freestanding functions into classes
+// - Buffer::fillInterleaved( BufferInteleaved *), BufferInterleaved::fillBuffer( Buffer *)
+// - Buffer::interleaved(), etc. (not appropriate for real-time)
 template<typename T>
-inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *interleaved )
+inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferInterleavedT<T> *interleaved )
 {
 	CI_ASSERT( interleaved->getNumChannels() == 2 && nonInterleaved->getNumChannels() == 2 );
 	CI_ASSERT( interleaved->getSize() <= nonInterleaved->getSize() );
@@ -145,7 +173,7 @@ inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferT<T> *inte
 }
 
 template<typename T>
-inline void deinterleaveStereoBuffer( BufferT<T> *interleaved, BufferT<T> *nonInterleaved )
+inline void deinterleaveStereoBuffer( BufferInterleavedT<T> *interleaved, BufferT<T> *nonInterleaved )
 {
 	CI_ASSERT( interleaved->getNumChannels() == 2 && nonInterleaved->getNumChannels() == 2 );
 	CI_ASSERT( nonInterleaved->getSize() <= interleaved->getSize() );
@@ -176,14 +204,12 @@ std::unique_ptr<T, FreeDeleter<T> > makeAlignedArray( size_t size ) {
 typedef std::unique_ptr<float, FreeDeleter<float>> AlignedArrayPtr;
 	
 
-typedef BufferT<float> Buffer;
-typedef BufferT<double> Bufferd;
-typedef DynamicBufferT<float> DynamicBuffer;
-typedef DynamicBufferT<double> DynamicBufferd;
+typedef BufferT<float>				Buffer;
+typedef BufferInterleavedT<float>	BufferInterleaved;
+typedef DynamicBufferT<float>		DynamicBuffer;
 
-typedef std::shared_ptr<Buffer> BufferRef;
-typedef std::shared_ptr<Bufferd> BufferdRef;
-typedef std::shared_ptr<DynamicBuffer> DynamicBufferRef;
-typedef std::shared_ptr<DynamicBufferd> DynamicdBufferRef;
+typedef std::shared_ptr<Buffer>				BufferRef;
+typedef std::shared_ptr<BufferInterleaved>	BufferInterleavedRef;
+typedef std::shared_ptr<DynamicBuffer>		DynamicBufferRef;
 
 } } // namespace cinder::audio2

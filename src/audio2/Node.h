@@ -68,6 +68,7 @@ public:
 
 	std::string virtual getTag()				{ return "Node"; }
 
+	//! Returns the \a Context associated with this \a Node. \note Cannot be called from within a \a Node's constructor. Use initialize instead.
 	ContextRef getContext() const				{ return mContext.lock(); }
 
 	virtual void initialize();
@@ -89,8 +90,6 @@ public:
 
 	size_t	getNumChannels() const			{ return mNumChannels; }
 	ChannelMode getChannelMode() const		{ return mChannelMode; }
-
-	const Buffer::Layout& getBufferLayout() const { return mBufferLayout; }
 
 	//! controls whether the owning Context automatically enables / disables this Node
 	bool	isAutoEnabled() const				{ return mAutoEnabled; }
@@ -146,7 +145,6 @@ protected:
 	size_t					mNumChannels;
 	ChannelMode				mChannelMode;
 
-	Buffer::Layout			mBufferLayout; // TODO: consider removing and using mInternalBuffer.getLayout() instead. - may be awkward if two internal Buffer's are really necessary
 	Buffer					mInternalBuffer, mSummingBuffer;
 
 private:
@@ -156,7 +154,6 @@ private:
 	void setContext( const ContextRef &context )	{ mContext = context; }
 
 	std::weak_ptr<Context>	mContext;
-
 	friend class Context;
 };
 
@@ -169,7 +166,7 @@ public:
 
 	// TODO: need to decide where user sets the samplerate / blocksize - on RootNode or Context?
 	// - this is still needed to determine a default
-	// - also RootNode has to agree with the sampleate - be it output out, file out, whatever
+	// - also RootNode has to agree with the samplerate - be it output out, file out, whatever
 	virtual size_t getSampleRate() = 0;
 	virtual size_t getNumFramesPerBlock() = 0;
 
