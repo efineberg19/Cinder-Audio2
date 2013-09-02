@@ -114,8 +114,6 @@ class BufferT : public BufferBaseT<T> {
 		for( size_t ch = 0; ch < mNumChannels; ch++ )
 			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
 	}
-
-
 };
 
 template <typename T>
