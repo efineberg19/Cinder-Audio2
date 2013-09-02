@@ -78,6 +78,9 @@ void SpectrumTapTestApp::setup()
 	mSine->getUGen().setAmp( 0.25f );
 	mSine->getUGen().setFreq( 440.0f );
 
+#if ! defined( CINDER_MSW )
+	// FIXME: audio decoding on msw not ready
+
 	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
@@ -86,6 +89,8 @@ void SpectrumTapTestApp::setup()
 	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
 
 	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
+
+#endif
 
 	setupSine();
 
