@@ -15,11 +15,13 @@ namespace {
 	{
 		Fft fft( sizeFft );
 		Buffer data( sizeFft );
-		fillRandom( &data );
-		Buffer dataCopy( data );
+		BufferSpectral spectral( sizeFft );
 
-		fft.forward( &data );
-		fft.inverse( &data, fft.getReal(), fft.getImag() );
+		fillRandom( &data );
+		Buffer dataCopy( data ); // TODO: ensure data is not modified after forward sigh maxErr. ???: will this already be handled by const *?
+
+		fft.forward( &data, &spectral );
+		fft.inverse( &spectral, &data );
 
 		float maxErr = maxError( data, dataCopy );
 		std::cout << "\tsizeFft: " << sizeFft << ", max error: " << maxErr << std::endl;

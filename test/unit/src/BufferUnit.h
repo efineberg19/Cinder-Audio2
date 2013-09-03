@@ -23,8 +23,7 @@ BOOST_AUTO_TEST_CASE( test_copy )
 	BOOST_REQUIRE_EQUAL( a.getSize(), b.getSize() );
 	BOOST_REQUIRE_EQUAL( a.getNumFrames(), b.getNumFrames() );
 	BOOST_REQUIRE_EQUAL( a.getNumChannels(), b.getNumChannels() );
-	BOOST_REQUIRE_EQUAL( a.getLayout(), b.getLayout() );
-	BOOST_REQUIRE_EQUAL( a.isSilent(), b.isSilent() );
+	//BOOST_REQUIRE_EQUAL( a.isSilent(), b.isSilent() );
 
 	float maxErr = maxError( a, b );
 	BOOST_CHECK( maxErr < ACCEPTABLE_FLOAT_ERROR );
@@ -32,7 +31,7 @@ BOOST_AUTO_TEST_CASE( test_copy )
 
 BOOST_AUTO_TEST_CASE( test_interleave_out_of_place )
 {
-	BufferT<int> interleaved( 4, 2, BufferT<int>::Layout::INTERLEAVED );
+	BufferInterleavedT<int> interleaved( 4, 2 );
 	BufferT<int> nonInterleaved( 4, 2 );
 
 	nonInterleaved[0] = 10;
@@ -69,7 +68,7 @@ BOOST_AUTO_TEST_CASE( test_interleave_out_of_place )
 
 BOOST_AUTO_TEST_CASE( test_mismatched_deinterleave )
 {
-	BufferT<int> interleaved( 4, 2, BufferT<int>::Layout::INTERLEAVED );
+	BufferInterleavedT<int> interleaved( 4, 2 );
 	BufferT<int> nonInterleaved( 3, 2 );
 
 	interleaved[0] = 10;
@@ -93,7 +92,7 @@ BOOST_AUTO_TEST_CASE( test_mismatched_deinterleave )
 
 BOOST_AUTO_TEST_CASE( test_mismatched_interleave )
 {
-	BufferT<int> interleaved( 3, 2, BufferT<int>::Layout::INTERLEAVED );
+	BufferInterleavedT<int> interleaved( 3, 2 );
 	BufferT<int> nonInterleaved( 4, 2 );
 
 	nonInterleaved[0] = 10;
