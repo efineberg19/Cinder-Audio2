@@ -38,8 +38,8 @@ Fft::Fft( size_t fftSize )
 		throw AudioExc( "invalid fftSize" );
 
 	mSizeOverTwo = mSize / 2;
-	mReal.resize( mSizeOverTwo );
-	mImag.resize( mSizeOverTwo );
+	//mReal.resize( mSizeOverTwo );
+	//mImag.resize( mSizeOverTwo );
 
 	init();
 }
@@ -66,6 +66,7 @@ void Fft::forward( Buffer *waveform )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 
+	// TODO: use vDSP_fft_zop
 	vDSP_ctoz( (::DSPComplex *)waveform->getData(), 2, &mSplitComplexFrame, 1, mSizeOverTwo );
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 }
@@ -101,33 +102,40 @@ Fft::~Fft()
 	free( mOouraW );
 }
 
-void Fft::forward( Buffer *waveform )
+void Fft::forward( Buffer *waveform, BufferSpectral *spectral )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 
 	float *a = waveform->getData();
+	float *real = spectral->getReal();
+	float *imag = spectral->getImag();
+
+	// FIXME: don't modify waveform
 	ooura::rdft( (int)mSize, 1, a, mOouraIp, mOouraW );
 
-	mReal[0] = a[0];
-	mImag[0] = a[1];
+	real[0] = a[0];
+	imag[0] = a[1];
 
 	for( size_t k = 1; k < mSizeOverTwo; k++ ) {
-		mReal[k] = a[k * 2];
-		mImag[k] = a[k * 2 + 1];
+		real[k] = a[k * 2];
+		imag[k] = a[k * 2 + 1];
 	}
 }
 
-void Fft::inverse( Buffer *waveform, const std::vector<float>& real, const std::vector<float>& imag )
+void Fft::inverse( BufferSpectral *spectral, Buffer *waveform )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
-
+	
+	float *real = spectral->getReal();
+	float *imag = spectral->getImag();
 	float *a = waveform->getData();
-	a[0] = mReal[0];
-	a[1] = mImag[0];
+
+	a[0] = real[0];
+	a[1] = imag[0];
 
 	for( size_t k = 1; k < mSizeOverTwo; k++ ) {
-		a[k * 2] = mReal[k];
-		a[k * 2 + 1] = mImag[k];
+		a[k * 2] = real[k];
+		a[k * 2 + 1] = imag[k];
 	}
 
 	ooura::rdft( (int)mSize, -1, a, mOouraIp, mOouraW );

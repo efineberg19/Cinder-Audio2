@@ -49,32 +49,23 @@ public:
 	Fft( size_t fftSize );
 	~Fft();
 
-	// TODO: this modifies waveform. Decide whether this is ok and, if so, document
-	// - will be considered when deciding on format for freq-domain buffer (SpecBuffer ?)
 	//! Computes the Forward DFT
-	void forward( Buffer *waveform );
-
-	// TODO: sort out what form the freq-domain data should be passed in as.
-	// - will sort this out at the same time as frequency-domain context
-	// - possible: FreqBuffer that is either in time or freq domain
-	//		- in time domain, it's data is considered one channel of a waveform
-	//		- in freq domain, channels 0 = real, 1 = imag
+	void forward( Buffer *waveform, BufferSpectral *spectral );
 	//! Computes the Inverse DFT
-	void inverse( Buffer *waveform, const std::vector<float>& real, const std::vector<float>& imag );
+	void inverse( BufferSpectral *spectral, Buffer *waveform );
 
 	size_t getSize() const	{ return mSize; }
 
-	std::vector<float>& getReal()	{ return mReal; }
-	std::vector<float>& getImag()	{ return mImag; }
+	//std::vector<float>& getReal()	{ return mReal; }
+	//std::vector<float>& getImag()	{ return mImag; }
 
-	const std::vector<float>& getReal() const	{ return mReal; }
-	const std::vector<float>& getImag()	const	{ return mImag; }
+	//const std::vector<float>& getReal() const	{ return mReal; }
+	//const std::vector<float>& getImag()	const	{ return mImag; }
 
 protected:
-
 	void init();
 
-	std::vector<float> mReal, mImag;
+	//std::vector<float> mReal, mImag;
 	size_t mSize, mSizeOverTwo;
 
 #if defined( CINDER_AUDIO_VDSP )
@@ -85,7 +76,6 @@ protected:
 	int *mOouraIp;
 	float *mOouraW;
 #endif
-
 };
 
 } } // namespace cinder::audio2

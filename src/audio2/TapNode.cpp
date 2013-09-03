@@ -115,6 +115,7 @@ void SpectrumTapNode::initialize()
 	
 	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
 	mBuffer = audio2::Buffer( mFftSize );
+	mBufferSpectral = audio2::BufferSpectral( mFftSize );
 	mMagSpectrum.resize( mFftSize / 2 );
 
 	if( ! mWindowSize  )
@@ -163,10 +164,10 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 		if( mApplyWindow )
 			multiply( mBuffer.getData(), mWindow.get(), mBuffer.getData(), mWindowSize );
 
-		mFft->forward( &mBuffer );
+		mFft->forward( &mBuffer, &mBufferSpectral );
 
-		auto &real = mFft->getReal();
-		auto &imag = mFft->getImag();
+		float *real = mBufferSpectral.getReal();
+		float *imag = mBufferSpectral.getImag();
 
 		// remove nyquist component.
 		imag[0] = 0.0f;

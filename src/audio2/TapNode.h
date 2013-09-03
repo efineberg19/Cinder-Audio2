@@ -121,6 +121,7 @@ private:
 	// TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
 	// - but all 'TapNode's could use this - move it to base class?
 	Buffer mBuffer;
+	BufferSpectral mBufferSpectral;
 	std::vector<float> mMagSpectrum;
 	AlignedArrayPtr mWindow;
 	std::atomic<bool> mApplyWindow;
