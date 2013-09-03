@@ -131,6 +131,7 @@ public:
 	}
 };
 
+// TODO: this should subclass BufferT so that it can be passed to generic Nodes
 template <typename T>
 class BufferSpectralT : public BufferBaseT<T> {
 public:
