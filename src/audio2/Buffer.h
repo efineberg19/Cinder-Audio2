@@ -96,22 +96,22 @@ class BufferT : public BufferBaseT<T> {
 
 	T* getChannel( size_t ch )
 	{
-		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
-		return &mData[ch * mNumFrames];
+		CI_ASSERT_MSG( ch < this->mNumChannels, "ch out of range" );
+		return &this->mData[ch * this->mNumFrames];
 	}
 
 	const T* getChannel( size_t ch ) const
 	{
-		CI_ASSERT_MSG( ch < mNumChannels, "ch out of range" );
-		return &mData[ch * mNumFrames];
+		CI_ASSERT_MSG( ch < this->mNumChannels, "ch out of range" );
+		return &this->mData[ch * this->mNumFrames];
 	}
 
 	using BufferBaseT<T>::zero;
 
 	void zero( size_t startFrame, size_t numFrames )
 	{
-		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-		for( size_t ch = 0; ch < mNumChannels; ch++ )
+		CI_ASSERT( startFrame + numFrames <= this->mNumFrames );
+		for( size_t ch = 0; ch < this->mNumChannels; ch++ )
 			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
 	}
 };
@@ -126,8 +126,8 @@ public:
 
 	void zero( size_t startFrame, size_t numFrames )
 	{
-		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-		std::memset( &mData[startFrame * mNumChannels], 0, numFrames * mNumChannels * sizeof( T ) );
+		CI_ASSERT( startFrame + numFrames <= this->mNumFrames );
+		std::memset( &this->mData[startFrame * this->mNumChannels], 0, numFrames * this->mNumChannels * sizeof( T ) );
 	}
 };
 
@@ -138,19 +138,19 @@ public:
 
 	BufferSpectralT( size_t numFrames = 0 ) : BufferBaseT<T>( numFrames, 2 ) {}
 
-	T* getReal()				{ return &mData[0]; }
-	const T* getReal() const	{ return &mData[0]; }
+	T* getReal()				{ return &this->mData[0]; }
+	const T* getReal() const	{ return &this->mData[0]; }
 
-	T* getImag()				{ return &mData[mNumFrames]; }
-	const T* getImag() const	{ return &mData[mNumFrames]; }
+	T* getImag()				{ return &this->mData[this->mNumFrames]; }
+	const T* getImag() const	{ return &this->mData[this->mNumFrames]; }
 
 	using BufferBaseT<T>::zero;
 
 	void zero( size_t startFrame, size_t numFrames )
 	{
-		CI_ASSERT( startFrame + numFrames <= mNumFrames );
-		for( size_t ch = 0; ch < mNumChannels; ch++ )
-			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
+		CI_ASSERT( startFrame + numFrames <= this->mNumFrames );
+		for( size_t ch = 0; ch < this->mNumChannels; ch++ )
+			std::memset( &this->getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
 	}
 };
 
