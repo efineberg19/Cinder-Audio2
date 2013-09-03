@@ -75,26 +75,14 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 
 inline void copyToBufferList( ::AudioBufferList *bufferList, const Buffer *buffer )
 {
-	if( buffer->getLayout() == Buffer::Layout::INTERLEAVED ) {
-		CI_ASSERT( bufferList->mNumberBuffers == 1 );
-		memcpy( bufferList->mBuffers[0].mData, buffer->getData(), bufferList->mBuffers[0].mDataByteSize );
-	}
-	else {
-		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-			memcpy( bufferList->mBuffers[i].mData, buffer->getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
-	}
+	for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+		memcpy( bufferList->mBuffers[i].mData, buffer->getChannel( i ), bufferList->mBuffers[i].mDataByteSize );
 }
 
 inline void copyFromBufferList( Buffer *buffer, const ::AudioBufferList *bufferList )
 {
-	if( buffer->getLayout() == Buffer::Layout::INTERLEAVED ) {
-		CI_ASSERT( bufferList->mNumberBuffers == 1 );
-		memcpy( buffer->getData(), bufferList->mBuffers[0].mData, bufferList->mBuffers[0].mDataByteSize );
-	}
-	else {
-		for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
-			memcpy( buffer->getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
-	}
+	for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+		memcpy( buffer->getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
 }
 
 } } } // namespace cinder::audio2::cocoa
