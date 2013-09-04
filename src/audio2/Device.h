@@ -42,8 +42,8 @@ class Device {
 	static const std::vector<DeviceRef>& getDevices();
 	virtual ~Device() {}
 
-	virtual void initialize() = 0;
-	virtual void uninitialize() = 0;
+	virtual void initialize()		{}
+	virtual void uninitialize()		{}
 
 	virtual void start() = 0;
 	virtual void stop() = 0;
