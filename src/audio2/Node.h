@@ -68,11 +68,15 @@ public:
 
 	std::string virtual getTag()				{ return "Node"; }
 
+	//! Called before audio buffers need to be used. There is always a valid Context at this point.
+	virtual void initialize()	{}
+	//! Called once the contents of initialize are no longer relevant, i.e. destruction or the connections have changed
+	virtual void uninitialize()	{}
+
 	//! Returns the \a Context associated with this \a Node. \note Cannot be called from within a \a Node's constructor. Use initialize instead.
 	ContextRef getContext() const				{ return mContext.lock(); }
 
-	virtual void initialize();
-	virtual void uninitialize()	{ mInitialized = false; }
+
 	virtual void start()		{ mEnabled = true; }
 	virtual void stop()			{ mEnabled = false; }
 

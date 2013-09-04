@@ -138,6 +138,10 @@ FilePlayerNode::FilePlayerNode( const Format &format )
 
 FilePlayerNode::~FilePlayerNode()
 {
+	if( mMultiThreaded ) {
+		mReadOnBackground = false;
+		mReadThread->detach(); // FIXME: this is probably unsafe
+	}
 }
 
 FilePlayerNode::FilePlayerNode( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
@@ -162,14 +166,6 @@ void FilePlayerNode::initialize()
 	if( mMultiThreaded ) {
 		mReadOnBackground = true;
 		mReadThread = unique_ptr<thread>( new thread( bind( &FilePlayerNode::readFromBackgroundThread, this ) ) );
-	}
-}
-
-void FilePlayerNode::uninitialize()
-{
-	if( mMultiThreaded ) {
-		mReadOnBackground = false;
-		mReadThread->detach();
 	}
 }
 

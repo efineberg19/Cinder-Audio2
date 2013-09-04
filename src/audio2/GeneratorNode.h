@@ -117,7 +117,6 @@ public:
 	std::string virtual getTag() override			{ return "FilePlayerNode"; }
 
 	void initialize() override;
-	void uninitialize() override;
 
 	virtual void start() override;
 	virtual void stop() override;

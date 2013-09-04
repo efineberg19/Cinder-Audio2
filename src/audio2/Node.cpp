@@ -53,12 +53,6 @@ Node::~Node()
 
 }
 
-// TODO: move this bool set outside to Context so that subclasses don't need to call this.
-void Node::initialize()
-{
-	mInitialized = true;
-}
-
 const NodeRef& Node::connect( const NodeRef &dest )
 {
 	dest->setInput( shared_from_this() );
@@ -252,6 +246,14 @@ void Node::configureConnections()
 
 	if( ! mProcessInPlace )
 		setProcessWithSumming();
+
+	// TODO: only do this if we have to, ex. # channels change
+	if( mInitialized ) {
+		uninitialize();
+		mInitialized = false;
+	}
+	initialize();
+	mInitialized = true;
 
 	getContext()->connectionsDidChange( shared_from_this() );
 }

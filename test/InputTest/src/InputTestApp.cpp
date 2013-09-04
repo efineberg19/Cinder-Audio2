@@ -173,8 +173,6 @@ void InputTestApp::processTap( Vec2i pos )
 		LOG_V << "selected: " << currentTest << endl;
 
 		bool running = mContext->isEnabled();
-		mContext->uninitialize();
-
 		mContext->disconnectAllNodes();
 
 //		mContext->getRoot()->disconnect();

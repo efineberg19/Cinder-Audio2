@@ -160,19 +160,12 @@ class ContextAudioUnit : public Context {
 	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) override;
 
-	void initialize() override;
-	void uninitialize() override;
-
 	//! set by the RootNode
 	void setCurrentTimeStamp( const ::AudioTimeStamp *timeStamp ) { mCurrentTimeStamp = timeStamp; }
 	//! all other NodeAudioUnit's need to pass this correctly formatted timestamp to AudioUnitRender
 	const ::AudioTimeStamp* getCurrentTimeStamp() { return mCurrentTimeStamp; }
 
   private:
-
-	// TODO: consider making these abstract methods in Context
-	void initNode( NodeRef node );
-	void uninitNode( NodeRef node );
 
 	const ::AudioTimeStamp *mCurrentTimeStamp;
 };

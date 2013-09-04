@@ -44,9 +44,6 @@ class Context : public std::enable_shared_from_this<Context> {
 	// TODO: consider making this private, it is only needed to call into the virtual methods (or static replicants)
 	static Context* instance();
 
-	virtual void initialize();
-	virtual void uninitialize();
-
 	virtual void setRoot( RootNodeRef root );
 
 	//! If the root has not already been set, it is the default LineOutNode
@@ -56,7 +53,6 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! start / stop the graph via bool
 	void setEnabled( bool enabled = true );
 
-	bool isInitialized() const	{ return mInitialized; }
 	bool isEnabled() const		{ return mEnabled; }
 
 	//! Disconnect all Node's related by this Context
@@ -70,7 +66,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	std::mutex& getMutex()					{ return mMutex; }
 
   protected:
-	Context() : mInitialized( false ), mEnabled( false ) {}
+	Context() : mEnabled( false ) {}
 
 	void startRecursive( const NodeRef &node );
 	void stopRecursive( const NodeRef &node );
@@ -78,7 +74,7 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	RootNodeRef		mRoot;
 	std::mutex		mMutex;
-	bool			mInitialized, mEnabled;
+	bool			mEnabled;
 };
 
 template<typename NodeT>

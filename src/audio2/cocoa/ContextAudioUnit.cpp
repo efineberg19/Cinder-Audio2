@@ -134,7 +134,7 @@ void LineOutAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	// TODO: move to NodeAudioUnit method
-	::AURenderCallbackStruct callbackStruct = { LineOutAudioUnit::renderCallback, &mRenderContext };
+	::AURenderCallbackStruct callbackStruct { LineOutAudioUnit::renderCallback, &mRenderContext };
 	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, DeviceAudioUnit::Bus::OUTPUT, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
@@ -373,7 +373,7 @@ void EffectAudioUnit::initialize()
 	comp.componentType = kAudioUnitType_Effect;
 	comp.componentSubType = mEffectSubType;
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
-	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
+	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit ); // FIXME: memory leak, this never gets disposed. make sure all in this file are.
 
 	mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getNumFramesPerBlock() );
 
@@ -603,55 +603,55 @@ MixerNodeRef ContextAudioUnit::createMixer( const Node::Format &format )
 
 ContextAudioUnit::~ContextAudioUnit()
 {
-	if( mInitialized )
-		uninitialize();
+//	if( mInitialized )
+//		uninitialize();
 }
 
-void ContextAudioUnit::initialize()
-{
-	if( mInitialized )
-		return;
-	CI_ASSERT( mRoot );
+//void ContextAudioUnit::initialize()
+//{
+//	if( mInitialized )
+//		return;
+//	CI_ASSERT( mRoot );
+//
+//	initNode( mRoot );
+//
+//	mInitialized = true;
+//	LOG_V << "graph initialize complete. samplerate: " << getSampleRate() << ", frames per block: " << getNumFramesPerBlock() << endl;
+//}
+//
+//void ContextAudioUnit::initNode( NodeRef node )
+//{
+//	if( ! node )
+//		return;
+//
+//	for( NodeRef& inputNode : node->getInputs() )
+//		initNode( inputNode );
+//
+//	node->initialize();
+//}
 
-	initNode( mRoot );
-
-	mInitialized = true;
-	LOG_V << "graph initialize complete. samplerate: " << getSampleRate() << ", frames per block: " << getNumFramesPerBlock() << endl;
-}
-
-void ContextAudioUnit::initNode( NodeRef node )
-{
-	if( ! node )
-		return;
-
-	for( NodeRef& inputNode : node->getInputs() )
-		initNode( inputNode );
-
-	node->initialize();
-}
-
-void ContextAudioUnit::uninitialize()
-{
-	if( ! mInitialized )
-		return;
-
-	LOG_V << "uninitializing..." << endl;
-
-	stop();
-	uninitNode( mRoot );
-	mInitialized = false;
-
-	LOG_V << "done." << endl;
-}
-
-void ContextAudioUnit::uninitNode( NodeRef node )
-{
-	if( ! node )
-		return;
-	for( auto &source : node->getInputs() )
-		uninitNode( source );
-
-	node->uninitialize();
-}
+//void ContextAudioUnit::uninitialize()
+//{
+//	if( ! mInitialized )
+//		return;
+//
+//	LOG_V << "uninitializing..." << endl;
+//
+//	stop();
+//	uninitNode( mRoot );
+//	mInitialized = false;
+//
+//	LOG_V << "done." << endl;
+//}
+//
+//void ContextAudioUnit::uninitNode( NodeRef node )
+//{
+//	if( ! node )
+//		return;
+//	for( auto &source : node->getInputs() )
+//		uninitNode( source );
+//
+//	node->uninitialize();
+//}
 
 } } } // namespace cinder::audio2::cocoa

@@ -57,16 +57,6 @@ Context::~Context()
 {
 }
 
-void Context::initialize()
-{
-	mInitialized = true;
-}
-
-void Context::uninitialize()
-{
-	mInitialized = false;
-}
-
 void Context::start()
 {
 	if( mEnabled )

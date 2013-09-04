@@ -156,7 +156,7 @@ void NodeTestApp::setupInterleavedPassThru()
 
 void NodeTestApp::initContext()
 {
-	mContext->initialize();
+//	mContext->initialize();
 
 	LOG_V << "-------------------------" << endl;
 	console() << "Graph initialized, configuration:" << endl;
@@ -228,9 +228,6 @@ void NodeTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isEnabled();
-		mContext->uninitialize();
-
 		if( currentTest == "sine" )
 			setupSine();
 		if( currentTest == "noise (reverse)" )
@@ -239,10 +236,8 @@ void NodeTestApp::processTap( Vec2i pos )
 			setupSumming();
 		if( currentTest == "interleave pass-thru" )
 			setupInterleavedPassThru();
-		initContext();
+//		initContext();
 
-		if( running )
-			mContext->start();
 	}
 }
 
