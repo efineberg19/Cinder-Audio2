@@ -25,6 +25,8 @@
 
 #include "audio2/Node.h"
 
+#include <mutex>
+
 namespace cinder { namespace audio2 {
 
 class Context : public std::enable_shared_from_this<Context> {
@@ -65,6 +67,8 @@ class Context : public std::enable_shared_from_this<Context> {
 	size_t getSampleRate()					{ return getRoot()->getSampleRate(); }
 	size_t getNumFramesPerBlock()			{ return getRoot()->getNumFramesPerBlock(); }
 
+	std::mutex& getMutex()					{ return mMutex; }
+
   protected:
 	Context() : mInitialized( false ), mEnabled( false ) {}
 
@@ -73,6 +77,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	void disconnectRecursive( const NodeRef &node );
 
 	RootNodeRef		mRoot;
+	std::mutex		mMutex;
 	bool			mInitialized, mEnabled;
 };
 

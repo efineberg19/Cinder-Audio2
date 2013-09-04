@@ -173,9 +173,11 @@ DeviceRef LineOutAudioUnit::getDevice()
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
-	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( ctx->node );
+	lock_guard<mutex>( ctx->context->getMutex() );
 
+	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( ctx->node );
 	lineOut->mInternalBuffer.zero(); // TODO: this might not be necessary, since it is done in process (sometimes)
+
 	ctx->context->setCurrentTimeStamp( timeStamp );
 	ctx->node->pullInputs( &lineOut->mInternalBuffer );
 	copyToBufferList( bufferList, &lineOut->mInternalBuffer );
@@ -205,7 +207,6 @@ LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 2 );
 	}
-
 }
 
 LineInAudioUnit::~LineInAudioUnit()
@@ -365,8 +366,6 @@ EffectAudioUnit::~EffectAudioUnit()
 
 void EffectAudioUnit::initialize()
 {
-	Node::initialize(); // TEMP
-
 	mRenderContext.node = this;
 	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 

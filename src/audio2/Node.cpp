@@ -74,6 +74,7 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t bus )
 void Node::disconnect( size_t bus )
 {
 	stop();
+	lock_guard<mutex>( getContext()->getMutex() );
 
 	for( NodeRef &input : mInputs )
 		input.reset();
@@ -97,6 +98,8 @@ void Node::setInput( const NodeRef &input )
 	if( ! checkInput( input ) )
 		return;
 
+	lock_guard<mutex> lock( getContext()->getMutex() );
+
 	input->setOutput( shared_from_this() );
 
 	// find first available slot
@@ -119,6 +122,8 @@ void Node::setInput( const NodeRef &input, size_t bus )
 {
 	if( ! checkInput( input ) )
 		return;
+
+	lock_guard<mutex>( getContext()->getMutex() );
 
 	if( bus > mInputs.size() )
 		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
@@ -148,8 +153,6 @@ void Node::setEnabled( bool enabled )
 		stop();
 }
 
-// FIXME: mProcessInPlace is not thread-safe
-// - probably high-time to ditch atomic<bool> and go with std::mutex, since there are multiple pieces that need to be synchronized
 void Node::pullInputs( Buffer *outputBuffer )
 {
 	CI_ASSERT( getContext() );
