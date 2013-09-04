@@ -55,6 +55,7 @@ Context* Context::instance()
 
 Context::~Context()
 {
+	uninitRecursisve( mRoot );
 }
 
 void Context::start()
@@ -134,6 +135,20 @@ void Context::disconnectRecursive( const NodeRef &node )
 		disconnectRecursive( input );
 
 	node->disconnect();
+}
+
+void Context::uninitRecursisve( const NodeRef &node )
+{
+	if( ! node )
+		return;
+
+	for( const NodeRef &input : node->getInputs() )
+		uninitRecursisve( input );
+
+	if( node->mInitialized ) {
+		node->uninitialize();
+		node->mInitialized = false;
+	}
 }
 
 } } // namespace cinder::audio2
