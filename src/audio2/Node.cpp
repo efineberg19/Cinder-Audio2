@@ -232,6 +232,8 @@ void Node::configureConnections()
 				input->setProcessWithSumming();
 			}
 		}
+
+		input->initIfNecessary();
 	}
 
 	NodeRef output = getOutput();
@@ -246,14 +248,6 @@ void Node::configureConnections()
 
 	if( ! mProcessInPlace )
 		setProcessWithSumming();
-
-	// TODO: only do this if we have to, ex. # channels change
-	if( mInitialized ) {
-		uninitialize();
-		mInitialized = false;
-	}
-	initialize();
-	mInitialized = true;
 
 	getContext()->connectionsDidChange( shared_from_this() );
 }
@@ -297,6 +291,17 @@ void Node::submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer )
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );
+}
+
+void Node::initIfNecessary()
+{
+	// TODO: only do this if we have to, ex. # channels change
+	if( mInitialized ) {
+		uninitialize();
+		mInitialized = false;
+	}
+	initialize();
+	mInitialized = true;
 }
 
 bool Node::checkInput( const NodeRef &input )
