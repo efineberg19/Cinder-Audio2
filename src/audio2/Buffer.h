@@ -83,7 +83,7 @@ class BufferBaseT {
 	}
 
 protected:
-	std::vector<T> mData; // TODO: switch to T*
+	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
 	bool mSilent;
 };
@@ -131,12 +131,15 @@ public:
 	}
 };
 
-// TODO: this should subclass BufferT so that it can be passed to generic Nodes
+//! BufferT variant that contains audio data in the frequency domain. Its channels relate to the results of an
+//! FFT transform, channel = 0 is real and channel = 1 is imaginary. The reasoning for subclassing \a BufferT is
+//! so that a BufferSpectralT can be handled by generic processing \a Node's as well, which can operate on both
+//! time and frequency domain signals.
 template <typename T>
-class BufferSpectralT : public BufferBaseT<T> {
+class BufferSpectralT : public BufferT<T> {
 public:
 
-	BufferSpectralT( size_t numFrames = 0 ) : BufferBaseT<T>( numFrames, 2 ) {}
+	BufferSpectralT( size_t numFrames = 0 ) : BufferT<T>( numFrames, 2 ) {}
 
 	T* getReal()				{ return &this->mData[0]; }
 	const T* getReal() const	{ return &this->mData[0]; }
@@ -145,13 +148,6 @@ public:
 	const T* getImag() const	{ return &this->mData[this->mNumFrames]; }
 
 	using BufferBaseT<T>::zero;
-
-	void zero( size_t startFrame, size_t numFrames )
-	{
-		CI_ASSERT( startFrame + numFrames <= this->mNumFrames );
-		for( size_t ch = 0; ch < this->mNumChannels; ch++ )
-			std::memset( &this->getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
-	}
 };
 
 //! DynamicBufferT is a resizable BufferT
