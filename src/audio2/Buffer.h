@@ -139,7 +139,7 @@ template <typename T>
 class BufferSpectralT : public BufferT<T> {
 public:
 
-	BufferSpectralT( size_t numFrames = 0 ) : BufferT<T>( numFrames, 2 ) {}
+	BufferSpectralT( size_t numFrames = 0 ) : BufferT<T>( numFrames / 2, 2 ) {}
 
 	T* getReal()				{ return &this->mData[0]; }
 	const T* getReal() const	{ return &this->mData[0]; }
