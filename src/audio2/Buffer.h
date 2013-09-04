@@ -72,10 +72,10 @@ class BufferBaseT {
 		return mData[n];
 	}
 
-	// TODO: add copy constructor different OtherT
 	// FIXME: this breaks when sizes don't match
+	//	- should also use memcpy or std::copy when possible
 	template <typename OtherT>
-	void set( const BufferBaseT<OtherT> &other )
+	void copy( const BufferBaseT<OtherT> &other )
 	{
 		size_t count = std::min( getSize(), other.getSize() );
 		for( size_t i = 0; i < count; i++ )
