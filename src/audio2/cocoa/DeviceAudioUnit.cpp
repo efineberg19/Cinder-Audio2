@@ -43,6 +43,12 @@ DeviceAudioUnit::DeviceAudioUnit( const std::string &key, const ::AudioComponent
 
 DeviceAudioUnit::~DeviceAudioUnit()
 {
+	if( mComponentInstance ) {
+		OSStatus status = ::AudioComponentInstanceDispose( mComponentInstance );
+		CI_ASSERT( status == noErr );
+	}
+
+	LOG_V << "complete." << endl;
 }
 
 void DeviceAudioUnit::initialize()
@@ -69,18 +75,10 @@ void DeviceAudioUnit::initialize()
 
 void DeviceAudioUnit::uninitialize()
 {
-	if( ! mInitialized )
-		return;
-
 	if( mComponentInstance ) {
 		OSStatus status = ::AudioUnitUninitialize( mComponentInstance );
 		CI_ASSERT( status == noErr );
-		status = ::AudioComponentInstanceDispose( mComponentInstance );
-		CI_ASSERT( status == noErr );
-
-		mComponentInstance = NULL;
 	}
-	mInitialized = mInputConnected = mOutputConnected = false;
 
 	LOG_V << "complete." << endl;
 }
