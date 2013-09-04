@@ -38,8 +38,6 @@ Fft::Fft( size_t fftSize )
 		throw AudioExc( "invalid fftSize" );
 
 	mSizeOverTwo = mSize / 2;
-	//mReal.resize( mSizeOverTwo );
-	//mImag.resize( mSizeOverTwo );
 
 	init();
 }
@@ -48,9 +46,6 @@ Fft::Fft( size_t fftSize )
 
 void Fft::init()
 {
-	mSplitComplexFrame.realp = mReal.data();
-	mSplitComplexFrame.imagp = mImag.data();
-
 	mLog2FftSize = log2f( mSize );
 	mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
 	CI_ASSERT( mFftSetup );
@@ -61,24 +56,26 @@ Fft::~Fft()
 	vDSP_destroy_fftsetup( mFftSetup );
 }
 
-
-void Fft::forward( Buffer *waveform )
+// TODO: use vDSP_fft_zop
+void Fft::forward( Buffer *waveform, BufferSpectral *spectral )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
+	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	// TODO: use vDSP_fft_zop
+	mSplitComplexFrame.realp = spectral->getReal();
+	mSplitComplexFrame.imagp = spectral->getImag();
+
 	vDSP_ctoz( (::DSPComplex *)waveform->getData(), 2, &mSplitComplexFrame, 1, mSizeOverTwo );
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
 }
 
-void Fft::inverse( Buffer *waveform, const std::vector<float>& real, const std::vector<float>& imag )
+void Fft::inverse( BufferSpectral *spectral, Buffer *waveform )
 {
-	CI_ASSERT( waveform->getSize() == mSize );
-	CI_ASSERT( real.size() == mSizeOverTwo );
-	CI_ASSERT( imag.size() == mSizeOverTwo );
+	CI_ASSERT( waveform->getNumFrames() == mSize );
+	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	mReal = real;
-	mImag = imag;
+	mSplitComplexFrame.realp = spectral->getReal();
+	mSplitComplexFrame.imagp = spectral->getImag();
 	float *data = waveform->getData();
 
 	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_INVERSE );
@@ -105,6 +102,7 @@ Fft::~Fft()
 void Fft::forward( Buffer *waveform, BufferSpectral *spectral )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
+	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
 	float *a = waveform->getData();
 	float *real = spectral->getReal();
@@ -125,7 +123,8 @@ void Fft::forward( Buffer *waveform, BufferSpectral *spectral )
 void Fft::inverse( BufferSpectral *spectral, Buffer *waveform )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
-	
+	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
+
 	float *real = spectral->getReal();
 	float *imag = spectral->getImag();
 	float *a = waveform->getData();
