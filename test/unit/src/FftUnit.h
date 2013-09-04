@@ -14,19 +14,29 @@ namespace {
 	void computeRoundTrip( size_t sizeFft )
 	{
 		Fft fft( sizeFft );
-		Buffer data( sizeFft );
+		Buffer waveform( sizeFft );
 		BufferSpectral spectral( sizeFft );
 
-		fillRandom( &data );
-		Buffer dataCopy( data ); // TODO: ensure data is not modified after forward sigh maxErr. ???: will this already be handled by const *?
+		fillRandom( &waveform );
+		Buffer waveformCopy( waveform );
+		fft.forward( &waveform, &spectral );
 
-		fft.forward( &data, &spectral );
-		fft.inverse( &spectral, &data );
+		// guarantee waveform was not modified
+		float errAfterTransfer = maxError( waveform, waveformCopy );
+		BOOST_REQUIRE_MESSAGE( errAfterTransfer < ACCEPTABLE_FLOAT_ERROR, "Fft::forward should not modify waveform" );
 
-		float maxErr = maxError( data, dataCopy );
+		BufferSpectral spectralCopy( spectral );
+		fft.inverse( &spectral, &waveform );
+
+
+		// guarantee spectral was not modified
+		float errAfterInverseTransfer = maxError( spectral, spectralCopy );
+		BOOST_REQUIRE_MESSAGE( errAfterInverseTransfer < ACCEPTABLE_FLOAT_ERROR, "Fft::inverse should not modify spectral" );
+
+		float maxErr = maxError( waveform, waveformCopy );
 		std::cout << "\tsizeFft: " << sizeFft << ", max error: " << maxErr << std::endl;
 
-		BOOST_REQUIRE( maxErr < ACCEPTABLE_FLOAT_ERROR );
+		BOOST_REQUIRE_MESSAGE( maxErr < ACCEPTABLE_FLOAT_ERROR, "unacceptable max error after rountrip FFT -> IFFT transforms" );
 	}
 
 }

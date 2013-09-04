@@ -46,6 +46,9 @@ Fft::Fft( size_t fftSize )
 
 void Fft::init()
 {
+	mSplitComplexResult.realp = (float *)malloc( mSizeOverTwo * sizeof( float ) );
+	mSplitComplexResult.imagp = (float *)malloc( mSizeOverTwo * sizeof( float ) );
+
 	mLog2FftSize = log2f( mSize );
 	mFftSetup = vDSP_create_fftsetup( mLog2FftSize, FFT_RADIX2 );
 	CI_ASSERT( mFftSetup );
@@ -53,33 +56,36 @@ void Fft::init()
 
 Fft::~Fft()
 {
+	free( mSplitComplexResult.realp );
+	free( mSplitComplexResult.imagp );
 	vDSP_destroy_fftsetup( mFftSetup );
 }
 
-// TODO: use vDSP_fft_zop
-void Fft::forward( Buffer *waveform, BufferSpectral *spectral )
+void Fft::forward( const Buffer *waveform, BufferSpectral *spectral )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	mSplitComplexFrame.realp = spectral->getReal();
-	mSplitComplexFrame.imagp = spectral->getImag();
+	mSplitComplexSignal.realp = spectral->getReal();
+	mSplitComplexSignal.imagp = spectral->getImag();
 
-	vDSP_ctoz( (::DSPComplex *)waveform->getData(), 2, &mSplitComplexFrame, 1, mSizeOverTwo );
-	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_FORWARD );
+	// in-place transfrom is okay here because we already first copy the data from waveform -> spectral
+	vDSP_ctoz( (::DSPComplex *)waveform->getData(), 2, &mSplitComplexSignal, 1, mSizeOverTwo );
+	vDSP_fft_zrip( mFftSetup, &mSplitComplexSignal, 1, mLog2FftSize, FFT_FORWARD );
 }
 
-void Fft::inverse( BufferSpectral *spectral, Buffer *waveform )
+void Fft::inverse( const BufferSpectral *spectral, Buffer *waveform )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	mSplitComplexFrame.realp = spectral->getReal();
-	mSplitComplexFrame.imagp = spectral->getImag();
+	mSplitComplexSignal.realp = const_cast<float *>( spectral->getReal() );
+	mSplitComplexSignal.imagp = const_cast<float *>( spectral->getImag() );
 	float *data = waveform->getData();
 
-	vDSP_fft_zrip( mFftSetup, &mSplitComplexFrame, 1, mLog2FftSize, FFT_INVERSE );
-	vDSP_ztoc( &mSplitComplexFrame, 1, (::DSPComplex *)data, 2, mSizeOverTwo );
+	// use out-of-place transfrom so as to not overwrite spectral
+	vDSP_fft_zrop( mFftSetup, &mSplitComplexSignal, 1, &mSplitComplexResult, 1, mLog2FftSize, FFT_INVERSE );
+	vDSP_ztoc( &mSplitComplexResult, 1, (::DSPComplex *)data, 2, mSizeOverTwo );
 
 	float scale = 1.0f / float( 2 * mSize );
 	vDSP_vsmul( data, 1, &scale, data, 1, mSize );
@@ -91,6 +97,7 @@ void Fft::init()
 {
 	mOouraIp = (int *)calloc( 2 + sqrt( mSizeOverTwo ), sizeof( int ) );
 	mOouraW = (float *)calloc( mSizeOverTwo, sizeof( float ) );
+	mBufferCopy = Buffer( mSize );
 }
 
 Fft::~Fft()
@@ -99,16 +106,17 @@ Fft::~Fft()
 	free( mOouraW );
 }
 
-void Fft::forward( Buffer *waveform, BufferSpectral *spectral )
+void Fft::forward( const Buffer *waveform, BufferSpectral *spectral )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	float *a = waveform->getData();
+	mBufferCopy.set( *waveform );
+
+	float *a = mBufferCopy.getData();
 	float *real = spectral->getReal();
 	float *imag = spectral->getImag();
 
-	// FIXME: don't modify waveform
 	ooura::rdft( (int)mSize, 1, a, mOouraIp, mOouraW );
 
 	real[0] = a[0];
@@ -120,13 +128,15 @@ void Fft::forward( Buffer *waveform, BufferSpectral *spectral )
 	}
 }
 
-void Fft::inverse( BufferSpectral *spectral, Buffer *waveform )
+void Fft::inverse( const BufferSpectral *spectral, Buffer *waveform )
 {
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	float *real = spectral->getReal();
-	float *imag = spectral->getImag();
+	mBufferCopy.set( *spectral );
+
+	float *real = mBufferCopy.getData();
+	float *imag = &mBufferCopy.getData()[mSizeOverTwo];
 	float *a = waveform->getData();
 
 	a[0] = real[0];

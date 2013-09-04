@@ -38,43 +38,32 @@
 
 namespace cinder { namespace audio2 {
 
-// TODO: consider better names to represent the math functionality rather than algo impl.
-// - option 1: rename to Dft or RDft
-// - option 2: leave this as Fft, but it's method names are more describtive
-//		- ex. forwardDft, forwardComplexDft, inverseDct
-
 //! Real Discrete Fourier Transform (DFT)
 class Fft {
 public:
 	Fft( size_t fftSize );
 	~Fft();
 
-	//! Computes the Forward DFT
-	void forward( Buffer *waveform, BufferSpectral *spectral );
-	//! Computes the Inverse DFT
-	void inverse( BufferSpectral *spectral, Buffer *waveform );
+	//! Computes the Forward DFT of \a waveform, filling \a spectral with freqency-domain audio data
+	void forward( const Buffer *waveform, BufferSpectral *spectral );
+	//! Computes the Inverse DFT of \a spectral, filling \a waveform with time-domain audio data
+	void inverse( const BufferSpectral *spectral, Buffer *waveform );
 
 	size_t getSize() const	{ return mSize; }
-
-	//std::vector<float>& getReal()	{ return mReal; }
-	//std::vector<float>& getImag()	{ return mImag; }
-
-	//const std::vector<float>& getReal() const	{ return mReal; }
-	//const std::vector<float>& getImag()	const	{ return mImag; }
 
 protected:
 	void init();
 
-	//std::vector<float> mReal, mImag;
-	size_t mSize, mSizeOverTwo;
+	size_t				mSize, mSizeOverTwo;
 
 #if defined( CINDER_AUDIO_VDSP )
-	size_t mLog2FftSize;
-	::FFTSetup mFftSetup;
-	::DSPSplitComplex mSplitComplexFrame;
+	size_t				mLog2FftSize;
+	::FFTSetup			mFftSetup;
+	::DSPSplitComplex	mSplitComplexSignal, mSplitComplexResult;
 #elif defined( CINDER_AUDIO_OOURA )
-	int *mOouraIp;
-	float *mOouraW;
+	Buffer				mBufferCopy;
+	int					*mOouraIp;
+	float				*mOouraW;
 #endif
 };
 
