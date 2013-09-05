@@ -92,41 +92,49 @@ void Node::setInput( const NodeRef &input )
 	if( ! checkInput( input ) )
 		return;
 
-	lock_guard<mutex> lock( getContext()->getMutex() );
+	{
+		lock_guard<mutex> lock( getContext()->getMutex() );
 
-	input->setOutput( shared_from_this() );
+		input->setOutput( shared_from_this() );
 
-	// find first available slot
-	for( size_t i = 0; i < mInputs.size(); i++ ) {
-		if( ! mInputs[i] ) {
-			mInputs[i] = input;
-			configureConnections();
-			return;
+		// find first available slot
+		bool didSlot = false;
+		for( size_t i = 0; i < mInputs.size(); i++ ) {
+			if( ! mInputs[i] ) {
+				mInputs[i] = input;
+				didSlot = true;
+				break;
+			}
 		}
+
+		if( ! didSlot )
+			mInputs.push_back( input );
+
+		configureConnections();
 	}
 
-	// or append
-	mInputs.push_back( input );
-	configureConnections();
+	// must call once lock has been released
+	getContext()->connectionsDidChange( shared_from_this() );
 }
 
-
-// TODO: figure out how to best handle node replacements
 void Node::setInput( const NodeRef &input, size_t bus )
 {
 	if( ! checkInput( input ) )
 		return;
 
-	lock_guard<mutex> lock( getContext()->getMutex() );
+	{
+		lock_guard<mutex> lock( getContext()->getMutex() );
 
-	if( bus > mInputs.size() )
-		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
-	//if( mInputs[bus] )
-	//	throw AudioExc(  string( "bus " ) + ci::toString( bus ) + " is already in use. Replacing busses not yet supported." );
+		if( bus > mInputs.size() )
+			throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
 
-	mInputs[bus] = input;
-	input->setOutput( shared_from_this() );
-	configureConnections();
+		mInputs[bus] = input;
+		input->setOutput( shared_from_this() );
+		configureConnections();
+	}
+
+	// must call once lock has been released
+	getContext()->connectionsDidChange( shared_from_this() );
 }
 
 bool Node::isConnectedToInput( const NodeRef &input ) const
@@ -276,7 +284,6 @@ void Node::configureConnections()
 		setProcessWithSumming();
 
 	initializeImpl();
-	getContext()->connectionsDidChange( shared_from_this() );
 }
 
 // TODO: reallocations could be made more efficient by using DynamicBuffer

@@ -450,11 +450,8 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
 					sourceVoice->initialize();
 
-					node->setInput( sourceVoice, i ); // FIXME: this  is causing a double-lock.
+					node->setInput( sourceVoice, i );
 					sourceVoice->setInput( input );
-
-					//node->getInputs()[i] = sourceVoice;
-					//sourceVoice->getInputs().push_back( input );
 				}
 			}
 		}
