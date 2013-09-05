@@ -102,11 +102,9 @@ public:
 
 	//! Default implementation returns true if numChannels match our format
 	virtual bool supportsSourceNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
-
-	//! Override to perform processing or analysis on \t buffer
+	//! Override to perform custom processing on \t buffer
 	virtual void process( Buffer *buffer )	{}
-
-	// TODO: consider making this protected / non-virtual
+	//! Override to control how this Node manages input processing. The processed samples must eventually be in \t outputBuffer (can be used in-place if possible).
 	virtual void pullInputs( Buffer *outputBuffer );
 
 	// TODO: it's probably a good idea to hide this structure
@@ -139,7 +137,8 @@ protected:
 	void setNumChannels( size_t numChannels );
 	bool checkInput( const NodeRef &input );
 
-	void initIfNecessary();
+	void initializeImpl();
+	void uninitializeImpl();
 
 	std::vector<NodeRef>	mInputs;
 	std::weak_ptr<Node>		mOutput;

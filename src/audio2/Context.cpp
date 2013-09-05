@@ -145,10 +145,7 @@ void Context::uninitRecursisve( const NodeRef &node )
 	for( const NodeRef &input : node->getInputs() )
 		uninitRecursisve( input );
 
-	if( node->mInitialized ) {
-		node->uninitialize();
-		node->mInitialized = false;
-	}
+	node->uninitializeImpl();
 }
 
 } } // namespace cinder::audio2

@@ -201,12 +201,33 @@ size_t Node::getNumInputs() const
 // MARK: - Protected
 // ----------------------------------------------------------------------------------------------------
 
+void Node::initializeImpl()
+{
+	if( mInitialized )
+		return;
+
+	initialize();
+	mInitialized = true;
+	LOG_V << getTag() << " initialized." << endl;
+}
+
+
+void Node::uninitializeImpl()
+{
+	if( ! mInitialized )
+		return;
+
+	uninitialize();
+	mInitialized = false;
+	LOG_V << getTag() << " un-initialized." << endl;
+}
+
 void Node::setNumChannels( size_t numChannels )
 {
+	uninitializeImpl();
 	mNumChannels = numChannels;
 }
 
-// TODO: if matches input and multiple inputs, find max channels of all inputs
 void Node::configureConnections()
 {
 	CI_ASSERT( getContext() );
@@ -217,10 +238,12 @@ void Node::configureConnections()
 		mProcessInPlace = false;
 
 	for( auto &input : mInputs ) {
-		if( input && input->getNumChannels() != mNumChannels ) {
+		if( ! input )
+			continue;
+
+		if( input->getNumChannels() != mNumChannels ) {
 			if( mChannelMode == ChannelMode::MATCHES_INPUT ) {
-				// TODO: figure out the best thing to do when we have multiple inputs.
-				// - probably set num channels to equal the most channels any input has
+				// FIXME: use max channels of all inputs
 				setNumChannels( input->getNumChannels() );
 			}
 			else if( input->getChannelMode() == ChannelMode::MATCHES_OUTPUT ) {
@@ -233,7 +256,7 @@ void Node::configureConnections()
 			}
 		}
 
-		input->initIfNecessary();
+		input->initializeImpl();
 	}
 
 	NodeRef output = getOutput();
@@ -249,6 +272,7 @@ void Node::configureConnections()
 	if( ! mProcessInPlace )
 		setProcessWithSumming();
 
+	initializeImpl();
 	getContext()->connectionsDidChange( shared_from_this() );
 }
 
@@ -293,21 +317,14 @@ void Node::submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer )
 		CI_ASSERT( 0 && "unhandled" );
 }
 
-void Node::initIfNecessary()
-{
-	// TODO: only do this if we have to, ex. # channels change
-	if( mInitialized ) {
-		uninitialize();
-		mInitialized = false;
-	}
-	initialize();
-	mInitialized = true;
-}
-
 bool Node::checkInput( const NodeRef &input )
 {
 	return ( input && ( input != shared_from_this() ) && ! isConnectedToInput( input ) );
 }
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LineOutNode
+// ----------------------------------------------------------------------------------------------------
 
 LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
 : RootNode( format )

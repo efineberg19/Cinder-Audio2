@@ -228,6 +228,9 @@ void NodeTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
+		bool enabled = mContext->isEnabled();
+		mContext->stop();
+
 		if( currentTest == "sine" )
 			setupSine();
 		if( currentTest == "noise (reverse)" )
@@ -236,8 +239,8 @@ void NodeTestApp::processTap( Vec2i pos )
 			setupSumming();
 		if( currentTest == "interleave pass-thru" )
 			setupInterleavedPassThru();
-//		initContext();
 
+		mContext->setEnabled( enabled );
 	}
 }
 
