@@ -106,7 +106,6 @@ void LineOutXAudio::initialize()
 void LineOutXAudio::uninitialize()
 {
 	mDevice->uninitialize();
-	mInitialized = false;
 }
 
 void LineOutXAudio::start()
@@ -185,8 +184,6 @@ void SourceVoiceXAudio::initialize()
 
 void SourceVoiceXAudio::uninitialize()
 {
-	mInitialized = false;
-
 	if( mSourceVoice ) {
 		mSourceVoice->DestroyVoice();
 		mSourceVoice = nullptr;
@@ -280,7 +277,6 @@ void EffectXAudioXapo::initialize()
 
 void EffectXAudioXapo::uninitialize()
 {
-	mInitialized = false;
 }
 
 void EffectXAudioXapo::getParams( void *params, size_t sizeParams )
@@ -331,7 +327,6 @@ void EffectXAudioFilter::initialize()
 
 void EffectXAudioFilter::uninitialize()
 {
-	mInitialized = false;
 }
 
 void EffectXAudioFilter::getParams( ::XAUDIO2_FILTER_PARAMETERS *params )
@@ -472,7 +467,6 @@ void ContextXAudio::uninitialize()
 
 	stop();
 	uninitNode( mRoot );
-	mInitialized = false;
 }
 
 void ContextXAudio::uninitNode( NodeRef node )

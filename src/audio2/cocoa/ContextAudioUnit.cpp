@@ -144,7 +144,6 @@ void LineOutAudioUnit::initialize()
 
 void LineOutAudioUnit::uninitialize()
 {
-	mInitialized = false;
 	mDevice->uninitialize();
 }
 
@@ -497,7 +496,6 @@ void MixerAudioUnit::initialize()
 
 void MixerAudioUnit::uninitialize()
 {
-	mInitialized = false;
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 }
