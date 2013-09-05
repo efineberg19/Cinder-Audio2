@@ -150,12 +150,18 @@ void LineOutAudioUnit::uninitialize()
 
 void LineOutAudioUnit::start()
 {
+	if( mEnabled )
+		return;
+
 	mEnabled = true;
 	mDevice->start();
 }
 
 void LineOutAudioUnit::stop()
 {
+	if( ! mEnabled )
+		return;
+
 	mEnabled = false;
 	mDevice->stop();
 }
@@ -270,6 +276,9 @@ void LineInAudioUnit::uninitialize()
 
 void LineInAudioUnit::start()
 {
+	if( mEnabled )
+		return;
+
 	if( ! mDevice->isOutputConnected() )
 		mDevice->start();
 
@@ -279,6 +288,9 @@ void LineInAudioUnit::start()
 
 void LineInAudioUnit::stop()
 {
+	if( ! mEnabled )
+		return;
+
 	if( ! mDevice->isOutputConnected() )
 		mDevice->stop();
 
