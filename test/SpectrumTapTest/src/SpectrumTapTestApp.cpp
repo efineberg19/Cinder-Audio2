@@ -36,7 +36,6 @@ class SpectrumTapTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void initContext();
 	void setupSine();
 	void setupSample();
 	void setupUI();
@@ -94,7 +93,6 @@ void SpectrumTapTestApp::setup()
 
 	setupSine();
 
-	initContext();
 	setupUI();
 
 	mContext->start();
@@ -102,6 +100,9 @@ void SpectrumTapTestApp::setup()
 
 	mApplyWindowButton.setEnabled( mSpectrumTap->isWindowingEnabled() );
 	mScaleDecibelsButton.setEnabled( mSpectrumPlot.getScaleDecibels() );
+
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
+	printGraph( mContext );
 }
 
 void SpectrumTapTestApp::setupSine()
@@ -116,15 +117,6 @@ void SpectrumTapTestApp::setupSample()
 	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
 	if( mPlaybackButton.mEnabled )
 		mPlayerNode->start();
-}
-
-void SpectrumTapTestApp::initContext()
-{
-	mContext->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration" << endl;
-	printGraph( mContext );
 }
 
 void SpectrumTapTestApp::setupUI()
@@ -241,7 +233,7 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isEnabled();
+		bool enabled = mContext->isEnabled();
 		mContext->disconnectAllNodes();
 
 		if( currentTest == "sine" )
@@ -249,9 +241,7 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 		if( currentTest == "sample" )
 			setupSample();
 
-		initContext();
-		if( running )
-			mContext->start();
+		mContext->setEnabled( enabled );
 	}
 
 }

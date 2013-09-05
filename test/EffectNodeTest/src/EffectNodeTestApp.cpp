@@ -22,7 +22,6 @@ class EffectNodeTestApp : public AppNative {
 	void setupOne();
 	void setupForceStereo();
 	void setupDownMix();
-	void initContext();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -60,8 +59,10 @@ void EffectNodeTestApp::setup()
 //	setupForceStereo();
 //	setupDownMix();
 
-	initContext();
 	setupUI();
+
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
+	printGraph( mContext );
 }
 
 void EffectNodeTestApp::setupOne()
@@ -87,14 +88,6 @@ void EffectNodeTestApp::setupDownMix()
 
 	auto monoPassThru = mContext->makeNode( new Node( Node::Format().channels( 1 ) ) );
 	mGen->connect( mRingMod )->connect( mGain )->connect( monoPassThru )->connect( mContext->getRoot() );
-}
-
-void EffectNodeTestApp::initContext()
-{
-	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
-	printGraph( mContext );
-
-	mContext->initialize();
 }
 
 void EffectNodeTestApp::setupUI()
@@ -154,8 +147,8 @@ void EffectNodeTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isEnabled();
-		mContext->uninitialize();
+		bool enabled = mContext->isEnabled();
+		mContext->stop();
 
 		mContext->disconnectAllNodes();
 
@@ -165,10 +158,8 @@ void EffectNodeTestApp::processTap( Vec2i pos )
 			setupForceStereo();
 		if( currentTest == "down-mix" )
 			setupDownMix();
-		initContext();
 
-		if( running )
-			mContext->start();
+		mContext->setEnabled( enabled );
 	}
 }
 

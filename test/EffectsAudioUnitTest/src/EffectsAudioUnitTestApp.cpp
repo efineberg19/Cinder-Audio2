@@ -46,7 +46,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
-	void initContext();
+	void initParams();
 
 	ContextRef mContext;
 	GeneratorNodeRef mSource;
@@ -87,7 +87,10 @@ void EffectsAudioUnitTestApp::setup()
 	setupOne();
 
 	setupUI();
-	initContext();
+	initParams();
+
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
+	printGraph( mContext );
 }
 
 void EffectsAudioUnitTestApp::setupOne()
@@ -115,17 +118,8 @@ void EffectsAudioUnitTestApp::setupNativeThenGeneric()
 	LOG_V << "TODO: implement test" << endl;
 }
 
-void EffectsAudioUnitTestApp::initContext()
+void EffectsAudioUnitTestApp::initParams()
 {
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mContext );
-
-	mContext->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
-	printGraph( mContext );
 
 	if( mEffect ) {
 		mEffect->setParameter( kLowPassParam_CutoffFrequency, 500 );
@@ -201,10 +195,8 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isEnabled();
-		mContext->uninitialize();
-
-		// TODO: a 'disconnect all' method would be nice for this, although it probably wouldn't get used too much in practice
+		bool enabled = mContext->isEnabled();
+		mContext->disconnectAllNodes();
 
 		mSource->disconnect();
 		mEffect->disconnect();
@@ -217,10 +209,9 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 			setupTwo();
 		if( currentTest == "native -> generic" )
 			setupNativeThenGeneric();
-		initContext();
+		initParams();
 
-		if( running )
-			mContext->start();
+		mContext->setEnabled( enabled );
 	}
 }
 

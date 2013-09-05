@@ -51,7 +51,6 @@ public:
 	void setupNoiseReverse();
 	void setupSumming();
 	void setupInterleavedPassThru();
-	void initContext();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -95,8 +94,10 @@ void NodeTestApp::setup()
 	setupSine();
 	//setupInterleavedPassThru();
 
-	initContext();
 	setupUI();
+
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
+	printGraph( mContext );
 }
 
 void NodeTestApp::setupSine()
@@ -152,15 +153,6 @@ void NodeTestApp::setupInterleavedPassThru()
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
-}
-
-void NodeTestApp::initContext()
-{
-//	mContext->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph initialized, configuration:" << endl;
-	printGraph( mContext );
 }
 
 void NodeTestApp::setupUI()
@@ -220,7 +212,7 @@ void NodeTestApp::processTap( Vec2i pos )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	if( mSine && mEnableSineButton.hitTest( pos ) )
 		mSine->setEnabled( ! mSine->isEnabled() );
-	if( mNoise && mEnableNoiseButton.hitTest( pos ) )
+	if( mNoise && mEnableNoiseButton.hitTest( pos ) ) // FIXME: this check doesn't work any more because there is always an mNoise / mSine
 		mNoise->setEnabled( ! mNoise->isEnabled() );
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;

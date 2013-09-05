@@ -32,7 +32,6 @@ class FileNodeTestApp : public AppNative {
 	void setupBufferPlayer();
 	void setupFilePlayer();
 
-	void initContext();
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
@@ -65,24 +64,12 @@ void FileNodeTestApp::setup()
 	setupBufferPlayer();
 	//setupFilePlayer();
 
-	initContext();
 	setupUI();
-
 
 	mContext->start();
 	mEnableGraphButton.setEnabled( true );
-}
 
-void FileNodeTestApp::initContext()
-{
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mContext );
-
-	mContext->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 }
 

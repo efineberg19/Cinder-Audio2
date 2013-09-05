@@ -24,8 +24,6 @@ class InputTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void initGraph();
-
 	void setupUI();
 	void processTap( Vec2i pos );
 
@@ -64,8 +62,10 @@ void InputTestApp::setup()
 	setupInTapOut();
 //	setupInTapProcessOut();
 
-	initGraph();
 	setupUI();
+
+	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
+	printGraph( mContext );
 }
 
 void InputTestApp::setupDefaultDevices()
@@ -125,19 +125,6 @@ void InputTestApp::setupInTapProcessOut()
 	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
 }
 
-void InputTestApp::initGraph()
-{
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (before)" << endl;
-	printGraph( mContext );
-
-	mContext->initialize();
-
-	LOG_V << "-------------------------" << endl;
-	console() << "Graph configuration: (after)" << endl;
-	printGraph( mContext );
-}
-
 void InputTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
@@ -172,12 +159,10 @@ void InputTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isEnabled();
-		mContext->disconnectAllNodes();
+		bool enabled = mContext->isEnabled();
+		mContext->stop();
 
-//		mContext->getRoot()->disconnect();
-//		mTap->disconnect();
-//		mLineIn->disconnect();
+		mContext->disconnectAllNodes();
 
 		if( currentTest == "pass through" ) {
 			setupPassThrough();
@@ -191,10 +176,8 @@ void InputTestApp::processTap( Vec2i pos )
 		if( currentTest == "in tap process out" ) {
 			setupInTapProcessOut();
 		}
-		initGraph();
 
-		if( running )
-			mContext->start();
+		mContext->setEnabled( enabled );
 	}
 }
 
