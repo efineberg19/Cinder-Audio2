@@ -63,7 +63,6 @@ void EffectXAudioTestApp::setup()
 	mSource = noise;
 
 	setupOne();
-	initContext();
 	setupUI();
 
 	if( mEffect ) {
@@ -93,14 +92,9 @@ void EffectXAudioTestApp::setup()
 		float cutoff = XAudio2FrequencyRatioToSemitones( mFilterParams.Frequency );
 		mLowpassCutoffSlider.set( cutoff );
 	}
-}
 
-void EffectXAudioTestApp::initContext()
-{
 	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
-
-	mContext->initialize();
 }
 
 void EffectXAudioTestApp::setupOne()
@@ -221,9 +215,7 @@ void EffectXAudioTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool running = mContext->isEnabled();
-		mContext->uninitialize();
-
+		bool enabled = mContext->isEnabled();
 		mContext->disconnectAllNodes();
 
 		if( currentTest == "one" )
@@ -237,10 +229,7 @@ void EffectXAudioTestApp::processTap( Vec2i pos )
 		if( currentTest == "native -> generic" )
 			setupNativeThenGeneric();
 
-		initContext();
-
-		if( running )
-			mContext->start();
+		mContext->setEnabled( enabled );
 	}
 }
 

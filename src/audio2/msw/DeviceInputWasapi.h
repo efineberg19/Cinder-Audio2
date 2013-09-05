@@ -72,7 +72,7 @@ class LineInWasapi : public LineInNode {
 	struct Impl;
 	std::unique_ptr<Impl> mImpl;
 	std::shared_ptr<DeviceInputWasapi> mDevice;
-	Buffer mInterleavedBuffer;
+	BufferInterleaved mInterleavedBuffer;
 
 	size_t mCaptureBlockSize; // per channel. TODO: this should be user settable
 };

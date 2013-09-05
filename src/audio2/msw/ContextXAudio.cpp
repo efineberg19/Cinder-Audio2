@@ -356,8 +356,6 @@ void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
 
 ContextXAudio::~ContextXAudio()
 {
-	if( mInitialized )
-		uninitialize();
 }
 
 ContextRef ContextXAudio::createContext()
@@ -391,33 +389,33 @@ RootNodeRef ContextXAudio::getRoot()
 	return mRoot;
 }
 
-void ContextXAudio::initialize()
-{
-	if( mInitialized )
-		return;
-	CI_ASSERT( mRoot );
-
-	//mSampleRate = mRoot->getSampleRate();
-	//mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
-
-	initNode( mRoot );
-	initEffects( mRoot->getInputs().front() );
-
-	mInitialized = true;
-	LOG_V << "graph initialize complete. output channels: " << getRoot()->getNumChannels() << endl;
-}
-
-void ContextXAudio::initNode( NodeRef node )
-{
-	if( ! node )
-		return;
-
-	// recurse through inputs
-	for( NodeRef& inputNode : node->getInputs() )
-		initNode( inputNode );
-
-	node->initialize();
-}
+//void ContextXAudio::initialize()
+//{
+//	if( mInitialized )
+//		return;
+//	CI_ASSERT( mRoot );
+//
+//	//mSampleRate = mRoot->getSampleRate();
+//	//mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
+//
+//	initNode( mRoot );
+//	initEffects( mRoot->getInputs().front() );
+//
+//	mInitialized = true;
+//	LOG_V << "graph initialize complete. output channels: " << getRoot()->getNumChannels() << endl;
+//}
+//
+//void ContextXAudio::initNode( NodeRef node )
+//{
+//	if( ! node )
+//		return;
+//
+//	// recurse through inputs
+//	for( NodeRef& inputNode : node->getInputs() )
+//		initNode( inputNode );
+//
+//	node->initialize();
+//}
 
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
 {
@@ -452,32 +450,35 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
 					sourceVoice->initialize();
 
-					node->setInput( sourceVoice, i );
+					node->setInput( sourceVoice, i ); // FIXME: this  is causing a double-lock.
 					sourceVoice->setInput( input );
+
+					//node->getInputs()[i] = sourceVoice;
+					//sourceVoice->getInputs().push_back( input );
 				}
 			}
 		}
 	}
 }
 
-void ContextXAudio::uninitialize()
-{
-	if( ! mInitialized )
-		return;
-
-	stop();
-	uninitNode( mRoot );
-}
-
-void ContextXAudio::uninitNode( NodeRef node )
-{
-	if( ! node )
-		return;
-	for( auto &source : node->getInputs() )
-		uninitNode( source );
-
-	node->uninitialize();
-}
+//void ContextXAudio::uninitialize()
+//{
+//	if( ! mInitialized )
+//		return;
+//
+//	stop();
+//	uninitNode( mRoot );
+//}
+//
+//void ContextXAudio::uninitNode( NodeRef node )
+//{
+//	if( ! node )
+//		return;
+//	for( auto &source : node->getInputs() )
+//		uninitNode( source );
+//
+//	node->uninitialize();
+//}
 
 // It appears IXAudio2Voice::SetEffectChain should only be called once - i.e. setting the chain
 // with length 1 and then again setting it with length 2 causes the engine to go down when the 

@@ -185,8 +185,6 @@ class ContextXAudio : public Context {
 	LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
 	MixerNodeRef	createMixer( const Node::Format &format = Node::Format() ) override;
 
-	void initialize() override;
-	void uninitialize() override;
 	void connectionsDidChange( const NodeRef &node ) override; 
 
 	//! ContextXAudio's \a RootNode is always an instance of LineOutXAudio
