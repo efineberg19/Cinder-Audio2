@@ -178,7 +178,7 @@ DeviceRef LineOutAudioUnit::getDevice()
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderContext *ctx = static_cast<NodeAudioUnit::RenderContext *>( data );
-	lock_guard<mutex>( ctx->context->getMutex() );
+	lock_guard<mutex> lock( ctx->context->getMutex() );
 
 	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( ctx->node );
 	lineOut->mInternalBuffer.zero(); // TODO: this might not be necessary, since it is done in process (sometimes)

@@ -68,7 +68,7 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t bus )
 void Node::disconnect( size_t bus )
 {
 	stop();
-	lock_guard<mutex>( getContext()->getMutex() );
+	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	for( NodeRef &input : mInputs )
 		input.reset();
@@ -117,7 +117,7 @@ void Node::setInput( const NodeRef &input, size_t bus )
 	if( ! checkInput( input ) )
 		return;
 
-	lock_guard<mutex>( getContext()->getMutex() );
+	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	if( bus > mInputs.size() )
 		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
