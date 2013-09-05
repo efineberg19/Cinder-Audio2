@@ -55,6 +55,8 @@ Context* Context::instance()
 
 Context::~Context()
 {
+	stop(); // TODO: reconsider if this is still necessary once InputTest is properly shutting down
+	
 	uninitRecursisve( mRoot );
 }
 
