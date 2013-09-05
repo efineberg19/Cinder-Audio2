@@ -218,7 +218,7 @@ void SourceVoiceXAudio::stop()
 
 void SourceVoiceXAudio::submitNextBuffer()
 {
-	CI_ASSERT( mSourceVoice );
+	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	mInternalBuffer.zero();
 	pullInputs( &mInternalBuffer );
