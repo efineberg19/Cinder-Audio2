@@ -264,13 +264,10 @@ void LineInAudioUnit::initialize()
 
 		mDevice->initialize();
 	}
-
-	mInitialized = true;
 }
 
 void LineInAudioUnit::uninitialize()
 {
-	mInitialized = false;
 	mDevice->uninitialize();
 }
 
@@ -402,8 +399,6 @@ void EffectAudioUnit::initialize()
 
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
-
-	mInitialized = true;
 }
 
 void EffectAudioUnit::uninitialize()
@@ -498,8 +493,6 @@ void MixerAudioUnit::initialize()
 
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
-
-	mInitialized = true;
 }
 
 void MixerAudioUnit::uninitialize()
@@ -615,55 +608,6 @@ MixerNodeRef ContextAudioUnit::createMixer( const Node::Format &format )
 
 ContextAudioUnit::~ContextAudioUnit()
 {
-//	if( mInitialized )
-//		uninitialize();
 }
-
-//void ContextAudioUnit::initialize()
-//{
-//	if( mInitialized )
-//		return;
-//	CI_ASSERT( mRoot );
-//
-//	initNode( mRoot );
-//
-//	mInitialized = true;
-//	LOG_V << "graph initialize complete. samplerate: " << getSampleRate() << ", frames per block: " << getNumFramesPerBlock() << endl;
-//}
-//
-//void ContextAudioUnit::initNode( NodeRef node )
-//{
-//	if( ! node )
-//		return;
-//
-//	for( NodeRef& inputNode : node->getInputs() )
-//		initNode( inputNode );
-//
-//	node->initialize();
-//}
-
-//void ContextAudioUnit::uninitialize()
-//{
-//	if( ! mInitialized )
-//		return;
-//
-//	LOG_V << "uninitializing..." << endl;
-//
-//	stop();
-//	uninitNode( mRoot );
-//	mInitialized = false;
-//
-//	LOG_V << "done." << endl;
-//}
-//
-//void ContextAudioUnit::uninitNode( NodeRef node )
-//{
-//	if( ! node )
-//		return;
-//	for( auto &source : node->getInputs() )
-//		uninitNode( source );
-//
-//	node->uninitialize();
-//}
 
 } } } // namespace cinder::audio2::cocoa
