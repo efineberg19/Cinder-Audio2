@@ -63,8 +63,8 @@ struct Button : public TestWidget {
 	: TestWidget(), mIsToggle( isToggle ), mTitleNormal( titleNormal ), mTitleEnabled( titleEnabled )
 	{
 		mTextColor = Color::white();
-		mNormalColor = Color( 0.3f, 0.3f, 0.3f );
-		mEnabledColor = Color( 0.0f, 0.0f, 0.7f );
+		mNormalColor = Color( "SlateGray" );
+		mEnabledColor = Color( "RoyalBlue" );
 		setEnabled( false );
 		mTimeout = 30;
 		mFadeFrames = 0;
@@ -130,8 +130,8 @@ struct HSlider : public TestWidget {
 		mValue = mValueScaled = 0.0f;
 		mMin = 0.0f;
 		mMax = 1.0f;
-		mBackgroundColor = ColorA( 0.0f, 1.0f , 0.0f, 0.3f );
-		mValueColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
+		mBackgroundColor = ColorA( "DarkGreen", 0.75f );
+		mValueColor = ColorA( "SpringGreen", 0.75f );
 		mTextColor = Color::white();
 	}
 
@@ -185,8 +185,8 @@ struct HSlider : public TestWidget {
 struct VSelector : public TestWidget {
 	VSelector() : TestWidget() {
 		mCurrentSectionIndex = 0;
-		mBackgroundColor = ColorA( 0.0f, 0.0f , 1.0f, 0.3f );
-		mSelectedColor = ColorA( 0.0f, 1.0f , 0.0f, 0.95f );
+		mBackgroundColor = ColorA( "MidnightBlue", 0.75f );
+		mSelectedColor = ColorA( "SpringGreen", 0.95f );
 		mUnselectedColor = ColorA::gray( 0.5 );
 	}
 
