@@ -69,17 +69,7 @@ void MixerTestApp::prepareSettings( Settings *settings )
 
 void MixerTestApp::setup()
 {
-	DeviceRef device = Device::getDefaultOutput();
-
-	LOG_V << "device name: " << device->getName() << endl;
-	console() << "\t input channels: " << device->getNumInputChannels() << endl;
-	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t frames per block: " << device->getNumFramesPerBlock() << endl;
-
-	auto output = Context::instance()->createLineOut( device );
-	mContext = Context::instance()->createContext();
-	mContext->setRoot( output );
+	mContext = mContext::create();
 
 	setupSine();
 	//setupInterleavedPassThru();
@@ -129,7 +119,7 @@ void MixerTestApp::setupMixer()
 	sine->getUGen().setFreq( 440.0f );
 	mSine = sine;
 
-	mMixer = Context::instance()->createMixer();
+	mMixer = mContext->createMixer();
 
 	// connect by appending
 	//	noise->connect( mMixer );

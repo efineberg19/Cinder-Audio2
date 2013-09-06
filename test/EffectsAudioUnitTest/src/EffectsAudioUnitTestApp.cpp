@@ -10,8 +10,6 @@
 
 #include "Gui.h"
 
-// FIXME: EffectAudioUnit::process() is failing since Conext::makeNode()
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -60,18 +58,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 
 void EffectsAudioUnitTestApp::setup()
 {
-	DeviceRef device = Device::getDefaultOutput();
-
-	LOG_V << "device name: " << device->getName() << endl;
-	console() << "\t input channels: " << device->getNumInputChannels() << endl;
-	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t block size: " << device->getNumFramesPerBlock() << endl;
-
-	auto output = Context::instance()->createLineOut( device );
-	mContext = Context::instance()->createContext();
-	mContext->setRoot( output );
-
+	mContext = Context::create();
 
 	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 	noise->setAutoEnabled();

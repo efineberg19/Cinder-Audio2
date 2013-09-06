@@ -55,7 +55,7 @@ void FileNodeTestApp::prepareSettings( Settings *settings )
 
 void FileNodeTestApp::setup()
 {
-	mContext = Context::instance()->createContext();
+	mContext = Context::create();
 
 	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 	mSourceFile = SourceFile::create( dataSource, 0, 44100 );

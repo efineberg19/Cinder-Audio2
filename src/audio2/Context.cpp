@@ -38,19 +38,14 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-Context* Context::instance()
+ContextRef Context::create()
 {
-	static ContextRef sInstance;
-	if( ! sInstance ) {
 #if defined( CINDER_COCOA )
-		sInstance = ContextRef( new cocoa::ContextAudioUnit() );
+	return ContextRef( new cocoa::ContextAudioUnit() );
 #elif defined( CINDER_MSW )
-		sInstance = ContextRef( new msw::ContextXAudio() );
-#else
-		throw AudioContextExc( "no default context for this platform." );
+	return ContextRef( new msw::ContextXAudio() );
 #endif
-	}
-	return sInstance.get();
+	return ContextRef(); // no available context for this platform.
 }
 
 Context::~Context()

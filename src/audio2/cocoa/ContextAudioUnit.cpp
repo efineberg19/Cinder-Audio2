@@ -584,11 +584,6 @@ void MixerAudioUnit::checkBusIsValid( size_t bus )
 // MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-ContextRef ContextAudioUnit::createContext()
-{
-	return ContextRef( new ContextAudioUnit() );
-}
-
 LineOutNodeRef ContextAudioUnit::createLineOut( DeviceRef device, const Node::Format &format )
 {
 	return makeNode( new LineOutAudioUnit( device, format ) );

@@ -68,7 +68,7 @@ void SpectrumTapTestApp::setup()
 {
 	mSpectroMargin = 40.0f;
 
-	mContext = Context::instance()->createContext();
+	mContext = Context::create();
 
 	mSpectrumTap = mContext->makeNode( new SpectrumTapNode( SpectrumTapNode::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 	mSpectrumTap->setAutoEnabled();

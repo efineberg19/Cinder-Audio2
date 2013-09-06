@@ -33,16 +33,15 @@ class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
-	virtual ContextRef			createContext() = 0;
+	//! Returns a platform-specific \t Context. If none is availble, returns an empty \t ContextRef.
+	static ContextRef			create();
+
 	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) = 0;
 	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
 	virtual LineInNodeRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );
-
-	// TODO: consider making this private, it is only needed to call into the virtual methods (or static replicants)
-	static Context* instance();
 
 	virtual void setRoot( RootNodeRef root );
 

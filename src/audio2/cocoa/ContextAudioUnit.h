@@ -155,7 +155,6 @@ class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
 
-	virtual ContextRef			createContext() override;
 	virtual LineOutNodeRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) override;

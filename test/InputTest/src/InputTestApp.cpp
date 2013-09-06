@@ -49,7 +49,7 @@ void InputTestApp::setup()
 //	LOG_V << "all devices: " << endl;
 //	printDevices();
 
-	mContext = Context::instance()->createContext();
+	mContext = Context::create();
 
 	setupDefaultDevices();
 	//setupDedicatedDevice();
@@ -70,8 +70,8 @@ void InputTestApp::setup()
 
 void InputTestApp::setupDefaultDevices()
 {
-	mLineIn = Context::instance()->createLineIn();
-	mLineOut = Context::instance()->createLineOut();
+	mLineIn = mContext->createLineIn();
+	mLineOut = mContext->createLineOut();
 
 	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
 	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
@@ -91,8 +91,8 @@ void InputTestApp::setupDedicatedDevice()
 	DeviceRef device = Device::findDeviceByName( "PreSonus FIREPOD (1431)" );
 	CI_ASSERT( device );
 
-	mLineIn = Context::instance()->createLineIn( device );
-	auto output = Context::instance()->createLineOut( device );
+	mLineIn = mContext->createLineIn( device );
+	auto output = mContext->createLineOut( device );
 	mContext->setRoot( output );
 
 	LOG_V << "shared device name: " << output->getDevice()->getName() << endl;

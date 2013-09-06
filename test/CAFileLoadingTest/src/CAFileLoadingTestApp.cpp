@@ -60,9 +60,7 @@ struct ConverterInfo {
 
 void CAFileLoadingTestApp::setup()
 {
-	mContext = Context::instance()->createContext();
-	LineOutNodeRef output = Context::instance()->createLineOut();
-	mContext->setRoot( output );
+	mContext = Context::create();
 
 	DataSourceRef dataSource = loadResource( FILE_NAME );
 
