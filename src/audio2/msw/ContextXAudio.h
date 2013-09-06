@@ -49,13 +49,8 @@ class NodeXAudio {
 	NodeXAudio() : mFilterEnabled( false ), mFilterConnected( false ) {}
 	virtual ~NodeXAudio();
 
-	//void setXAudio( ::IXAudio2 *xaudio )		{ mXAudio = xaudio; }
-
-	// Subclasses override these methods to return their xaudio voice if they have one,
-	// otherwise the default implementation recurses through sources to find the goods.
-	// Node must be passed in here to traverse it's children and I want to avoid the complexities of dual inheriting from Node.
-	// (this is a +1 for using a pimpl approach instead of dual inheritance)
-	virtual XAudioVoice getXAudioVoice( NodeRef node );
+	// Subclasses override these methods to return their \a XAudioVoice if they have one.
+	virtual XAudioVoice getXAudioVoice( const NodeRef &node );
 
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
 
@@ -65,10 +60,8 @@ class NodeXAudio {
 	bool isFilterConnected() const			{ return mFilterConnected; }
 
   protected:
-	//::IXAudio2 *mXAudio;
-	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR> mEffectsDescriptors;
-
-	bool								mFilterEnabled, mFilterConnected;
+	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
+	bool										mFilterEnabled, mFilterConnected;
 };
 
 class DeviceOutputXAudio;
@@ -108,7 +101,7 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
-	XAudioVoice		getXAudioVoice( NodeRef node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSourceVoice ), this ); }
+	XAudioVoice		getXAudioVoice( const NodeRef &node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSourceVoice ), this ); }
 
   private:
 	SourceVoiceXAudio();
@@ -135,26 +128,28 @@ public:
 	std::string virtual getTag()				{ return "EffectXAudioXapo"; }
 
 	void initialize() override;
-	void uninitialize() override;
 
 	// TODO: get/set params should throw if a bad HRESULT shows up because of this
 
 	template<typename ParamsT>
 	void getParams( ParamsT *params )			{ getParams( static_cast<void *>( params ), sizeof( *params ) ); }
 
-	// TODO: ask AFB if setter should be *params or &params
 	template<typename ParamsT>
 	void setParams( const ParamsT &params )		{ setParams( static_cast<const void *>( &params ), sizeof( params ) ); }
  
 private:
-
 	void getParams( void *params, size_t sizeParams );
 	void setParams( const void *params, size_t sizeParams );
 
 	void makeXapo( REFCLSID clsid );
-	std::unique_ptr<::IUnknown, msw::ComReleaser> mXapo;
-	XapoType mType;
-	size_t mChainIndex;
+	void attachToXAudioVoice();
+
+	std::unique_ptr<::IUnknown, msw::ComReleaser>	mXapo;
+	XapoType										mType;
+	::XAUDIO2_EFFECT_DESCRIPTOR						mEffectDesc;
+	size_t											mChainIndex;
+
+	friend class ContextXAudio;
 };
 
 class EffectXAudioFilter : public EffectNode, public NodeXAudio {
@@ -179,9 +174,8 @@ class ContextXAudio : public Context {
   public:
 	virtual ~ContextXAudio();
 
-	ContextRef		createContext() override;
 	LineOutNodeRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
-	//! If deployment target is 0x601 (win vista) or greater, uses InputWasapi, else returns an empty DeviceRef
+	//! If deployment target is 0x601 (win vista) or greater, uses \a LineInWasapi, else returns an empty \a LineInRef
 	LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
 	MixerNodeRef	createMixer( const Node::Format &format = Node::Format() ) override;
 
@@ -190,14 +184,11 @@ class ContextXAudio : public Context {
 	//! ContextXAudio's \a RootNode is always an instance of LineOutXAudio
 	virtual RootNodeRef getRoot() override;
 
+	//! Returns a pointer to the \a IXAudio2 instance associated with this context.
 	IXAudio2* getXAudio();
 
   private:
-
-	void initNode( NodeRef node );
-	void uninitNode( NodeRef node );
-	void setContext( NodeRef node );
-	void initEffects( NodeRef node );
+	//void initEffects( const NodeRef &node );
 };
 
 } } } // namespace cinder::audio2::msw

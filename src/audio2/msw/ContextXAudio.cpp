@@ -73,7 +73,7 @@ NodeXAudio::~NodeXAudio()
 {
 }
 
-XAudioVoice NodeXAudio::getXAudioVoice( NodeRef node )
+XAudioVoice NodeXAudio::getXAudioVoice( const NodeRef &node )
 {
 	CI_ASSERT( ! node->getInputs().empty() );
 	NodeRef source = node->getInputs().front();
@@ -177,9 +177,6 @@ void SourceVoiceXAudio::initialize()
 	HRESULT hr = xaudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
 	mVoiceCallback->setInputVoice( mSourceVoice );
-
-	mInitialized = true;
-	LOG_V << "complete." << endl;
 }
 
 void SourceVoiceXAudio::uninitialize()
@@ -244,10 +241,18 @@ EffectXAudioXapo::EffectXAudioXapo( XapoType type, const Format &format )
 		case XapoType::FXMasteringLimiter:	makeXapo( __uuidof( ::FXMasteringLimiter ) ); break;
 		case XapoType::FXReverb:			makeXapo( __uuidof( ::FXReverb ) ); break;
 	}
+
+	mEffectDesc.InitialState = true;
+	mEffectDesc.pEffect = mXapo.get();
 }
 
 EffectXAudioXapo::~EffectXAudioXapo()
 {
+}
+
+void EffectXAudioXapo::initialize()
+{
+	mEffectDesc.OutputChannels = getNumChannels();
 }
 
 void EffectXAudioXapo::makeXapo( REFCLSID clsid )
@@ -258,25 +263,22 @@ void EffectXAudioXapo::makeXapo( REFCLSID clsid )
 	mXapo = msw::makeComUnique( xapo );
 }
 
-void EffectXAudioXapo::initialize()
+void EffectXAudioXapo::attachToXAudioVoice()
 {
-	::XAUDIO2_EFFECT_DESCRIPTOR effectDesc;
-	//effectDesc.InitialState = mEnabled = true; // TODO: add enabled / running param for all Nodes.
-	effectDesc.InitialState = true;
-	effectDesc.pEffect = mXapo.get();
-	effectDesc.OutputChannels = getNumChannels();
+	CI_ASSERT( mInitialized );
 
 	XAudioVoice v = getXAudioVoice( shared_from_this() );
 	auto &effects = v.node->getEffectsDescriptors();
 	mChainIndex = effects.size();
-	effects.push_back( effectDesc );
+	effects.push_back( mEffectDesc );
 
-	mInitialized = true;
-	LOG_V << "complete. effect index: " << mChainIndex << endl;
-}
+	::XAUDIO2_EFFECT_CHAIN effectsChain;
+	effectsChain.EffectCount = effects.size();
+	effectsChain.pEffectDescriptors = v.node->getEffectsDescriptors().data();
 
-void EffectXAudioXapo::uninitialize()
-{
+	LOG_V << "SetEffectChain, p: " << (void*)v.node << ", count: " << effectsChain.EffectCount << endl;
+	HRESULT hr = v.voice->SetEffectChain( &effectsChain );
+	CI_ASSERT( hr == S_OK );
 }
 
 void EffectXAudioXapo::getParams( void *params, size_t sizeParams )
@@ -358,11 +360,6 @@ ContextXAudio::~ContextXAudio()
 {
 }
 
-ContextRef ContextXAudio::createContext()
-{
-	return ContextRef( new ContextXAudio() );
-}
-
 LineOutNodeRef ContextXAudio::createLineOut( DeviceRef device, const Node::Format &format )
 {
 	return makeNode( new LineOutXAudio( device, format ) );
@@ -404,22 +401,10 @@ RootNodeRef ContextXAudio::getRoot()
 //	mInitialized = true;
 //	LOG_V << "graph initialize complete. output channels: " << getRoot()->getNumChannels() << endl;
 //}
-//
-//void ContextXAudio::initNode( NodeRef node )
-//{
-//	if( ! node )
-//		return;
-//
-//	// recurse through inputs
-//	for( NodeRef& inputNode : node->getInputs() )
-//		initNode( inputNode );
-//
-//	node->initialize();
-//}
 
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
 {
-	// recurse through inputs
+	// recurse through inputs (this is only called when an input is set, not out)
 	for( size_t i = 0; i < node->getInputs().size(); i++ ) {
 		NodeRef input = node->getInputs()[i];
 		if( ! input )
@@ -454,53 +439,39 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					sourceVoice->setInput( input );
 				}
 			}
+			continue;
 		}
+		
+		shared_ptr<EffectXAudioXapo> xapo = dynamic_pointer_cast<EffectXAudioXapo>( input );
+		if( xapo )
+			xapo->attachToXAudioVoice();
 	}
 }
-
-//void ContextXAudio::uninitialize()
-//{
-//	if( ! mInitialized )
-//		return;
-//
-//	stop();
-//	uninitNode( mRoot );
-//}
-//
-//void ContextXAudio::uninitNode( NodeRef node )
-//{
-//	if( ! node )
-//		return;
-//	for( auto &source : node->getInputs() )
-//		uninitNode( source );
-//
-//	node->uninitialize();
-//}
 
 // It appears IXAudio2Voice::SetEffectChain should only be called once - i.e. setting the chain
 // with length 1 and then again setting it with length 2 causes the engine to go down when the 
 // dsp loop starts.  To overcome this, initEffects recursively looks for all XAudioNode's that 
 // have effects attatched to them (during the first graph traversal) and sets the chain just once.
-void ContextXAudio::initEffects( NodeRef node )
-{
-	if( ! node )
-		return;
-	for( NodeRef& node : node->getInputs() )
-		initEffects( node );
-
-	auto nodeXAudio = dynamic_pointer_cast<NodeXAudio>( node ); // TODO: replace with static method check
-	if( nodeXAudio && ! nodeXAudio->getEffectsDescriptors().empty() ) {
-		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
-		CI_ASSERT( v.node == nodeXAudio.get() );
-		::XAUDIO2_EFFECT_CHAIN effectsChain;
-		effectsChain.EffectCount = nodeXAudio->getEffectsDescriptors().size();
-		effectsChain.pEffectDescriptors = nodeXAudio->getEffectsDescriptors().data();
-
-		LOG_V << "SetEffectChain, p: " << (void*)nodeXAudio.get() << ", count: " << effectsChain.EffectCount << endl;
-		HRESULT hr = v.voice->SetEffectChain( &effectsChain );
-		CI_ASSERT( hr == S_OK );
-	}
-}
+//void ContextXAudio::initEffects( const NodeRef &node )
+//{
+//	if( ! node )
+//		return;
+//	for( NodeRef& node : node->getInputs() )
+//		initEffects( node );
+//
+//	auto nodeXAudio = dynamic_pointer_cast<NodeXAudio>( node );
+//	if( nodeXAudio && ! nodeXAudio->getEffectsDescriptors().empty() ) {
+//		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
+//		CI_ASSERT( v.node == nodeXAudio.get() );
+//		::XAUDIO2_EFFECT_CHAIN effectsChain;
+//		effectsChain.EffectCount = nodeXAudio->getEffectsDescriptors().size();
+//		effectsChain.pEffectDescriptors = nodeXAudio->getEffectsDescriptors().data();
+//
+//		LOG_V << "SetEffectChain, p: " << (void*)nodeXAudio.get() << ", count: " << effectsChain.EffectCount << endl;
+//		HRESULT hr = v.voice->SetEffectChain( &effectsChain );
+//		CI_ASSERT( hr == S_OK );
+//	}
+//}
 
 IXAudio2* ContextXAudio::getXAudio()
 {

@@ -11,6 +11,8 @@
 
 #include "Gui.h"
 
+// FIXME: first test working post dynamic initialize, but not the rest
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -29,6 +31,10 @@ public:
 	void setupFilterThenDelay();
 	void setupNativeThenGeneric();
 
+	void initEQParams();
+	void initDelayParams();
+	void initFilterParams();
+
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
@@ -39,7 +45,7 @@ public:
 	ContextRef mContext;
 
 	NodeRef mSource;
-	shared_ptr<EffectXAudioXapo> mEffect, mEffect2;
+	shared_ptr<EffectXAudioXapo> mEQ, mEcho;
 	FXEQ_PARAMETERS mEQParams;
 	FXECHO_PARAMETERS mEchoParams;
 
@@ -49,12 +55,12 @@ public:
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton;
 	VSelector mTestSelector;
-	HSlider mLowpassCutoffSlider, mEchoDelaySlider;
+	HSlider mLowpassCutoffSlider, mDelaySlider;
 };
 
 void EffectXAudioTestApp::setup()
 {
-	mContext = Context::instance()->createContext();
+	mContext = Context::create();
 
 	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 	noise->getUGen().setAmp( 0.25f );
@@ -65,44 +71,18 @@ void EffectXAudioTestApp::setup()
 	setupOne();
 	setupUI();
 
-	if( mEffect ) {
-		mEffect->getParams( &mEQParams );
-
-		// reset so it's like a lowpass
-		mEQParams.Gain0 = FXEQ_MAX_GAIN;
-		mEQParams.Gain1 = FXEQ_MIN_GAIN;
-		mEQParams.Gain2 = FXEQ_MIN_GAIN;
-		mEQParams.Gain3 = FXEQ_MIN_GAIN;
-
-		mEffect->setParams( mEQParams );
-
-		mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
-	}
-
-	if( mEffect2 ) {
-		mEffect2->getParams( &mEchoParams );
-		mEchoDelaySlider.set( mEchoParams.Delay );
-	}
-
-	if( mFilterEffect ) {
-		mFilterEffect->getParams( &mFilterParams );
-		mFilterParams.Type = LowPassFilter;
-		mFilterEffect->setParams( mFilterParams );
-
-		float cutoff = XAudio2FrequencyRatioToSemitones( mFilterParams.Frequency );
-		mLowpassCutoffSlider.set( cutoff );
-	}
-
 	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 }
 
 void EffectXAudioTestApp::setupOne()
 {
-	mEffect =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
-	//mEffect->getFormat().setNumChannels( 2 ); // force effect to be stereo
+	mEQ =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
 
-	mSource->connect( mEffect )->connect( mContext->getRoot() );
+	mSource->connect( mEQ )->connect( mContext->getRoot() );
+
+	// init params after connecting
+	initEQParams();
 }
 
 void EffectXAudioTestApp::setupTwo()
@@ -110,35 +90,84 @@ void EffectXAudioTestApp::setupTwo()
 	Node::Format format;
 	//format.channels( 2 ); // force stereo
 
-	mEffect = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ, format ) );
-	mEffect2 = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
+	mEQ = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ, format ) );
+	mEcho = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
 
-	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
+	mSource->connect( mEQ )->connect( mEcho )->connect( mContext->getRoot() );
+
+	initEQParams();
+	initDelayParams();
 }
 
 void EffectXAudioTestApp::setupFilter()
 {
 	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
 
+
 	mSource->connect( mFilterEffect )->connect( mContext->getRoot() );
+
+	initFilterParams();
 }
 
 void EffectXAudioTestApp::setupFilterThenDelay()
 {
 	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
-	mEffect2 =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
+	mEcho =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
 
-	mSource->connect( mFilterEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
+	mSource->connect( mFilterEffect )->connect( mEcho )->connect( mContext->getRoot() );
+
+	initFilterParams();
+	initDelayParams();
 }
 
 void EffectXAudioTestApp::setupNativeThenGeneric()
 {
 	// TODO: catch exception
 
-	mEffect = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
+	mEQ = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
 	auto ringMod =  mContext->makeNode( new RingMod() );
 
-	mSource->connect( mEffect )->connect( ringMod )->connect( mContext->getRoot() );
+	mSource->connect( mEQ )->connect( ringMod )->connect( mContext->getRoot() );
+}
+
+void EffectXAudioTestApp::initEQParams()
+{
+	if( ! mEQ )
+		return;
+
+	mEQ->getParams( &mEQParams );
+
+	// reset so it's like a lowpass
+	mEQParams.Gain0 = FXEQ_MAX_GAIN;
+	mEQParams.Gain1 = FXEQ_MIN_GAIN;
+	mEQParams.Gain2 = FXEQ_MIN_GAIN;
+	mEQParams.Gain3 = FXEQ_MIN_GAIN;
+
+	mEQ->setParams( mEQParams );
+
+	mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
+}
+
+void EffectXAudioTestApp::initDelayParams()
+{
+	if( ! mEcho )
+		return;
+
+	mEcho->getParams( &mEchoParams );
+	mDelaySlider.set( mEchoParams.Delay );
+}
+
+void EffectXAudioTestApp::initFilterParams()
+{
+	if( ! mFilterEffect )
+		return;
+
+	mFilterEffect->getParams( &mFilterParams );
+	mFilterParams.Type = LowPassFilter;
+	mFilterEffect->setParams( mFilterParams );
+
+	float cutoff = XAudio2FrequencyRatioToSemitones( mFilterParams.Frequency );
+	mLowpassCutoffSlider.set( cutoff );
 }
 
 void EffectXAudioTestApp::setupUI()
@@ -163,11 +192,11 @@ void EffectXAudioTestApp::setupUI()
 	mWidgets.push_back( &mLowpassCutoffSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mEchoDelaySlider.mBounds = sliderRect;
-	mEchoDelaySlider.mTitle = "Echo Delay";
-	mEchoDelaySlider.mMin = 1.0f;
-	mEchoDelaySlider.mMax = 2000.0f;
-	mWidgets.push_back( &mEchoDelaySlider );
+	mDelaySlider.mBounds = sliderRect;
+	mDelaySlider.mTitle = "Echo Delay";
+	mDelaySlider.mMin = 1.0f;
+	mDelaySlider.mMax = 2000.0f;
+	mWidgets.push_back( &mDelaySlider );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -186,13 +215,18 @@ void EffectXAudioTestApp::updateLowpass()
 		mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.mValueScaled, mContext->getSampleRate() );
 		mFilterEffect->setParams( mFilterParams );
 	}
+	else if( mEQ ) {
+		// TEMP: eq is used instead of reverb because sound source is constant
+		mEQParams.FrequencyCenter0 = mLowpassCutoffSlider.mValueScaled;
+		mEQ->setParams( mEQParams );
+	}
 }
 
 void EffectXAudioTestApp::updateEcho()
 {
-	if( mEffect2 ) {
-		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mEchoDelaySlider.mValueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
-		mEffect2->setParams( mEchoParams );
+	if( mEcho ) {
+		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mDelaySlider.mValueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
+		mEcho->setParams( mEchoParams );
 	}
 }
 
@@ -201,7 +235,7 @@ void EffectXAudioTestApp::processDrag( Vec2i pos )
 	if( mLowpassCutoffSlider.hitTest( pos ) )
 		updateLowpass();
 	
-	if( mEchoDelaySlider.hitTest( pos ) )
+	if( mDelaySlider.hitTest( pos ) )
 		updateEcho();
 }
 
