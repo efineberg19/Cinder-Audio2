@@ -76,7 +76,6 @@ void EffectsAudioUnitTestApp::setup()
 	setupUI();
 	initParams();
 
-	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 }
 

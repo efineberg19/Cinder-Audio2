@@ -69,7 +69,6 @@ void FileNodeTestApp::setup()
 	mContext->start();
 	mEnableGraphButton.setEnabled( true );
 
-	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 }
 

@@ -61,7 +61,6 @@ void EffectNodeTestApp::setup()
 
 	setupUI();
 
-	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 }
 

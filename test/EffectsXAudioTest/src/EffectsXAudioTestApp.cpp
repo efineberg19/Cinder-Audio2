@@ -71,7 +71,7 @@ void EffectXAudioTestApp::setup()
 	setupOne();
 	setupUI();
 
-	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
+	setupUI();
 	printGraph( mContext );
 }
 

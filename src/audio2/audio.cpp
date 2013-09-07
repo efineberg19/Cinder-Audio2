@@ -58,6 +58,7 @@ namespace {
 
 void printGraph( ContextRef graph )
 {
+	app::console() << "-------------- Graph configuration: --------------" << endl;
 	printRecursive( graph->getRoot(), 0 );
 }
 

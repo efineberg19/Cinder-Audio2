@@ -101,7 +101,6 @@ void SpectrumTapTestApp::setup()
 	mApplyWindowButton.setEnabled( mSpectrumTap->isWindowingEnabled() );
 	mScaleDecibelsButton.setEnabled( mSpectrumPlot.getScaleDecibels() );
 
-	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 }
 

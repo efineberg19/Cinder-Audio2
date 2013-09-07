@@ -96,7 +96,6 @@ void NodeTestApp::setup()
 
 	setupUI();
 
-	LOG_V << "------------------------- Graph configuration: -------------------------" << endl;
 	printGraph( mContext );
 }
 
