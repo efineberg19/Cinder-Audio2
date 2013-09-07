@@ -164,16 +164,17 @@ private:
 
 // TODO: this seems safe to rename to OutputNode now.
 // - is this confusing when there is Node::getOutputs() ?
+// - leaning towards TargetNode + SourceNode at the moment (or, as afb would have it, NodeTarget + NodeSource)
 class RootNode : public Node {
 public:
 	RootNode( const Format &format = Format() ) : Node( format ) {}
 	virtual ~RootNode() {}
 
-	// TODO: need to decide where user sets the samplerate / blocksize - on RootNode or Context?
-	// - this is still needed to determine a default
-	// - also RootNode has to agree with the samplerate - be it output out, file out, whatever
 	virtual size_t getSampleRate() = 0;
 	virtual size_t getFramesPerBlock() = 0;
+
+	//! Returns the total number of frames that have already been processed in the dsp loop.
+	virtual size_t getElapsedFrames() = 0;
 
 private:
 	// RootNode does not have outputs
@@ -190,8 +191,8 @@ public:
 
 	virtual DeviceRef getDevice() = 0;
 
-	size_t getSampleRate()			{ return getDevice()->getSampleRate(); }
-	size_t getFramesPerBlock()	{ return getDevice()->getFramesPerBlock(); }
+	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
+	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
 
 protected:
 };

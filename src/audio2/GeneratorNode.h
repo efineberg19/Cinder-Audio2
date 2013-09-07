@@ -60,7 +60,12 @@ public:
 
 	std::string virtual getTag() override			{ return "LineInNode"; }
 
+	//! Returns the associated \a Device.
 	virtual DeviceRef getDevice() = 0;
+	//! Returns the frame of the last buffer underrun or 0 if none since the last time this method was called.
+	virtual uint64_t getLastUnderrun() = 0;
+	//! Returns the frame of the last buffer overrun or 0 if none since the last time this method was called.
+	virtual uint64_t getLastOverrun() = 0;
 };
 
 //! \brief Base Node class for recorded audio playback

@@ -109,7 +109,7 @@ NodeAudioUnit::~NodeAudioUnit()
 // ----------------------------------------------------------------------------------------------------
 
 LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
-: LineOutNode( device, format )
+: LineOutNode( device, format ), mElapsedFrames( 0 )
 {
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
@@ -181,11 +181,13 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	lock_guard<mutex> lock( ctx->context->getMutex() );
 
 	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( ctx->node );
-	lineOut->mInternalBuffer.zero(); // TODO: this might not be necessary, since it is done in process (sometimes)
+	lineOut->mInternalBuffer.zero();
 
 	ctx->context->setCurrentTimeStamp( timeStamp );
 	ctx->node->pullInputs( &lineOut->mInternalBuffer );
 	copyToBufferList( bufferList, &lineOut->mInternalBuffer );
+
+	lineOut->mElapsedFrames += lineOut->getFramesPerBlock();
 
 	checkBufferListNotClipping( bufferList, numFrames );
 	return noErr;
@@ -299,14 +301,25 @@ DeviceRef LineInAudioUnit::getDevice()
 	return std::static_pointer_cast<Device>( mDevice );
 }
 
+uint64_t LineInAudioUnit::getLastUnderrun()
+{
+	uint64_t result = mLastUnderrun;
+	mLastUnderrun = 0;
+	return result;
+}
+
+uint64_t LineInAudioUnit::getLastOverrun()
+{
+	uint64_t result = mLastOverrun;
+	mLastOverrun = 0;
+	return result;
+}
+
 ::AudioUnit LineInAudioUnit::getAudioUnit() const
 {
 	return mDevice->getComponentInstance();
 }
 
-// TODO: do away with background thread logging
-// - the right thing to do here is store an underrun framestamp
-// - retrieved by getting Context::getCurrentFrame(), UI can get last one in update() loop
 void LineInAudioUnit::process( Buffer *buffer )
 {
 	if( mSynchroniousIO ) {
@@ -323,12 +336,12 @@ void LineInAudioUnit::process( Buffer *buffer )
 		return;
 	}
 
-	// copy from async ringbuffer
+	// copy from ringbuffer
 	size_t numFrames = buffer->getNumFrames();
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
 		size_t count = mRingBuffer->read( buffer->getChannel( ch ), numFrames );
-		if( count != numFrames )
-			LOG_V << " Warning, unexpected read count: " << count << ", expected: " << numFrames << " (ch = " << ch << ")" << endl;
+		if( count < numFrames )
+			mLastUnderrun = getContext()->getElapsedFrames();
 	}
 }
 
