@@ -34,23 +34,13 @@ namespace cinder { namespace audio2 { namespace msw {
 class SourceVoiceXAudio;
 class NodeXAudio;
 
-struct XAudioVoice {
-	XAudioVoice() : voice( nullptr ), node( nullptr )	{}
-	XAudioVoice( ::IXAudio2Voice *voice, NodeXAudio *parent ) : voice( voice ), node( parent ) {}
-	::IXAudio2Voice *voice;
-	NodeXAudio *node;
-};
-
 class NodeXAudio {
   public:
 	NodeXAudio() : mFilterEnabled( false ), mFilterConnected( false ) {}
 	virtual ~NodeXAudio();
 
-	// Subclasses override these methods to return their \a XAudioVoice if they have one.
-	virtual XAudioVoice getXAudioVoice( const NodeRef &node );
-
-	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
-
+	// TODO: get rid of these, just always have filters or not
+	// - to disable, add settable flag to context
 	void setFilterEnabled( bool b = true )	{ mFilterEnabled = b; }
 	bool isFilterEnabled() const			{ return mFilterEnabled; }
 	void setFilterConnected( bool b = true )	{ mFilterConnected = b; }
@@ -98,10 +88,16 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
-	XAudioVoice		getXAudioVoice( const NodeRef &node ) override			{ return XAudioVoice( static_cast<::IXAudio2Voice *>( mSourceVoice ), this ); }
+	//! Returns the native \a IXAudio2SourceVoice maintained by the \a Node.
+	IXAudio2SourceVoice* getNative()	{ return mSourceVoice; }
+
+	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
 
   private:
 	SourceVoiceXAudio();
+
+	void initSourceVoice();
+	void uninitSourceVoice();
 
 	void submitNextBuffer();
 
@@ -112,6 +108,7 @@ class SourceVoiceXAudio : public Node, public NodeXAudio {
 	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
 
 	friend class ContextXAudio;
+	friend class EffectXAudioXapo;
 };
 
 class EffectXAudioXapo : public EffectNode, public NodeXAudio {
@@ -139,7 +136,7 @@ private:
 	void setParams( const void *params, size_t sizeParams );
 
 	void makeXapo( REFCLSID clsid );
-	void attachToXAudioVoice();
+	void notifyConnected();
 
 	std::unique_ptr<::IUnknown, msw::ComReleaser>	mXapo;
 	XapoType										mType;
@@ -149,6 +146,7 @@ private:
 	friend class ContextXAudio;
 };
 
+//! \note Due to XAudio2 limitations, only one EffectXAudioFilter can be attached in series. Connecting another will simply overwrite the first and you will only hear the second filter.
 class EffectXAudioFilter : public EffectNode, public NodeXAudio {
 public:
 
@@ -161,10 +159,7 @@ public:
 	void uninitialize() override;
 
 	void getParams( ::XAUDIO2_FILTER_PARAMETERS *params );
-	void setParams( const ::XAUDIO2_FILTER_PARAMETERS &params ); // TODO: ask AFB if this shoul be * of &
-
-private:
-
+	void setParams( const ::XAUDIO2_FILTER_PARAMETERS &params );
 };
 
 class ContextXAudio : public Context {
@@ -185,7 +180,6 @@ class ContextXAudio : public Context {
 	IXAudio2* getXAudio();
 
   private:
-	//void initEffects( const NodeRef &node );
 };
 
 } } } // namespace cinder::audio2::msw

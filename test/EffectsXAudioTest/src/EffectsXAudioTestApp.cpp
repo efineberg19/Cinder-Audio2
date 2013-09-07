@@ -65,11 +65,10 @@ void EffectXAudioTestApp::setup()
 	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
 	noise->getUGen().setAmp( 0.25f );
 	noise->setAutoEnabled();
-	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
 	setupOne();
-	setupUI();
+	//setupTwo();
 
 	setupUI();
 	printGraph( mContext );
@@ -77,6 +76,7 @@ void EffectXAudioTestApp::setup()
 
 void EffectXAudioTestApp::setupOne()
 {
+	mFilterEffect.reset();
 	mEQ =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
 
 	mSource->connect( mEQ )->connect( mContext->getRoot() );
@@ -87,6 +87,8 @@ void EffectXAudioTestApp::setupOne()
 
 void EffectXAudioTestApp::setupTwo()
 {
+	mFilterEffect.reset();
+
 	Node::Format format;
 	//format.channels( 2 ); // force stereo
 
@@ -125,7 +127,7 @@ void EffectXAudioTestApp::setupNativeThenGeneric()
 	// TODO: catch exception
 
 	mEQ = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
-	auto ringMod =  mContext->makeNode( new RingMod() );
+	auto ringMod = mContext->makeNode( new RingMod() );
 
 	mSource->connect( mEQ )->connect( ringMod )->connect( mContext->getRoot() );
 }

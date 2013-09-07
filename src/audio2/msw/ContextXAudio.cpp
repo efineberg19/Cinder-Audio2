@@ -73,18 +73,6 @@ NodeXAudio::~NodeXAudio()
 {
 }
 
-XAudioVoice NodeXAudio::getXAudioVoice( const NodeRef &node )
-{
-	CI_ASSERT( ! node->getInputs().empty() );
-	NodeRef source = node->getInputs().front();
-
-	auto sourceXAudio = dynamic_pointer_cast<NodeXAudio>( source );
-	if( sourceXAudio )
-		return sourceXAudio->getXAudioVoice( source );
-
-	return getXAudioVoice( source );
-}
-
 // ----------------------------------------------------------------------------------------------------
 // MARK: - LineOutXAudio
 // ----------------------------------------------------------------------------------------------------
@@ -146,7 +134,6 @@ SourceVoiceXAudio::SourceVoiceXAudio()
 
 SourceVoiceXAudio::~SourceVoiceXAudio()
 {
-
 }
 
 void SourceVoiceXAudio::initialize()
@@ -170,6 +157,16 @@ void SourceVoiceXAudio::initialize()
 		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mInternalBuffer.getData() );
 	}
 
+	initSourceVoice();
+}
+
+void SourceVoiceXAudio::uninitialize()
+{
+	uninitSourceVoice();
+}
+
+void SourceVoiceXAudio::initSourceVoice()
+{
 	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), getContext()->getSampleRate() );
 
 	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
@@ -179,7 +176,7 @@ void SourceVoiceXAudio::initialize()
 	mVoiceCallback->setInputVoice( mSourceVoice );
 }
 
-void SourceVoiceXAudio::uninitialize()
+void SourceVoiceXAudio::uninitSourceVoice()
 {
 	if( mSourceVoice ) {
 		mSourceVoice->DestroyVoice();
@@ -263,21 +260,29 @@ void EffectXAudioXapo::makeXapo( REFCLSID clsid )
 	mXapo = msw::makeComUnique( xapo );
 }
 
-void EffectXAudioXapo::attachToXAudioVoice()
+void EffectXAudioXapo::notifyConnected()
 {
 	CI_ASSERT( mInitialized );
 
-	XAudioVoice v = getXAudioVoice( shared_from_this() );
-	auto &effects = v.node->getEffectsDescriptors();
+	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	auto &effects = sourceVoice->getEffectsDescriptors();
 	mChainIndex = effects.size();
+	if( mChainIndex > 0 ) {
+		// An effect has already been connected and thereby SetEffectsChain has already been called.
+		// As it seems this can only be called once for the lifetime of an IXAUdio2SourceVoice, we re-init
+		LOG_V << "sourceVoice re-init, mChainIndex: " << mChainIndex << endl;
+		sourceVoice->uninitSourceVoice();
+		sourceVoice->initSourceVoice();
+	}
+
 	effects.push_back( mEffectDesc );
 
 	::XAUDIO2_EFFECT_CHAIN effectsChain;
 	effectsChain.EffectCount = effects.size();
-	effectsChain.pEffectDescriptors = v.node->getEffectsDescriptors().data();
+	effectsChain.pEffectDescriptors = effects.data();
 
-	LOG_V << "SetEffectChain, p: " << (void*)v.node << ", count: " << effectsChain.EffectCount << endl;
-	HRESULT hr = v.voice->SetEffectChain( &effectsChain );
+	LOG_V << "SetEffectChain, p: " << (void*)sourceVoice->getNative() << ", count: " << effectsChain.EffectCount << endl;
+	HRESULT hr = sourceVoice->getNative()->SetEffectChain( &effectsChain );
 	CI_ASSERT( hr == S_OK );
 }
 
@@ -286,8 +291,8 @@ void EffectXAudioXapo::getParams( void *params, size_t sizeParams )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	XAudioVoice v = getXAudioVoice( shared_from_this() );
-	HRESULT hr = v.voice->GetEffectParameters( mChainIndex, params, sizeParams );
+	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	HRESULT hr = sourceVoice->getNative()->GetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
 
@@ -296,8 +301,8 @@ void EffectXAudioXapo::setParams( const void *params, size_t sizeParams )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	XAudioVoice v = getXAudioVoice( shared_from_this() );
-	HRESULT hr = v.voice->SetEffectParameters( mChainIndex, params, sizeParams );
+	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	HRESULT hr =  sourceVoice->getNative()->SetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
 
@@ -317,14 +322,6 @@ EffectXAudioFilter::~EffectXAudioFilter()
 
 void EffectXAudioFilter::initialize()
 {
-	XAudioVoice v = getXAudioVoice( shared_from_this() );
-
-	if( v.node->isFilterConnected() )
-		throw AudioContextExc( "source voice already has a filter connected." );
-	v.node->setFilterConnected();
-
-	mInitialized = true;
-	LOG_V << "complete." << endl;
 }
 
 void EffectXAudioFilter::uninitialize()
@@ -336,9 +333,8 @@ void EffectXAudioFilter::getParams( ::XAUDIO2_FILTER_PARAMETERS *params )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	XAudioVoice v = getXAudioVoice( shared_from_this() );
-
-	v.voice->GetFilterParameters( params );
+	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	sourceVoice->getNative()->GetFilterParameters( params );
 }
 
 void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
@@ -346,9 +342,8 @@ void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	XAudioVoice v = getXAudioVoice( shared_from_this() );
-
-	HRESULT hr = v.voice->SetFilterParameters( &params );
+	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	HRESULT hr = sourceVoice->getNative()->SetFilterParameters( &params );
 	CI_ASSERT( hr == S_OK );
 }
 
@@ -385,22 +380,6 @@ RootNodeRef ContextXAudio::getRoot()
 	}
 	return mRoot;
 }
-
-//void ContextXAudio::initialize()
-//{
-//	if( mInitialized )
-//		return;
-//	CI_ASSERT( mRoot );
-//
-//	//mSampleRate = mRoot->getSampleRate();
-//	//mNumFramesPerBlock = mRoot->getNumFramesPerBlock();
-//
-//	initNode( mRoot );
-//	initEffects( mRoot->getInputs().front() );
-//
-//	mInitialized = true;
-//	LOG_V << "graph initialize complete. output channels: " << getRoot()->getNumChannels() << endl;
-//}
 
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
 {
@@ -444,34 +423,9 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 		
 		shared_ptr<EffectXAudioXapo> xapo = dynamic_pointer_cast<EffectXAudioXapo>( input );
 		if( xapo )
-			xapo->attachToXAudioVoice();
+			xapo->notifyConnected();
 	}
 }
-
-// It appears IXAudio2Voice::SetEffectChain should only be called once - i.e. setting the chain
-// with length 1 and then again setting it with length 2 causes the engine to go down when the 
-// dsp loop starts.  To overcome this, initEffects recursively looks for all XAudioNode's that 
-// have effects attatched to them (during the first graph traversal) and sets the chain just once.
-//void ContextXAudio::initEffects( const NodeRef &node )
-//{
-//	if( ! node )
-//		return;
-//	for( NodeRef& node : node->getInputs() )
-//		initEffects( node );
-//
-//	auto nodeXAudio = dynamic_pointer_cast<NodeXAudio>( node );
-//	if( nodeXAudio && ! nodeXAudio->getEffectsDescriptors().empty() ) {
-//		XAudioVoice v = nodeXAudio->getXAudioVoice( node );
-//		CI_ASSERT( v.node == nodeXAudio.get() );
-//		::XAUDIO2_EFFECT_CHAIN effectsChain;
-//		effectsChain.EffectCount = nodeXAudio->getEffectsDescriptors().size();
-//		effectsChain.pEffectDescriptors = nodeXAudio->getEffectsDescriptors().data();
-//
-//		LOG_V << "SetEffectChain, p: " << (void*)nodeXAudio.get() << ", count: " << effectsChain.EffectCount << endl;
-//		HRESULT hr = v.voice->SetEffectChain( &effectsChain );
-//		CI_ASSERT( hr == S_OK );
-//	}
-//}
 
 IXAudio2* ContextXAudio::getXAudio()
 {
