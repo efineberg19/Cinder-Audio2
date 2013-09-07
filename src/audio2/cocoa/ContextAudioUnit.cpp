@@ -243,7 +243,7 @@ void LineInAudioUnit::initialize()
 		// output node is expected to initialize device, since it is pulling to here.
 		mSynchroniousIO = true;
 
-		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getNumFramesPerBlock() );
+		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
 
 
 		// TODO: move to NodeAudioUnit method
@@ -254,8 +254,8 @@ void LineInAudioUnit::initialize()
 	else {
 		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
 
-		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getNumFramesPerBlock() * getNumChannels() ) );
-		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getNumFramesPerBlock() );
+		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
+		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
 
 		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
 		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::INPUT, &callbackStruct, sizeof( callbackStruct ) );
@@ -306,7 +306,7 @@ DeviceRef LineInAudioUnit::getDevice()
 
 // TODO: do away with background thread logging
 // - the right thing to do here is store an underrun framestamp
-// - retrieved by getting Context::getCurrentSampleFrame(), UI can get last one in update() loop
+// - retrieved by getting Context::getCurrentFrame(), UI can get last one in update() loop
 void LineInAudioUnit::process( Buffer *buffer )
 {
 	if( mSynchroniousIO ) {
@@ -383,7 +383,7 @@ void EffectAudioUnit::initialize()
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getNumFramesPerBlock() );
+	mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
 
 	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );

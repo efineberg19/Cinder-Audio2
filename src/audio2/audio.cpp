@@ -68,7 +68,7 @@ void printDevices()
 		app::console() << "-- " << device->getName() << " --" << endl;
 		app::console() << "\t key: " << device->getKey() << endl;
 		app::console() << "\t inputs: " << device->getNumInputChannels() << ", outputs: " << device->getNumOutputChannels() << endl;
-		app::console() << "\t samplerate: " << device->getSampleRate() << ", frames per block: " << device->getNumFramesPerBlock() << endl;
+		app::console() << "\t samplerate: " << device->getSampleRate() << ", frames per block: " << device->getFramesPerBlock() << endl;
 	}
 }
 

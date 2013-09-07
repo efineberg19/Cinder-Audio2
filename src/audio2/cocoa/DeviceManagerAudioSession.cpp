@@ -139,7 +139,7 @@ size_t DeviceManagerAudioSession::getSampleRate( const string &key )
 	return static_cast<size_t>( result );
 }
 
-size_t DeviceManagerAudioSession::getNumFramesPerBlock( const string &key )
+size_t DeviceManagerAudioSession::getFramesPerBlock( const string &key )
 {
 	Float32 durationSeconds;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareIOBufferDuration, durationSeconds );

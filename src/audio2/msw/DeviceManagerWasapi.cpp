@@ -138,7 +138,7 @@ size_t DeviceManagerWasapi::getSampleRate( const string &key )
 	return getDeviceInfo( key ).sampleRate;
 }
 
-size_t DeviceManagerWasapi::getNumFramesPerBlock( const string &key )
+size_t DeviceManagerWasapi::getFramesPerBlock( const string &key )
 {
 	// ???: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
 	// - if it doesn't need a way to tell the user they should not listen to this value,

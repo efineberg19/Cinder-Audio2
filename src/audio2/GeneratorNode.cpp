@@ -150,7 +150,7 @@ FilePlayerNode::FilePlayerNode( const SourceFileRef &sourceFile, bool isMultiThr
 	mNumFrames = mSourceFile->getNumFrames();
 	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
 
-	mFramesPerBlock = getContext()->getNumFramesPerBlock();
+	mFramesPerBlock = getContext()->getFramesPerBlock();
 }
 
 void FilePlayerNode::initialize()

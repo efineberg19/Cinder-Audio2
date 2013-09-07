@@ -75,12 +75,12 @@ void InputTestApp::setupDefaultDevices()
 	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
 	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
 	console() << "\t samplerate: " << mLineIn->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << mLineIn->getDevice()->getNumFramesPerBlock() << endl;
+	console() << "\t block size: " << mLineIn->getDevice()->getFramesPerBlock() << endl;
 
 	LOG_V << "output device name: " << mLineOut->getDevice()->getName() << endl;
 	console() << "\t channels: " << mLineOut->getDevice()->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << mLineOut->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << mLineOut->getDevice()->getNumFramesPerBlock() << endl;
+	console() << "\t block size: " << mLineOut->getDevice()->getFramesPerBlock() << endl;
 
 	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
 }
@@ -97,7 +97,7 @@ void InputTestApp::setupDedicatedDevice()
 	LOG_V << "shared device name: " << output->getDevice()->getName() << endl;
 	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << output->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << output->getDevice()->getNumFramesPerBlock() << endl;
+	console() << "\t block size: " << output->getDevice()->getFramesPerBlock() << endl;
 }
 
 void InputTestApp::setupPassThrough()

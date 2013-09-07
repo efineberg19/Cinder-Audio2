@@ -27,7 +27,7 @@ struct InterleavedPassThruNode : public Node {
 
 	virtual void initialize() override
 	{
-		mBufferInterleaved = BufferInterleaved( getContext()->getNumFramesPerBlock(), 2 );
+		mBufferInterleaved = BufferInterleaved( getContext()->getFramesPerBlock(), 2 );
 	}
 
 	void process( audio2::Buffer *buffer ) override
@@ -76,7 +76,7 @@ void NodeTestApp::setup()
 	console() << "\t input channels: " << device->getNumInputChannels() << endl;
 	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t frames per block: " << device->getNumFramesPerBlock() << endl;
+	console() << "\t frames per block: " << device->getFramesPerBlock() << endl;
 
 	mContext = Context::create();
 	mGain = mContext->makeNode( new GainNode() );

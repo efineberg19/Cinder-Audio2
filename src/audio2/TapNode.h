@@ -83,7 +83,7 @@ public:
 		Format&		fftSize( size_t size )			{ mFftSize = size; return *this; }
 		size_t		getFftSize() const				{ return mFftSize; }
 
-		//! If window size is not set, defaults to fftSize. If fftSize is not set, defaults to Context::getNumFramesPerBlock().
+		//! If window size is not set, defaults to fftSize. If fftSize is not set, defaults to Context::getFramesPerBlock().
 		Format&		windowSize( size_t size )		{ mWindowSize = size; return *this; }
 		size_t		getWindowSize() const			{ return mWindowSize; }
 

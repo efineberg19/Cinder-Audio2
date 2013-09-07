@@ -60,7 +60,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual void connectionsDidChange( const NodeRef &node ) {} 
 
 	size_t getSampleRate()					{ return getRoot()->getSampleRate(); }
-	size_t getNumFramesPerBlock()			{ return getRoot()->getNumFramesPerBlock(); }
+	size_t getFramesPerBlock()			{ return getRoot()->getFramesPerBlock(); }
 
 	std::mutex& getMutex()					{ return mMutex; }
 

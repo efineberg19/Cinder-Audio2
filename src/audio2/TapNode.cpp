@@ -109,7 +109,7 @@ SpectrumTapNode::~SpectrumTapNode()
 void SpectrumTapNode::initialize()
 {
 	if( ! mFftSize )
-		mFftSize = getContext()->getNumFramesPerBlock();
+		mFftSize = getContext()->getFramesPerBlock();
 	if( ! isPowerOf2( mFftSize ) )
 		mFftSize = nextPowerOf2( mFftSize );
 	

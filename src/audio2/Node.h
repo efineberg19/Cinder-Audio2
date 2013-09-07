@@ -173,7 +173,7 @@ public:
 	// - this is still needed to determine a default
 	// - also RootNode has to agree with the samplerate - be it output out, file out, whatever
 	virtual size_t getSampleRate() = 0;
-	virtual size_t getNumFramesPerBlock() = 0;
+	virtual size_t getFramesPerBlock() = 0;
 
 private:
 	// RootNode does not have outputs
@@ -191,7 +191,7 @@ public:
 	virtual DeviceRef getDevice() = 0;
 
 	size_t getSampleRate()			{ return getDevice()->getSampleRate(); }
-	size_t getNumFramesPerBlock()	{ return getDevice()->getNumFramesPerBlock(); }
+	size_t getFramesPerBlock()	{ return getDevice()->getFramesPerBlock(); }
 
 protected:
 };

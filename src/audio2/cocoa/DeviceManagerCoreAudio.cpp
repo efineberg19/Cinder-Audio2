@@ -113,7 +113,7 @@ size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
 	return static_cast<size_t>( result );
 }
 
-size_t DeviceManagerCoreAudio::getNumFramesPerBlock( const string &key )
+size_t DeviceManagerCoreAudio::getFramesPerBlock( const string &key )
 {
 	::AudioDeviceID deviceId = getDeviceId( key );
 	::AudioObjectPropertyAddress property = audioObjectProperty( kAudioDevicePropertyBufferFrameSize );

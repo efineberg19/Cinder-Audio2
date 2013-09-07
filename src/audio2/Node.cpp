@@ -292,7 +292,7 @@ void Node::setProcessWithSumming()
 	CI_ASSERT( getContext() );
 
 	mProcessInPlace = false;
-	size_t framesPerBlock = getContext()->getNumFramesPerBlock();
+	size_t framesPerBlock = getContext()->getFramesPerBlock();
 
 	if( mSummingBuffer.getNumChannels() == mNumChannels && mSummingBuffer.getNumFrames() == framesPerBlock )
 		return;
