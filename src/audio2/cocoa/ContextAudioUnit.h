@@ -45,7 +45,7 @@ class NodeAudioUnit {
 
   protected:
 
-	::AudioUnit			mAudioUnit; // TODO: store these in a unique_ptr with custom deleter - it should only be deleted when the node is
+	::AudioUnit			mAudioUnit;
 	::AudioUnitScope	mRenderBus;
 	Buffer*				mProcessBuffer;
 

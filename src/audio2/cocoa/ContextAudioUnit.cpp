@@ -381,7 +381,7 @@ void EffectAudioUnit::initialize()
 	comp.componentType = kAudioUnitType_Effect;
 	comp.componentSubType = mEffectSubType;
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
-	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit ); // FIXME: memory leak, this never gets disposed. make sure all in this file are.
+	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
 
 	mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getNumFramesPerBlock() );
 
@@ -394,7 +394,6 @@ void EffectAudioUnit::initialize()
 	::AURenderCallbackStruct callbackStruct = { EffectAudioUnit::renderCallback, &mRenderContext };
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
-
 
 	status = ::AudioUnitInitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
