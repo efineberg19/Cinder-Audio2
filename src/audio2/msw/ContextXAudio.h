@@ -29,9 +29,6 @@
 #include "audio2/msw/xaudio.h"
 #include "audio2/msw/util.h"
 
-// TODO: all IXAudio2Voice's should only be Destroy()'d when their containing object
-//       is destroyed - not uninitialize. Use unique_ptr's for this
-
 namespace cinder { namespace audio2 { namespace msw {
 
 class SourceVoiceXAudio;

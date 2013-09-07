@@ -59,7 +59,7 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 	void STDMETHODCALLTYPE OnVoiceProcessingPassStart( UINT32 SamplesRequired ) {}
 	void STDMETHODCALLTYPE OnBufferStart( void *pBufferContext ) {}
 	void STDMETHODCALLTYPE OnLoopEnd( void *pBufferContext ) {}
-	void STDMETHODCALLTYPE OnVoiceError( void *pBufferContext, HRESULT Error )	{ CI_ASSERT( false ); }
+	void STDMETHODCALLTYPE OnVoiceError( void *pBufferContext, HRESULT Error )	{ LOG_E << "error: " << Error << endl; }
 
 	::IXAudio2SourceVoice	*mSourceVoice;
 	function<void()>		mRenderCallback;
