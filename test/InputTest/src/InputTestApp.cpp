@@ -1,5 +1,6 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
+#include "cinder/Timeline.h"
 
 #include "audio2/Context.h"
 #include "audio2/GeneratorNode.h"
@@ -42,13 +43,13 @@ class InputTestApp : public AppNative {
 
 	VSelector mTestSelector;
 	Button mPlayButton;
+
+	Anim<float> mUnderrunFade, mOverrunFade;
+	Rectf mUnderrunRect, mOverrunRect;
 };
 
 void InputTestApp::setup()
 {
-//	LOG_V << "all devices: " << endl;
-//	printDevices();
-
 	mContext = Context::create();
 
 	setupDefaultDevices();
@@ -142,6 +143,10 @@ void InputTestApp::setupUI()
 	mTestSelector.mBounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 #endif
 
+	Vec2i xrunSize( 80, 26 );
+	mUnderrunRect = Rectf( getWindowWidth() - xrunSize.x, getWindowHeight() - xrunSize.y, getWindowWidth(), getWindowHeight() );
+	mOverrunRect = mUnderrunRect - Vec2f( xrunSize.x + 10, 0 );
+
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
 
@@ -183,6 +188,12 @@ void InputTestApp::processTap( Vec2i pos )
 
 void InputTestApp::update()
 {
+	const float xrunFadeTime = 1.3f;
+
+	if( mLineIn->getLastUnderrun() )
+		timeline().apply( &mUnderrunFade, 1.0f, 0.0f, xrunFadeTime );
+	if( mLineIn->getLastOverrun() )
+		timeline().apply( &mOverrunFade, 1.0f, 0.0f, xrunFadeTime );
 }
 
 void InputTestApp::draw()
@@ -218,6 +229,17 @@ void InputTestApp::draw()
 
 	mPlayButton.draw();
 	mTestSelector.draw();
+
+	if( mOverrunFade > 0.0001 ) {
+		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
+		gl::drawSolidRect( mOverrunRect );
+		gl::drawStringCentered( "underrun", mOverrunRect.getCenter(), Color::black() );
+	}
+	if( mUnderrunFade > 0.0001 ) {
+		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
+		gl::drawSolidRect( mUnderrunRect );
+		gl::drawStringCentered( "overrun", mUnderrunRect.getCenter(), Color::black() );
+	}
 }
 
 CINDER_APP_NATIVE( InputTestApp, RendererGl )
