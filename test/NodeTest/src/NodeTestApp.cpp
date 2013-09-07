@@ -92,7 +92,6 @@ void NodeTestApp::setup()
 	mSine = sine;
 
 	setupSine();
-	//setupInterleavedPassThru();
 
 	setupUI();
 
@@ -104,7 +103,7 @@ void NodeTestApp::setupSine()
 	mGain->disconnect();
 
 	// TODO: on msw, the 0 index for gain -> root is needed when switching between different tests,
-	// but now cocoa (check). see if this can be avoided
+	// but not cocoa (check). see if this can be avoided
 	mSine->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
 
 	mSine->start();
@@ -219,9 +218,6 @@ void NodeTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool enabled = mContext->isEnabled();
-		mContext->stop();
-
 		if( currentTest == "sine" )
 			setupSine();
 		if( currentTest == "noise (reverse)" )
@@ -231,7 +227,7 @@ void NodeTestApp::processTap( Vec2i pos )
 		if( currentTest == "interleave pass-thru" )
 			setupInterleavedPassThru();
 
-		mContext->setEnabled( enabled );
+		printGraph( mContext );
 	}
 }
 
