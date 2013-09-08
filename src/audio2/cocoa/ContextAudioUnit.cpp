@@ -30,6 +30,10 @@
 
 #include "cinder/Utilities.h"
 
+#if defined( CINDER_MAC )
+	#include "audio2/cocoa/DeviceManagerCoreAudio.h"
+#endif
+
 using namespace std;
 
 namespace cinder { namespace audio2 { namespace cocoa {
@@ -98,7 +102,7 @@ void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFr
 
 NodeAudioUnit::~NodeAudioUnit()
 {
-	if( mAudioUnit ) {
+	if( mAudioUnit && mOwnsAudioUnit ) {
 		OSStatus status = ::AudioComponentInstanceDispose( mAudioUnit );
 		CI_ASSERT( status == noErr );
 	}
@@ -113,6 +117,8 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 {
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
+
+	findAndCreateAudioComponent( mDevice->getComponentDescription(), &mAudioUnit );
 }
 
 void LineOutAudioUnit::initialize()
@@ -120,59 +126,71 @@ void LineOutAudioUnit::initialize()
 	// LineOut always needs an internal buffer to deliver to the ouput AU, so force one to be made.
 	setProcessWithSumming();
 
-	mDevice->setOutputConnected();
-
 	mRenderContext.node = this;
 	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
-	OSStatus status = ::AudioUnitSetProperty( getAudioUnit(), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceAudioUnit::Bus::OUTPUT, &asbd, sizeof( asbd ) );
+	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, DeviceBus::OUTPUT, &asbd, sizeof( asbd ) );
+	CI_ASSERT( status == noErr );
+
+	UInt32 enableOutput = 1;
+	status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, DeviceBus::OUTPUT, &enableOutput, sizeof( enableOutput ) );
 	CI_ASSERT( status == noErr );
 
 	// TODO: move to NodeAudioUnit method
 	::AURenderCallbackStruct callbackStruct { LineOutAudioUnit::renderCallback, &mRenderContext };
-	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, DeviceAudioUnit::Bus::OUTPUT, &callbackStruct, sizeof( callbackStruct ) );
+	status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, DeviceBus::OUTPUT, &callbackStruct, sizeof( callbackStruct ) );
 	CI_ASSERT( status == noErr );
 
-	mDevice->initialize();
-	mInitialized = true;
+#if defined( CINDER_MAC )
+	auto manager = dynamic_cast<DeviceManagerCoreAudio *>( DeviceManager::instance() );
+	CI_ASSERT( manager );
+
+	manager->setCurrentDevice( mDevice->getKey(), audioUnit );
+#endif
+
+	status = ::AudioUnitInitialize( mAudioUnit );
+	CI_ASSERT( status == noErr );
 }
 
 void LineOutAudioUnit::uninitialize()
 {
-	mDevice->uninitialize();
+	// TODO: move all of these to NodeAudioUnit::uninitAu()
+	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
+	CI_ASSERT( status == noErr );
 }
 
 void LineOutAudioUnit::start()
 {
-	if( mEnabled )
+	if( mEnabled || ! mInitialized )
 		return;
 
 	mEnabled = true;
-	mDevice->start();
+	OSStatus status = ::AudioOutputUnitStart( mAudioUnit );
+	CI_ASSERT( status == noErr );
+
+	LOG_V << "started." << endl;
 }
 
 void LineOutAudioUnit::stop()
 {
-	if( ! mEnabled )
+	if( ! mEnabled || ! mInitialized )
 		return;
 
 	mEnabled = false;
-	mDevice->stop();
+	OSStatus status = ::AudioOutputUnitStop( mAudioUnit );
+	CI_ASSERT( status == noErr );
+
+	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
 DeviceRef LineOutAudioUnit::getDevice()
 {
-	return std::static_pointer_cast<Device>( mDevice );
-}
-
-::AudioUnit LineOutAudioUnit::getAudioUnit() const
-{
-	return mDevice->getComponentInstance();
+	return static_pointer_cast<Device>( mDevice );
 }
 
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
@@ -197,15 +215,10 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 // MARK: - LineInAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-// FIXME: in a multi-graph situation, Path A is only pliable if device is used for both I/O in _this_ graph
-//	- this is only checking if I and O are both in use
-//	- only way I can think of to solve this is to keep a weak reference to Graph in both I and O units,
-//	  check graph->output->device in initialize to see if it's the same
-
 LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
-: LineInNode( device, format ), mSynchroniousIO( false )
+: LineInNode( device, format ), mSynchronousIO( false )
 {
-	mRenderBus = DeviceAudioUnit::Bus::INPUT; // TODO: remove, this shouldn't be necessary anymore
+//	mRenderBus = DeviceAudioUnit::Bus::INPUT; // TODO: remove from NodeAudioUnit, this shouldn't be necessary anymore
 
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
@@ -218,10 +231,6 @@ LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 
 LineInAudioUnit::~LineInAudioUnit()
 {
-	if( mAudioUnit ) {
-		OSStatus status = ::AudioComponentInstanceDispose( mAudioUnit );
-		CI_ASSERT( status == noErr );
-	}
 }
 
 void LineInAudioUnit::initialize()
@@ -232,68 +241,74 @@ void LineInAudioUnit::initialize()
 	::AudioUnit audioUnit = getAudioUnit();
 	CI_ASSERT( audioUnit );
 
-	CI_ASSERT( ! mDevice->isInputConnected() );
-	mDevice->setInputConnected();
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 
-	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
-
-	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceAudioUnit::Bus::INPUT, &asbd, sizeof( asbd ) );
+	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceBus::INPUT, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
-	if( mDevice->isOutputConnected() ) {
-		LOG_V << "Synchronous I/O." << endl;
-		// output node is expected to initialize device, since it is pulling to here.
-		mSynchroniousIO = true;
-
-		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
-
-
-		// TODO: move to NodeAudioUnit method
-		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
-		status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
-		CI_ASSERT( status == noErr );
-	}
-	else {
-		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
-
-		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
-		mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
-
-		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
-		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceAudioUnit::Bus::INPUT, &callbackStruct, sizeof( callbackStruct ) );
-		CI_ASSERT( status == noErr );
-
-		mDevice->initialize();
-	}
+//	if( mDevice->isOutputConnected() ) {
+//		LOG_V << "Synchronous I/O." << endl;
+//		// output node is expected to initialize device, since it is pulling to here.
+//		mSynchroniousIO = true;
+//
+//		mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
+//
+//
+//		// TODO: move to NodeAudioUnit method
+//		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
+//		status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+//		CI_ASSERT( status == noErr );
+//	}
+//	else {
+//		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
+//
+//		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
+//		mBufferList = createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
+//
+//		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
+//		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceBus::INPUT, &callbackStruct, sizeof( callbackStruct ) );
+//		CI_ASSERT( status == noErr );
+//
+//		mDevice->initialize();
+//	}
 }
 
+// TODO: what about when synchronous IO and this guy is requested to uninit, does associated LineOutAudioUnit need to be uninitialized too?
 void LineInAudioUnit::uninitialize()
 {
-	mDevice->uninitialize();
+	if( ! mSynchronousIO ) {
+		OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
+		CI_ASSERT( status == noErr );
+	}
 }
 
 void LineInAudioUnit::start()
 {
-	if( mEnabled )
+	if( mEnabled || ! mInitialized )
 		return;
 
-	if( ! mDevice->isOutputConnected() )
-		mDevice->start();
-
 	mEnabled = true;
-	LOG_V << "started: " << mDevice->getName() << endl;
+
+	if( ! mSynchronousIO ) {
+		OSStatus status = ::AudioOutputUnitStart( mAudioUnit );
+		CI_ASSERT( status == noErr );
+
+		LOG_V << "started." << endl;
+	}
 }
 
 void LineInAudioUnit::stop()
 {
-	if( ! mEnabled )
+	if( ! mEnabled || ! mInitialized )
 		return;
 
-	if( ! mDevice->isOutputConnected() )
-		mDevice->stop();
-
 	mEnabled = false;
-	LOG_V << "stopped: " << mDevice->getName() << endl;
+
+	if( ! mSynchronousIO ) {
+		OSStatus status = ::AudioOutputUnitStop( mAudioUnit );
+		CI_ASSERT( status == noErr );
+		LOG_V << "stopped: " << mDevice->getName() << endl;
+	}
 }
 
 DeviceRef LineInAudioUnit::getDevice()
@@ -315,33 +330,25 @@ uint64_t LineInAudioUnit::getLastOverrun()
 	return result;
 }
 
-::AudioUnit LineInAudioUnit::getAudioUnit() const
-{
-	return mDevice->getComponentInstance();
-}
-
 void LineInAudioUnit::process( Buffer *buffer )
 {
-	if( mSynchroniousIO ) {
-
+	if( mSynchronousIO ) {
 		mProcessBuffer = buffer;
-
 		::AudioUnitRenderActionFlags flags = 0;
 		const ::AudioTimeStamp *timeStamp = mRenderContext.context->getCurrentTimeStamp();
-		OSStatus status = ::AudioUnitRender( getAudioUnit(), &flags, timeStamp, DeviceAudioUnit::Bus::INPUT, (UInt32)buffer->getNumFrames(), mBufferList.get() );
+		OSStatus status = ::AudioUnitRender( mAudioUnit, &flags, timeStamp, DeviceBus::INPUT, (UInt32)buffer->getNumFrames(), mBufferList.get() );
 		CI_ASSERT( status == noErr );
 
 		copyFromBufferList( buffer, mBufferList.get() );
-
-		return;
 	}
-
-	// copy from ringbuffer
-	size_t numFrames = buffer->getNumFrames();
-	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
-		size_t count = mRingBuffer->read( buffer->getChannel( ch ), numFrames );
-		if( count < numFrames )
-			mLastUnderrun = getContext()->getElapsedFrames();
+	else {
+		// copy from ringbuffer
+		size_t numFrames = buffer->getNumFrames();
+		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
+			size_t count = mRingBuffer->read( buffer->getChannel( ch ), numFrames );
+			if( count < numFrames )
+				mLastUnderrun = getContext()->getElapsedFrames();
+		}
 	}
 }
 
@@ -362,7 +369,7 @@ OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlag
 	CI_ASSERT( lineIn->mRingBuffer );
 	
 	::AudioBufferList *nodeBufferList = lineIn->mBufferList.get();
-	OSStatus status = ::AudioUnitRender( lineIn->getAudioUnit(), flags, timeStamp, DeviceAudioUnit::Bus::INPUT, numFrames, nodeBufferList );
+	OSStatus status = ::AudioUnitRender( lineIn->getAudioUnit(), flags, timeStamp, DeviceBus::INPUT, numFrames, nodeBufferList );
 	CI_ASSERT( status == noErr );
 
 	for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {
@@ -394,11 +401,11 @@ void EffectAudioUnit::initialize()
 	comp.componentType = kAudioUnitType_Effect;
 	comp.componentSubType = mEffectSubType;
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
-	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
+	findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	mBufferList = cocoa::createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
+	mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
 
-	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 	status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
@@ -414,7 +421,6 @@ void EffectAudioUnit::initialize()
 
 void EffectAudioUnit::uninitialize()
 {
-	mInitialized = false;
 	OSStatus status = ::AudioUnitUninitialize( mAudioUnit );
 	CI_ASSERT( status == noErr );
 }
@@ -473,10 +479,10 @@ void MixerAudioUnit::initialize()
 	comp.componentSubType = kAudioUnitSubType_MultiChannelMixer;
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 
-	cocoa::findAndCreateAudioComponent( comp, &mAudioUnit );
+	findAndCreateAudioComponent( comp, &mAudioUnit );
 
 	size_t sampleRate = getContext()->getSampleRate();
-	::AudioStreamBasicDescription asbd = cocoa::createFloatAsbd( getNumChannels(), sampleRate );
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), sampleRate );
 	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
@@ -492,7 +498,7 @@ void MixerAudioUnit::initialize()
 		if( ! mInputs[bus] )
 			continue;
 
-		::AudioStreamBasicDescription busAsbd = cocoa::createFloatAsbd( mInputs[bus]->getNumChannels(), sampleRate );
+		::AudioStreamBasicDescription busAsbd = createFloatAsbd( mInputs[bus]->getNumChannels(), sampleRate );
 
 		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus, &busAsbd, sizeof( busAsbd ) );
 		CI_ASSERT( status == noErr );

@@ -38,14 +38,14 @@ class ContextAudioUnit;
 
 class NodeAudioUnit {
   public:
-	NodeAudioUnit() : mAudioUnit( nullptr ), mRenderBus( 0 )	{}
+	NodeAudioUnit() : mAudioUnit( nullptr ), mOwnsAudioUnit( true ), mRenderBus( 0 )	{}
 	virtual ~NodeAudioUnit();
 	virtual ::AudioUnit getAudioUnit() const	{ return mAudioUnit; }
 	::AudioUnitScope getRenderBus() const	{ return mRenderBus; }
 
   protected:
-
 	::AudioUnit			mAudioUnit;
+	bool				mOwnsAudioUnit;
 	::AudioUnitScope	mRenderBus;
 	Buffer*				mProcessBuffer;
 
@@ -68,7 +68,6 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 	void start() override;
 	void stop() override;
 
-	::AudioUnit getAudioUnit() const override;
 	DeviceRef getDevice() override;
 
 	size_t getElapsedFrames() override		{ return mElapsedFrames; }
@@ -100,8 +99,6 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 	uint64_t getLastUnderrun() override;
 	uint64_t getLastOverrun() override;
 
-	::AudioUnit getAudioUnit() const override;
-
   private:
 	OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
@@ -109,8 +106,9 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 	std::shared_ptr<DeviceAudioUnit>	mDevice;
 	std::unique_ptr<RingBuffer>			mRingBuffer;
 	AudioBufferListPtr					mBufferList;
-	bool								mSynchroniousIO;
 	std::atomic<uint64_t>				mLastUnderrun, mLastOverrun;
+	bool								mSynchronousIO;
+
 };
 
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used

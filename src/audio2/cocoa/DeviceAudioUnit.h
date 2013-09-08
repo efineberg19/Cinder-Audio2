@@ -30,34 +30,30 @@
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
+enum DeviceBus {
+	OUTPUT = 0,
+	INPUT = 1
+};
+
 class DeviceAudioUnit : public Device {
   public:
-	enum Bus { OUTPUT = 0, INPUT = 1 };
 
 	virtual ~DeviceAudioUnit();
 
-	void initialize() override;
-	void uninitialize() override;
+	const ::AudioComponentDescription& getComponentDescription() const	{ return mComponentDescription; }
 
-	void start() override;
-	void stop() override;
-
-	const ::AudioComponentInstance& getComponentInstance();
-
-	bool isInputConnected() const				{ return mInputConnected; }
-	bool isOutputConnected() const				{ return mOutputConnected; }
-	void setInputConnected( bool b = true )		{ mInputConnected = b; }
-	void setOutputConnected( bool b = true )	{ mOutputConnected = b; }
+//	bool isInputConnected() const				{ return mInputConnected; }
+//	bool isOutputConnected() const				{ return mOutputConnected; }
+//	void setInputConnected( bool b = true )		{ mInputConnected = b; }
+//	void setOutputConnected( bool b = true )	{ mOutputConnected = b; }
 
   private:
 
 	DeviceAudioUnit( const std::string &key, const ::AudioComponentDescription &component );
 
 	::AudioComponentDescription mComponentDescription;
-	::AudioComponentInstance	mComponentInstance;
+//	bool						mInputConnected, mOutputConnected;
 
-	bool mInputConnected, mOutputConnected;
-	
 #if defined( CINDER_MAC )
 	friend class DeviceManagerCoreAudio;
 #elif defined( CINDER_COCOA_TOUCH )

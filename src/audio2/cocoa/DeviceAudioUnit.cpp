@@ -37,86 +37,84 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // ----------------------------------------------------------------------------------------------------
 
 DeviceAudioUnit::DeviceAudioUnit( const std::string &key, const ::AudioComponentDescription &component )
-: Device( key ), mComponentDescription( component ), mComponentInstance( NULL ), mInputConnected( false ), mOutputConnected( false )
+: Device( key ), mComponentDescription( component )
 {
 }
 
 DeviceAudioUnit::~DeviceAudioUnit()
 {
-	if( mComponentInstance ) {
-		OSStatus status = ::AudioComponentInstanceDispose( mComponentInstance );
-		CI_ASSERT( status == noErr );
-	}
-
-	LOG_V << "complete." << endl;
+//	if( mComponentInstance ) {
+//		OSStatus status = ::AudioComponentInstanceDispose( mComponentInstance );
+//		CI_ASSERT( status == noErr );
+//	}
 }
 
-void DeviceAudioUnit::initialize()
-{
-	if( mInitialized ) {
-		LOG_E << "already initialized." << endl;
-		return;
-	}
+//void DeviceAudioUnit::initialize()
+//{
+//	if( mInitialized ) {
+//		LOG_E << "already initialized." << endl;
+//		return;
+//	}
+//
+//	UInt32 enableInput = static_cast<UInt32>( mInputConnected );
+//	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, Bus::INPUT, &enableInput, sizeof( enableInput ) );
+//
+//	UInt32 enableOutput = static_cast<UInt32>( mOutputConnected );
+//	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, Bus::OUTPUT, &enableOutput, sizeof( enableOutput ) );
+//
+//	DeviceManager::instance()->setActiveDevice( mKey );
+//
+//	OSStatus status = ::AudioUnitInitialize( getComponentInstance() );
+//	CI_ASSERT( status == noErr );
+//
+//	mInitialized = true;
+//	LOG_V << "complete." << endl;
+//}
 
-	UInt32 enableInput = static_cast<UInt32>( mInputConnected );
-	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, Bus::INPUT, &enableInput, sizeof( enableInput ) );
-
-	UInt32 enableOutput = static_cast<UInt32>( mOutputConnected );
-	::AudioUnitSetProperty( getComponentInstance(), kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, Bus::OUTPUT, &enableOutput, sizeof( enableOutput ) );
-
-	DeviceManager::instance()->setActiveDevice( mKey );
-
-	OSStatus status = ::AudioUnitInitialize( getComponentInstance() );
-	CI_ASSERT( status == noErr );
-
-	mInitialized = true;
-	LOG_V << "complete." << endl;
-}
-
-void DeviceAudioUnit::uninitialize()
-{
-	if( mComponentInstance ) {
-		OSStatus status = ::AudioUnitUninitialize( mComponentInstance );
-		CI_ASSERT( status == noErr );
-	}
-
-	LOG_V << "complete." << endl;
-}
-
-void DeviceAudioUnit::start()
-{
-	if( ! mInitialized || mEnabled ) {
-		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mEnabled: " << mEnabled << dec << endl;
-		return;
-	}
-
-	mEnabled = true;
-	OSStatus status = ::AudioOutputUnitStart( mComponentInstance );
-	CI_ASSERT( status == noErr );
-
-	LOG_V << "started" << endl;
-}
-
-void DeviceAudioUnit::stop()
-{
-	if( ! mInitialized || ! mEnabled ) {
-		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mEnabled: " << mEnabled << dec << endl;
-		return;
-	}
-
-	mEnabled = false;
-	OSStatus status = ::AudioOutputUnitStop( mComponentInstance );
-	CI_ASSERT( status == noErr );
-
-	LOG_V << "stopped" << endl;
-}
-
-const ::AudioComponentInstance& DeviceAudioUnit::getComponentInstance()
-{
-	if( ! mComponentInstance )
-		cocoa::findAndCreateAudioComponent( mComponentDescription, &mComponentInstance );
-	
-	return mComponentInstance;
-}
+//void DeviceAudioUnit::uninitialize()
+//{
+//	if( mComponentInstance ) {
+//		OSStatus status = ::AudioUnitUninitialize( mComponentInstance );
+//		CI_ASSERT( status == noErr );
+//	}
+//
+//	LOG_V << "complete." << endl;
+//}
+//
+//void DeviceAudioUnit::start()
+//{
+//	if( ! mInitialized || mEnabled ) {
+//		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mEnabled: " << mEnabled << dec << endl;
+//		return;
+//	}
+//
+//	mEnabled = true;
+//	OSStatus status = ::AudioOutputUnitStart( mComponentInstance );
+//	CI_ASSERT( status == noErr );
+//
+//	LOG_V << "started" << endl;
+//}
+//
+//void DeviceAudioUnit::stop()
+//{
+//	if( ! mInitialized || ! mEnabled ) {
+//		LOG_E << boolalpha << "(returning) mInitialized: " << mInitialized << ", mEnabled: " << mEnabled << dec << endl;
+//		return;
+//	}
+//
+//	mEnabled = false;
+//	OSStatus status = ::AudioOutputUnitStop( mComponentInstance );
+//	CI_ASSERT( status == noErr );
+//
+//	LOG_V << "stopped" << endl;
+//}
+//
+//const ::AudioComponentInstance& DeviceAudioUnit::getComponentInstance()
+//{
+//	if( ! mComponentInstance )
+//		cocoa::findAndCreateAudioComponent( mComponentDescription, &mComponentInstance );
+//	
+//	return mComponentInstance;
+//}
 
 } } } // namespace cinder::audio2::cocoa

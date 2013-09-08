@@ -25,6 +25,7 @@
 
 #include "audio2/Device.h"
 
+#include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudio.h>
 #include <map>
 
@@ -44,7 +45,8 @@ public:
 	size_t getSampleRate( const std::string &key ) override;
 	size_t getFramesPerBlock( const std::string &key ) override;
 
-	void setActiveDevice( const std::string &key ) override;
+	//! Sets the device related to \a key and managed by \a componenetInstance as the current active audio device.
+	void setCurrentDevice( const std::string &key, ::AudioComponentInstance componentInstance );
 
   private:
 

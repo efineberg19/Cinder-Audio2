@@ -33,20 +33,14 @@ typedef std::shared_ptr<class Device> DeviceRef;
 
 class Device {
   public:
+	virtual ~Device() {}
+
 	static DeviceRef getDefaultOutput();
 	static DeviceRef getDefaultInput();
 	static DeviceRef findDeviceByName( const std::string &name );
 	static DeviceRef findDeviceByKey( const std::string &key );
 
-
 	static const std::vector<DeviceRef>& getDevices();
-	virtual ~Device() {}
-
-	virtual void initialize()		{}
-	virtual void uninitialize()		{}
-
-	virtual void start() = 0;
-	virtual void stop() = 0;
 
 	const std::string& getName();
 	const std::string& getKey();
@@ -56,9 +50,8 @@ class Device {
 	size_t getFramesPerBlock();
 
   protected:
-	Device( const std::string &key ) : mKey( key ), mInitialized( false ), mEnabled( false ) {}
+	Device( const std::string &key ) : mKey( key ) {}
 
-	bool mInitialized, mEnabled;
 	std::string mKey, mName;
 };
 
@@ -79,10 +72,6 @@ class DeviceManager {
 	virtual size_t getNumOutputChannels( const std::string &key ) = 0;
 	virtual size_t getSampleRate( const std::string &key ) = 0;
 	virtual size_t getFramesPerBlock( const std::string &key ) = 0;
-
-	// TODO: the functionality in this method feels awkward, consider doing it in device
-	// - for iOS audio session activating, can just do that in DeviceManager's constructor
-	virtual void setActiveDevice( const std::string &key ) = 0;
 
 protected:
 	DeviceManager()	{}

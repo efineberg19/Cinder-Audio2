@@ -65,7 +65,7 @@ DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultInputId ) );
 }
 
-void DeviceManagerCoreAudio::setActiveDevice( const string &key )
+void DeviceManagerCoreAudio::setCurrentDevice( const string &key, ::AudioComponentInstance componentInstance )
 {
 	for( const auto& device : getDevices() ) {
 		if( device->getKey() == key ) {
@@ -74,7 +74,7 @@ void DeviceManagerCoreAudio::setActiveDevice( const string &key )
 			CI_ASSERT( idIt != mDeviceIds.end() );
 
 			::AudioDeviceID deviceId = idIt->second;
-			OSStatus status = ::AudioUnitSetProperty( deviceAU->getComponentInstance(), kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
+			OSStatus status = ::AudioUnitSetProperty( componentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
 			CI_ASSERT( status == noErr );
 
 			return;
