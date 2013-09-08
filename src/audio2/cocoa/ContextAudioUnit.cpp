@@ -216,7 +216,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 // ----------------------------------------------------------------------------------------------------
 
 LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
-: LineInNode( device, format ), mSynchronousIO( false )
+: LineInNode( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 )
 {
 //	mRenderBus = DeviceAudioUnit::Bus::INPUT; // TODO: remove from NodeAudioUnit, this shouldn't be necessary anymore
 
@@ -238,39 +238,45 @@ void LineInAudioUnit::initialize()
 	mRenderContext.node = this;
 	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
-	::AudioUnit audioUnit = getAudioUnit();
-	CI_ASSERT( audioUnit );
+	// TODO: think of a more fitting name, enableSyncIO?
+	if( ! configureSynchronousIO() ) {
+		// make our own AudioUnit, if we don't already have one (from a previous initialize())
+		findAndCreateAudioComponent( mDevice->getComponentDescription(), &mAudioUnit );
+	}
 
 	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
-
-	OSStatus status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceBus::INPUT, &asbd, sizeof( asbd ) );
+	OSStatus status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, DeviceBus::INPUT, &asbd, sizeof( asbd ) );
 	CI_ASSERT( status == noErr );
 
-//	if( mDevice->isOutputConnected() ) {
-//		LOG_V << "Synchronous I/O." << endl;
-//		// output node is expected to initialize device, since it is pulling to here.
-//		mSynchroniousIO = true;
-//
-//		mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
-//
-//
-//		// TODO: move to NodeAudioUnit method
-//		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
-//		status = ::AudioUnitSetProperty( audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
-//		CI_ASSERT( status == noErr );
-//	}
-//	else {
-//		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
-//
-//		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
-//		mBufferList = createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
-//
-//		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
-//		status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceBus::INPUT, &callbackStruct, sizeof( callbackStruct ) );
-//		CI_ASSERT( status == noErr );
-//
-//		mDevice->initialize();
-//	}
+	if( mSynchronousIO ) {
+		// TODO: see configureSynchronous IO note
+
+		LOG_V << "Synchronous I/O." << endl;
+		// output node is expected to initialize device, since it is pulling to here.
+
+		mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
+
+		// TODO: move to NodeAudioUnit method
+		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof( callbackStruct ) );
+		CI_ASSERT( status == noErr );
+	}
+	else {
+		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
+
+		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
+		mBufferList = createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
+
+		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderContext };
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, DeviceBus::INPUT, &callbackStruct, sizeof( callbackStruct ) );
+		CI_ASSERT( status == noErr );
+
+		UInt32 enableInput = 1;
+		::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, DeviceBus::INPUT, &enableInput, sizeof( enableInput ) );
+
+		status = ::AudioUnitInitialize( mAudioUnit );
+		CI_ASSERT( status == noErr );
+	}
 }
 
 // TODO: what about when synchronous IO and this guy is requested to uninit, does associated LineOutAudioUnit need to be uninitialized too?
@@ -328,6 +334,27 @@ uint64_t LineInAudioUnit::getLastOverrun()
 	uint64_t result = mLastOverrun;
 	mLastOverrun = 0;
 	return result;
+}
+
+// TODO: for sync IO to really work, lineOut's audio unit needs to be told that an input is here.
+// - if it is already initialized, needs to be re-inited
+bool LineInAudioUnit::configureSynchronousIO()
+{
+	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getRoot() );
+
+	if( lineOutAu ) {
+		bool sameDevice = lineOutAu->getDevice() == mDevice;
+		if( sameDevice ) {
+			mSynchronousIO = true;
+			mAudioUnit = lineOutAu->getAudioUnit();
+			mOwnsAudioUnit = false;
+		}
+		else {
+			mSynchronousIO = false;
+			mOwnsAudioUnit = true;
+		}
+	}
+	return mSynchronousIO;
 }
 
 void LineInAudioUnit::process( Buffer *buffer )

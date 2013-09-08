@@ -69,7 +69,6 @@ void DeviceManagerCoreAudio::setCurrentDevice( const string &key, ::AudioCompone
 {
 	for( const auto& device : getDevices() ) {
 		if( device->getKey() == key ) {
-			auto deviceAU = dynamic_pointer_cast<DeviceAudioUnit>( device );
 			auto idIt = mDeviceIds.find( device );
 			CI_ASSERT( idIt != mDeviceIds.end() );
 
