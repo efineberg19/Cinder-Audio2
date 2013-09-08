@@ -238,10 +238,26 @@ void LineInAudioUnit::initialize()
 	mRenderContext.node = this;
 	mRenderContext.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
-	// TODO: think of a more fitting name, enableSyncIO?
-	if( ! configureSynchronousIO() ) {
-		// make our own AudioUnit, if we don't already have one (from a previous initialize())
-		findAndCreateAudioComponent( mDevice->getComponentDescription(), &mAudioUnit );
+	// see if synchronous I/O is possible by looking at the LineOut
+	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getRoot() );
+
+	if( lineOutAu ) {
+		bool sameDevice = lineOutAu->getDevice() == mDevice;
+		if( sameDevice ) {
+			// TODO: for sync IO to really work, lineOut's audio unit needs to be told that an input is here.
+			// - if it is already initialized, needs to be re-inited
+
+			mSynchronousIO = true;
+			mAudioUnit = lineOutAu->getAudioUnit();
+			mOwnsAudioUnit = false;
+		}
+		else {
+			// make our own AudioUnit, if we don't already have one (from a previous initialize())
+			findAndCreateAudioComponent( mDevice->getComponentDescription(), &mAudioUnit );
+
+			mSynchronousIO = false;
+			mOwnsAudioUnit = true;
+		}
 	}
 
 	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
@@ -249,8 +265,6 @@ void LineInAudioUnit::initialize()
 	CI_ASSERT( status == noErr );
 
 	if( mSynchronousIO ) {
-		// TODO: see configureSynchronous IO note
-
 		LOG_V << "Synchronous I/O." << endl;
 		// output node is expected to initialize device, since it is pulling to here.
 
@@ -272,7 +286,19 @@ void LineInAudioUnit::initialize()
 		CI_ASSERT( status == noErr );
 
 		UInt32 enableInput = 1;
-		::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, DeviceBus::INPUT, &enableInput, sizeof( enableInput ) );
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, DeviceBus::INPUT, &enableInput, sizeof( enableInput ) );
+		CI_ASSERT( status == noErr );
+
+		UInt32 enableOutput = 0;
+		status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, DeviceBus::OUTPUT, &enableOutput, sizeof( enableOutput ) );
+		CI_ASSERT( status == noErr );
+
+#if defined( CINDER_MAC )
+		auto manager = dynamic_cast<DeviceManagerCoreAudio *>( DeviceManager::instance() );
+		CI_ASSERT( manager );
+
+		manager->setCurrentDevice( mDevice->getKey(), mAudioUnit );
+#endif
 
 		status = ::AudioUnitInitialize( mAudioUnit );
 		CI_ASSERT( status == noErr );
@@ -334,27 +360,6 @@ uint64_t LineInAudioUnit::getLastOverrun()
 	uint64_t result = mLastOverrun;
 	mLastOverrun = 0;
 	return result;
-}
-
-// TODO: for sync IO to really work, lineOut's audio unit needs to be told that an input is here.
-// - if it is already initialized, needs to be re-inited
-bool LineInAudioUnit::configureSynchronousIO()
-{
-	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getRoot() );
-
-	if( lineOutAu ) {
-		bool sameDevice = lineOutAu->getDevice() == mDevice;
-		if( sameDevice ) {
-			mSynchronousIO = true;
-			mAudioUnit = lineOutAu->getAudioUnit();
-			mOwnsAudioUnit = false;
-		}
-		else {
-			mSynchronousIO = false;
-			mOwnsAudioUnit = true;
-		}
-	}
-	return mSynchronousIO;
 }
 
 void LineInAudioUnit::process( Buffer *buffer )

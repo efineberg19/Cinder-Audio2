@@ -185,7 +185,6 @@ void InputTestApp::processTap( Vec2i pos )
 	}
 }
 
-
 void InputTestApp::update()
 {
 	const float xrunFadeTime = 1.3f;
@@ -230,15 +229,15 @@ void InputTestApp::draw()
 	mPlayButton.draw();
 	mTestSelector.draw();
 
-	if( mOverrunFade > 0.0001 ) {
-		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
-		gl::drawSolidRect( mOverrunRect );
-		gl::drawStringCentered( "underrun", mOverrunRect.getCenter(), Color::black() );
-	}
 	if( mUnderrunFade > 0.0001 ) {
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
 		gl::drawSolidRect( mUnderrunRect );
-		gl::drawStringCentered( "overrun", mUnderrunRect.getCenter(), Color::black() );
+		gl::drawStringCentered( "underrun", mUnderrunRect.getCenter(), Color::black() );
+	}
+	if( mOverrunFade > 0.0001 ) {
+		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
+		gl::drawSolidRect( mOverrunRect );
+		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
 	}
 }
 

@@ -99,11 +99,7 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 	uint64_t getLastUnderrun() override;
 	uint64_t getLastOverrun() override;
 
-
   private:
-	//! returns false if not possible
-	bool configureSynchronousIO();
-
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 
