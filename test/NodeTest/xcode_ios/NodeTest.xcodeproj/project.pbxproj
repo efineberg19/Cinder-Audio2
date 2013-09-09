@@ -10,6 +10,7 @@
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
 		11FA84D617C6F44F002C2793 /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11FA84D317C6F439002C2793 /* libAudio2-ios.a */; };
+		14E8EA6017DD724800921A43 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 14E8EA5F17DD724800921A43 /* Accelerate.framework */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -55,6 +56,7 @@
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		11FA84CB17C6F439002C2793 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
+		14E8EA5F17DD724800921A43 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		153AD02F49AC4B67B807C6F8 /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = CinderApp_ios.png; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -89,6 +91,7 @@
 				00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */,
 				C727C02E121B400300192073 /* CoreVideo.framework in Frameworks */,
 				C7FB19D6124BC0D70045AFD2 /* AudioToolbox.framework in Frameworks */,
+				14E8EA6017DD724800921A43 /* Accelerate.framework in Frameworks */,
 				0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -119,6 +122,7 @@
 		00692BD214FF149000D0A05E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				14E8EA5F17DD724800921A43 /* Accelerate.framework */,
 				C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */,
 				C727C02B121B400300192073 /* CoreMedia.framework */,
 				C727C02D121B400300192073 /* CoreVideo.framework */,
@@ -284,8 +288,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Richard Eakin (VGYS9BEJKE)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Richard Eakin (VGYS9BEJKE)";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Rich Eakin (27THF82Y5P)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Rich Eakin (27THF82Y5P)";
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -303,8 +307,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
-				PROVISIONING_PROFILE = "E5807DD9-0CEC-4E39-A485-8162BA8270BE";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "E5807DD9-0CEC-4E39-A485-8162BA8270BE";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../src";
@@ -323,8 +327,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Richard Eakin (VGYS9BEJKE)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Richard Eakin";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Rich Eakin (27THF82Y5P)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Rich Eakin (27THF82Y5P)";
 				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -336,7 +340,7 @@
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
-				PROVISIONING_PROFILE = "E5807DD9-0CEC-4E39-A485-8162BA8270BE";
+				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

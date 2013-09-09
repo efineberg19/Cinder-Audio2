@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00748058165D41390024B57A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 00748057165D41390024B57A /* assets */; };
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
 		11D820B217A4EE9200EFE02A /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11D820AF17A4EE8300EFE02A /* libAudio2-ios.a */; };
@@ -52,7 +51,6 @@
 
 /* Begin PBXFileReference section */
 		00692BCF14FF149000D0A05E /* MixerTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MixerTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		00748057165D41390024B57A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = "<group>"; };
 		0087D25412CD809F002CD69F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
@@ -148,7 +146,6 @@
 		00692BD914FF149000D0FFFF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				00748057165D41390024B57A /* assets */,
 				1AF64A926F78484A8D49D6FA /* CinderApp_ios.png */,
 				872071EB83054ED196F85AED /* Default-568h@2x.png */,
 				7F3675F6CC2F44D9AADB1B0C /* Info.plist */,
@@ -247,7 +244,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00748058165D41390024B57A /* assets in Resources */,
 				2D30CB2943A94CA4843FFD7D /* CinderApp_ios.png in Resources */,
 				B4D2B1CE577349EAA1B6B16A /* Default-568h@2x.png in Resources */,
 			);

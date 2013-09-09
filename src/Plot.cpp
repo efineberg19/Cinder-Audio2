@@ -189,8 +189,7 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 	glEnableClientState( GL_COLOR_ARRAY );
 	glVertexPointer( 2, GL_FLOAT, 0, mVerts.data() );
 	glColorPointer( 3, GL_FLOAT, 0, mColors.data() );
-	glDrawArrays( GL_TRIANGLE_STRIP, 0, (GLsizei)mVerts.size() );
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, (GLsizei)mVerts.size() ); // FIXME: crashing on iOS.
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
 }
-

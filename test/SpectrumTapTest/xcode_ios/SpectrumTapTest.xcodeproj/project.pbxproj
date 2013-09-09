@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00748058165D41390024B57A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 00748057165D41390024B57A /* assets */; };
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
 		0995D5CB69704862B46EAF1B /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 91F7F295C48C4C49BFB9FAD7 /* Default-568h@2x.png */; };
-		11B0426F179C58AE0034BEE2 /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B0426C179C589C0034BEE2 /* libAudio2-ios.a */; };
 		11B04271179C591E0034BEE2 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B04270179C591E0034BEE2 /* Accelerate.framework */; };
+		14E8EACF17DD7AAC00921A43 /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 14E8EACC17DD7A9C00921A43 /* libAudio2-ios.a */; };
+		14E8EAD117DD7B3C00921A43 /* cash_satisfied_mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 14E8EAD017DD7B3C00921A43 /* cash_satisfied_mind.mp3 */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DA89069E3DD4F5EAC7AB938 /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B68AFA8901A4147A4B0F4D8 /* CinderApp_ios.png */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
@@ -28,23 +28,23 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		11B04269179C589C0034BEE2 /* PBXContainerItemProxy */ = {
+		14E8EAC917DD7A9C00921A43 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B04264179C589C0034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 14E8EAC417DD7A9C00921A43 /* Audio2.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 1104F3C917753F10003EAA2B;
 			remoteInfo = "Audio2-mac";
 		};
-		11B0426B179C589C0034BEE2 /* PBXContainerItemProxy */ = {
+		14E8EACB17DD7A9C00921A43 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B04264179C589C0034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 14E8EAC417DD7A9C00921A43 /* Audio2.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 11B0421C179B90450034BEE2;
 			remoteInfo = "Audio2-ios";
 		};
-		11B0426D179C58A50034BEE2 /* PBXContainerItemProxy */ = {
+		14E8EACD17DD7AA200921A43 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B04264179C589C0034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 14E8EAC417DD7A9C00921A43 /* Audio2.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 11B041F2179B90450034BEE2;
 			remoteInfo = "Audio2-ios";
@@ -53,12 +53,12 @@
 
 /* Begin PBXFileReference section */
 		00692BCF14FF149000D0A05E /* SpectrumTapTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpectrumTapTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		00748057165D41390024B57A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = "<group>"; };
 		0087D25412CD809F002CD69F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
-		11B04264179C589C0034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = "../../../xcode/Audio2.xcodeproj"; sourceTree = "<absolute>"; };
 		11B04270179C591E0034BEE2 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		14E8EAC417DD7A9C00921A43 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
+		14E8EAD017DD7B3C00921A43 /* cash_satisfied_mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = cash_satisfied_mind.mp3; path = ../../../assets/cash_satisfied_mind.mp3; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		23C6A72DF60244D5858DE553 /* SpectrumTapTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = SpectrumTapTest_Prefix.pch; sourceTree = "<group>"; };
@@ -81,8 +81,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14E8EACF17DD7AAC00921A43 /* libAudio2-ios.a in Frameworks */,
 				11B04271179C591E0034BEE2 /* Accelerate.framework in Frameworks */,
-				11B0426F179C58AE0034BEE2 /* libAudio2-ios.a in Frameworks */,
 				C725E001121DAC8F00FA186B /* AVFoundation.framework in Frameworks */,
 				C725DFFE121DAC7F00FA186B /* CoreMedia.framework in Frameworks */,
 				C725E001121DAC8FFFFA18FF /* ImageIO.framework in Frameworks */,
@@ -104,7 +104,7 @@
 		00692BC414FF149000D0A05E = {
 			isa = PBXGroup;
 			children = (
-				11B04264179C589C0034BEE2 /* Audio2.xcodeproj */,
+				14E8EAC417DD7A9C00921A43 /* Audio2.xcodeproj */,
 				99692BD914FF149000D0A05F /* Headers */,
 				00692BD914FF149000D0A05E /* Source */,
 				00692BD914FF149000D0FFFF /* Resources */,
@@ -152,7 +152,7 @@
 		00692BD914FF149000D0FFFF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				00748057165D41390024B57A /* assets */,
+				14E8EAD017DD7B3C00921A43 /* cash_satisfied_mind.mp3 */,
 				9B68AFA8901A4147A4B0F4D8 /* CinderApp_ios.png */,
 				91F7F295C48C4C49BFB9FAD7 /* Default-568h@2x.png */,
 				A288D0CECD4D4E9CA42E0CBB /* Info.plist */,
@@ -160,11 +160,11 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
-		11B04265179C589C0034BEE2 /* Products */ = {
+		14E8EAC517DD7A9C00921A43 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				11B0426A179C589C0034BEE2 /* libAudio2.a */,
-				11B0426C179C589C0034BEE2 /* libAudio2-ios.a */,
+				14E8EACA17DD7A9C00921A43 /* libAudio2.a */,
+				14E8EACC17DD7A9C00921A43 /* libAudio2-ios.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -192,7 +192,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				11B0426E179C58A50034BEE2 /* PBXTargetDependency */,
+				14E8EACE17DD7AA200921A43 /* PBXTargetDependency */,
 			);
 			name = SpectrumTapTest;
 			productName = SpectrumTapTest;
@@ -218,8 +218,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 11B04265179C589C0034BEE2 /* Products */;
-					ProjectRef = 11B04264179C589C0034BEE2 /* Audio2.xcodeproj */;
+					ProductGroup = 14E8EAC517DD7A9C00921A43 /* Products */;
+					ProjectRef = 14E8EAC417DD7A9C00921A43 /* Audio2.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -230,18 +230,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		11B0426A179C589C0034BEE2 /* libAudio2.a */ = {
+		14E8EACA17DD7A9C00921A43 /* libAudio2.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libAudio2.a;
-			remoteRef = 11B04269179C589C0034BEE2 /* PBXContainerItemProxy */;
+			remoteRef = 14E8EAC917DD7A9C00921A43 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		11B0426C179C589C0034BEE2 /* libAudio2-ios.a */ = {
+		14E8EACC17DD7A9C00921A43 /* libAudio2-ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = "libAudio2-ios.a";
-			remoteRef = 11B0426B179C589C0034BEE2 /* PBXContainerItemProxy */;
+			remoteRef = 14E8EACB17DD7A9C00921A43 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -251,9 +251,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00748058165D41390024B57A /* assets in Resources */,
 				1DA89069E3DD4F5EAC7AB938 /* CinderApp_ios.png in Resources */,
 				0995D5CB69704862B46EAF1B /* Default-568h@2x.png in Resources */,
+				14E8EAD117DD7B3C00921A43 /* cash_satisfied_mind.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,10 +271,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		11B0426E179C58A50034BEE2 /* PBXTargetDependency */ = {
+		14E8EACE17DD7AA200921A43 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Audio2-ios";
-			targetProxy = 11B0426D179C58A50034BEE2 /* PBXContainerItemProxy */;
+			targetProxy = 14E8EACD17DD7AA200921A43 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -287,7 +287,7 @@
 				CINDER_PATH = ../../../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Rich Eakin (27THF82Y5P)";
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -318,7 +318,7 @@
 				CINDER_PATH = ../../../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;

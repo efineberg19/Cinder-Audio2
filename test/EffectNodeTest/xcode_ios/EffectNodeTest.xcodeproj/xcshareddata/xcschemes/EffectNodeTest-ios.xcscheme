@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00692BCE14FF149000D0A05E"
                BuildableName = "EffectTestTest.app"
-               BlueprintName = "EffectTestTest"
+               BlueprintName = "EffectNodeTest"
                ReferencedContainer = "container:EffectNodeTest.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -34,7 +34,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "00692BCE14FF149000D0A05E"
             BuildableName = "EffectTestTest.app"
-            BlueprintName = "EffectTestTest"
+            BlueprintName = "EffectNodeTest"
             ReferencedContainer = "container:EffectNodeTest.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -53,7 +53,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "00692BCE14FF149000D0A05E"
             BuildableName = "EffectTestTest.app"
-            BlueprintName = "EffectTestTest"
+            BlueprintName = "EffectNodeTest"
             ReferencedContainer = "container:EffectNodeTest.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -71,7 +71,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "00692BCE14FF149000D0A05E"
             BuildableName = "EffectTestTest.app"
-            BlueprintName = "EffectTestTest"
+            BlueprintName = "EffectNodeTest"
             ReferencedContainer = "container:EffectNodeTest.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
