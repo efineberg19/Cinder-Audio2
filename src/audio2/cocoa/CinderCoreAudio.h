@@ -26,6 +26,7 @@
 #include "audio2/audio.h"
 
 #include <memory>
+#include <vector>
 #include <AudioToolbox/AudioToolbox.h>
 
 struct AudioStreamBasicDescription;
@@ -83,6 +84,71 @@ inline void copyFromBufferList( Buffer *buffer, const ::AudioBufferList *bufferL
 {
 	for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
 		memcpy( buffer->getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
+}
+
+void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFrames, float clipThreshold = 2.0f );
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Audio Unit Helper Functions
+// ----------------------------------------------------------------------------------------------------
+
+inline ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
+	::AudioStreamBasicDescription result;
+	UInt32 resultSize = sizeof( result );
+	OSStatus status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_StreamFormat, scope, bus, &result, &resultSize );
+	CI_ASSERT( status == noErr );
+	return result;
+}
+
+template <typename PropT>
+inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
+	OSStatus status = ::AudioUnitSetProperty( audioUnit, propertyId, scope, bus, &property, sizeof( property ) );
+	CI_ASSERT( status == noErr );
+}
+
+template <typename PropT>
+inline PropT getAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
+	PropT result;
+	UInt32 resultSize = sizeof( result );
+	OSStatus status = ::AudioUnitGetProperty( audioUnit, propertyId, scope, bus, &result, &resultSize );
+	CI_ASSERT( status == noErr );
+	return result;
+}
+
+template <typename ResultT>
+inline void getAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID paramId, ResultT &result, ::AudioUnitScope scope, size_t bus = 0 )
+{
+	::AudioUnitParameterValue param;
+	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
+	OSStatus status = ::AudioUnitGetParameter( audioUnit, paramId, scope, busElement, &param );
+	CI_ASSERT( status == noErr );
+	result = static_cast<ResultT>( param );
+}
+
+template <typename ParamT>
+inline void setAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID paramId, const ParamT &param, ::AudioUnitScope scope, size_t bus = 0 )
+{
+	::AudioUnitParameterValue value = static_cast<::AudioUnitParameterValue>( param );
+	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
+	OSStatus status = ::AudioUnitSetParameter( audioUnit, paramId, scope, busElement, value, 0 );
+	CI_ASSERT( status == noErr );
+}
+
+inline std::vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, ::AudioUnitElement bus = 0 ) {
+	std::vector<::AUChannelInfo> result;
+	UInt32 resultSize;
+	OSStatus status = ::AudioUnitGetPropertyInfo( audioUnit, kAudioUnitProperty_SupportedNumChannels, kAudioUnitScope_Global, 0, &resultSize, NULL );
+	if( status == kAudioUnitErr_InvalidProperty ) {
+		// "if this property is NOT implemented an FX unit is expected to deal with same channel valance in and out" - CAPublicUtility / CAAudioUnit.cpp
+		return result;
+	} else
+		CI_ASSERT( status == noErr );
+
+	result.resize( resultSize / sizeof( ::AUChannelInfo ) );
+	status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_SupportedNumChannels, kAudioUnitScope_Global, 0, result.data(), &resultSize );
+	CI_ASSERT( status == noErr );
+
+	return result;
 }
 
 } } } // namespace cinder::audio2::cocoa

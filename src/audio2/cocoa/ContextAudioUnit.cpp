@@ -39,81 +39,6 @@ using namespace std;
 namespace cinder { namespace audio2 { namespace cocoa {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - Audio Unit Helper Functions
-// ----------------------------------------------------------------------------------------------------
-
-// TODO: move to CinderCoreAudio. rename all to start with getAudioUnit/setAudioUnit
-
-template <typename ResultT>
-inline void audioUnitGetParam( ::AudioUnit audioUnit, ::AudioUnitParameterID property, ResultT &result, ::AudioUnitScope scope = kAudioUnitScope_Input, size_t bus = 0 )
-{
-	::AudioUnitParameterValue param;
-	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
-	OSStatus status = ::AudioUnitGetParameter( audioUnit, property, scope, busElement, &param );
-	CI_ASSERT( status == noErr );
-	result = static_cast<ResultT>( param );
-}
-
-	// TODO: pass in *param
-template <typename ParamT>
-inline void audioUnitSetParam( ::AudioUnit audioUnit, ::AudioUnitParameterID property, ParamT param, ::AudioUnitScope scope = kAudioUnitScope_Input, size_t bus = 0 )
-{
-	::AudioUnitParameterValue value = static_cast<::AudioUnitParameterValue>( param );
-	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
-	OSStatus status = ::AudioUnitSetParameter( audioUnit, property, scope, busElement, value, 0 );
-	CI_ASSERT( status == noErr );
-}
-
-inline ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
-	::AudioStreamBasicDescription result;
-	UInt32 resultSize = sizeof( result );
-	OSStatus status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_StreamFormat, scope, bus, &result, &resultSize );
-	CI_ASSERT( status == noErr );
-	return result;
-}
-
-template <typename PropT>
-inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
-	OSStatus status = ::AudioUnitSetProperty( audioUnit, propertyId, scope, bus, &property, sizeof( property ) );
-	CI_ASSERT( status == noErr );
-}
-
-template <typename PropT>
-	inline PropT getAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
-	PropT result;
-	UInt32 resultSize = sizeof( result );
-	OSStatus status = ::AudioUnitGetProperty( audioUnit, propertyId, scope, bus, &result, &resultSize );
-	CI_ASSERT( status == noErr );
-	return result;
-}
-
-inline vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, ::AudioUnitElement bus = 0 ) {
-	vector<::AUChannelInfo> result;
-	UInt32 resultSize;
-	OSStatus status = ::AudioUnitGetPropertyInfo( audioUnit, kAudioUnitProperty_SupportedNumChannels, kAudioUnitScope_Global, 0, &resultSize, NULL );
-	if( status == kAudioUnitErr_InvalidProperty ) {
-		// "if this property is NOT implemented an FX unit is expected to deal with same channel valance in and out" - CAPublicUtility / CAAudioUnit.cpp
-		return result;
-	} else
-		CI_ASSERT( status == noErr );
-
-	result.resize( resultSize / sizeof( ::AUChannelInfo ) );
-	status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_SupportedNumChannels, kAudioUnitScope_Global, 0, result.data(), &resultSize );
-	CI_ASSERT( status == noErr );
-
-	return result;
-}
-
-void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFrames, float clipThreshold = 2.0f )
-{
-	for( UInt32 c = 0; c < bufferList->mNumberBuffers; c++ ) {
-		float *buf = (float *)bufferList->mBuffers[c].mData;
-		for( UInt32 i = 0; i < numFrames; i++ )
-			CI_ASSERT_MSG( buf[i] < clipThreshold, "Audio Clipped" );
-	}
-}
-
-// ----------------------------------------------------------------------------------------------------
 // MARK: - NodeAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
@@ -500,10 +425,9 @@ OSStatus EffectAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFla
 	return noErr;
 }
 
-void EffectAudioUnit::setParameter( ::AudioUnitParameterID param, float val )
+void EffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float val )
 {
-	OSStatus status = ::AudioUnitSetParameter( mAudioUnit, param, kAudioUnitScope_Global, 0, val, 0 );
-	CI_ASSERT( status == noErr );
+	setAudioUnitParam( mAudioUnit, paramId, val, kAudioUnitScope_Global );
 }
 
 // ----------------------------------------------------------------------------------------------------

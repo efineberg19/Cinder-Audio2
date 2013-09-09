@@ -129,7 +129,7 @@ class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
 	void uninitialize() override;
 	void process( Buffer *buffer ) override;
 
-	void setParameter( ::AudioUnitParameterID param, float val );
+	void setParameter( ::AudioUnitParameterID paramId, float val );
 
   private:
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
