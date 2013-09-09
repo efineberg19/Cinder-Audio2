@@ -32,6 +32,8 @@
 
 #if defined( CINDER_MAC )
 	#include "audio2/cocoa/DeviceManagerCoreAudio.h"
+#else
+	#include "audio2/cocoa/DeviceManagerAudioSession.h"
 #endif
 
 using namespace std;
@@ -231,6 +233,13 @@ void LineInAudioUnit::initialize()
 
 		::AURenderCallbackStruct callbackStruct { LineOutAudioUnit::renderCallback, &mRenderContext };
 		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
+
+#if defined( CINDER_COCOA_TOUCH )
+		auto manager = dynamic_cast<DeviceManagerAudioSession *>( DeviceManager::instance() );
+		CI_ASSERT( manager );
+
+		manager->setInputEnabled();
+#endif
 	}
 	else {
 		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
