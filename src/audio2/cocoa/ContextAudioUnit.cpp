@@ -113,8 +113,11 @@ NodeAudioUnit::~NodeAudioUnit()
 // ----------------------------------------------------------------------------------------------------
 
 LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
-: LineOutNode( device, format ), mElapsedFrames( 0 )
+: LineOutNode( device, format ), mElapsedFrames( 0 ), mSynchroniousIO( false )
 {
+	if( device->getNumOutputChannels() < mNumChannels )
+		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
+
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
@@ -139,6 +142,10 @@ void LineOutAudioUnit::initialize()
 
 	UInt32 enableOutput = 1;
 	status = ::AudioUnitSetProperty( audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, DeviceBus::OUTPUT, &enableOutput, sizeof( enableOutput ) );
+	CI_ASSERT( status == noErr );
+
+	UInt32 enableInput = mSynchroniousIO;
+	status = ::AudioUnitSetProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, DeviceBus::INPUT, &enableInput, sizeof( enableInput ) );
 	CI_ASSERT( status == noErr );
 
 	// TODO: move to NodeAudioUnit method
@@ -218,6 +225,9 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 : LineInNode( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 )
 {
+	if( device->getNumOutputChannels() < mNumChannels )
+		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
+
 //	mRenderBus = DeviceAudioUnit::Bus::INPUT; // TODO: remove from NodeAudioUnit, this shouldn't be necessary anymore
 
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
@@ -244,8 +254,6 @@ void LineInAudioUnit::initialize()
 	if( lineOutAu ) {
 		bool sameDevice = lineOutAu->getDevice() == mDevice;
 		if( sameDevice ) {
-			// TODO: for sync IO to really work, lineOut's audio unit needs to be told that an input is here.
-			// - if it is already initialized, needs to be re-inited
 
 			mSynchronousIO = true;
 			mAudioUnit = lineOutAu->getAudioUnit();
@@ -266,7 +274,18 @@ void LineInAudioUnit::initialize()
 
 	if( mSynchronousIO ) {
 		LOG_V << "Synchronous I/O." << endl;
-		// output node is expected to initialize device, since it is pulling to here.
+		// output node is expected to initialize the AudioUnit, since it is pulling to here. But make sure input is enabled.
+
+		if( ! lineOutAu->mSynchroniousIO ) {
+			lineOutAu->mSynchroniousIO = true;
+			if( lineOutAu->isInitialized() ) {
+				bool lineOutEnabled = lineOutAu->isEnabled();
+				lineOutAu->stop();
+				lineOutAu->uninitialize();
+				lineOutAu->initialize();
+				lineOutAu->setEnabled( lineOutEnabled );
+			}
+		}
 
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
 

@@ -77,6 +77,9 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 
 	std::shared_ptr<DeviceAudioUnit>	mDevice;
 	std::atomic<size_t>					mElapsedFrames;
+	bool								mSynchroniousIO;
+
+	friend class LineInAudioUnit;
 };
 
 class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
