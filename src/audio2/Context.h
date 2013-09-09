@@ -36,7 +36,6 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns a platform-specific \t Context. If none is availble, returns an empty \t ContextRef.
 	static ContextRef			create();
 
-	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) = 0;
 	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
 	virtual LineInNodeRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 

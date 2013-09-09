@@ -138,38 +138,12 @@ class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
 	AudioBufferListPtr mBufferList;
 };
 
-class MixerAudioUnit : public MixerNode, public NodeAudioUnit {
-  public:
-	MixerAudioUnit( const Format &format = Format() );
-	virtual ~MixerAudioUnit();
-
-	std::string virtual getTag() override			{ return "MixerAudioUnit"; }
-
-	void initialize() override;
-	void uninitialize() override;
-
-	size_t getNumBusses() override;
-	void setNumBusses( size_t count ) override;
-	void setMaxNumBusses( size_t count );
-
-	bool isBusEnabled( size_t bus ) override;
-	void setBusEnabled( size_t bus, bool enabled = true ) override;
-	void setBusVolume( size_t bus, float volume ) override;
-	float getBusVolume( size_t bus ) override;
-	void setBusPan( size_t bus, float pan ) override;
-	float getBusPan( size_t bus ) override;
-
-  private:
-	void checkBusIsValid( size_t bus );
-};
-
 class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
 
 	virtual LineOutNodeRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
-	virtual MixerNodeRef		createMixer( const Node::Format &format = Node::Format() ) override;
 
 	//! set by the RootNode
 	void setCurrentTimeStamp( const ::AudioTimeStamp *timeStamp ) { mCurrentTimeStamp = timeStamp; }
