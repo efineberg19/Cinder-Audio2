@@ -27,11 +27,13 @@
 #include <string>
 #include <vector>
 
+#include <boost/noncopyable.hpp>
+
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Device> DeviceRef;
 
-class Device {
+class Device : public boost::noncopyable {
   public:
 	virtual ~Device() {}
 
@@ -55,7 +57,7 @@ class Device {
 	std::string mKey, mName;
 };
 
-class DeviceManager {
+class DeviceManager : public boost::noncopyable {
   public:
 	virtual ~DeviceManager() {}
 	static DeviceManager* instance();
