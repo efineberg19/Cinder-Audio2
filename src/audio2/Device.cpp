@@ -104,6 +104,11 @@ size_t Device::getFramesPerBlock()
 // MARK: - DeviceManager
 // ----------------------------------------------------------------------------------------------------
 
+// TODO: it would be nice for this to live in Context, where there is already other platform-specific
+// variants being chosen.
+// - I'm thinking to move it to Context::sDeviceManager, retrievable via Context::getDeviceManager()
+// - also provide Context::setDeviceManager(DeviceManager *), in the rare case that users want a custom version
+// - ???: does this improve anything over the current situation, if I add the same methods to DeviceManager?
 DeviceManager* DeviceManager::instance()
 {
 	static DeviceManager *sInstance = 0;

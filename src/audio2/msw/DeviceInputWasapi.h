@@ -23,8 +23,8 @@
 
 #pragma once
 
-#if ( _WIN32_WINNT < _WIN32_WINNT_VISTA )
-#error "WASAPI unsupported for deployment target less than Windows Vista"
+#if( _WIN32_WINNT < _WIN32_WINNT_VISTA )
+	#error "WASAPI unsupported for deployment target less than Windows Vista"
 #endif
 
 #include "audio2/Device.h"
