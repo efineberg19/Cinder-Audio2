@@ -50,7 +50,6 @@ mNumChannels( 1 ), mInputs( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
 
 Node::~Node()
 {
-
 }
 
 const NodeRef& Node::connect( const NodeRef &dest )
@@ -67,7 +66,6 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t bus )
 
 void Node::disconnect( size_t bus )
 {
-	stop();
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	for( NodeRef &input : mInputs )
