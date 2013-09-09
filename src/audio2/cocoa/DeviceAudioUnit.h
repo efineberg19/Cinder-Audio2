@@ -37,22 +37,14 @@ enum DeviceBus {
 
 class DeviceAudioUnit : public Device {
   public:
-
 	virtual ~DeviceAudioUnit();
 
 	const ::AudioComponentDescription& getComponentDescription() const	{ return mComponentDescription; }
 
-//	bool isInputConnected() const				{ return mInputConnected; }
-//	bool isOutputConnected() const				{ return mOutputConnected; }
-//	void setInputConnected( bool b = true )		{ mInputConnected = b; }
-//	void setOutputConnected( bool b = true )	{ mOutputConnected = b; }
-
   private:
-
 	DeviceAudioUnit( const std::string &key, const ::AudioComponentDescription &component );
 
 	::AudioComponentDescription mComponentDescription;
-//	bool						mInputConnected, mOutputConnected;
 
 #if defined( CINDER_MAC )
 	friend class DeviceManagerCoreAudio;
