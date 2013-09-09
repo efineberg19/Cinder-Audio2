@@ -44,6 +44,9 @@ class NodeAudioUnit {
 	::AudioUnitScope getRenderBus() const	{ return mRenderBus; }
 
   protected:
+	void initAu();
+	void uninitAu();
+
 	::AudioUnit			mAudioUnit;
 	bool				mOwnsAudioUnit;
 	::AudioUnitScope	mRenderBus;
