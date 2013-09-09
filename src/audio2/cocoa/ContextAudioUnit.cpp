@@ -77,7 +77,7 @@ LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
-	findAndCreateAudioComponent( mDevice->getComponentDescription(), &mAudioUnit );
+	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 }
 
 void LineOutAudioUnit::initialize()
@@ -205,7 +205,7 @@ void LineInAudioUnit::initialize()
 		}
 		else {
 			// make our own AudioUnit, if we don't already have one (from a previous initialize())
-			findAndCreateAudioComponent( mDevice->getComponentDescription(), &mAudioUnit );
+			findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 
 			mSynchronousIO = false;
 			mOwnsAudioUnit = true;

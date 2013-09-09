@@ -39,12 +39,8 @@ class DeviceAudioUnit : public Device {
   public:
 	virtual ~DeviceAudioUnit();
 
-	const ::AudioComponentDescription& getComponentDescription() const	{ return mComponentDescription; }
-
   private:
-	DeviceAudioUnit( const std::string &key, const ::AudioComponentDescription &component );
-
-	::AudioComponentDescription mComponentDescription;
+	DeviceAudioUnit( const std::string &key );
 
 #if defined( CINDER_MAC )
 	friend class DeviceManagerCoreAudio;

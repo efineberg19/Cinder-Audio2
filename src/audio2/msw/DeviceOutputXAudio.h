@@ -44,11 +44,11 @@ class DeviceOutputXAudio : public Device {
   private:
 	DeviceOutputXAudio( const std::string &key );
 
-	// TODO: use auto pointers
+	// TODO: move to LineOutXAudio
 	::IXAudio2 *mXAudio;
 	::IXAudio2MasteringVoice *mMasteringVoice;
 
-	friend class DeviceManagerWasapi;
+	friend class DeviceManagerWasapi; // FIXME: what's this doing here?
 };
 
 } } } // namespace cinder::audio2::msw

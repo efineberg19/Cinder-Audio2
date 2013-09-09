@@ -36,8 +36,8 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // MARK: - DeviceAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-DeviceAudioUnit::DeviceAudioUnit( const std::string &key, const ::AudioComponentDescription &component )
-: Device( key ), mComponentDescription( component )
+DeviceAudioUnit::DeviceAudioUnit( const std::string &key )
+: Device( key )
 {
 }
 

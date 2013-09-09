@@ -150,14 +150,9 @@ const std::vector<DeviceRef>& DeviceManagerCoreAudio::getDevices()
 
 		audioObjectPropertyData( kAudioObjectSystemObject, devicesProperty, devicesPropertySize, deviceIds.data() );
 
-		::AudioComponentDescription component{ 0 };
-		component.componentType = kAudioUnitType_Output;
-		component.componentSubType = kAudioUnitSubType_HALOutput;
-		component.componentManufacturer = kAudioUnitManufacturer_Apple;
-
 		for ( ::AudioDeviceID &deviceId : deviceIds ) {
 			string key = keyForDeviceId( deviceId );
-			auto device = DeviceRef( new DeviceAudioUnit( key, component ) );
+			auto device = DeviceRef( new DeviceAudioUnit( key ) );
 			mDevices.push_back( device );
 			mDeviceIds.insert( { device, deviceId } );
 		}

@@ -141,14 +141,8 @@ size_t DeviceManagerAudioSession::getFramesPerBlock( const string &key )
 
 shared_ptr<DeviceAudioUnit> DeviceManagerAudioSession::getRemoteIODevice()
 {
-	if( ! mRemoteIOUnit ) {
-		::AudioComponentDescription component{ 0 };
-		component.componentType = kAudioUnitType_Output;
-		component.componentSubType = kAudioUnitSubType_RemoteIO;
-		component.componentManufacturer = kAudioUnitManufacturer_Apple;
-
-		mRemoteIOUnit = shared_ptr<DeviceAudioUnit>( new DeviceAudioUnit( kRemoteIOKey, component ) );
-	}
+	if( ! mRemoteIOUnit )
+		mRemoteIOUnit = shared_ptr<DeviceAudioUnit>( new DeviceAudioUnit( kRemoteIOKey ) );
 
 	return mRemoteIOUnit;
 }

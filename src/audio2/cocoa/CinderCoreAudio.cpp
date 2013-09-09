@@ -171,4 +171,26 @@ void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFr
 	}
 }
 
+::AudioComponentDescription getOutputAudioUnitDesc()
+{
+	::AudioComponentDescription result{ 0 };
+	result.componentType = kAudioUnitType_Output;
+#if defined( CINDER_MAC )
+	result.componentSubType = kAudioUnitSubType_HALOutput;
+#else
+	result.componentSubType = kAudioUnitSubType_RemoteIO;
+#endif
+	result.componentManufacturer = kAudioUnitManufacturer_Apple;
+	return result;
+}
+
+::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus )
+{
+	::AudioStreamBasicDescription result;
+	UInt32 resultSize = sizeof( result );
+	OSStatus status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_StreamFormat, scope, bus, &result, &resultSize );
+	CI_ASSERT( status == noErr );
+	return result;
+}
+
 } } } // namespace cinder::audio2::cocoa

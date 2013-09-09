@@ -92,22 +92,19 @@ void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFr
 // MARK: - Audio Unit Helper Functions
 // ----------------------------------------------------------------------------------------------------
 
-inline ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
-	::AudioStreamBasicDescription result;
-	UInt32 resultSize = sizeof( result );
-	OSStatus status = ::AudioUnitGetProperty( audioUnit, kAudioUnitProperty_StreamFormat, scope, bus, &result, &resultSize );
-	CI_ASSERT( status == noErr );
-	return result;
-}
+::AudioComponentDescription getOutputAudioUnitDesc();
+::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 );
 
 template <typename PropT>
-inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
+inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 )
+{
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, propertyId, scope, bus, &property, sizeof( property ) );
 	CI_ASSERT( status == noErr );
 }
 
 template <typename PropT>
-inline PropT getAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 ) {
+inline PropT getAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 )
+{
 	PropT result;
 	UInt32 resultSize = sizeof( result );
 	OSStatus status = ::AudioUnitGetProperty( audioUnit, propertyId, scope, bus, &result, &resultSize );
@@ -134,7 +131,8 @@ inline void setAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID par
 	CI_ASSERT( status == noErr );
 }
 
-inline std::vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, ::AudioUnitElement bus = 0 ) {
+inline std::vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, ::AudioUnitElement bus = 0 )
+{
 	std::vector<::AUChannelInfo> result;
 	UInt32 resultSize;
 	OSStatus status = ::AudioUnitGetPropertyInfo( audioUnit, kAudioUnitProperty_SupportedNumChannels, kAudioUnitScope_Global, 0, &resultSize, NULL );
