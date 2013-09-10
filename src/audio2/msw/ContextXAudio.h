@@ -52,6 +52,7 @@ class NodeXAudio {
 };
 
 class DeviceOutputXAudio;
+struct EngineCallbackImpl;
 
 class LineOutXAudio : public LineOutNode, public NodeXAudio {
   public:
@@ -66,15 +67,20 @@ class LineOutXAudio : public LineOutNode, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
-	virtual size_t getElapsedFrames() override;
+	uint64_t getNumProcessedFrames() override	{ return mProcessedFrames; }
 
 	bool supportsSourceNumChannels( size_t numChannels ) const override;
 
 	::IXAudio2* getXAudio() const	{ return mXAudio; }
 
   private:
-	::IXAudio2 *mXAudio;
-	::IXAudio2MasteringVoice *mMasteringVoice;
+	::IXAudio2					*mXAudio;
+	::IXAudio2MasteringVoice	*mMasteringVoice;
+	std::atomic<uint64_t>		mProcessedFrames;
+
+	std::unique_ptr<EngineCallbackImpl> mEngineCallback;
+
+	friend EngineCallbackImpl;
 };
 
 struct VoiceCallbackImpl;

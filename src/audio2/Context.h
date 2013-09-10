@@ -65,7 +65,7 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	size_t getSampleRate()					{ return getRoot()->getSampleRate(); }
 	size_t getFramesPerBlock()				{ return getRoot()->getFramesPerBlock(); }
-	size_t getElapsedFrames()				{ return getRoot()->getElapsedFrames(); }
+	uint64_t getNumProcessedFrames()		{ return getRoot()->getNumProcessedFrames(); }
 
 	std::mutex& getMutex()					{ return mMutex; }
 

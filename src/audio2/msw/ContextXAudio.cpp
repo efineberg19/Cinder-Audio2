@@ -49,22 +49,42 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 	void setInputVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
 
 	// TODO: apparently passing in XAUDIO2_VOICE_NOSAMPLESPLAYED to GetState is 4x faster
-	void STDMETHODCALLTYPE OnBufferEnd( void *pBufferContext ) {
+	void _stdcall OnBufferEnd( void *pBufferContext ) {
 		::XAUDIO2_VOICE_STATE state;
 		mSourceVoice->GetState( &state );
 		if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
 			mRenderCallback();
 	}
 
-	void STDMETHODCALLTYPE OnStreamEnd() {}
-	void STDMETHODCALLTYPE OnVoiceProcessingPassEnd() {}
-	void STDMETHODCALLTYPE OnVoiceProcessingPassStart( UINT32 SamplesRequired ) {}
-	void STDMETHODCALLTYPE OnBufferStart( void *pBufferContext ) {}
-	void STDMETHODCALLTYPE OnLoopEnd( void *pBufferContext ) {}
-	void STDMETHODCALLTYPE OnVoiceError( void *pBufferContext, HRESULT Error )	{ LOG_E << "error: " << Error << endl; }
+	void _stdcall OnStreamEnd() {}
+	void _stdcall OnVoiceProcessingPassEnd() {}
+	void _stdcall OnVoiceProcessingPassStart( UINT32 SamplesRequired ) {}
+	void _stdcall OnBufferStart( void *pBufferContext ) {}
+	void _stdcall OnLoopEnd( void *pBufferContext ) {}
+	void _stdcall OnVoiceError( void *pBufferContext, HRESULT Error )
+	{
+		LOG_E << "error: " << Error << endl;
+	}
 
 	::IXAudio2SourceVoice	*mSourceVoice;
 	function<void()>		mRenderCallback;
+};
+
+struct EngineCallbackImpl : public IXAudio2EngineCallback {
+	EngineCallbackImpl( LineOutXAudio *lineOut ) : mLineOut( lineOut ), mFramesPerBlock( lineOut->getFramesPerBlock() ) {}
+
+	void _stdcall OnProcessingPassStart() {}
+	void _stdcall OnProcessingPassEnd ()
+	{
+		mLineOut->mProcessedFrames += mFramesPerBlock;
+	}
+	void _stdcall OnCriticalError( HRESULT Error )
+	{
+		LOG_E << "error: " << Error << endl;
+	}
+
+	LineOutXAudio *mLineOut;
+	uint64_t mFramesPerBlock;
 };
 
 // ----------------------------------------------------------------------------------------------------
@@ -80,7 +100,7 @@ NodeXAudio::~NodeXAudio()
 // ----------------------------------------------------------------------------------------------------
 
 LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
-: LineOutNode( device, format )
+: LineOutNode( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
 {
 #if defined( CINDER_XAUDIO_2_7 )
 	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
@@ -94,6 +114,8 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 #endif
 
 	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
+	CI_ASSERT( hr == S_OK );
+	hr = mXAudio->RegisterForCallbacks( mEngineCallback.get() );
 	CI_ASSERT( hr == S_OK );
 
 #if defined( CINDER_XAUDIO_2_8 )
@@ -161,7 +183,6 @@ void LineOutXAudio::initialize()
 void LineOutXAudio::uninitialize()
 {
 	CI_ASSERT( mMasteringVoice );
-
 	mMasteringVoice->DestroyVoice();
 }
 
@@ -186,12 +207,6 @@ void LineOutXAudio::stop()
 	mXAudio->StopEngine();
 	LOG_V "stopped" << endl;
 }
-
-size_t LineOutXAudio::getElapsedFrames()
-{
-	return 0; // TODO: tie into IXAudio2EngineCallback
-}
-
 
 bool LineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
 {
