@@ -52,10 +52,10 @@ class NodeAudioUnit {
 	::AudioUnitScope	mRenderBus;
 	Buffer*				mProcessBuffer;
 
-	struct RenderContext {
+	struct RenderData {
 		Node				*node;
 		ContextAudioUnit	*context;
-	} mRenderContext;
+	} mRenderData;
 };
 
 class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
