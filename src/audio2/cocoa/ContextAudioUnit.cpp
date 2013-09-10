@@ -429,7 +429,7 @@ void EffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float val )
 // MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineOutNodeRef ContextAudioUnit::createLineOut( DeviceRef device, const Node::Format &format )
+LineOutNodeRef ContextAudioUnit::createLineOut( DeviceRef device, const NodeTarget::Format &format )
 {
 	return makeNode( new LineOutAudioUnit( device, format ) );
 }

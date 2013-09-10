@@ -164,6 +164,20 @@ class Node : public std::enable_shared_from_this<Node> {
 
 class NodeTarget : public Node {
   public:
+
+	struct Format : public Node::Format {
+		Format() : mSampleRate( 0 ), mFramesPerBlock( 0 ) {}
+
+		Format&	sampleRate( size_t sr )				{ mSampleRate = sr;				return *this; }
+		Format&	framesPerBlock( size_t frames )		{ mFramesPerBlock = frames;		return *this; }
+
+		size_t getSampleRate() const				{ return mSampleRate; }
+		size_t getFramesPerBlock() const			{ return mFramesPerBlock; }
+
+	protected:
+		size_t mSampleRate, mFramesPerBlock;
+	};
+
 	NodeTarget( const Format &format = Format() ) : Node( format ) {}
 	virtual ~NodeTarget() {}
 

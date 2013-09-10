@@ -135,7 +135,7 @@ class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
 
-	virtual LineOutNodeRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	virtual LineOutNodeRef		createLineOut( DeviceRef device, const NodeTarget::Format &format = NodeTarget::Format() ) override;
 	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 
 	//! set by the NodeTarget
