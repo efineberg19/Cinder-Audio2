@@ -335,10 +335,12 @@ bool Node::checkInput( const NodeRef &input )
 // ----------------------------------------------------------------------------------------------------
 
 LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
-: RootNode( format )
+: RootNode( format ), mDevice( device )
 {
-	setAutoEnabled();
+	CI_ASSERT( mDevice );
 
+	setAutoEnabled();
+	
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 2 );

@@ -22,7 +22,6 @@
 */
 
 #include "audio2/cocoa/DeviceManagerAudioSession.h"
-#include "audio2/cocoa/DeviceAudioUnit.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
@@ -139,12 +138,12 @@ size_t DeviceManagerAudioSession::getFramesPerBlock( const string &key )
 // MARK: - Private
 // ----------------------------------------------------------------------------------------------------
 
-shared_ptr<DeviceAudioUnit> DeviceManagerAudioSession::getRemoteIODevice()
+const DeviceRef& DeviceManagerAudioSession::getRemoteIODevice()
 {
-	if( ! mRemoteIOUnit )
-		mRemoteIOUnit = shared_ptr<DeviceAudioUnit>( new DeviceAudioUnit( kRemoteIOKey ) );
+	if( ! mRemoteIODevice )
+		mRemoteIODevice = addDevice( kRemoteIOKey );
 
-	return mRemoteIOUnit;
+	return mRemoteIODevice;
 }
 
 void DeviceManagerAudioSession::activateSession()

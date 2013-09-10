@@ -22,7 +22,6 @@
 */
 
 #include "audio2/cocoa/DeviceManagerCoreAudio.h"
-#include "audio2/cocoa/DeviceAudioUnit.h"
 #include "audio2/audio.h"
 
 #include "audio2/Debug.h"
@@ -152,8 +151,7 @@ const std::vector<DeviceRef>& DeviceManagerCoreAudio::getDevices()
 
 		for ( ::AudioDeviceID &deviceId : deviceIds ) {
 			string key = keyForDeviceId( deviceId );
-			auto device = DeviceRef( new DeviceAudioUnit( key ) );
-			mDevices.push_back( device );
+			auto device = addDevice( key );
 			mDeviceIds.insert( { device, deviceId } );
 		}
 	}

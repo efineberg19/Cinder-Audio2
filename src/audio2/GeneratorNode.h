@@ -40,12 +40,13 @@ typedef std::shared_ptr<class FilePlayerNode>	FilePlayerNodeRef;
 class RingBuffer;
 
 class GeneratorNode : public Node {
-public:
-	GeneratorNode( const Format &format );
+  public:
 	std::string virtual getTag() override			{ return "GeneratorNode"; }
 	virtual ~GeneratorNode() {}
 
-private:
+  protected:
+	GeneratorNode( const Format &format );
+  private:
 	// note: GeneratorNode's cannot have any sources
 	void setInput( const NodeRef &input ) override {}
 	void setInput( const NodeRef &input, size_t bus ) override {}
@@ -53,19 +54,23 @@ private:
 
 class LineInNode : public GeneratorNode {
 public:
-	LineInNode( const DeviceRef &device, const Format &format ) : GeneratorNode( format ) {
-		setAutoEnabled();
-	}
 	virtual ~LineInNode() {}
 
 	std::string virtual getTag() override			{ return "LineInNode"; }
 
 	//! Returns the associated \a Device.
-	virtual DeviceRef getDevice() = 0;
+	virtual const DeviceRef& getDevice() const		{ return mDevice; }
 	//! Returns the frame of the last buffer underrun or 0 if none since the last time this method was called.
 	virtual uint64_t getLastUnderrun() = 0;
 	//! Returns the frame of the last buffer overrun or 0 if none since the last time this method was called.
 	virtual uint64_t getLastOverrun() = 0;
+
+protected:
+	LineInNode( const DeviceRef &device, const Format &format ) : GeneratorNode( format ), mDevice( device ) {
+		setAutoEnabled();
+	}
+
+	DeviceRef mDevice;
 };
 
 //! \brief Base Node class for recorded audio playback
@@ -74,9 +79,6 @@ public:
 //! \see FilePlayerNode
 class PlayerNode : public GeneratorNode {
 public:
-	PlayerNode( const Format &format = Format() ) : GeneratorNode( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
-	virtual ~PlayerNode() {}
-
 	std::string virtual getTag() override			{ return "PlayerNode"; }
 
 	virtual void setReadPosition( size_t pos )	{ mReadPos = pos; }
@@ -88,6 +90,9 @@ public:
 	virtual size_t getNumFrames() const	{ return mNumFrames; }
 
 protected:
+	PlayerNode( const Format &format = Format() ) : GeneratorNode( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
+	virtual ~PlayerNode() {}
+
 	size_t mNumFrames;
 	std::atomic<size_t> mReadPos;
 	std::atomic<bool>	mLoop;

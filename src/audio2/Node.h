@@ -189,12 +189,13 @@ public:
 	LineOutNode( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineOutNode() {}
 
-	virtual DeviceRef getDevice() = 0;
+	const DeviceRef& getDevice() const		{ return mDevice; }
 
 	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
 	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
 
 protected:
+	DeviceRef mDevice;
 };
 
 class MixerNode : public Node {

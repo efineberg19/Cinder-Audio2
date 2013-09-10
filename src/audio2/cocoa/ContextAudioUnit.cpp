@@ -22,7 +22,6 @@
 */
 
 #include "audio2/cocoa/ContextAudioUnit.h"
-#include "audio2/cocoa/DeviceAudioUnit.h"
 #include "audio2/cocoa/CinderCoreAudio.h"
 #include "audio2/audio.h"
 #include "audio2/CinderAssert.h"
@@ -39,6 +38,8 @@
 using namespace std;
 
 namespace cinder { namespace audio2 { namespace cocoa {
+
+enum DeviceBus { OUTPUT = 0, INPUT = 1 };
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - NodeAudioUnit
@@ -71,11 +72,8 @@ void NodeAudioUnit::uninitAu()
 LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 : LineOutNode( device, format ), mElapsedFrames( 0 ), mSynchroniousIO( false )
 {
-	if( device->getNumOutputChannels() < mNumChannels )
+	if( mDevice->getNumOutputChannels() < mNumChannels )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
-
-	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
-	CI_ASSERT( mDevice );
 
 	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 }
@@ -139,11 +137,6 @@ void LineOutAudioUnit::stop()
 	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
-DeviceRef LineOutAudioUnit::getDevice()
-{
-	return static_pointer_cast<Device>( mDevice );
-}
-
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
@@ -176,9 +169,6 @@ LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 {
 	if( device->getNumOutputChannels() < mNumChannels )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
-
-	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
-	CI_ASSERT( mDevice );
 
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
@@ -304,11 +294,6 @@ void LineInAudioUnit::stop()
 		CI_ASSERT( status == noErr );
 		LOG_V << "stopped: " << mDevice->getName() << endl;
 	}
-}
-
-DeviceRef LineInAudioUnit::getDevice()
-{
-	return std::static_pointer_cast<Device>( mDevice );
 }
 
 uint64_t LineInAudioUnit::getLastUnderrun()

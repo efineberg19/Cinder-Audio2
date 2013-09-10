@@ -26,7 +26,6 @@
 #include "audio2/Debug.h"
 
 #if defined( CINDER_COCOA )
-	#include "audio2/cocoa/DeviceAudioUnit.h"
 	#if defined( CINDER_MAC )
 		#include "audio2/cocoa/DeviceManagerCoreAudio.h"
 	#else
@@ -35,6 +34,8 @@
 #elif defined( CINDER_MSW )
 	#include "audio2/msw/DeviceManagerWasapi.h"
 #endif
+
+using namespace std;
 
 namespace cinder { namespace audio2 {
 
@@ -52,22 +53,22 @@ DeviceRef Device::getDefaultInput()
 	return DeviceManager::instance()->getDefaultInput();
 }
 
-DeviceRef Device::findDeviceByName( const std::string &name )
+DeviceRef Device::findDeviceByName( const string &name )
 {
 	return DeviceManager::instance()->findDeviceByName( name );
 }
 
-DeviceRef Device::findDeviceByKey( const std::string &key )
+DeviceRef Device::findDeviceByKey( const string &key )
 {
 	return DeviceManager::instance()->findDeviceByKey( key );
 }
 
-const std::vector<DeviceRef>& Device::getDevices()
+const vector<DeviceRef>& Device::getDevices()
 {
 	return DeviceManager::instance()->getDevices();
 }
 
-const std::string& Device::getName()
+const string& Device::getName()
 {
 	if( mName.empty() )
 		mName = DeviceManager::instance()->getName( mKey );
@@ -75,7 +76,7 @@ const std::string& Device::getName()
 	return mName;
 }
 
-const std::string& Device::getKey()
+const string& Device::getKey()
 {
 	return mKey;
 }
@@ -124,26 +125,39 @@ DeviceManager* DeviceManager::instance()
 	return sInstance;
 }
 
-DeviceRef DeviceManager::findDeviceByName( const std::string &name )
+DeviceRef DeviceManager::findDeviceByName( const string &name )
 {
 	for( const auto &device : getDevices() ) {
 		if( device->getName() == name )
 			return device;
 	}
 
-	LOG_E << "unknown device name: " << name << std::endl;
+	LOG_E << "unknown device name: " << name << endl;
 	return DeviceRef();
 }
 
-DeviceRef DeviceManager::findDeviceByKey( const std::string &key )
+DeviceRef DeviceManager::findDeviceByKey( const string &key )
 {
 	for( const auto &device : getDevices() ) {
 		if( device->getKey() == key )
 			return device;
 	}
 
-	LOG_E << "unknown device key: " << key << std::endl;
+	LOG_E << "unknown device key: " << key << endl;
 	return DeviceRef();
+}
+
+DeviceRef DeviceManager::addDevice( const string &key )
+{
+	for( const auto& dev : mDevices ) {
+		if( dev->getKey() == key ) {
+			LOG_E << "device already exists with key: " << key << endl;
+			return DeviceRef();
+		}
+	}
+
+	mDevices.push_back( DeviceRef( new Device( key ) ) );
+	return mDevices.back();
 }
 
 } } // namespace cinder::audio2

@@ -57,12 +57,12 @@ class DeviceManagerAudioSession : public DeviceManager {
 
   private:
 
-	std::shared_ptr<DeviceAudioUnit>	getRemoteIODevice();
-	void								activateSession();
-	uint32_t							getSessionCategory();
+	const DeviceRef&				getRemoteIODevice();
+	void							activateSession();
+	uint32_t						getSessionCategory();
 
 
-	std::shared_ptr<DeviceAudioUnit> mRemoteIOUnit;
+	DeviceRef mRemoteIODevice;
 
 	bool mSessionIsActive, mInputEnabled;
 };

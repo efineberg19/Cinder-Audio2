@@ -70,14 +70,11 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 	void start() override;
 	void stop() override;
 
-	DeviceRef getDevice() override;
-
 	size_t getElapsedFrames() override		{ return mElapsedFrames; }
 
   private:
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
-	std::shared_ptr<DeviceAudioUnit>	mDevice;
 	std::atomic<size_t>					mElapsedFrames;
 	bool								mSynchroniousIO;
 
@@ -99,8 +96,6 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 
 	void process( Buffer *buffer ) override;
 
-	DeviceRef getDevice() override;
-
 	uint64_t getLastUnderrun() override;
 	uint64_t getLastOverrun() override;
 
@@ -108,7 +103,6 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 
-	std::shared_ptr<DeviceAudioUnit>	mDevice;
 	std::unique_ptr<RingBuffer>			mRingBuffer;
 	AudioBufferListPtr					mBufferList;
 	std::atomic<uint64_t>				mLastUnderrun, mLastOverrun;

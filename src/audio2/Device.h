@@ -55,6 +55,9 @@ class Device : public boost::noncopyable {
 	Device( const std::string &key ) : mKey( key ) {}
 
 	std::string mKey, mName;
+
+  private:
+	friend class DeviceManager;
 };
 
 class DeviceManager : public boost::noncopyable {
@@ -75,8 +78,10 @@ class DeviceManager : public boost::noncopyable {
 	virtual size_t getSampleRate( const std::string &key ) = 0;
 	virtual size_t getFramesPerBlock( const std::string &key ) = 0;
 
-protected:
+  protected:
 	DeviceManager()	{}
+
+	DeviceRef	addDevice( const std::string &key );
 
 	std::vector<DeviceRef> mDevices;
 };

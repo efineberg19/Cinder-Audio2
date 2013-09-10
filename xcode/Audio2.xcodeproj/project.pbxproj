@@ -13,8 +13,6 @@
 		1104F49A17754A6E003EAA2B /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46617754A6E003EAA2B /* Buffer.h */; };
 		1104F49B17754A6E003EAA2B /* ContextAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46817754A6E003EAA2B /* ContextAudioUnit.cpp */; };
 		1104F49C17754A6E003EAA2B /* ContextAudioUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46917754A6E003EAA2B /* ContextAudioUnit.h */; };
-		1104F49D17754A6E003EAA2B /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46A17754A6E003EAA2B /* DeviceAudioUnit.cpp */; };
-		1104F49E17754A6E003EAA2B /* DeviceAudioUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46B17754A6E003EAA2B /* DeviceAudioUnit.h */; };
 		1104F4A217754A6E003EAA2B /* DeviceManagerCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46F17754A6E003EAA2B /* DeviceManagerCoreAudio.h */; };
 		1104F4A317754A6E003EAA2B /* FileCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F47017754A6E003EAA2B /* FileCoreAudio.cpp */; };
 		1104F4A417754A6E003EAA2B /* FileCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47117754A6E003EAA2B /* FileCoreAudio.h */; };
@@ -44,7 +42,6 @@
 		11B041B1179B89F80034BEE2 /* Plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041AF179B89F80034BEE2 /* Plot.h */; };
 		11B041B3179B8A0C0034BEE2 /* CinderAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041B2179B8A0C0034BEE2 /* CinderAssert.h */; };
 		11B041F4179B90450034BEE2 /* GeneratorNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F48017754A6E003EAA2B /* GeneratorNode.cpp */; };
-		11B041F5179B90450034BEE2 /* DeviceAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46A17754A6E003EAA2B /* DeviceAudioUnit.cpp */; };
 		11B041F6179B90450034BEE2 /* CinderCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C58DE7177943DA00DF99F8 /* CinderCoreAudio.cpp */; };
 		11B041F7179B90450034BEE2 /* Dsp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F47917754A6E003EAA2B /* Dsp.cpp */; };
 		11B041F8179B90450034BEE2 /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F47717754A6E003EAA2B /* Device.cpp */; };
@@ -59,7 +56,6 @@
 		11B04204179B90450034BEE2 /* Debug.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47617754A6E003EAA2B /* Debug.h */; };
 		11B04205179B90450034BEE2 /* EffectNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47B17754A6E003EAA2B /* EffectNode.h */; };
 		11B04206179B90450034BEE2 /* ContextAudioUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46917754A6E003EAA2B /* ContextAudioUnit.h */; };
-		11B04207179B90450034BEE2 /* DeviceAudioUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46B17754A6E003EAA2B /* DeviceAudioUnit.h */; };
 		11B04208179B90450034BEE2 /* CinderCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 11C58DE8177943DA00DF99F8 /* CinderCoreAudio.h */; };
 		11B04209179B90450034BEE2 /* GeneratorNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F48117754A6E003EAA2B /* GeneratorNode.h */; };
 		11B0420A179B90450034BEE2 /* File.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47F17754A6E003EAA2B /* File.h */; };
@@ -97,8 +93,6 @@
 		1104F46617754A6E003EAA2B /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		1104F46817754A6E003EAA2B /* ContextAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextAudioUnit.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		1104F46917754A6E003EAA2B /* ContextAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContextAudioUnit.h; sourceTree = "<group>"; };
-		1104F46A17754A6E003EAA2B /* DeviceAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceAudioUnit.cpp; sourceTree = "<group>"; };
-		1104F46B17754A6E003EAA2B /* DeviceAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceAudioUnit.h; sourceTree = "<group>"; };
 		1104F46C17754A6E003EAA2B /* DeviceManagerAudioSession.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerAudioSession.cpp; sourceTree = "<group>"; };
 		1104F46D17754A6E003EAA2B /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
 		1104F46E17754A6E003EAA2B /* DeviceManagerCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerCoreAudio.cpp; sourceTree = "<group>"; };
@@ -252,8 +246,6 @@
 			children = (
 				1104F46817754A6E003EAA2B /* ContextAudioUnit.cpp */,
 				1104F46917754A6E003EAA2B /* ContextAudioUnit.h */,
-				1104F46A17754A6E003EAA2B /* DeviceAudioUnit.cpp */,
-				1104F46B17754A6E003EAA2B /* DeviceAudioUnit.h */,
 				1104F46C17754A6E003EAA2B /* DeviceManagerAudioSession.cpp */,
 				1104F46D17754A6E003EAA2B /* DeviceManagerAudioSession.h */,
 				1104F46E17754A6E003EAA2B /* DeviceManagerCoreAudio.cpp */,
@@ -305,7 +297,6 @@
 				1104F4A917754A6E003EAA2B /* Debug.h in Headers */,
 				1104F4AE17754A6E003EAA2B /* EffectNode.h in Headers */,
 				1104F49C17754A6E003EAA2B /* ContextAudioUnit.h in Headers */,
-				1104F49E17754A6E003EAA2B /* DeviceAudioUnit.h in Headers */,
 				11C58DEA177943DA00DF99F8 /* CinderCoreAudio.h in Headers */,
 				11D6946217D0475000B0D2BB /* fftsg.h in Headers */,
 				1104F4B417754A6E003EAA2B /* GeneratorNode.h in Headers */,
@@ -335,7 +326,6 @@
 				11B04204179B90450034BEE2 /* Debug.h in Headers */,
 				11B04205179B90450034BEE2 /* EffectNode.h in Headers */,
 				11B04206179B90450034BEE2 /* ContextAudioUnit.h in Headers */,
-				11B04207179B90450034BEE2 /* DeviceAudioUnit.h in Headers */,
 				11B04208179B90450034BEE2 /* CinderCoreAudio.h in Headers */,
 				11D6946317D0475000B0D2BB /* fftsg.h in Headers */,
 				11B04209179B90450034BEE2 /* GeneratorNode.h in Headers */,
@@ -428,7 +418,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1104F4B317754A6E003EAA2B /* GeneratorNode.cpp in Sources */,
-				1104F49D17754A6E003EAA2B /* DeviceAudioUnit.cpp in Sources */,
 				11C58DE9177943DA00DF99F8 /* CinderCoreAudio.cpp in Sources */,
 				1104F4AC17754A6E003EAA2B /* Dsp.cpp in Sources */,
 				11D6946017D0475000B0D2BB /* fftsg.cpp in Sources */,
@@ -452,7 +441,6 @@
 			files = (
 				11B0421D179B92CB0034BEE2 /* DeviceManagerAudioSession.cpp in Sources */,
 				11B041F4179B90450034BEE2 /* GeneratorNode.cpp in Sources */,
-				11B041F5179B90450034BEE2 /* DeviceAudioUnit.cpp in Sources */,
 				11B041F6179B90450034BEE2 /* CinderCoreAudio.cpp in Sources */,
 				11D6946117D0475000B0D2BB /* fftsg.cpp in Sources */,
 				11B041F7179B90450034BEE2 /* Dsp.cpp in Sources */,
