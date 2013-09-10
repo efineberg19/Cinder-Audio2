@@ -50,8 +50,7 @@ ContextRef Context::create()
 
 Context::~Context()
 {
-	stop(); // TODO: reconsider if this is still necessary once InputTest is properly shutting down
-	
+	lock_guard<mutex> lock( mMutex );
 	uninitRecursisve( mRoot );
 }
 
