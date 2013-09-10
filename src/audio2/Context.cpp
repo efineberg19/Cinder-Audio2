@@ -50,6 +50,7 @@ ContextRef Context::create()
 
 Context::~Context()
 {
+	stop();
 	lock_guard<mutex> lock( mMutex );
 	uninitRecursisve( mRoot );
 }

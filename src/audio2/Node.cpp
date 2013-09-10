@@ -155,9 +155,6 @@ void Node::setEnabled( bool enabled )
 
 void Node::pullInputs( Buffer *outputBuffer )
 {
-	// FIXME: this is resolving to false in InputTest during shutdown on Mac, however the test runs fine without.
-	// - there should always be a valid context within any process callback.
-	// - problem is that ~ContextAudioUnit() is in the middle of killing everything while this loop is still running once more
 	CI_ASSERT( getContext() );
 
 	if( mProcessInPlace ) {
