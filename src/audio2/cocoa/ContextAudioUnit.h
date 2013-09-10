@@ -138,7 +138,7 @@ class ContextAudioUnit : public Context {
 	virtual LineOutNodeRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 
-	//! set by the RootNode
+	//! set by the NodeTarget
 	void setCurrentTimeStamp( const ::AudioTimeStamp *timeStamp ) { mCurrentTimeStamp = timeStamp; }
 	//! all other NodeAudioUnit's need to pass this correctly formatted timestamp to AudioUnitRender
 	const ::AudioTimeStamp* getCurrentTimeStamp() { return mCurrentTimeStamp; }

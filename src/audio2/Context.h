@@ -47,10 +47,10 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
 	static DeviceManager* deviceManager();
 
-	virtual void setRoot( RootNodeRef root );
+	virtual void setTarget( NodeTargetRef target );
 
-	//! If the root has not already been set, it is the default LineOutNode
-	virtual RootNodeRef getRoot(); // TODO: return & if possible
+	//! If the target has not already been set, it is the default LineOutNode
+	virtual NodeTargetRef getTarget(); // TODO: return & if possible
 	virtual void start();
 	virtual void stop();
 	//! start / stop the graph via bool
@@ -63,10 +63,10 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Called by \a node when it's connections have changed, default implementation is empty.
 	virtual void connectionsDidChange( const NodeRef &node ) {} 
 
-	size_t		getSampleRate()				{ return getRoot()->getSampleRate(); }
-	size_t		getFramesPerBlock()			{ return getRoot()->getFramesPerBlock(); }
+	size_t		getSampleRate()				{ return getTarget()->getSampleRate(); }
+	size_t		getFramesPerBlock()			{ return getTarget()->getFramesPerBlock(); }
 
-	uint64_t	getNumProcessedFrames()		{ return getRoot()->getNumProcessedFrames(); }
+	uint64_t	getNumProcessedFrames()		{ return getTarget()->getNumProcessedFrames(); }
 	float		getNumProcessedSeconds()	{ return (float)getNumProcessedFrames() / (float)getSampleRate(); }
 
 	std::mutex& getMutex()					{ return mMutex; }
@@ -79,7 +79,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	void disconnectRecursive( const NodeRef &node );
 	void uninitRecursisve( const NodeRef &node );
 
-	RootNodeRef		mRoot;
+	NodeTargetRef	mTarget;
 	std::mutex		mMutex;
 	bool			mEnabled;
 

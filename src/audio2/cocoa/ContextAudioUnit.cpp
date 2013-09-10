@@ -185,7 +185,7 @@ void LineInAudioUnit::initialize()
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
 	// see if synchronous I/O is possible by looking at the LineOut
-	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getRoot() );
+	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getTarget() );
 
 	if( lineOutAu ) {
 		bool sameDevice = lineOutAu->getDevice() == mDevice;

@@ -332,7 +332,7 @@ bool Node::checkInput( const NodeRef &input )
 // ----------------------------------------------------------------------------------------------------
 
 LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
-: RootNode( format ), mDevice( device )
+: NodeTarget( format ), mDevice( device )
 {
 	CI_ASSERT( mDevice );
 

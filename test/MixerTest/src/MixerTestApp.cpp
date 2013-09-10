@@ -84,7 +84,7 @@ void MixerTestApp::setupSine()
 	genNode->getUGen().setAmp( 0.2f );
 	genNode->getUGen().setFreq( 440.0f );
 
-	genNode->connect( mContext->getRoot() );
+	genNode->connect( mContext->getTarget() );
 	mSine = genNode;
 
 	mSine->start();
@@ -99,7 +99,7 @@ void MixerTestApp::setupNoise()
 	genNode->setAutoEnabled();
 	genNode->getUGen().setAmp( 0.2f );
 
-	genNode->connect( mContext->getRoot() );
+	genNode->connect( mContext->getTarget() );
 	mNoise = genNode;
 
 	mNoise->start();
@@ -123,11 +123,11 @@ void MixerTestApp::setupMixer()
 
 	// connect by appending
 	//	noise->connect( mMixer );
-	//	sine->connect( mMixer )->connect( mContext->getRoot() );
+	//	sine->connect( mMixer )->connect( mContext->getTarget() );
 
 	// or connect by index
 	noise->connect( mMixer, Bus::NOISE );
-	sine->connect( mMixer, Bus::SINE )->connect( mContext->getRoot() );
+	sine->connect( mMixer, Bus::SINE )->connect( mContext->getTarget() );
 
 	mSine->start();
 	mNoise->start();
@@ -148,7 +148,7 @@ void MixerTestApp::setupInterleavedPassThru()
 
 	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
 
-	genNode->connect( interleaved )->connect( mContext->getRoot() );
+	genNode->connect( interleaved )->connect( mContext->getTarget() );
 
 	mEnableSineButton.setEnabled( true );
 	mEnableSineButton.hidden = false;

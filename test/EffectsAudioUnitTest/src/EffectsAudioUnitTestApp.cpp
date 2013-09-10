@@ -82,7 +82,7 @@ void EffectsAudioUnitTestApp::setup()
 void EffectsAudioUnitTestApp::setupOne()
 {
 	mEffect = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
-	mSource->connect( mEffect )->connect( mContext->getRoot() );
+	mSource->connect( mEffect )->connect( mContext->getTarget() );
 
 	mBandpassSlider.mHidden = true;
 }
@@ -94,7 +94,7 @@ void EffectsAudioUnitTestApp::setupTwo()
 
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
-	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getRoot() );
+	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getTarget() );
 
 	mBandpassSlider.mHidden = false;
 }

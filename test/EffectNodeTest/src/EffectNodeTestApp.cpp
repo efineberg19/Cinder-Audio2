@@ -68,7 +68,7 @@ void EffectNodeTestApp::setupOne()
 {
 	mRingMod = mContext->makeNode( new RingMod() );
 	mRingMod->mSineGen.setFreq( 20.0f );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getRoot() );
+	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getTarget() );
 }
 
 // TODO NEXT: GainNode should be flexible in channel counts
@@ -77,7 +77,7 @@ void EffectNodeTestApp::setupForceStereo()
 {
 	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );
 	mRingMod->mSineGen.setFreq( 20.0f );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getRoot() );
+	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupDownMix()
@@ -86,7 +86,7 @@ void EffectNodeTestApp::setupDownMix()
 	mRingMod->mSineGen.setFreq( 20.0f );
 
 	auto monoPassThru = mContext->makeNode( new Node( Node::Format().channels( 1 ) ) );
-	mGen->connect( mRingMod )->connect( mGain )->connect( monoPassThru )->connect( mContext->getRoot() );
+	mGen->connect( mRingMod )->connect( mGain )->connect( monoPassThru )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupUI()

@@ -102,9 +102,9 @@ void NodeTestApp::setupSine()
 {
 	mGain->disconnect();
 
-	// TODO: on msw, the 0 index for gain -> root is needed when switching between different tests,
+	// TODO: on msw, the 0 index for gain -> target is needed when switching between different tests,
 	// but not cocoa (check). see if this can be avoided
-	mSine->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
+	mSine->connect( mGain, 0 )->connect( mContext->getTarget(), 0 );
 
 	mSine->start();
 
@@ -116,7 +116,7 @@ void NodeTestApp::setupNoiseReverse()
 {
 	mGain->disconnect();
 
-	mContext->getRoot()->setInput( mGain, 0 );
+	mContext->getTarget()->setInput( mGain, 0 );
 	mGain->setInput( mNoise, 0 );
 
 	mNoise->start();
@@ -128,12 +128,12 @@ void NodeTestApp::setupSumming()
 {
 	// connect by appending
 	//mNoise->connect( mGain );
-	//mSine->connect( mGain )->connect( mContext->getRoot(), 0 );
+	//mSine->connect( mGain )->connect( mContext->getTarget(), 0 );
 
 	// connect by index
 	mGain->getInputs().resize( 2 );
 	mNoise->connect( mGain, Bus::NOISE );
-	mSine->connect( mGain, Bus::SINE )->connect( mContext->getRoot(), 0 );
+	mSine->connect( mGain, Bus::SINE )->connect( mContext->getTarget(), 0 );
 
 	mSine->start();
 	mNoise->start();
@@ -147,7 +147,7 @@ void NodeTestApp::setupInterleavedPassThru()
 	mGain->disconnect();
 
 	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
-	mSine->connect( interleaved )->connect( mGain, 0 )->connect( mContext->getRoot(), 0 );
+	mSine->connect( interleaved )->connect( mGain, 0 )->connect( mContext->getTarget(), 0 );
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );

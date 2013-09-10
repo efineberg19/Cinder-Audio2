@@ -59,7 +59,7 @@ namespace {
 void printGraph( ContextRef graph )
 {
 	app::console() << "-------------- Graph configuration: --------------" << endl;
-	printRecursive( graph->getRoot(), 0 );
+	printRecursive( graph->getTarget(), 0 );
 }
 
 void printDevices()

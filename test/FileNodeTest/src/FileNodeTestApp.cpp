@@ -81,7 +81,7 @@ void FileNodeTestApp::setupBufferPlayer()
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
 	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
-	mPlayerNode->connect( mContext->getRoot() );
+	mPlayerNode->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupFilePlayer()
@@ -96,7 +96,7 @@ void FileNodeTestApp::setupFilePlayer()
 
 	mTap = mContext->makeNode( new TapNode( TapNode::Format().windowSize( 512 ) ) ); // TODO: why is this hard-coded?
 
-	mPlayerNode->connect( mTap )->connect( mContext->getRoot() );
+	mPlayerNode->connect( mTap )->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupUI()

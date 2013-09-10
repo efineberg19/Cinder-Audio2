@@ -35,7 +35,7 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class Context> ContextRef;
 typedef std::shared_ptr<class Node> NodeRef;
 typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
-typedef std::shared_ptr<class RootNode> RootNodeRef;
+typedef std::shared_ptr<class NodeTarget> NodeTargetRef;
 typedef std::shared_ptr<class LineOutNode> LineOutNodeRef;
 typedef std::shared_ptr<class LineInNode> LineInNodeRef;
 typedef std::shared_ptr<class MixerNode> MixerNodeRef;
@@ -162,13 +162,10 @@ class Node : public std::enable_shared_from_this<Node> {
 	friend class Context;
 };
 
-// TODO: this seems safe to rename to OutputNode now.
-// - is this confusing when there is Node::getOutputs() ?
-// - leaning towards TargetNode + SourceNode at the moment (or, as afb would have it, NodeTarget + NodeSource)
-class RootNode : public Node {
+class NodeTarget : public Node {
   public:
-	RootNode( const Format &format = Format() ) : Node( format ) {}
-	virtual ~RootNode() {}
+	NodeTarget( const Format &format = Format() ) : Node( format ) {}
+	virtual ~NodeTarget() {}
 
 	virtual size_t getSampleRate() = 0;
 	virtual size_t getFramesPerBlock() = 0;
@@ -177,12 +174,12 @@ class RootNode : public Node {
 	virtual uint64_t getNumProcessedFrames() = 0;
 
   private:
-	// RootNode does not have outputs
+	// NodeTarget does not have outputs
 	const NodeRef& connect( const NodeRef &dest ) override				{ return dest; }
 	const NodeRef& connect( const NodeRef &dest, size_t bus ) override	{ return dest; }
 };
 
-class LineOutNode : public RootNode {
+class LineOutNode : public NodeTarget {
   public:
 
 	// ???: device param here necessary?

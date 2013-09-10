@@ -106,14 +106,14 @@ void SpectrumTapTestApp::setup()
 
 void SpectrumTapTestApp::setupSine()
 {
-	mSine->connect( mSpectrumTap )->connect( mContext->getRoot() );
+	mSine->connect( mSpectrumTap )->connect( mContext->getTarget() );
 	if( mPlaybackButton.mEnabled )
 		mSine->start();
 }
 
 void SpectrumTapTestApp::setupSample()
 {
-	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getRoot() );
+	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getTarget() );
 	if( mPlaybackButton.mEnabled )
 		mPlayerNode->start();
 }

@@ -74,17 +74,17 @@ Context::~Context()
 {
 	stop();
 	lock_guard<mutex> lock( mMutex );
-	uninitRecursisve( mRoot );
+	uninitRecursisve( mTarget );
 }
 
 void Context::start()
 {
 	if( mEnabled )
 		return;
-	CI_ASSERT( mRoot );
+	CI_ASSERT( mTarget );
 	mEnabled = true;
 	
-	startRecursive( mRoot );
+	startRecursive( mTarget );
 }
 
 void Context::disconnectAllNodes()
@@ -92,7 +92,7 @@ void Context::disconnectAllNodes()
 	if( mEnabled )
 		stop();
 	
-	disconnectRecursive( mRoot );
+	disconnectRecursive( mTarget );
 }
 
 void Context::stop()
@@ -101,7 +101,7 @@ void Context::stop()
 		return;
 	mEnabled = false;
 
-	stopRecursive( mRoot );
+	stopRecursive( mTarget );
 }
 
 void Context::setEnabled( bool enabled )
@@ -112,16 +112,16 @@ void Context::setEnabled( bool enabled )
 		stop();
 }
 
-void Context::setRoot( RootNodeRef root )
+void Context::setTarget( NodeTargetRef target )
 {
-	mRoot = root;
+	mTarget = target;
 }
 
-RootNodeRef Context::getRoot()
+NodeTargetRef Context::getTarget()
 {
-	if( ! mRoot )
-		setRoot( createLineOut() );
-	return mRoot;
+	if( ! mTarget )
+		setTarget( createLineOut() );
+	return mTarget;
 }
 
 void Context::startRecursive( const NodeRef &node )

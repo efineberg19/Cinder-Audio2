@@ -93,7 +93,7 @@ void InputTestApp::setupDedicatedDevice()
 
 	mLineIn = mContext->createLineIn( device );
 	auto output = mContext->createLineOut( device );
-	mContext->setRoot( output );
+	mContext->setTarget( output );
 
 	LOG_V << "shared device name: " << output->getDevice()->getName() << endl;
 	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
@@ -103,26 +103,26 @@ void InputTestApp::setupDedicatedDevice()
 
 void InputTestApp::setupPassThrough()
 {
-	mLineIn->connect( mContext->getRoot() );
+	mLineIn->connect( mContext->getTarget() );
 }
 
 void InputTestApp::setupInProcessOut()
 {
 	auto ringMod = mContext->makeNode( new RingMod() );
-	mLineIn->connect( ringMod )->connect( mContext->getRoot() );
+	mLineIn->connect( ringMod )->connect( mContext->getTarget() );
 }
 
 void InputTestApp::setupInTapOut()
 {
 	mTap = mContext->makeNode( new TapNode() );
-	mLineIn->connect( mTap )->connect( mContext->getRoot() );
+	mLineIn->connect( mTap )->connect( mContext->getTarget() );
 }
 
 void InputTestApp::setupInTapProcessOut()
 {
 	mTap = mContext->makeNode( new TapNode() );
 	auto ringMod = mContext->makeNode( new RingMod() );
-	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getRoot() );
+	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getTarget() );
 }
 
 void InputTestApp::setupUI()

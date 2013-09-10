@@ -262,7 +262,7 @@ void SourceVoiceXAudio::initSourceVoice()
 	ContextRef context = getContext();
 
 	// first ensure there is a valid mastering voice.
-	RootNodeRef target = context->getRoot();
+	NodeTargetRef target = context->getTarget();
 	if( ! target->isInitialized() )
 		target->initialize();
 
