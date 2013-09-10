@@ -34,7 +34,7 @@ namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Context> ContextRef;
 typedef std::shared_ptr<class Node> NodeRef;
-typedef std::shared_ptr<class GeneratorNode> GeneratorNodeRef;
+typedef std::shared_ptr<class NodeSource> NodeSourceRef;
 typedef std::shared_ptr<class NodeTarget> NodeTargetRef;
 typedef std::shared_ptr<class LineOutNode> LineOutNodeRef;
 typedef std::shared_ptr<class LineInNode> LineInNodeRef;

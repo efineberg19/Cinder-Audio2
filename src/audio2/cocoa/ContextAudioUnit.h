@@ -24,7 +24,7 @@
 #pragma once
 
 #include "audio2/Context.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/EffectNode.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/cocoa/CinderCoreAudio.h"

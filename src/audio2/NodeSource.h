@@ -39,20 +39,20 @@ typedef std::shared_ptr<class FilePlayerNode>	FilePlayerNodeRef;
 
 class RingBuffer;
 
-class GeneratorNode : public Node {
+class NodeSource : public Node {
   public:
-	std::string virtual getTag() override			{ return "GeneratorNode"; }
-	virtual ~GeneratorNode() {}
+	std::string virtual getTag() override			{ return "NodeSource"; }
+	virtual ~NodeSource() {}
 
   protected:
-	GeneratorNode( const Format &format );
+	NodeSource( const Format &format );
   private:
-	// note: GeneratorNode's cannot have any sources
+	// NodeSource's cannot have any sources
 	void setInput( const NodeRef &input ) override {}
 	void setInput( const NodeRef &input, size_t bus ) override {}
 };
 
-class LineInNode : public GeneratorNode {
+class LineInNode : public NodeSource {
 public:
 	virtual ~LineInNode() {}
 
@@ -66,7 +66,7 @@ public:
 	virtual uint64_t getLastOverrun() = 0;
 
 protected:
-	LineInNode( const DeviceRef &device, const Format &format ) : GeneratorNode( format ), mDevice( device ) {
+	LineInNode( const DeviceRef &device, const Format &format ) : NodeSource( format ), mDevice( device ) {
 		setAutoEnabled();
 	}
 
@@ -77,7 +77,7 @@ protected:
 //! \note PlayerNode itself doesn't process any audio.
 //! \see BufferPlayerNode
 //! \see FilePlayerNode
-class PlayerNode : public GeneratorNode {
+class PlayerNode : public NodeSource {
 public:
 	std::string virtual getTag() override			{ return "PlayerNode"; }
 
@@ -90,7 +90,7 @@ public:
 	virtual size_t getNumFrames() const	{ return mNumFrames; }
 
 protected:
-	PlayerNode( const Format &format = Format() ) : GeneratorNode( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
+	PlayerNode( const Format &format = Format() ) : NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
 	virtual ~PlayerNode() {}
 
 	size_t mNumFrames;
@@ -157,10 +157,10 @@ public:
 };
 
 // TODO: UGenNode's are starting to seem unnesecarry
-// - just make a GeneratorNode for all of the basic waveforms
+// - just make a NodeSource for all of the basic waveforms
 template <typename UGenT>
-struct UGenNode : public GeneratorNode {
-	UGenNode( const Format &format = Format() ) : GeneratorNode( format ) {
+struct UGenNode : public NodeSource {
+	UGenNode( const Format &format = Format() ) : NodeSource( format ) {
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 1 );
 	}

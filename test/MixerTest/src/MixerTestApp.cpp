@@ -2,7 +2,7 @@
 #include "cinder/gl/gl.h"
 
 #include "audio2/audio.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
@@ -53,7 +53,7 @@ public:
 
 	ContextRef mContext;
 	MixerNodeRef mMixer;
-	GeneratorNodeRef mSine, mNoise;
+	NodeSourceRef mSine, mNoise;
 
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton, mEnableNoiseButton, mEnableSineButton;

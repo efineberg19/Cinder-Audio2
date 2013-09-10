@@ -23,7 +23,7 @@
 
 
 #include "audio2/Context.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/audio.h"
 
 #include "cinder/Cinder.h"

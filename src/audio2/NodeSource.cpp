@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/Debug.h"
 
@@ -33,14 +33,14 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - GeneratorNode
+// MARK: - NodeSource
 // ----------------------------------------------------------------------------------------------------
 
-GeneratorNode::GeneratorNode( const Format &format ) : Node( format )
+NodeSource::NodeSource( const Format &format ) : Node( format )
 {
 	mInputs.clear();
 
-	// GeneratorNode's don't have inputs, so disallow matches input channels
+	// NodeSource's don't have inputs, so disallow matches input channels
 	if( mChannelMode == ChannelMode::MATCHES_INPUT )
 		mChannelMode = ChannelMode::MATCHES_OUTPUT;
 }

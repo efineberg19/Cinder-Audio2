@@ -3,7 +3,7 @@
 #include "Resources.h"
 
 #include "audio2/audio.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/TapNode.h"
 #include "Plot.h"
 #include "audio2/Debug.h"

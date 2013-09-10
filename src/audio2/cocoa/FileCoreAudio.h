@@ -24,7 +24,7 @@
 #pragma once
 
 #include "audio2/File.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/cocoa/CinderCoreAudio.h"
 
 #include <AudioToolbox/ExtendedAudioFile.h>

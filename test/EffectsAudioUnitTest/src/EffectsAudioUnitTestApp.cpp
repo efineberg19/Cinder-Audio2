@@ -2,7 +2,7 @@
 #include "cinder/gl/gl.h"
 
 #include "audio2/audio.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
@@ -47,7 +47,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void initParams();
 
 	ContextRef mContext;
-	GeneratorNodeRef mSource;
+	NodeSourceRef mSource;
 
 	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
 

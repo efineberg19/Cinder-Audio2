@@ -3,7 +3,7 @@
 #include "cinder/cocoa/CinderCocoa.h"
 
 #include "audio2/audio.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/Debug.h"
 #include "audio2/cocoa/CinderCoreAudio.h"
 #include "Plot.h"

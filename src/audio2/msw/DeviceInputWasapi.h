@@ -28,7 +28,7 @@
 #endif
 
 #include "audio2/Device.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 
 namespace cinder { namespace audio2 { namespace msw {
 
