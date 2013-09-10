@@ -70,7 +70,7 @@ void NodeAudioUnit::uninitAu()
 // ----------------------------------------------------------------------------------------------------
 
 LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
-: LineOutNode( device, format ), mElapsedFrames( 0 ), mSynchroniousIO( false )
+: LineOutNode( device, format ), mProcessedFrames( 0 ), mSynchroniousIO( false )
 {
 	if( mDevice->getNumOutputChannels() < mNumChannels )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
@@ -153,7 +153,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	renderData->node->pullInputs( &lineOut->mInternalBuffer );
 	copyToBufferList( bufferList, &lineOut->mInternalBuffer );
 
-	lineOut->mElapsedFrames += lineOut->getFramesPerBlock();
+	lineOut->mProcessedFrames += lineOut->getFramesPerBlock();
 
 	checkBufferListNotClipping( bufferList, numFrames );
 	return noErr;
@@ -326,7 +326,7 @@ void LineInAudioUnit::process( Buffer *buffer )
 		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
 			size_t count = mRingBuffer->read( buffer->getChannel( ch ), numFrames );
 			if( count < numFrames )
-				mLastUnderrun = getContext()->getElapsedFrames();
+				mLastUnderrun = getContext()->getNumProcessedFrames();
 		}
 	}
 }

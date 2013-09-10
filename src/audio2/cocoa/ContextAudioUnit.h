@@ -70,12 +70,12 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 	void start() override;
 	void stop() override;
 
-	size_t getElapsedFrames() override		{ return mElapsedFrames; }
+	uint64_t getNumProcessedFrames() override		{ return mProcessedFrames; }
 
   private:
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
-	std::atomic<size_t>					mElapsedFrames;
+	std::atomic<uint64_t>				mProcessedFrames;
 	bool								mSynchroniousIO;
 
 	friend class LineInAudioUnit;

@@ -63,9 +63,11 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Called by \a node when it's connections have changed, default implementation is empty.
 	virtual void connectionsDidChange( const NodeRef &node ) {} 
 
-	size_t getSampleRate()					{ return getRoot()->getSampleRate(); }
-	size_t getFramesPerBlock()				{ return getRoot()->getFramesPerBlock(); }
-	uint64_t getNumProcessedFrames()		{ return getRoot()->getNumProcessedFrames(); }
+	size_t		getSampleRate()				{ return getRoot()->getSampleRate(); }
+	size_t		getFramesPerBlock()			{ return getRoot()->getFramesPerBlock(); }
+
+	uint64_t	getNumProcessedFrames()		{ return getRoot()->getNumProcessedFrames(); }
+	float		getNumProcessedSeconds()	{ return (float)getNumProcessedFrames() / (float)getSampleRate(); }
 
 	std::mutex& getMutex()					{ return mMutex; }
 
