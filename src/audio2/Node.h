@@ -42,7 +42,7 @@ typedef std::shared_ptr<class MixerNode> MixerNodeRef;
 typedef std::shared_ptr<class FilePlayerNode> FilePlayerNodeRef;
 
 class Node : public std::enable_shared_from_this<Node> {
-public:
+  public:
 	enum ChannelMode {
 		SPECIFIED,		//! Number of channels has been specified by user or is non-settable.
 		MATCHES_INPUT,	//! Node matches it's channels with it's input.
@@ -126,7 +126,7 @@ public:
 //	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
 	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
 
-protected:
+  protected:
 
 	virtual void configureConnections();
 	virtual void submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer );
@@ -152,7 +152,7 @@ protected:
 
 	Buffer					mInternalBuffer, mSummingBuffer;
 
-private:
+  private:
 	Node( Node const& );
 	Node& operator=( Node const& );
 
@@ -166,7 +166,7 @@ private:
 // - is this confusing when there is Node::getOutputs() ?
 // - leaning towards TargetNode + SourceNode at the moment (or, as afb would have it, NodeTarget + NodeSource)
 class RootNode : public Node {
-public:
+  public:
 	RootNode( const Format &format = Format() ) : Node( format ) {}
 	virtual ~RootNode() {}
 
@@ -176,14 +176,14 @@ public:
 	//! Returns the total number of frames that have already been processed in the dsp loop.
 	virtual uint64_t getNumProcessedFrames() = 0;
 
-private:
+  private:
 	// RootNode does not have outputs
 	const NodeRef& connect( const NodeRef &dest ) override				{ return dest; }
 	const NodeRef& connect( const NodeRef &dest, size_t bus ) override	{ return dest; }
 };
 
 class LineOutNode : public RootNode {
-public:
+  public:
 
 	// ???: device param here necessary?
 	LineOutNode( const DeviceRef &device, const Format &format = Format() );
@@ -194,12 +194,12 @@ public:
 	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
 	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
 
-protected:
+  protected:
 	DeviceRef mDevice;
 };
 
 class MixerNode : public Node {
-public:
+  public:
 	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
 	virtual ~MixerNode() {}
 
@@ -222,7 +222,7 @@ public:
 	virtual bool isBusEnabled( size_t bus ) = 0;
 	virtual void setBusEnabled( size_t bus, bool enabled = true ) = 0;
 
-protected:
+  protected:
 	// TODO: Because busses can be expanded, the naming is off:
 	//		- mMaxNumBusses should be mNumBusses, there is no max
 	//			- so there is getNumBusses() / setNumBusses()
