@@ -63,7 +63,6 @@ class Device : public boost::noncopyable {
 class DeviceManager : public boost::noncopyable {
   public:
 	virtual ~DeviceManager() {}
-	static DeviceManager* instance();
 
 	virtual DeviceRef findDeviceByName( const std::string &name );
 	virtual DeviceRef findDeviceByKey( const std::string &key );

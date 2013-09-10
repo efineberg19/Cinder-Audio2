@@ -29,11 +29,13 @@
 
 namespace cinder { namespace audio2 {
 
+class DeviceManager;
+
 class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
-	//! Returns a platform-specific \t Context. If none is availble, returns an empty \t ContextRef.
+	//! Returns a platform-specific \a Context. If none is availble, returns an empty \a ContextRef.
 	static ContextRef			create();
 
 	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
@@ -41,6 +43,9 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );
+
+	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
+	static DeviceManager* deviceManager();
 
 	virtual void setRoot( RootNodeRef root );
 
@@ -72,10 +77,11 @@ class Context : public std::enable_shared_from_this<Context> {
 	void disconnectRecursive( const NodeRef &node );
 	void uninitRecursisve( const NodeRef &node );
 
-
 	RootNodeRef		mRoot;
 	std::mutex		mMutex;
 	bool			mEnabled;
+
+	static std::unique_ptr<DeviceManager> sDeviceManager;
 };
 
 template<typename NodeT>

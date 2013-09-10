@@ -29,9 +29,14 @@
 #include "cinder/Cinder.h"
 
 #if defined( CINDER_COCOA )
-#include "audio2/cocoa/ContextAudioUnit.h"
+	#include "audio2/cocoa/ContextAudioUnit.h"
+	#if defined( CINDER_MAC )
+		#include "audio2/cocoa/DeviceManagerCoreAudio.h"
+	#else // CINDER_COCOA_TOUCH
+		#include "audio2/cocoa/DeviceManagerAudioSession.h"
+	#endif
 #elif defined( CINDER_MSW )
-#include "audio2/msw/ContextXAudio.h"
+	#include "audio2/msw/ContextXAudio.h"
 #endif
 
 using namespace std;
@@ -46,6 +51,22 @@ ContextRef Context::create()
 	return ContextRef( new msw::ContextXAudio() );
 #endif
 	return ContextRef(); // no available context for this platform.
+}
+
+std::unique_ptr<DeviceManager>	Context::sDeviceManager;
+
+DeviceManager* Context::deviceManager()
+{
+	if( ! sDeviceManager ) {
+#if defined( CINDER_MAC )
+		sDeviceManager.reset( new cocoa::DeviceManagerCoreAudio() );
+#elif defined( CINDER_COCOA_TOUCH )
+		sDeviceManager.reset( new cocoa::DeviceManagerAudioSession() );
+#elif defined( CINDER_MSW )
+		sDeviceManager.reset( new msw::DeviceManagerWasapi() );
+#endif
+	}
+	return sDeviceManager.get();
 }
 
 Context::~Context()

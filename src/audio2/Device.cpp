@@ -21,8 +21,8 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "audio2/Context.h"
 #include "audio2/Device.h"
-#include "audio2/audio.h"
 #include "audio2/Debug.h"
 
 #if defined( CINDER_COCOA )
@@ -45,33 +45,33 @@ namespace cinder { namespace audio2 {
 
 DeviceRef Device::getDefaultOutput()
 {
-	return DeviceManager::instance()->getDefaultOutput();
+	return Context::deviceManager()->getDefaultOutput();
 }
 
 DeviceRef Device::getDefaultInput()
 {
-	return DeviceManager::instance()->getDefaultInput();
+	return Context::deviceManager()->getDefaultInput();
 }
 
 DeviceRef Device::findDeviceByName( const string &name )
 {
-	return DeviceManager::instance()->findDeviceByName( name );
+	return Context::deviceManager()->findDeviceByName( name );
 }
 
 DeviceRef Device::findDeviceByKey( const string &key )
 {
-	return DeviceManager::instance()->findDeviceByKey( key );
+	return Context::deviceManager()->findDeviceByKey( key );
 }
 
 const vector<DeviceRef>& Device::getDevices()
 {
-	return DeviceManager::instance()->getDevices();
+	return Context::deviceManager()->getDevices();
 }
 
 const string& Device::getName()
 {
 	if( mName.empty() )
-		mName = DeviceManager::instance()->getName( mKey );
+		mName = Context::deviceManager()->getName( mKey );
 
 	return mName;
 }
@@ -83,47 +83,27 @@ const string& Device::getKey()
 
 size_t Device::getNumInputChannels()
 {
-	return DeviceManager::instance()->getNumInputChannels( mKey );
+	return Context::deviceManager()->getNumInputChannels( mKey );
 }
 
 size_t Device::getNumOutputChannels()
 {
-	return DeviceManager::instance()->getNumOutputChannels( mKey );
+	return Context::deviceManager()->getNumOutputChannels( mKey );
 }
 
 size_t Device::getSampleRate()
 {
-	return DeviceManager::instance()->getSampleRate( mKey );
+	return Context::deviceManager()->getSampleRate( mKey );
 }
 
 size_t Device::getFramesPerBlock()
 {
-	return DeviceManager::instance()->getFramesPerBlock( mKey );
+	return Context::deviceManager()->getFramesPerBlock( mKey );
 }
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManager
 // ----------------------------------------------------------------------------------------------------
-
-// TODO: it would be nice for this to live in Context, where there is already other platform-specific
-// variants being chosen.
-// - I'm thinking to move it to Context::sDeviceManager, retrievable via Context::getDeviceManager()
-// - also provide Context::setDeviceManager(DeviceManager *), in the rare case that users want a custom version
-// - ???: does this improve anything over the current situation, if I add the same methods to DeviceManager?
-DeviceManager* DeviceManager::instance()
-{
-	static DeviceManager *sInstance = 0;
-	if( ! sInstance ) {
-#if defined( CINDER_MAC )
-		sInstance = new cocoa::DeviceManagerCoreAudio();
-#elif defined( CINDER_COCOA_TOUCH )
-		sInstance = new cocoa::DeviceManagerAudioSession();
-#elif defined( CINDER_MSW )
-		sInstance = new msw::DeviceManagerWasapi();
-#endif
-	}
-	return sInstance;
-}
 
 DeviceRef DeviceManager::findDeviceByName( const string &name )
 {

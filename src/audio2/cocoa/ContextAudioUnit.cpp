@@ -99,7 +99,7 @@ void LineOutAudioUnit::initialize()
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
 
 #if defined( CINDER_MAC )
-	auto manager = dynamic_cast<DeviceManagerCoreAudio *>( DeviceManager::instance() );
+	auto manager = dynamic_cast<DeviceManagerCoreAudio *>( Context::deviceManager() );
 	CI_ASSERT( manager );
 
 	manager->setCurrentDevice( mDevice->getKey(), mAudioUnit );
@@ -249,7 +249,7 @@ void LineInAudioUnit::initialize()
 		setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, enableOutput, kAudioUnitScope_Output, DeviceBus::OUTPUT );
 
 #if defined( CINDER_MAC )
-		auto manager = dynamic_cast<DeviceManagerCoreAudio *>( DeviceManager::instance() );
+		auto manager = dynamic_cast<DeviceManagerCoreAudio *>( Context::deviceManager() );
 		CI_ASSERT( manager );
 
 		manager->setCurrentDevice( mDevice->getKey(), mAudioUnit );
