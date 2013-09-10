@@ -82,14 +82,35 @@ NodeXAudio::~NodeXAudio()
 LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 : LineOutNode( device, format )
 {
+#if defined( CINDER_XAUDIO_2_7 )
+	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
+	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
+
+	ci::msw::initializeCom();
+
+#else
+	LOG_V << "CINDER_XAUDIO_2_8, toolset: v110" << endl;
+	UINT32 flags = 0;
+#endif
+
+	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
+	CI_ASSERT( hr == S_OK );
+
+#if defined( CINDER_XAUDIO_2_8 )
+	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
+	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.LogFunctionName = true;
+	mXAudio->SetDebugConfiguration( &debugConfig );
+#endif
+
+	// mXAudio is started at creation time, so stop it here as mEnabled = false
+	mXAudio->StopEngine();
 }
 
 LineOutXAudio::~LineOutXAudio()
 {
-	if( mMasteringVoice ) {
-		LOG_V << "destroying master voice" << endl;
-		mMasteringVoice->DestroyVoice();
-	}
+	mXAudio->Release();
 }
 
 void LineOutXAudio::initialize()
@@ -139,14 +160,31 @@ void LineOutXAudio::initialize()
 
 void LineOutXAudio::uninitialize()
 {
+	CI_ASSERT( mMasteringVoice );
+
+	mMasteringVoice->DestroyVoice();
 }
 
 void LineOutXAudio::start()
 {
+	if( mEnabled || ! mInitialized )
+		return;
+
+	mEnabled = true;
+
+	HRESULT hr = mXAudio->StartEngine();
+	CI_ASSERT( hr ==S_OK );
+	LOG_V "started" << endl;
 }
 
 void LineOutXAudio::stop()
 {
+	if( ! mEnabled || ! mInitialized )
+		return;
+
+	mEnabled = false;
+	mXAudio->StopEngine();
+	LOG_V "stopped" << endl;
 }
 
 size_t LineOutXAudio::getElapsedFrames()
@@ -399,38 +437,10 @@ void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
 
 ContextXAudio::ContextXAudio()
 {
-#if defined( CINDER_XAUDIO_2_7 )
-	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
-	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
-
-	ci::msw::initializeCom();
-
-#else
-	LOG_V << "CINDER_XAUDIO_2_8, toolset: v110" << endl;
-	UINT32 flags = 0;
-#endif
-
-	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
-	CI_ASSERT( hr == S_OK );
-
-#if defined( CINDER_XAUDIO_2_8 )
-	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
-	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
-	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
-	debugConfig.LogFunctionName = true;
-	mXAudio->SetDebugConfiguration( &debugConfig );
-#endif
-
-	// mXAudio is started at creation time, so stop it here as mEnabled = false
-	mXAudio->StopEngine();
 }
 
 ContextXAudio::~ContextXAudio()
 {
-	if( mXAudio ) {
-		LOG_V << "destroying XAudio" << endl;
-		mXAudio->Release();
-	}
 }
 
 LineOutNodeRef ContextXAudio::createLineOut( DeviceRef device, const Node::Format &format )
@@ -441,23 +451,6 @@ LineOutNodeRef ContextXAudio::createLineOut( DeviceRef device, const Node::Forma
 LineInNodeRef ContextXAudio::createLineIn( DeviceRef device, const Node::Format &format )
 {
 	return makeNode( new LineInWasapi( device ) );
-}
-
-void ContextXAudio::start()
-{
-	Context::start();
-
-	HRESULT hr = mXAudio->StartEngine();
-	CI_ASSERT( hr ==S_OK );
-	LOG_V "started" << endl;
-}
-
-void ContextXAudio::stop()
-{
-	Context::stop();
-
-	mXAudio->StopEngine();
-	LOG_V "stopped" << endl;
 }
 
 void ContextXAudio::connectionsDidChange( const NodeRef &node )

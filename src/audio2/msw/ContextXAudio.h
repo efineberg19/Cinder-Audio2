@@ -70,7 +70,10 @@ class LineOutXAudio : public LineOutNode, public NodeXAudio {
 
 	bool supportsSourceNumChannels( size_t numChannels ) const override;
 
+	::IXAudio2* getXAudio() const	{ return mXAudio; }
+
   private:
+	::IXAudio2 *mXAudio;
 	::IXAudio2MasteringVoice *mMasteringVoice;
 };
 
@@ -179,14 +182,10 @@ class ContextXAudio : public Context {
 	// - re-setting the root will also require walking the graph and re-initting all source nodes / effects
 	//RootNodeRef getRoot() override;
 
-	void start() override;
-	void stop() override;
-
-	//! Returns a pointer to the \a IXAudio2 instance associated with this context.
-	IXAudio2* getXAudio() const	{ return mXAudio; }
+	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a NodeLineOut.
+	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<LineOutXAudio>( mRoot )->getXAudio(); }
 
   private:
-	::IXAudio2 *mXAudio;
 };
 
 } } } // namespace cinder::audio2::msw
