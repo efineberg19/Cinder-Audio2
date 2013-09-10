@@ -38,10 +38,10 @@ class ContextAudioUnit;
 
 class NodeAudioUnit {
   public:
-	NodeAudioUnit() : mAudioUnit( nullptr ), mOwnsAudioUnit( true ), mRenderBus( 0 )	{}
+	NodeAudioUnit() : mAudioUnit( nullptr ), mOwnsAudioUnit( true )	{}
 	virtual ~NodeAudioUnit();
+
 	virtual ::AudioUnit getAudioUnit() const	{ return mAudioUnit; }
-	::AudioUnitScope getRenderBus() const	{ return mRenderBus; }
 
   protected:
 	void initAu();
@@ -49,7 +49,6 @@ class NodeAudioUnit {
 
 	::AudioUnit			mAudioUnit;
 	bool				mOwnsAudioUnit;
-	::AudioUnitScope	mRenderBus;
 	Buffer*				mProcessBuffer;
 
 	struct RenderData {

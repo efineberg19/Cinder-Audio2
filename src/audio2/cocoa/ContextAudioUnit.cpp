@@ -177,8 +177,6 @@ LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 	if( device->getNumOutputChannels() < mNumChannels )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
 
-//	mRenderBus = DeviceAudioUnit::Bus::INPUT; // TODO: remove from NodeAudioUnit, this shouldn't be necessary anymore
-
 	mDevice = dynamic_pointer_cast<DeviceAudioUnit>( device );
 	CI_ASSERT( mDevice );
 
@@ -349,7 +347,6 @@ void LineInAudioUnit::process( Buffer *buffer )
 	}
 }
 
-// TODO: this is duplicated code, move to NodeAudioUnit if it doesn't need to change
 OSStatus LineInAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
