@@ -112,11 +112,6 @@ const std::vector<DeviceRef>& DeviceManagerWasapi::getDevices()
 	return mDevices;
 }
 
-void DeviceManagerWasapi::setActiveDevice( const string &key )
-{
-	CI_ASSERT( 0 && "TODO" ); // umm, might not be anything needing doing here
-}
-
 std::string DeviceManagerWasapi::getName( const string &key )
 {
 	return getDeviceInfo( key ).name;
@@ -308,8 +303,9 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 		devInfo.sampleRate = format->nSamplesPerSec;
 
 
-		DeviceRef device = ( usage == DeviceInfo::Usage::Input ? DeviceRef( new DeviceInputWasapi( devInfo.key ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.key ) ) );
-		mDevices.push_back( device );
+		//DeviceRef device = ( usage == DeviceInfo::Usage::Input ? DeviceRef( new DeviceInputWasapi( devInfo.key ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.key ) ) );
+		//mDevices.push_back( device );
+		addDevice( devInfo.key );
 	}
 }
 

@@ -35,7 +35,7 @@ class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
-	//! Returns a platform-specific \a Context. If none is availble, returns an empty \a ContextRef.
+	//! Returns a platform-specific \a Context. If none is available, returns an empty \a ContextRef.
 	static ContextRef			create();
 
 	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
@@ -50,7 +50,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual void setRoot( RootNodeRef root );
 
 	//! If the root has not already been set, it is the default LineOutNode
-	virtual RootNodeRef getRoot();
+	virtual RootNodeRef getRoot(); // TODO: return & if possible
 	virtual void start();
 	virtual void stop();
 	//! start / stop the graph via bool

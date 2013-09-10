@@ -24,6 +24,8 @@
 #include "audio2/msw/ContextXAudio.h"
 #include "audio2/msw/DeviceOutputXAudio.h"
 #include "audio2/msw/DeviceInputWasapi.h"
+#include "audio2/msw/DeviceManagerWasapi.h"
+#include "audio2/msw/xaudio.h"
 
 #include "audio2/audio.h"
 #include "audio2/CinderAssert.h"
@@ -80,40 +82,78 @@ NodeXAudio::~NodeXAudio()
 LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 : LineOutNode( device, format )
 {
-	mDevice = dynamic_pointer_cast<DeviceOutputXAudio>( device );
-	CI_ASSERT( mDevice );
+}
+
+LineOutXAudio::~LineOutXAudio()
+{
+	if( mMasteringVoice ) {
+		LOG_V << "destroying master voice" << endl;
+		mMasteringVoice->DestroyVoice();
+	}
 }
 
 void LineOutXAudio::initialize()
 {
-	// Device initialize is handled by the graph because it needs to ensure there is a valid IXAudio instance and mastering voice before anything else is initialized
-	//mDevice->initialize();
+	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
+	const wstring &deviceId = deviceManager->getDeviceId( mDevice->getKey() );
+	//const string &name = mDevice->getName();
+	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
+
+#if defined( CINDER_XAUDIO_2_8 )
+	// TODO: use mNumChannels / context sr
+	HRESULT hr = xaudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, deviceId.c_str() );
+	CI_ASSERT( hr == S_OK );
+#else
+
+	// TODO: on XAudio2.7, mKey (from WASAPI) is the device Id, but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
+	UINT32 deviceCount;
+	hr = mXAudio->GetDeviceCount( &deviceCount );
+	CI_ASSERT( hr == S_OK );
+	::XAUDIO2_DEVICE_DETAILS deviceDetails;
+	for( UINT32 i = 0; i < deviceCount; i++ ) {
+		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
+		CI_ASSERT( hr == S_OK );
+		if( mKey == ci::toUtf8( deviceDetails.DeviceID ) ) {
+			LOG_V << "found match: display name: " << deviceDetails.DisplayName << endl;
+			LOG_V << "device id: " << deviceDetails.DeviceID << endl;
+
+			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, i );
+			CI_ASSERT( hr == S_OK );
+		}
+
+	}
+
+	CI_ASSERT( mMasteringVoice );
+
+#endif
+
+	::XAUDIO2_VOICE_DETAILS voiceDetails;
+	mMasteringVoice->GetVoiceDetails( &voiceDetails );
+	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
+
+	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
+	// needs to ensure this guy is around before it can do anything and it can't call
+	// Node::initializeImpl(). So instead the flag is manually updated.
 	mInitialized = true;
 }
 
 void LineOutXAudio::uninitialize()
 {
-	mDevice->uninitialize();
 }
 
 void LineOutXAudio::start()
 {
-	mDevice->start();
-	mEnabled = true;
-	LOG_V << "started: " << mDevice->getName() << endl;
 }
 
 void LineOutXAudio::stop()
 {
-	mDevice->stop();
-	mEnabled = false;
-	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
-DeviceRef LineOutXAudio::getDevice()
+size_t LineOutXAudio::getElapsedFrames()
 {
-	return std::static_pointer_cast<Device>( mDevice );
+	return 0; // TODO: tie into IXAudio2EngineCallback
 }
+
 
 bool LineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
 {
@@ -124,7 +164,6 @@ bool LineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
 // MARK: - SourceVoiceXAudio
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: blocksize needs to be exposed.
 SourceVoiceXAudio::SourceVoiceXAudio()
 : Node( Format() )
 {
@@ -167,7 +206,14 @@ void SourceVoiceXAudio::uninitialize()
 
 void SourceVoiceXAudio::initSourceVoice()
 {
-	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), getContext()->getSampleRate() );
+	ContextRef context = getContext();
+
+	// first ensure there is a valid mastering voice.
+	RootNodeRef target = context->getRoot();
+	if( ! target->isInitialized() )
+		target->initialize();
+
+	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), context->getSampleRate() );
 
 	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
 	UINT32 flags = ( mFilterEnabled ? XAUDIO2_VOICE_USEFILTER : 0 );
@@ -351,8 +397,40 @@ void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
 // MARK: - ContextXAudio
 // ----------------------------------------------------------------------------------------------------
 
+ContextXAudio::ContextXAudio()
+{
+#if defined( CINDER_XAUDIO_2_7 )
+	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
+	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
+
+	ci::msw::initializeCom();
+
+#else
+	LOG_V << "CINDER_XAUDIO_2_8, toolset: v110" << endl;
+	UINT32 flags = 0;
+#endif
+
+	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
+	CI_ASSERT( hr == S_OK );
+
+#if defined( CINDER_XAUDIO_2_8 )
+	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
+	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.LogFunctionName = true;
+	mXAudio->SetDebugConfiguration( &debugConfig );
+#endif
+
+	// mXAudio is started at creation time, so stop it here as mEnabled = false
+	mXAudio->StopEngine();
+}
+
 ContextXAudio::~ContextXAudio()
 {
+	if( mXAudio ) {
+		LOG_V << "destroying XAudio" << endl;
+		mXAudio->Release();
+	}
 }
 
 LineOutNodeRef ContextXAudio::createLineOut( DeviceRef device, const Node::Format &format )
@@ -365,20 +443,21 @@ LineInNodeRef ContextXAudio::createLineIn( DeviceRef device, const Node::Format 
 	return makeNode( new LineInWasapi( device ) );
 }
 
-MixerNodeRef ContextXAudio::createMixer( const Node::Format &format )
+void ContextXAudio::start()
 {
-	return MixerNodeRef(); // note: removed because of MixerXAudio's wonkiness, MixerNode should be used instead
+	Context::start();
+
+	HRESULT hr = mXAudio->StartEngine();
+	CI_ASSERT( hr ==S_OK );
+	LOG_V "started" << endl;
 }
 
-RootNodeRef ContextXAudio::getRoot()
+void ContextXAudio::stop()
 {
-	if( ! mRoot ) {
-		// TODO: allow for variable channel / samplerate
-		mRoot = createLineOut( Device::getDefaultOutput() );
-		DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<LineOutXAudio>( mRoot )->getDevice().get() );
-		outputXAudio->initialize();
-	}
-	return mRoot;
+	Context::stop();
+
+	mXAudio->StopEngine();
+	LOG_V "stopped" << endl;
 }
 
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
@@ -425,12 +504,6 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 		if( xapo )
 			xapo->notifyConnected();
 	}
-}
-
-IXAudio2* ContextXAudio::getXAudio()
-{
-	DeviceOutputXAudio *outputXAudio = dynamic_cast<DeviceOutputXAudio *>( dynamic_pointer_cast<LineOutXAudio>( mRoot )->getDevice().get() );
-	return outputXAudio->getXAudio();
 }
 
 } } } // namespace cinder::audio2::msw

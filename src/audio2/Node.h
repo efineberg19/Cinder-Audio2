@@ -174,6 +174,8 @@ public:
 	virtual size_t getFramesPerBlock() = 0;
 
 	//! Returns the total number of frames that have already been processed in the dsp loop.
+	// TODO: rename getNumFramesProcessed, add getNumSecondsProcessed.
+	// TODO: use uint64_t
 	virtual size_t getElapsedFrames() = 0;
 
 private:

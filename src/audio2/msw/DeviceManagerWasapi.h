@@ -44,8 +44,6 @@ class DeviceManagerWasapi : public DeviceManager {
 	size_t getSampleRate( const std::string &key ) override;
 	size_t getFramesPerBlock( const std::string &key ) override;
 
-	void setActiveDevice( const std::string &key ) override;
-
 	const std::wstring& getDeviceId( const std::string &key );
 
 	std::shared_ptr<::IMMDevice> getIMMDevice( const std::string &key );

@@ -32,24 +32,6 @@
 
 namespace cinder { namespace audio2 { namespace msw {
 
-class DeviceInputWasapi : public Device {
-public:
-
-	virtual ~DeviceInputWasapi();
-
-	void initialize() override;
-	void uninitialize() override;
-
-	void start() override;
-	void stop() override;
-
-private:
-	DeviceInputWasapi( const std::string &key );
-
-	friend class DeviceManagerWasapi;
-};
-
-
 class LineInWasapi : public LineInNode {
   public:
 	LineInWasapi( const DeviceRef &device, const Format &format = Format() );
@@ -63,7 +45,8 @@ class LineInWasapi : public LineInNode {
 	void start() override;
 	void stop() override;
 
-	DeviceRef getDevice() override;
+	uint64_t getLastUnderrun() override;
+	uint64_t getLastOverrun() override;
 
 	void process( Buffer *buffer ) override;
 
@@ -71,7 +54,6 @@ class LineInWasapi : public LineInNode {
 
 	struct Impl;
 	std::unique_ptr<Impl> mImpl;
-	std::shared_ptr<DeviceInputWasapi> mDevice;
 	BufferInterleaved mInterleavedBuffer;
 
 	size_t mCaptureBlockSize; // per channel. TODO: this should be user settable

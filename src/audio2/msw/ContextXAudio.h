@@ -56,7 +56,7 @@ class DeviceOutputXAudio;
 class LineOutXAudio : public LineOutNode, public NodeXAudio {
   public:
 	LineOutXAudio( DeviceRef device, const Format &format = Format() );
-	virtual ~LineOutXAudio() {}
+	virtual ~LineOutXAudio();
 
 	std::string virtual getTag()				{ return "LineOutXAudio"; }
 
@@ -66,12 +66,12 @@ class LineOutXAudio : public LineOutNode, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
-	DeviceRef getDevice() override;
+	virtual size_t getElapsedFrames() override;
 
 	bool supportsSourceNumChannels( size_t numChannels ) const override;
 
   private:
-	std::shared_ptr<DeviceOutputXAudio> mDevice;
+	::IXAudio2MasteringVoice *mMasteringVoice;
 };
 
 struct VoiceCallbackImpl;
@@ -164,22 +164,29 @@ public:
 
 class ContextXAudio : public Context {
   public:
+	ContextXAudio();
 	virtual ~ContextXAudio();
 
 	LineOutNodeRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	//! If deployment target is 0x601 (win vista) or greater, uses \a LineInWasapi, else returns an empty \a LineInRef
 	LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
-	MixerNodeRef	createMixer( const Node::Format &format = Node::Format() ) override;
 
 	void connectionsDidChange( const NodeRef &node ) override; 
 
 	//! ContextXAudio's \a RootNode is always an instance of LineOutXAudio
-	virtual RootNodeRef getRoot() override;
+	// TODO: override setRoot() and assert type is LineOutXAudio
+	// - allows for variable channel / samplerate
+	// - re-setting the root will also require walking the graph and re-initting all source nodes / effects
+	//RootNodeRef getRoot() override;
+
+	void start() override;
+	void stop() override;
 
 	//! Returns a pointer to the \a IXAudio2 instance associated with this context.
-	IXAudio2* getXAudio();
+	IXAudio2* getXAudio() const	{ return mXAudio; }
 
   private:
+	::IXAudio2 *mXAudio;
 };
 
 } } } // namespace cinder::audio2::msw

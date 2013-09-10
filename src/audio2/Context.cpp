@@ -37,6 +37,7 @@
 	#endif
 #elif defined( CINDER_MSW )
 	#include "audio2/msw/ContextXAudio.h"
+	#include "audio2/msw/DeviceManagerWasapi.h"
 #endif
 
 using namespace std;

@@ -28,27 +28,27 @@
 
 namespace cinder { namespace audio2 { namespace msw {
 
-class DeviceOutputXAudio : public Device {
-  public:
-
-	virtual ~DeviceOutputXAudio();
-
-	void initialize() override;
-	void uninitialize() override;
-
-	void start() override;
-	void stop() override;
-
-	::IXAudio2* getXAudio() const	{ return mXAudio; }
-
-  private:
-	DeviceOutputXAudio( const std::string &key );
-
-	// TODO: move to LineOutXAudio
-	::IXAudio2 *mXAudio;
-	::IXAudio2MasteringVoice *mMasteringVoice;
-
-	friend class DeviceManagerWasapi; // FIXME: what's this doing here?
-};
+//class DeviceOutputXAudio : public Device {
+//  public:
+//
+//	virtual ~DeviceOutputXAudio();
+//
+//	void initialize() override;
+//	void uninitialize() override;
+//
+//	void start() override;
+//	void stop() override;
+//
+//	::IXAudio2* getXAudio() const	{ return mXAudio; }
+//
+//  private:
+//	DeviceOutputXAudio( const std::string &key );
+//
+//	// TODO: move to LineOutXAudio
+//	::IXAudio2 *mXAudio;
+//	::IXAudio2MasteringVoice *mMasteringVoice;
+//
+//	friend class DeviceManagerWasapi; // FIXME: what's this doing here?
+//};
 
 } } } // namespace cinder::audio2::msw

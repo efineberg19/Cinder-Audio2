@@ -57,52 +57,14 @@ inline ::REFERENCE_TIME samplesToReferenceTime( size_t samples, size_t sampleRat
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - DeviceInputWasapi
-// ----------------------------------------------------------------------------------------------------
-
-DeviceInputWasapi::DeviceInputWasapi( const std::string &key )
-: Device( key )
-{
-
-}
-
-DeviceInputWasapi::~DeviceInputWasapi()
-{
-
-}
-
-void DeviceInputWasapi::initialize()
-{
-
-}
-
-void DeviceInputWasapi::uninitialize()
-{
-
-}
-
-void DeviceInputWasapi::start()
-{
-
-}
-
-void DeviceInputWasapi::stop()
-{
-
-}
-
-// ----------------------------------------------------------------------------------------------------
 // MARK: - InputWasapi
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: audio client activation should be in Device, maybe audio client should even be in there
 // TODO: default block sizes should be set in one place and propagate down the graph
 //  - update: it's now at getContext()->getFramesPerBlock() - can get it there
 LineInWasapi::LineInWasapi( const DeviceRef &device, const Format &format )
 : LineInNode( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
-	mDevice = dynamic_pointer_cast<DeviceInputWasapi>( device );
-	CI_ASSERT( mDevice );	
 }
 
 LineInWasapi::~LineInWasapi()
@@ -189,9 +151,14 @@ void LineInWasapi::stop()
 	LOG_V << "stopped " << mDevice->getName() << endl;
 }
 
-DeviceRef LineInWasapi::getDevice()
+uint64_t LineInWasapi::getLastUnderrun()
 {
-	return std::static_pointer_cast<Device>( mDevice );
+	return 0; // TODO
+}
+
+uint64_t LineInWasapi::getLastOverrun()
+{
+	return 0; // TODO
 }
 
 // TODO: set buffer over/under run atomic flags when they occur
@@ -225,7 +192,7 @@ void LineInWasapi::Impl::initAudioClient( const string &deviceKey )
 {
 	CI_ASSERT( ! mAudioClient );
 
-	DeviceManagerWasapi *manager = dynamic_cast<DeviceManagerWasapi *>( DeviceManagerWasapi::instance() );
+	DeviceManagerWasapi *manager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
 	CI_ASSERT( manager );
 
 	shared_ptr<::IMMDevice> immDevice = manager->getIMMDevice( deviceKey );
