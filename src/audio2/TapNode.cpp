@@ -111,7 +111,7 @@ void SpectrumTapNode::initialize()
 	if( ! mFftSize )
 		mFftSize = getContext()->getFramesPerBlock();
 	if( ! isPowerOf2( mFftSize ) )
-		mFftSize = nextPowerOf2( mFftSize );
+		mFftSize = nextPowerOf2( static_cast<uint32_t>( mFftSize ) );
 	
 	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
 	mBuffer = audio2::Buffer( mFftSize );
@@ -121,7 +121,7 @@ void SpectrumTapNode::initialize()
 	if( ! mWindowSize  )
 		mWindowSize = mFftSize;
 	else if( ! isPowerOf2( mWindowSize ) )
-		mWindowSize = nextPowerOf2( mWindowSize );
+		mWindowSize = nextPowerOf2( static_cast<uint32_t>( mWindowSize ) );
 
 	mWindow = makeAlignedArray<float>( mWindowSize );
 	generateWindow( mWindowType, mWindow.get(), mWindowSize );
