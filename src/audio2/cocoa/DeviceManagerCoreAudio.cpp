@@ -33,12 +33,22 @@ using namespace ci;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
+// TODO: template these where possible, then move to CinderCoreAudio / CoreAudioUtil.h
+
 // some private helpers, not sure yet how widely useful these are
-::AudioObjectPropertyAddress getAudioObjectProperty( ::AudioObjectPropertySelector propertySelector, ::AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
+::AudioObjectPropertyAddress getAudioObjectPropertyAddress( ::AudioObjectPropertySelector propertySelector, ::AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
 UInt32 getAudioObjectPropertyDataSize( ::AudioObjectID objectId, const AudioObjectPropertyAddress &address, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
 string getAudioObjectPropertyString( ::AudioObjectID objectId, AudioObjectPropertySelector propertySelector );
 void getAudioObjectPropertyData( ::AudioObjectID objectId, const ::AudioObjectPropertyAddress& propertyAddress, UInt32 dataSize, void *data, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
 size_t getAudioObjectNumChannels( ::AudioDeviceID objectId, bool isInput );
+
+template<typename PropT>
+void setAudioObjectPropertyData( ::AudioObjectID objectId, const ::AudioObjectPropertyAddress& propertyAddress, const PropT &data, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL )
+{
+	UInt32 dataSize = sizeof( PropT );
+	OSStatus status = ::AudioObjectSetPropertyData( objectId, &propertyAddress, qualifierDataSize, qualifierData, dataSize, &data );
+	CI_ASSERT( status == noErr );
+}
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManagerCoreAudio
@@ -48,7 +58,7 @@ DeviceRef DeviceManagerCoreAudio::getDefaultOutput()
 {
 	::AudioDeviceID defaultOutputId;
 	UInt32 propertySize = sizeof( defaultOutputId );
-	::AudioObjectPropertyAddress propertyAddress = getAudioObjectProperty( kAudioHardwarePropertyDefaultOutputDevice );
+	::AudioObjectPropertyAddress propertyAddress = getAudioObjectPropertyAddress( kAudioHardwarePropertyDefaultOutputDevice );
 	getAudioObjectPropertyData( kAudioObjectSystemObject, propertyAddress, propertySize, &defaultOutputId );
 
 	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultOutputId ) );
@@ -58,7 +68,7 @@ DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 {
 	::AudioDeviceID defaultInputId;
 	UInt32 propertySize = sizeof( defaultInputId );
-	::AudioObjectPropertyAddress propertyAddress = getAudioObjectProperty( kAudioHardwarePropertyDefaultInputDevice );
+	::AudioObjectPropertyAddress propertyAddress = getAudioObjectPropertyAddress( kAudioHardwarePropertyDefaultInputDevice );
 	getAudioObjectPropertyData( kAudioObjectSystemObject, propertyAddress, propertySize, &defaultInputId );
 	
 	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultInputId ) );
@@ -103,7 +113,7 @@ size_t DeviceManagerCoreAudio::getNumOutputChannels( const string &key )
 size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
 {
 	::AudioDeviceID deviceId = getDeviceId( key );
-	::AudioObjectPropertyAddress property = getAudioObjectProperty( kAudioDevicePropertyActualSampleRate );
+	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
 	Float64 result;
 	UInt32 resultSize = sizeof( result );
 
@@ -111,15 +121,33 @@ size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
 	return static_cast<size_t>( result );
 }
 
+void DeviceManagerCoreAudio::setSampleRate( const std::string &key, size_t sampleRate )
+{
+	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
+
+	Float64 data = static_cast<Float64>( sampleRate );
+	setAudioObjectPropertyData( deviceId, property, data );
+}
+
 size_t DeviceManagerCoreAudio::getFramesPerBlock( const string &key )
 {
 	::AudioDeviceID deviceId = getDeviceId( key );
-	::AudioObjectPropertyAddress property = getAudioObjectProperty( kAudioDevicePropertyBufferFrameSize );
+	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
 	UInt32 result;
 	UInt32 resultSize = sizeof( result );
 
 	getAudioObjectPropertyData( deviceId, property, resultSize, &result );
 	return static_cast<size_t>( result );
+}
+
+void DeviceManagerCoreAudio::setFramesPerBlock( const std::string &key, size_t framesPerBlock )
+{
+	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
+
+	UInt32 data = static_cast<UInt32>( framesPerBlock );
+	setAudioObjectPropertyData( deviceId, property, data );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -142,7 +170,7 @@ const std::vector<DeviceRef>& DeviceManagerCoreAudio::getDevices()
 {
 	if( mDevices.empty() ) {
 		vector<::AudioObjectID> deviceIds;
-		::AudioObjectPropertyAddress devicesProperty = getAudioObjectProperty( kAudioHardwarePropertyDevices );
+		::AudioObjectPropertyAddress devicesProperty = getAudioObjectPropertyAddress( kAudioHardwarePropertyDevices );
 		UInt32 devicesPropertySize = getAudioObjectPropertyDataSize( kAudioObjectSystemObject, devicesProperty );
 		size_t numDevices = devicesPropertySize / sizeof( ::AudioDeviceID );
 		deviceIds.resize( numDevices );
@@ -176,7 +204,7 @@ std::string DeviceManagerCoreAudio::keyForDeviceId( ::AudioObjectID deviceId )
 // ----------------------------------------------------------------------------------------------------
 
 
-AudioObjectPropertyAddress getAudioObjectProperty( ::AudioObjectPropertySelector propertySelector, ::AudioObjectPropertyScope scope )
+AudioObjectPropertyAddress getAudioObjectPropertyAddress( ::AudioObjectPropertySelector propertySelector, ::AudioObjectPropertyScope scope )
 {
 	::AudioObjectPropertyAddress result;
 	result.mSelector = propertySelector;
@@ -202,7 +230,7 @@ void getAudioObjectPropertyData( ::AudioObjectID objectId, const ::AudioObjectPr
 
 string getAudioObjectPropertyString( ::AudioObjectID objectId, ::AudioObjectPropertySelector propertySelector )
 {
-	::AudioObjectPropertyAddress property = getAudioObjectProperty( propertySelector );
+	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( propertySelector );
 	if( !::AudioObjectHasProperty( objectId, &property ) )
 		return string();
 
@@ -219,7 +247,7 @@ string getAudioObjectPropertyString( ::AudioObjectID objectId, ::AudioObjectProp
 
 size_t getAudioObjectNumChannels( ::AudioObjectID objectId, bool isInput )
 {
-	::AudioObjectPropertyAddress streamConfigProperty = getAudioObjectProperty( kAudioDevicePropertyStreamConfiguration, isInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput );
+	::AudioObjectPropertyAddress streamConfigProperty = getAudioObjectPropertyAddress( kAudioDevicePropertyStreamConfiguration, isInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput );
 	UInt32 streamConfigPropertySize = getAudioObjectPropertyDataSize( objectId, streamConfigProperty );
 	shared_ptr<::AudioBufferList> bufferList( (::AudioBufferList *)calloc( 1, streamConfigPropertySize ), free );
 

@@ -11,8 +11,8 @@
 
 #include "Gui.h"
 
-// TODO: test multiple formats for input
-// - make sure inputs and outputs with different samplerates somehow works correctly (which was default for my win8 laptop)
+// TODO NEXT: TextInput widget for samplerate / frames-per-block
+
 
 using namespace ci;
 using namespace ci::app;
@@ -70,13 +70,18 @@ void DeviceTestApp::setup()
 	setupUI();
 
 	printGraph( mContext );
+
+	LOG_V << "Context samplerate: " << mContext->getSampleRate() << endl;
 }
 
 void DeviceTestApp::setupDefaultDevices()
 {
 	mLineIn = mContext->createLineIn();
 
-	mLineOut = mContext->createLineOut( Device::getDefaultOutput(), NodeTarget::Format().sampleRate( 48000 ) );
+	Device::getDefaultOutput()->setSampleRate( 48000 );
+	Device::getDefaultOutput()->setFramesPerBlock( 32 );
+
+	mLineOut = mContext->createLineOut();
 
 	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
 	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
@@ -89,6 +94,8 @@ void DeviceTestApp::setupDefaultDevices()
 	console() << "\t block size: " << mLineOut->getDevice()->getFramesPerBlock() << endl;
 
 	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
+
+	mContext->setTarget( mLineOut );
 }
 
 void DeviceTestApp::setupDedicatedDevice()

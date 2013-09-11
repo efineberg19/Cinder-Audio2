@@ -49,6 +49,19 @@ NodeSource::NodeSource( const Format &format ) : Node( format )
 // MARK: - BufferPlayerNode
 // ----------------------------------------------------------------------------------------------------
 
+LineInNode::LineInNode( const DeviceRef &device, const Format &format )
+	: NodeSource( format ), mDevice( device )
+{
+	if( device->getNumOutputChannels() < mNumChannels )
+		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
+
+	setAutoEnabled();
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - BufferPlayerNode
+// ----------------------------------------------------------------------------------------------------
+
 BufferPlayerNode::BufferPlayerNode( const Format &format )
 : PlayerNode( format )
 {

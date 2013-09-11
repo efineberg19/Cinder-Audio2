@@ -101,6 +101,16 @@ size_t Device::getFramesPerBlock()
 	return Context::deviceManager()->getFramesPerBlock( mKey );
 }
 
+void Device::setSampleRate( size_t sampleRate )
+{
+	Context::deviceManager()->setSampleRate( mKey, sampleRate );
+}
+
+void Device::setFramesPerBlock( size_t framesPerBlock )
+{
+	Context::deviceManager()->setFramesPerBlock( mKey, framesPerBlock );
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManager
 // ----------------------------------------------------------------------------------------------------

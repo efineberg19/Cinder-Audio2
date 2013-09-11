@@ -66,9 +66,7 @@ public:
 	virtual uint64_t getLastOverrun() = 0;
 
 protected:
-	LineInNode( const DeviceRef &device, const Format &format ) : NodeSource( format ), mDevice( device ) {
-		setAutoEnabled();
-	}
+	LineInNode( const DeviceRef &device, const Format &format );
 
 	DeviceRef mDevice;
 };

@@ -51,6 +51,9 @@ class Device : public boost::noncopyable {
 	size_t getSampleRate();
 	size_t getFramesPerBlock();
 
+	void setSampleRate( size_t sampleRate );
+	void setFramesPerBlock( size_t framesPerBlock );
+
   protected:
 	Device( const std::string &key ) : mKey( key ) {}
 
@@ -67,15 +70,18 @@ class DeviceManager : public boost::noncopyable {
 	virtual DeviceRef findDeviceByName( const std::string &name );
 	virtual DeviceRef findDeviceByKey( const std::string &key );
 
-	virtual const std::vector<DeviceRef>& getDevices() = 0;
-	virtual DeviceRef getDefaultOutput() = 0;
-	virtual DeviceRef getDefaultInput() = 0;
+	virtual const std::vector<DeviceRef>& getDevices()									= 0;
+	virtual DeviceRef getDefaultOutput()												= 0;
+	virtual DeviceRef getDefaultInput()													= 0;
 
-	virtual std::string getName( const std::string &key ) = 0;
-	virtual size_t getNumInputChannels( const std::string &key ) = 0;
-	virtual size_t getNumOutputChannels( const std::string &key ) = 0;
-	virtual size_t getSampleRate( const std::string &key ) = 0;
-	virtual size_t getFramesPerBlock( const std::string &key ) = 0;
+	virtual std::string getName( const std::string &key )								= 0;
+	virtual size_t getNumInputChannels( const std::string &key )						= 0;
+	virtual size_t getNumOutputChannels( const std::string &key )						= 0;
+	virtual size_t getSampleRate( const std::string &key )								= 0;
+	virtual size_t getFramesPerBlock( const std::string &key )							= 0;
+
+	virtual void setSampleRate( const std::string &key, size_t sampleRate )				= 0;
+	virtual void setFramesPerBlock( const std::string &key, size_t framesPerBlock )		= 0;
 
   protected:
 	DeviceManager()	{}

@@ -153,6 +153,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	Buffer					mInternalBuffer, mSummingBuffer;
 
   private:
+	// noncopyable
 	Node( Node const& );
 	Node& operator=( Node const& );
 
@@ -164,28 +165,16 @@ class Node : public std::enable_shared_from_this<Node> {
 
 class NodeTarget : public Node {
   public:
-
-	struct Format : public Node::Format {
-		Format() : mSampleRate( 0 ), mFramesPerBlock( 0 ) {}
-
-		Format&	sampleRate( size_t sr )				{ mSampleRate = sr;				return *this; }
-		Format&	framesPerBlock( size_t frames )		{ mFramesPerBlock = frames;		return *this; }
-
-		size_t getSampleRate() const				{ return mSampleRate; }
-		size_t getFramesPerBlock() const			{ return mFramesPerBlock; }
-
-	protected:
-		size_t mSampleRate, mFramesPerBlock;
-	};
-
-	NodeTarget( const Format &format = Format() ) : Node( format ) {}
 	virtual ~NodeTarget() {}
 
-	virtual size_t getSampleRate() = 0;
-	virtual size_t getFramesPerBlock() = 0;
+	virtual size_t getSampleRate()				= 0;
+	virtual size_t getFramesPerBlock()			= 0;
 
 	//! Returns the total number of frames that have already been processed in the dsp loop.
-	virtual uint64_t getNumProcessedFrames() = 0;
+	virtual uint64_t getNumProcessedFrames()	= 0;
+
+  protected:
+	NodeTarget( const Format &format = Format() ) : Node( format ) {}
 
   private:
 	// NodeTarget does not have outputs
@@ -209,6 +198,7 @@ class LineOutNode : public NodeTarget {
 	DeviceRef mDevice;
 };
 
+//! Note: currently abstract and unused
 class MixerNode : public Node {
   public:
 	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }

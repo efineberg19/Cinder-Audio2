@@ -346,6 +346,9 @@ LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 2 );
 	}
+
+	if( mDevice->getNumOutputChannels() < mNumChannels )
+		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
 }
 
 

@@ -72,9 +72,6 @@ void NodeAudioUnit::uninitAu()
 LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
 : LineOutNode( device, format ), mProcessedFrames( 0 ), mSynchroniousIO( false )
 {
-	if( mDevice->getNumOutputChannels() < mNumChannels )
-		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
-
 	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 }
 

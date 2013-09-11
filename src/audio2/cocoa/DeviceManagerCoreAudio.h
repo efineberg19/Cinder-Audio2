@@ -34,16 +34,18 @@ namespace cinder { namespace audio2 { namespace cocoa {
 class DeviceManagerCoreAudio : public DeviceManager {
 public:
 
-	DeviceRef getDefaultOutput() override;
-	DeviceRef getDefaultInput() override;
+	const std::vector<DeviceRef>& getDevices()									override;
+	DeviceRef getDefaultOutput()												override;
+	DeviceRef getDefaultInput()													override;
 
-	const std::vector<DeviceRef>& getDevices() override;
+	std::string getName( const std::string &key )								override;
+	size_t getNumInputChannels( const std::string &key )						override;
+	size_t getNumOutputChannels( const std::string &key )						override;
+	size_t getSampleRate( const std::string &key )								override;
+	size_t getFramesPerBlock( const std::string &key )							override;
 
-	std::string getName( const std::string &key ) override;
-	size_t getNumInputChannels( const std::string &key ) override;
-	size_t getNumOutputChannels( const std::string &key ) override;
-	size_t getSampleRate( const std::string &key ) override;
-	size_t getFramesPerBlock( const std::string &key ) override;
+	void setSampleRate( const std::string &key, size_t sampleRate )				override;
+	void setFramesPerBlock( const std::string &key, size_t framesPerBlock )		override;
 
 	//! Sets the device related to \a key and managed by \a componenetInstance as the current active audio device.
 	void setCurrentDevice( const std::string &key, ::AudioComponentInstance componentInstance );
