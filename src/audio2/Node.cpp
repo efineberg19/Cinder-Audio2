@@ -120,11 +120,15 @@ void Node::setInput( const NodeRef &input, size_t bus )
 	if( ! checkInput( input ) )
 		return;
 
+	if( bus > mInputs.size() )
+		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
+
+	NodeRef& existingInput = mInputs[bus];
+	if( existingInput )
+		existingInput->disconnect();
+
 	{
 		lock_guard<mutex> lock( getContext()->getMutex() );
-
-		if( bus > mInputs.size() )
-			throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
 
 		mInputs[bus] = input;
 		input->setOutput( shared_from_this() );
