@@ -8,10 +8,10 @@
       location = "container:"
       name = "osx">
       <FileRef
-         location = "group:NodeTest/xcode/NodeTest.xcodeproj">
+         location = "group:CAFileLoadingTest/xcode/CAFileLoadingTest.xcodeproj">
       </FileRef>
       <FileRef
-         location = "group:CAFileLoadingTest/xcode/CAFileLoadingTest.xcodeproj">
+         location = "group:DeviceTest/xcode/DeviceTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:EffectNodeTest/xcode/EffectNodeTest.xcodeproj">
@@ -29,6 +29,9 @@
          location = "absolute:MixerTest/xcode/MixerTest.xcodeproj">
       </FileRef>
       <FileRef
+         location = "group:NodeTest/xcode/NodeTest.xcodeproj">
+      </FileRef>
+      <FileRef
          location = "group:BasicTest/xcode/../../SpectrumTapTest/xcode/SpectrumTapTest.xcodeproj">
       </FileRef>
    </Group>
@@ -36,10 +39,10 @@
       location = "container:"
       name = "ios">
       <FileRef
-         location = "group:NodeTest/xcode_ios/NodeTest.xcodeproj">
+         location = "group:CAFileLoadingTest/xcode_ios/CAFileLoadingTest.xcodeproj">
       </FileRef>
       <FileRef
-         location = "group:CAFileLoadingTest/xcode_ios/CAFileLoadingTest.xcodeproj">
+         location = "group:DeviceTest/xcode_ios/DeviceTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:EffectNodeTest/xcode_ios/EffectNodeTest.xcodeproj">
@@ -55,6 +58,9 @@
       </FileRef>
       <FileRef
          location = "group:MixerTest/xcode_ios/MixerTest.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:NodeTest/xcode_ios/NodeTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:SpectrumTapTest/xcode_ios/SpectrumTapTest.xcodeproj">
