@@ -27,6 +27,7 @@ class DeviceTestApp : public AppNative {
 
 	void setupUI();
 	void processTap( Vec2i pos );
+	void keyDown( KeyEvent event );
 
 	void setupDefaultDevices();
 	void setupDedicatedDevice();
@@ -43,8 +44,10 @@ class DeviceTestApp : public AppNative {
 	GainNodeRef mGain;
 	NodeSourceRef mSourceNode;
 
+	vector<TestWidget *> mWidgets;
 	VSelector mTestSelector;
 	Button mPlayButton;
+	TextInput mSamplerateInput, mFramesPerBlockInput;
 
 	Anim<float> mUnderrunFade, mOverrunFade;
 	Rectf mUnderrunRect, mOverrunRect;
@@ -151,11 +154,13 @@ void DeviceTestApp::setupIOProcessed()
 void DeviceTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
+	mWidgets.push_back( &mPlayButton );
 
 	mTestSelector.mSegments.push_back( "oscillator" );
 	mTestSelector.mSegments.push_back( "noise" );
 	mTestSelector.mSegments.push_back( "I/O (clean)" );
 	mTestSelector.mSegments.push_back( "I/O (processed)" );
+	mWidgets.push_back( &mTestSelector );
 
 #if defined( CINDER_COCOA_TOUCH )
 	mPlayButton.mBounds = Rectf( 0, 0, 120, 60 );
@@ -164,6 +169,13 @@ void DeviceTestApp::setupUI()
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
 	mTestSelector.mBounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 #endif
+
+	Rectf textInputBounds( 0.0f, getWindowCenter().y + 40.0f, 200.0f, getWindowCenter().y + 70.0f  );
+	mSamplerateInput.mBounds = textInputBounds;
+	mSamplerateInput.mTitle = "samplerate";
+	mSamplerateInput.setValue( mContext->getSampleRate() );
+
+	mWidgets.push_back( &mSamplerateInput );
 
 	Vec2i xrunSize( 80, 26 );
 	mUnderrunRect = Rectf( getWindowWidth() - xrunSize.x, getWindowHeight() - xrunSize.y, getWindowWidth(), getWindowHeight() );
@@ -179,16 +191,14 @@ void DeviceTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
+	if( mSamplerateInput.hitTest( pos ) ) {
+		LOG_V << "mSamplerateInput hit" << endl;
+	}
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
-
-//		bool enabled = mContext->isEnabled();
-//		mContext->stop();
-
-//		mContext->disconnectAllNodes();
 
 		if( currentTest == "oscillator" ) {
 			setupOscillator();
@@ -202,8 +212,26 @@ void DeviceTestApp::processTap( Vec2i pos )
 		if( currentTest == "I/O (processed)" ) {
 			setupIOProcessed();
 		}
+	}
+}
 
-//		mContext->setEnabled( enabled );
+void DeviceTestApp::keyDown( KeyEvent event )
+{
+	TextInput *currentSelected = TextInput::getCurrentSelected();
+	if( ! currentSelected )
+		return;
+
+	if( event.getCode() == KeyEvent::KEY_RETURN ) {
+		// TODO: test all inputs and respond
+		LOG_V << "selected string: " << currentSelected->mInputString << endl;
+	}
+	else {
+
+		if( event.getCode() == KeyEvent::KEY_BACKSPACE )
+			currentSelected->processBackspace();
+		else {
+			currentSelected->processChar( event.getChar() );
+		}
 	}
 }
 
@@ -248,8 +276,7 @@ void DeviceTestApp::draw()
 		gl::drawSolidRect( volumeRect );
 	}
 
-	mPlayButton.draw();
-	mTestSelector.draw();
+	drawWidgets( mWidgets );
 
 	if( mUnderrunFade > 0.0001 ) {
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );

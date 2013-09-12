@@ -30,6 +30,7 @@
 #include <boost/format.hpp>
 
 #include <vector>
+#include <cctype>
 
 using namespace ci;
 
@@ -241,3 +242,105 @@ struct VSelector : public TestWidget {
 	ColorA mSelectedColor, mUnselectedColor;
 	size_t mCurrentSectionIndex;
 };
+
+struct TextInput : public TestWidget {
+	enum Format { NUMERICAL, ALL };
+
+	TextInput( Format format = Format::NUMERICAL, const std::string& title = "" )
+	: TestWidget(), mFormat( format ), mTitle( title )
+	{
+		mBackgroundColor = ColorA( "MidnightBlue", 0.65f );
+		mTitleColor = ColorA::gray( 0.75f, 0.5f );
+		mNormalColor = Color( "SlateGray" );
+		mEnabledColor = ColorA( "SpringGreen", 0.95f );
+		setSelected( false );
+
+		sTextInputs.push_back( this );
+	}
+
+	void setSelected( bool b )
+	{
+		disableAll();
+		mSelected = b;
+	}
+
+	bool hitTest( const Vec2i &pos )
+	{
+		if( mHidden )
+			return false;
+
+		bool b = mBounds.contains( pos );
+		if( b ) {
+			setSelected( true );
+		}
+
+		return b;
+	}
+
+	void setValue( int value )
+	{
+		mInputString = std::to_string( value );
+	}
+
+	void processChar( char c )
+	{
+		if( mFormat == Format::NUMERICAL && ! isdigit( c ) )
+			return;
+
+		mInputString.push_back( c );
+	}
+
+	void processBackspace()
+	{
+		mInputString.pop_back();
+	}
+
+	static void disableAll()
+	{
+		for( TextInput *t : sTextInputs )
+			t->mSelected = false;
+	}
+
+	static TextInput *getCurrentSelected()
+	{
+		for( TextInput *t : sTextInputs ) {
+			if( t->mSelected )
+				return t;
+		}
+
+		return nullptr;
+	}
+
+	void draw()
+	{
+		if( mHidden )
+			return;
+		if( ! mTexFont )
+			mTexFont = getTestWidgetTexFont();
+
+		gl::color( mBackgroundColor );
+		gl::drawSolidRect( mBounds );
+
+		Vec2f titleOffset = Vec2f( mBounds.x1 + mPadding, mBounds.y1 - mTexFont->getFont().getDescent() );
+		gl::color( mTitleColor );
+		mTexFont->drawString( mTitle, titleOffset );
+
+		Vec2f textOffset = Vec2f( mBounds.x1 + mPadding, mBounds.getCenter().y + mTexFont->getFont().getDescent() );
+
+		gl::color( ( mSelected ? mEnabledColor : mNormalColor ) );
+
+		gl::drawStrokedRect( mBounds );
+		mTexFont->drawString( mInputString, textOffset );
+	}
+
+	Format	mFormat;
+	std::string mTitle, mInputString;
+	ColorA mNormalColor, mEnabledColor, mTitleColor;
+	bool mSelected;
+
+	static std::vector<struct TextInput *> sTextInputs;
+};
+
+std::vector<struct TextInput *> TextInput::sTextInputs;
+
+
