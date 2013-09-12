@@ -54,7 +54,8 @@ struct TestWidget {
 	float mPadding;
 };
 
-inline void drawWidgets( const std::vector<TestWidget *> &widgets ) {
+inline void drawWidgets( const std::vector<TestWidget *> &widgets )
+{
 	for( auto w : widgets )
 		w->draw();
 }
@@ -71,7 +72,8 @@ struct Button : public TestWidget {
 		mFadeFrames = 0;
 	}
 
-	void setEnabled( bool b ) {
+	void setEnabled( bool b )
+	{
 		if( b ) {
 			mBackgroundColor = mEnabledColor;
 		} else {
@@ -80,7 +82,8 @@ struct Button : public TestWidget {
 		mEnabled = b;
 	}
 
-	bool hitTest( const Vec2i &pos ) {
+	bool hitTest( const Vec2i &pos )
+	{
 		if( mHidden )
 			return false;
 
@@ -97,7 +100,8 @@ struct Button : public TestWidget {
 		return b;
 	}
 
-	void draw() {
+	void draw()
+	{
 		if( mHidden )
 			return;
 		if( ! mTexFont )
@@ -127,7 +131,8 @@ struct Button : public TestWidget {
 };
 
 struct HSlider : public TestWidget {
-	HSlider() : TestWidget() {
+	HSlider() : TestWidget()
+	{
 		mValue = mValueScaled = 0.0f;
 		mMin = 0.0f;
 		mMax = 1.0f;
@@ -141,7 +146,8 @@ struct HSlider : public TestWidget {
 		mValue = ( mValueScaled - mMin ) / ( mMax - mMin );
 	}
 
-	bool hitTest( const Vec2i &pos ) {
+	bool hitTest( const Vec2i &pos )
+	{
 		if( mHidden )
 			return false;
 
@@ -153,7 +159,8 @@ struct HSlider : public TestWidget {
 		return b;
 	}
 
-	void draw() {
+	void draw()
+	{
 		if( mHidden )
 			return;
 		if( ! mTexFont )
@@ -175,7 +182,6 @@ struct HSlider : public TestWidget {
 		float w = 2.0f;
 		Rectf valRect( offset - w, mBounds.y1, offset + w, mBounds.y2 );
 		gl::drawSolidRoundedRect( valRect, w );
-
 	}
 
 	float mValue, mValueScaled, mMin, mMax;
@@ -184,14 +190,16 @@ struct HSlider : public TestWidget {
 };
 
 struct VSelector : public TestWidget {
-	VSelector() : TestWidget() {
+	VSelector() : TestWidget()
+	{
 		mCurrentSectionIndex = 0;
 		mBackgroundColor = ColorA( "MidnightBlue", 0.75f );
 		mSelectedColor = ColorA( "SpringGreen", 0.95f );
 		mUnselectedColor = ColorA::gray( 0.5 );
 	}
 
-	bool hitTest( const Vec2i &pos ) {
+	bool hitTest( const Vec2i &pos )
+	{
 		if( mHidden )
 			return false;
 
@@ -206,7 +214,8 @@ struct VSelector : public TestWidget {
 
 	const std::string& currentSection() const	{ return mSegments[mCurrentSectionIndex]; }
 
-	void draw() {
+	void draw()
+	{
 		if( mHidden )
 			return;
 

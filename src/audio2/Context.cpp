@@ -131,6 +131,8 @@ void Context::startRecursive( const NodeRef &node )
 	for( auto& input : node->getInputs() )
 		startRecursive( input );
 
+	// TODO: consider doing this instead when the node is finished being connected.
+	// - if Node::Format().autoEnable() is added as well, this'll make it more modular
 	if( node->isAutoEnabled() )
 		node->start();
 }

@@ -71,8 +71,6 @@ void EffectNodeTestApp::setupOne()
 	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getTarget() );
 }
 
-// TODO NEXT: GainNode should be flexible in channel counts
-//	- it should accomodate any inpute channel count and always operates in-place
 void EffectNodeTestApp::setupForceStereo()
 {
 	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );

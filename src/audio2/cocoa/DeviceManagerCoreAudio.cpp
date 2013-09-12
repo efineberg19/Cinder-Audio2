@@ -33,8 +33,6 @@ using namespace ci;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
-// TODO: template these where possible, then move to CinderCoreAudio / CoreAudioUtil.h
-
 // some private helpers, not sure yet how widely useful these are
 ::AudioObjectPropertyAddress getAudioObjectPropertyAddress( ::AudioObjectPropertySelector propertySelector, ::AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal );
 UInt32 getAudioObjectPropertyDataSize( ::AudioObjectID objectId, const AudioObjectPropertyAddress &address, UInt32 qualifierDataSize = 0, const void *qualifierData = NULL );
