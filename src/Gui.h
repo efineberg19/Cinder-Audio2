@@ -291,6 +291,11 @@ struct TextInput : public TestWidget {
 		mInputString = std::to_string( value );
 	}
 
+	int getValue()
+	{
+		return stoi( mInputString );
+	}
+
 	void processChar( char c )
 	{
 		if( mFormat == Format::NUMERICAL && ! isdigit( c ) )

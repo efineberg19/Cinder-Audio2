@@ -222,8 +222,14 @@ void DeviceTestApp::keyDown( KeyEvent event )
 		return;
 
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
-		// TODO: test all inputs and respond
-		LOG_V << "selected string: " << currentSelected->mInputString << endl;
+		if( currentSelected == &mSamplerateInput ) {
+			int sr = currentSelected->getValue();
+			LOG_V << "updating samplerate to be: " << sr << endl;
+			mLineOut->getDevice()->setSampleRate( sr );
+		}
+		else {
+			LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;
+		}
 	}
 	else {
 
