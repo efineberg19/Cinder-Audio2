@@ -58,4 +58,4 @@ public:
 	std::map<DeviceRef,::AudioDeviceID> mDeviceIds;
 };
 
-} } } // namespace::audio2::cocoa
+} } } // namespace cinder::audio2::cocoa
