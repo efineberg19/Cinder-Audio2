@@ -11,8 +11,7 @@
 
 #include "Gui.h"
 
-// TODO NEXT: TextInput widget for samplerate / frames-per-block
-
+// TODO NEXT: get on-the-fly frames per block changes working
 
 using namespace ci;
 using namespace ci::app;
@@ -174,8 +173,14 @@ void DeviceTestApp::setupUI()
 	mSamplerateInput.mBounds = textInputBounds;
 	mSamplerateInput.mTitle = "samplerate";
 	mSamplerateInput.setValue( mContext->getSampleRate() );
-
 	mWidgets.push_back( &mSamplerateInput );
+
+	textInputBounds += Vec2f( textInputBounds.getWidth() + 10.0f, 0.0f );
+	mFramesPerBlockInput.mBounds = textInputBounds;
+	mFramesPerBlockInput.mTitle = "frames per block";
+	mFramesPerBlockInput.setValue( mContext->getFramesPerBlock() );
+	mWidgets.push_back( &mFramesPerBlockInput );
+
 
 	Vec2i xrunSize( 80, 26 );
 	mUnderrunRect = Rectf( getWindowWidth() - xrunSize.x, getWindowHeight() - xrunSize.y, getWindowWidth(), getWindowHeight() );
@@ -191,8 +196,11 @@ void DeviceTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-	if( mSamplerateInput.hitTest( pos ) ) {
-		LOG_V << "mSamplerateInput hit" << endl;
+	else if( mSamplerateInput.hitTest( pos ) ) {
+		LOG_V << "mSamplerateInput selected" << endl;
+	}
+	else if( mFramesPerBlockInput.hitTest( pos ) ) {
+		LOG_V << "mFramesPerBlockInput selected" << endl;
 	}
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
@@ -221,6 +229,8 @@ void DeviceTestApp::keyDown( KeyEvent event )
 	if( ! currentSelected )
 		return;
 
+	LOG_V << "currentSelected title: " << currentSelected->mTitle << endl;
+
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
 		if( currentSelected == &mSamplerateInput ) {
 			int sr = currentSelected->getValue();
@@ -229,12 +239,16 @@ void DeviceTestApp::keyDown( KeyEvent event )
 			LOG_V << "... result: " << mLineOut->getSampleRate() << endl;
 
 		}
-		else {
-			LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;
+		else if( currentSelected == &mFramesPerBlockInput ) {
+			int frames = currentSelected->getValue();
+			LOG_V << "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames << endl;
+			mLineOut->getDevice()->setFramesPerBlock( frames );
+			LOG_V << "... result: " << mLineOut->getFramesPerBlock() << endl;
 		}
+		else
+			LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;
 	}
 	else {
-
 		if( event.getCode() == KeyEvent::KEY_BACKSPACE )
 			currentSelected->processBackspace();
 		else {
