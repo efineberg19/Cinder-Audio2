@@ -340,6 +340,9 @@ LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
 {
 	CI_ASSERT( mDevice );
 
+	mDevice->getSignalParamsWillChange().connect( bind( &LineOutNode::deviceParamsWillChange, this ) );
+	mDevice->getSignalParamsDidChange().connect( bind( &LineOutNode::deviceParamsDidChange, this ) );
+
 	setAutoEnabled();
 	
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
@@ -351,5 +354,21 @@ LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
 }
 
+void LineOutNode::deviceParamsWillChange()
+{
+	LOG_V << "bang" << endl;
+	mWasEnabledBeforeParamsChange = mEnabled;
+
+	stop();
+	getContext()->uninitializeAllNodes();
+}
+
+void LineOutNode::deviceParamsDidChange()
+{
+	LOG_V << "bang" << endl;
+	getContext()->initializeAllNodes();
+
+	setEnabled( mWasEnabledBeforeParamsChange );
+}
 
 } } // namespace cinder::audio2

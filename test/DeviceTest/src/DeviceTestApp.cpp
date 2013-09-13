@@ -32,7 +32,7 @@ class DeviceTestApp : public AppNative {
 	void setupDefaultDevices();
 	void setupDedicatedDevice();
 
-	void setupOscillator();
+	void setupSine();
 	void setupIOClean();
 	void setupNoise();
 	void setupIOProcessed();
@@ -68,7 +68,7 @@ void DeviceTestApp::setup()
 	// TODO: add this as a test control
 	//mLineIn->getFormat().setNumChannels( 1 );
 
-	setupOscillator();
+	setupSine();
 
 	setupUI();
 
@@ -81,8 +81,8 @@ void DeviceTestApp::setupDefaultDevices()
 {
 	mLineIn = mContext->createLineIn();
 
-	Device::getDefaultOutput()->setSampleRate( 48000 );
-	Device::getDefaultOutput()->setFramesPerBlock( 32 );
+	Device::getDefaultOutput()->setSampleRate( 44100 );
+//	Device::getDefaultOutput()->setFramesPerBlock( 512 );
 
 	mLineOut = mContext->createLineOut();
 
@@ -116,7 +116,7 @@ void DeviceTestApp::setupDedicatedDevice()
 	console() << "\t block size: " << output->getDevice()->getFramesPerBlock() << endl;
 }
 
-void DeviceTestApp::setupOscillator()
+void DeviceTestApp::setupSine()
 {
 	auto sineGen = mContext->makeNode( new UGenNode<SineGen>() );
 	sineGen->getUGen().setFreq( 440.0f );
@@ -156,7 +156,7 @@ void DeviceTestApp::setupUI()
 	mPlayButton = Button( true, "stopped", "playing" );
 	mWidgets.push_back( &mPlayButton );
 
-	mTestSelector.mSegments.push_back( "oscillator" );
+	mTestSelector.mSegments.push_back( "sinewave" );
 	mTestSelector.mSegments.push_back( "noise" );
 	mTestSelector.mSegments.push_back( "I/O (clean)" );
 	mTestSelector.mSegments.push_back( "I/O (processed)" );
@@ -200,8 +200,8 @@ void DeviceTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		if( currentTest == "oscillator" ) {
-			setupOscillator();
+		if( currentTest == "sinewave" ) {
+			setupSine();
 		}
 		if( currentTest == "noise" ) {
 			setupNoise();
@@ -224,8 +224,10 @@ void DeviceTestApp::keyDown( KeyEvent event )
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
 		if( currentSelected == &mSamplerateInput ) {
 			int sr = currentSelected->getValue();
-			LOG_V << "updating samplerate to be: " << sr << endl;
+			LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
 			mLineOut->getDevice()->setSampleRate( sr );
+			LOG_V << "... result: " << mLineOut->getSampleRate() << endl;
+
 		}
 		else {
 			LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;

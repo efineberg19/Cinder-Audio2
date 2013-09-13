@@ -74,7 +74,7 @@ Context::~Context()
 {
 	stop();
 	lock_guard<mutex> lock( mMutex );
-	uninitRecursisve( mTarget );
+	uninitializeAllNodes();
 }
 
 void Context::start()
@@ -156,6 +156,17 @@ void Context::disconnectRecursive( const NodeRef &node )
 		disconnectRecursive( input );
 
 	node->disconnect();
+}
+
+void Context::initRecursisve( const NodeRef &node )
+{
+	if( ! node )
+		return;
+
+	for( const NodeRef &input : node->getInputs() )
+		initRecursisve( input );
+
+	node->initializeImpl();
 }
 
 void Context::uninitRecursisve( const NodeRef &node )

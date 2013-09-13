@@ -184,9 +184,6 @@ class NodeTarget : public Node {
 
 class LineOutNode : public NodeTarget {
   public:
-
-	// ???: device param here necessary?
-	LineOutNode( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineOutNode() {}
 
 	const DeviceRef& getDevice() const		{ return mDevice; }
@@ -194,8 +191,16 @@ class LineOutNode : public NodeTarget {
 	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
 	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
 
+	virtual void deviceParamsWillChange();
+	virtual void deviceParamsDidChange();
+
   protected:
+	LineOutNode( const DeviceRef &device, const Format &format = Format() );
+
 	DeviceRef mDevice;
+
+  private:
+	bool mWasEnabledBeforeParamsChange;
 };
 
 //! Note: currently abstract and unused

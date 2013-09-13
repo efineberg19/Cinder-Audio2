@@ -93,7 +93,7 @@ size_t Device::getNumOutputChannels()
 
 size_t Device::getSampleRate()
 {
-	return Context::deviceManager()->getSampleRate( mKey );
+	return ( mSampleRate ? mSampleRate : Context::deviceManager()->getSampleRate( mKey ) );
 }
 
 size_t Device::getFramesPerBlock()
@@ -103,12 +103,20 @@ size_t Device::getFramesPerBlock()
 
 void Device::setSampleRate( size_t sampleRate )
 {
+	if( sampleRate == mSampleRate )
+		return;
+
+	mSignalParamsWillChange();
 	Context::deviceManager()->setSampleRate( mKey, sampleRate );
+	mSampleRate = sampleRate;
+	mSignalParamsDidChange();
 }
 
 void Device::setFramesPerBlock( size_t framesPerBlock )
 {
+	mSignalParamsWillChange();
 	Context::deviceManager()->setFramesPerBlock( mKey, framesPerBlock );
+	mSignalParamsDidChange();
 }
 
 // ----------------------------------------------------------------------------------------------------

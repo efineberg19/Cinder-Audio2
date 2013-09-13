@@ -166,6 +166,7 @@ struct UGenNode : public NodeSource {
 	std::string virtual getTag() override			{ return "UGenNode"; }
 
 	virtual void initialize() override {
+		size_t newSampleRate = getContext()->getSampleRate();
 		mGen.setSampleRate( getContext()->getSampleRate() );
 	}
 

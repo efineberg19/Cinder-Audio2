@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "cinder/Function.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,8 +36,9 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class Device> DeviceRef;
 
 //! Object representing a hardware audio device. There is only ever one device per system-reported device, for both input and output.
-class Device : public boost::noncopyable {
+class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
   public:
+
 	virtual ~Device() {}
 
 	static DeviceRef getDefaultOutput();
@@ -55,12 +58,16 @@ class Device : public boost::noncopyable {
 	void setSampleRate( size_t sampleRate );
 	void setFramesPerBlock( size_t framesPerBlock );
 
-  protected:
-	Device( const std::string &key ) : mKey( key ) {}
-
-	std::string mKey, mName;
+	signals::signal<void()>& getSignalParamsWillChange()	{ return mSignalParamsWillChange; }
+	signals::signal<void()>& getSignalParamsDidChange()		{ return mSignalParamsDidChange; }
 
   private:
+	Device( const std::string &key ) : mKey( key ), mSampleRate( 0 ) {}
+
+	std::string mKey, mName;
+	size_t mSampleRate;
+	signals::signal<void()> mSignalParamsWillChange, mSignalParamsDidChange;
+
 	friend class DeviceManager;
 };
 

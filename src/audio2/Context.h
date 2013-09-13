@@ -71,12 +71,16 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	std::mutex& getMutex()					{ return mMutex; }
 
+	void initializeAllNodes()				{ initRecursisve( mTarget ); }
+	void uninitializeAllNodes()				{ uninitRecursisve( mTarget ); }
+
   protected:
 	Context() : mEnabled( false ) {}
 
 	void startRecursive( const NodeRef &node );
 	void stopRecursive( const NodeRef &node );
 	void disconnectRecursive( const NodeRef &node );
+	void initRecursisve( const NodeRef &node );
 	void uninitRecursisve( const NodeRef &node );
 
 	NodeTargetRef	mTarget;
