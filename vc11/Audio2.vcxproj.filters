@@ -49,9 +49,6 @@
     <ClInclude Include="..\src\audio2\File.h">
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\audio2\GeneratorNode.h">
-      <Filter>Source Files\audio2</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\audio2\Node.h">
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
@@ -91,6 +88,9 @@
     <ClInclude Include="..\src\audio2\ooura\fftsg.h">
       <Filter>Source Files\audio2\ooura</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\audio2\NodeSource.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio2\audio.cpp">
@@ -109,9 +109,6 @@
       <Filter>Source Files\audio2</Filter>
     </ClCompile>
     <ClCompile Include="..\src\audio2\File.cpp">
-      <Filter>Source Files\audio2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\audio2\GeneratorNode.cpp">
       <Filter>Source Files\audio2</Filter>
     </ClCompile>
     <ClCompile Include="..\src\audio2\Node.cpp">
@@ -143,6 +140,9 @@
     </ClCompile>
     <ClCompile Include="..\src\audio2\ooura\fftsg.cpp">
       <Filter>Source Files\audio2\ooura</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\NodeSource.cpp">
+      <Filter>Source Files\audio2</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

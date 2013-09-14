@@ -2,7 +2,7 @@
 #include "cinder/gl/gl.h"
 
 #include "audio2/audio.h"
-#include "audio2/GeneratorNode.h"
+#include "audio2/NodeSource.h"
 #include "audio2/EffectNode.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
@@ -79,7 +79,7 @@ void EffectXAudioTestApp::setupOne()
 	mFilterEffect.reset();
 	mEQ =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
 
-	mSource->connect( mEQ )->connect( mContext->getRoot() );
+	mSource->connect( mEQ )->connect( mContext->getTarget() );
 
 	// init params after connecting
 	initEQParams();
@@ -95,7 +95,7 @@ void EffectXAudioTestApp::setupTwo()
 	mEQ = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ, format ) );
 	mEcho = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
 
-	mSource->connect( mEQ )->connect( mEcho )->connect( mContext->getRoot() );
+	mSource->connect( mEQ )->connect( mEcho )->connect( mContext->getTarget() );
 
 	initEQParams();
 	initDelayParams();
@@ -106,7 +106,7 @@ void EffectXAudioTestApp::setupFilter()
 	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
 
 
-	mSource->connect( mFilterEffect )->connect( mContext->getRoot() );
+	mSource->connect( mFilterEffect )->connect( mContext->getTarget() );
 
 	initFilterParams();
 }
@@ -116,7 +116,7 @@ void EffectXAudioTestApp::setupFilterThenDelay()
 	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
 	mEcho =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
 
-	mSource->connect( mFilterEffect )->connect( mEcho )->connect( mContext->getRoot() );
+	mSource->connect( mFilterEffect )->connect( mEcho )->connect( mContext->getTarget() );
 
 	initFilterParams();
 	initDelayParams();
@@ -129,7 +129,7 @@ void EffectXAudioTestApp::setupNativeThenGeneric()
 	mEQ = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
 	auto ringMod = mContext->makeNode( new RingMod() );
 
-	mSource->connect( mEQ )->connect( ringMod )->connect( mContext->getRoot() );
+	mSource->connect( mEQ )->connect( ringMod )->connect( mContext->getTarget() );
 }
 
 void EffectXAudioTestApp::initEQParams()
