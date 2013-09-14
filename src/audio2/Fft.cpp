@@ -95,7 +95,7 @@ void Fft::inverse( const BufferSpectral *spectral, Buffer *waveform )
 
 void Fft::init()
 {
-	mOouraIp = (int *)calloc( 2 + sqrt( mSizeOverTwo ), sizeof( int ) );
+	mOouraIp = (int *)calloc( 2 + (int)sqrt( mSizeOverTwo ), sizeof( int ) );
 	mOouraW = (float *)calloc( mSizeOverTwo, sizeof( float ) );
 	mBufferCopy = Buffer( mSize );
 }
