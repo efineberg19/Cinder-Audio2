@@ -23,9 +23,8 @@
     <ClInclude Include="..\src\audio2\Fft.h" />
     <ClInclude Include="..\src\audio2\File.h" />
     <ClInclude Include="..\src\audio2\msw\ContextXAudio.h" />
-    <ClInclude Include="..\src\audio2\msw\DeviceInputWasapi.h" />
+    <ClInclude Include="..\src\audio2\msw\LineInWasapi.h" />
     <ClInclude Include="..\src\audio2\msw\DeviceManagerWasapi.h" />
-    <ClInclude Include="..\src\audio2\msw\DeviceOutputXAudio.h" />
     <ClInclude Include="..\src\audio2\msw\FileMediaFoundation.h" />
     <ClInclude Include="..\src\audio2\msw\util.h" />
     <ClInclude Include="..\src\audio2\msw\xaudio.h" />
@@ -45,9 +44,8 @@
     <ClCompile Include="..\src\audio2\Fft.cpp" />
     <ClCompile Include="..\src\audio2\File.cpp" />
     <ClCompile Include="..\src\audio2\msw\ContextXAudio.cpp" />
-    <ClCompile Include="..\src\audio2\msw\DeviceInputWasapi.cpp" />
+    <ClCompile Include="..\src\audio2\msw\LineInWasapi.cpp" />
     <ClCompile Include="..\src\audio2\msw\DeviceManagerWasapi.cpp" />
-    <ClCompile Include="..\src\audio2\msw\DeviceOutputXAudio.cpp" />
     <ClCompile Include="..\src\audio2\msw\FileMediaFoundation.cpp" />
     <ClCompile Include="..\src\audio2\msw\util.cpp" />
     <ClCompile Include="..\src\audio2\Node.cpp" />

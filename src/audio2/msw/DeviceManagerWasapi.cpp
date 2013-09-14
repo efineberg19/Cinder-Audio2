@@ -22,9 +22,8 @@
 */
 
 #include "audio2/msw/DeviceManagerWasapi.h"
-#include "audio2/msw/DeviceOutputXAudio.h"
-#include "audio2/msw/DeviceInputWasapi.h"
-#include "audio2/audio.h"
+#include "audio2/msw/LineInWasapi.h"
+#include "audio2/msw/ContextXAudio.h"
 #include "audio2/msw/util.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"

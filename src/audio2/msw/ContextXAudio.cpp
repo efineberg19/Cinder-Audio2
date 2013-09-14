@@ -22,8 +22,7 @@
 */
 
 #include "audio2/msw/ContextXAudio.h"
-#include "audio2/msw/DeviceOutputXAudio.h"
-#include "audio2/msw/DeviceInputWasapi.h"
+#include "audio2/msw/LineInWasapi.h"
 #include "audio2/msw/DeviceManagerWasapi.h"
 #include "audio2/msw/xaudio.h"
 
@@ -182,7 +181,7 @@ void LineOutXAudio::initialize()
 
 void LineOutXAudio::uninitialize()
 {
-	CI_ASSERT( mMasteringVoice );
+	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
 	mMasteringVoice->DestroyVoice();
 }
 
@@ -255,6 +254,7 @@ void SourceVoiceXAudio::initialize()
 void SourceVoiceXAudio::uninitialize()
 {
 	uninitSourceVoice();
+	// FIXME: looks like SourceVoice senders need to be detached during its uninitialize, which was attached during CreateSourceVoice
 }
 
 void SourceVoiceXAudio::initSourceVoice()

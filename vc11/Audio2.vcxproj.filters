@@ -67,13 +67,7 @@
     <ClInclude Include="..\src\audio2\msw\ContextXAudio.h">
       <Filter>Source Files\audio2\msw</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\audio2\msw\DeviceInputWasapi.h">
-      <Filter>Source Files\audio2\msw</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\audio2\msw\DeviceManagerWasapi.h">
-      <Filter>Source Files\audio2\msw</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\audio2\msw\DeviceOutputXAudio.h">
       <Filter>Source Files\audio2\msw</Filter>
     </ClInclude>
     <ClInclude Include="..\src\audio2\msw\FileMediaFoundation.h">
@@ -90,6 +84,9 @@
     </ClInclude>
     <ClInclude Include="..\src\audio2\NodeSource.h">
       <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\msw\LineInWasapi.h">
+      <Filter>Source Files\audio2\msw</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -123,13 +120,7 @@
     <ClCompile Include="..\src\audio2\msw\ContextXAudio.cpp">
       <Filter>Source Files\audio2\msw</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\audio2\msw\DeviceInputWasapi.cpp">
-      <Filter>Source Files\audio2\msw</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\audio2\msw\DeviceManagerWasapi.cpp">
-      <Filter>Source Files\audio2\msw</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\audio2\msw\DeviceOutputXAudio.cpp">
       <Filter>Source Files\audio2\msw</Filter>
     </ClCompile>
     <ClCompile Include="..\src\audio2\msw\FileMediaFoundation.cpp">
@@ -143,6 +134,9 @@
     </ClCompile>
     <ClCompile Include="..\src\audio2\NodeSource.cpp">
       <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\msw\LineInWasapi.cpp">
+      <Filter>Source Files\audio2\msw</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
