@@ -21,9 +21,9 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-// TODO: consider TapNode as a base class
+// TODO: consider NodeTap as a base class
 //		- all subclasses auto-enabled
-//		- examples: WaveformTapNode, VolumeTapNode, SpectrumTapNode, OnsetTapNode, PitchTapNode
+//		- examples: WaveformTapNode, VolumeTapNode, NodeTapSpectral, OnsetTapNode, PitchTapNode
 
 #pragma once
 
@@ -37,10 +37,10 @@ namespace cinder { namespace audio2 {
 class RingBuffer;
 class Fft;
 
-typedef std::shared_ptr<class TapNode> TapNodeRef;
-typedef std::shared_ptr<class SpectrumTapNode> SpectrumTapNodeRef;
+typedef std::shared_ptr<class NodeTap> TapNodeRef;
+typedef std::shared_ptr<class NodeTapSpectral> SpectrumTapNodeRef;
 
-class TapNode : public Node {
+class NodeTap : public Node {
 public:
 	struct Format : public Node::Format {
 		Format() : mWindowSize( 1024 ) {}
@@ -52,17 +52,17 @@ public:
 		size_t mWindowSize;
 	};
 
-	TapNode( const Format &format = Format() );
-	virtual ~TapNode();
+	NodeTap( const Format &format = Format() );
+	virtual ~NodeTap();
 
-	std::string virtual getTag() override			{ return "TapNode"; }
+	std::string virtual getTag() override			{ return "NodeTap"; }
 
 	const float* getChannel( size_t ch = 0 );
 	const Buffer& getBuffer();
 
 	//! Compute the average (RMS) volume across all channels
 	float getVolume();
-	//! Compute the averate (RMS) volume across \a channel
+	//! Compute the average (RMS) volume across \a channel
 	float getVolume( size_t channel );
 
 	virtual void initialize() override;
@@ -74,7 +74,8 @@ private:
 	size_t mWindowSize;
 };
 
-class SpectrumTapNode : public Node {
+// TODO: is there any good reason not to inherit from NodeTap?
+class NodeTapSpectral : public Node {
 public:
 	struct Format : public Node::Format {
 		Format() : mFftSize( 0 ), mWindowSize( 0 ), mWindowType( WindowType::BLACKMAN ) {}
@@ -96,10 +97,10 @@ public:
 		WindowType mWindowType;
 	};
 
-	SpectrumTapNode( const Format &format = Format() );
-	virtual ~SpectrumTapNode();
+	NodeTapSpectral( const Format &format = Format() );
+	virtual ~NodeTapSpectral();
 
-	std::string virtual getTag() override			{ return "SpectrumTapNode"; }
+	std::string virtual getTag() override			{ return "NodeTapSpectral"; }
 
 	virtual void initialize() override;
 	virtual void process( Buffer *buffer ) override;
@@ -119,7 +120,7 @@ private:
 	std::mutex mMutex;
 
 	// TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
-	// - but all 'TapNode's could use this - move it to base class?
+	// - but all 'NodeTap's could use this - move it to base class?
 	Buffer mBuffer;
 	BufferSpectral mBufferSpectral;
 	std::vector<float> mMagSpectrum;

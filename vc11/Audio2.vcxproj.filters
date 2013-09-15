@@ -40,9 +40,6 @@
     <ClInclude Include="..\src\audio2\Dsp.h">
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\audio2\EffectNode.h">
-      <Filter>Source Files\audio2</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\audio2\Fft.h">
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
@@ -53,9 +50,6 @@
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
     <ClInclude Include="..\src\audio2\RingBuffer.h">
-      <Filter>Source Files\audio2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\audio2\TapNode.h">
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Gui.h">
@@ -85,8 +79,14 @@
     <ClInclude Include="..\src\audio2\NodeSource.h">
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\audio2\msw\LineInWasapi.h">
+    <ClInclude Include="..\src\audio2\msw\NodeLineInWasapi.h">
       <Filter>Source Files\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\NodeEffect.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio2\NodeTap.h">
+      <Filter>Source Files\audio2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -111,9 +111,6 @@
     <ClCompile Include="..\src\audio2\Node.cpp">
       <Filter>Source Files\audio2</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\audio2\TapNode.cpp">
-      <Filter>Source Files\audio2</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Plot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -135,8 +132,11 @@
     <ClCompile Include="..\src\audio2\NodeSource.cpp">
       <Filter>Source Files\audio2</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\audio2\msw\LineInWasapi.cpp">
+    <ClCompile Include="..\src\audio2\msw\NodeLineInWasapi.cpp">
       <Filter>Source Files\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\NodeTap.cpp">
+      <Filter>Source Files\audio2</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

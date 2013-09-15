@@ -3,7 +3,7 @@
 #include "cinder/Utilities.h"
 
 #include "audio2/audio.h"
-#include "audio2/TapNode.h"
+#include "audio2/NodeTap.h"
 #include "audio2/NodeSource.h"
 #include "audio2/Debug.h"
 #include "audio2/Dsp.h"
@@ -46,7 +46,7 @@ class SpectrumTapTestApp : public AppNative {
 
 	ContextRef						mContext;
 	BufferPlayerNodeRef				mPlayerNode;
-	shared_ptr<UGenNode<SineGen> >	mSine;
+	shared_ptr<NodeGen<SineGen> >	mSine;
 	SpectrumTapNodeRef				mSpectrumTap;
 	SourceFileRef					mSourceFile;
 
@@ -70,12 +70,12 @@ void SpectrumTapTestApp::setup()
 
 	mContext = Context::create();
 
-	mSpectrumTap = mContext->makeNode( new SpectrumTapNode( SpectrumTapNode::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
+	mSpectrumTap = mContext->makeNode( new NodeTapSpectral( NodeTapSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 	mSpectrumTap->setAutoEnabled();
 
-	mSine = mContext->makeNode( new UGenNode<SineGen>() );
-	mSine->getUGen().setAmp( 0.25f );
-	mSine->getUGen().setFreq( 440.0f );
+	mSine = mContext->makeNode( new NodeGen<SineGen>() );
+	mSine->getGen().setAmp( 0.25f );
+	mSine->getGen().setFreq( 440.0f );
 
 #if ! defined( CINDER_MSW )
 	// FIXME: audio decoding on msw not ready
@@ -87,7 +87,7 @@ void SpectrumTapTestApp::setup()
 	auto audioBuffer = mSourceFile->loadBuffer();
 	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
 
-	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
+	mPlayerNode = mContext->makeNode( new NodeBufferPlayer( audioBuffer ) );
 
 #endif
 
@@ -176,7 +176,7 @@ void SpectrumTapTestApp::setupUI()
 	mFreqSlider.mTitle = "Sine Freq";
 	mFreqSlider.mMin = 0.0f;
 	mFreqSlider.mMax = mContext->getSampleRate() / 2.0f;
-	mFreqSlider.set( mSine->getUGen().getFreq() );
+	mFreqSlider.set( mSine->getGen().getFreq() );
 	mWidgets.push_back( &mFreqSlider );
 
 
@@ -250,7 +250,7 @@ void SpectrumTapTestApp::processDrag( Vec2i pos )
 	if( mSmoothingFactorSlider.hitTest( pos ) )
 		mSpectrumTap->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
 	if( mFreqSlider.hitTest( pos ) )
-		mSine->getUGen().setFreq( mFreqSlider.mValueScaled );
+		mSine->getGen().setFreq( mFreqSlider.mValueScaled );
 }
 
 void SpectrumTapTestApp::fileDrop( FileDropEvent event )

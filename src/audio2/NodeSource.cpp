@@ -46,10 +46,10 @@ NodeSource::NodeSource( const Format &format ) : Node( format )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - BufferPlayerNode
+// MARK: - NodeBufferPlayer
 // ----------------------------------------------------------------------------------------------------
 
-LineInNode::LineInNode( const DeviceRef &device, const Format &format )
+NodeLineIn::NodeLineIn( const DeviceRef &device, const Format &format )
 	: NodeSource( format ), mDevice( device )
 {
 	if( device->getNumOutputChannels() < mNumChannels )
@@ -59,16 +59,16 @@ LineInNode::LineInNode( const DeviceRef &device, const Format &format )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - BufferPlayerNode
+// MARK: - NodeBufferPlayer
 // ----------------------------------------------------------------------------------------------------
 
-BufferPlayerNode::BufferPlayerNode( const Format &format )
-: PlayerNode( format )
+NodeBufferPlayer::NodeBufferPlayer( const Format &format )
+: NodeSamplePlayer( format )
 {
 }
 
-BufferPlayerNode::BufferPlayerNode( const BufferRef &buffer, const Format &format )
-: PlayerNode( format ), mBuffer( buffer )
+NodeBufferPlayer::NodeBufferPlayer( const BufferRef &buffer, const Format &format )
+: NodeSamplePlayer( format ), mBuffer( buffer )
 {
 	mNumFrames = mBuffer->getNumFrames();
 
@@ -79,7 +79,7 @@ BufferPlayerNode::BufferPlayerNode( const BufferRef &buffer, const Format &forma
 	}
 }
 
-void BufferPlayerNode::start()
+void NodeBufferPlayer::start()
 {
 	if( ! mBuffer ) {
 		LOG_E << "no audio buffer, returning." << endl;
@@ -92,19 +92,19 @@ void BufferPlayerNode::start()
 	LOG_V << "started" << endl;
 }
 
-void BufferPlayerNode::stop()
+void NodeBufferPlayer::stop()
 {
 	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
 }
 
-// TODO: decide how best to allow this BufferPlayerNode to load audio files of a different format. options:
+// TODO: decide how best to allow this NodeBufferPlayer to load audio files of a different format. options:
 //		- now that Node's can change their configuration during dsp-time, a configureConnects() can be reissued from here
 //			- if the channels have changed, related Node's may change as well.
 //		- ???: should we support a stereo buffer node as default, which upmixes mono to stereo?
 //			- would prevent node connect / buffer changes during dsp-time
-void BufferPlayerNode::setBuffer( const BufferRef &buffer )
+void NodeBufferPlayer::setBuffer( const BufferRef &buffer )
 {
 	bool enabled = mEnabled;
 	if( mEnabled )
@@ -117,7 +117,7 @@ void BufferPlayerNode::setBuffer( const BufferRef &buffer )
 		start();
 }
 
-void BufferPlayerNode::process( Buffer *buffer )
+void NodeBufferPlayer::process( Buffer *buffer )
 {
 	size_t readPos = mReadPos;
 	size_t numFrames = buffer->getNumFrames();
@@ -140,16 +140,16 @@ void BufferPlayerNode::process( Buffer *buffer )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - FilePlayerNode
+// MARK: - NodeFilePlayer
 // ----------------------------------------------------------------------------------------------------
 
 
-FilePlayerNode::FilePlayerNode( const Format &format )
-: PlayerNode( format ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+NodeFilePlayer::NodeFilePlayer( const Format &format )
+: NodeSamplePlayer( format ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
 }
 
-FilePlayerNode::~FilePlayerNode()
+NodeFilePlayer::~NodeFilePlayer()
 {
 	if( mMultiThreaded ) {
 		mReadOnBackground = false;
@@ -157,8 +157,8 @@ FilePlayerNode::~FilePlayerNode()
 	}
 }
 
-FilePlayerNode::FilePlayerNode( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
-: PlayerNode( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
+: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {
 	mNumFrames = mSourceFile->getNumFrames();
 	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
@@ -166,7 +166,7 @@ FilePlayerNode::FilePlayerNode( const SourceFileRef &sourceFile, bool isMultiThr
 	mFramesPerBlock = getContext()->getFramesPerBlock();
 }
 
-void FilePlayerNode::initialize()
+void NodeFilePlayer::initialize()
 {
 	mSampleRate = getContext()->getSampleRate();
 	mSourceFile->setNumChannels( getNumChannels() );
@@ -178,11 +178,11 @@ void FilePlayerNode::initialize()
 
 	if( mMultiThreaded ) {
 		mReadOnBackground = true;
-		mReadThread = unique_ptr<thread>( new thread( bind( &FilePlayerNode::readFromBackgroundThread, this ) ) );
+		mReadThread = unique_ptr<thread>( new thread( bind( &NodeFilePlayer::readFromBackgroundThread, this ) ) );
 	}
 }
 
-void FilePlayerNode::setReadPosition( size_t pos )
+void NodeFilePlayer::setReadPosition( size_t pos )
 {
 	CI_ASSERT( mSourceFile );
 
@@ -192,7 +192,7 @@ void FilePlayerNode::setReadPosition( size_t pos )
 	mReadPos = pos;
 }
 
-void FilePlayerNode::start()
+void NodeFilePlayer::start()
 {
 	CI_ASSERT( mSourceFile );
 
@@ -202,14 +202,14 @@ void FilePlayerNode::start()
 	LOG_V << "started" << endl;
 }
 
-void FilePlayerNode::stop()
+void NodeFilePlayer::stop()
 {
 	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
 }
 
-void FilePlayerNode::process( Buffer *buffer )
+void NodeFilePlayer::process( Buffer *buffer )
 {
 	size_t numFrames = buffer->getNumFrames();
 
@@ -241,12 +241,12 @@ void FilePlayerNode::process( Buffer *buffer )
 	}
 }
 
-bool FilePlayerNode::moreFramesNeeded()
+bool NodeFilePlayer::moreFramesNeeded()
 {
 	return ( mNumFramesBuffered < mBufferFramesThreshold && mReadPos < mNumFrames ) ? true : false;
 }
 
-void FilePlayerNode::readFromBackgroundThread()
+void NodeFilePlayer::readFromBackgroundThread()
 {
 	size_t readMilliseconds = ( 1000 * mSourceFile->getNumFramesPerRead() ) / mSampleRate;
 	size_t lastReadPos = mReadPos;
@@ -274,7 +274,7 @@ void FilePlayerNode::readFromBackgroundThread()
 //   pulled out appropriately.
 // - Ideally, there would only be one buffer copied to on the background thread and then one copy/consume in process()	
 
-void FilePlayerNode::readFile()
+void NodeFilePlayer::readFile()
 {
 	size_t numRead = mSourceFile->read( &mReadBuffer );
 	mReadPos += numRead;

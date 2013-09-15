@@ -25,13 +25,13 @@
 
 #include "audio2/Context.h"
 #include "audio2/Buffer.h"
-#include "audio2/EffectNode.h"
+#include "audio2/NodeEffect.h"
 #include "audio2/msw/xaudio.h"
 #include "audio2/msw/util.h"
 
 namespace cinder { namespace audio2 { namespace msw {
 
-class SourceVoiceXAudio;
+class NodeXAudioSourceVoice;
 class NodeXAudio;
 
 class NodeXAudio {
@@ -51,13 +51,49 @@ class NodeXAudio {
 	bool										mFilterEnabled, mFilterConnected;
 };
 
-class DeviceOutputXAudio;
+struct VoiceCallbackImpl;
+
+class NodeXAudioSourceVoice : public Node, public NodeXAudio {
+public:
+	virtual	~NodeXAudioSourceVoice();
+
+	std::string virtual getTag()				{ return "SourceVoiceXAudio"; }
+
+	void initialize() override;
+	void uninitialize() override;
+
+	void start() override;
+	void stop() override;
+
+	//! Returns the native \a IXAudio2SourceVoice maintained by the \a Node.
+	IXAudio2SourceVoice* getNative()	{ return mSourceVoice; }
+
+	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
+
+private:
+	NodeXAudioSourceVoice();
+
+	void initSourceVoice();
+	void uninitSourceVoice();
+
+	void submitNextBuffer();
+
+	::IXAudio2SourceVoice						*mSourceVoice;
+	::XAUDIO2_BUFFER							mXAudio2Buffer;
+	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
+	BufferInterleaved							mBufferInterleaved;
+	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
+
+	friend class ContextXAudio;
+	friend class NodeEffectXAudioXapo;
+};
+
 struct EngineCallbackImpl;
 
-class LineOutXAudio : public LineOutNode, public NodeXAudio {
+class NodeLineOutXAudio : public NodeLineOut, public NodeXAudio {
   public:
-	LineOutXAudio( DeviceRef device, const Format &format = Format() );
-	virtual ~LineOutXAudio();
+	NodeLineOutXAudio( DeviceRef device, const Format &format = Format() );
+	virtual ~NodeLineOutXAudio();
 
 	std::string virtual getTag()				{ return "LineOutXAudio"; }
 
@@ -83,50 +119,13 @@ class LineOutXAudio : public LineOutNode, public NodeXAudio {
 	friend EngineCallbackImpl;
 };
 
-struct VoiceCallbackImpl;
-
-class SourceVoiceXAudio : public Node, public NodeXAudio {
-  public:
-	virtual	~SourceVoiceXAudio();
-
-	std::string virtual getTag()				{ return "SourceVoiceXAudio"; }
-
-	void initialize() override;
-	void uninitialize() override;
-
-	void start() override;
-	void stop() override;
-
-	//! Returns the native \a IXAudio2SourceVoice maintained by the \a Node.
-	IXAudio2SourceVoice* getNative()	{ return mSourceVoice; }
-
-	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
-
-  private:
-	SourceVoiceXAudio();
-
-	void initSourceVoice();
-	void uninitSourceVoice();
-
-	void submitNextBuffer();
-
-	::IXAudio2SourceVoice						*mSourceVoice;
-	::XAUDIO2_BUFFER							mXAudio2Buffer;
-	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-	BufferInterleaved							mBufferInterleaved;
-	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
-
-	friend class ContextXAudio;
-	friend class EffectXAudioXapo;
-};
-
-class EffectXAudioXapo : public EffectNode, public NodeXAudio {
+class NodeEffectXAudioXapo : public NodeEffect, public NodeXAudio {
 public:
 	//! These enum names match the class uuid names in xapofx.h. TODO: consider just passing in the REFCLSID
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
-	EffectXAudioXapo( XapoType type, const Format &format = Format() );
-	virtual ~EffectXAudioXapo();
+	NodeEffectXAudioXapo( XapoType type, const Format &format = Format() );
+	virtual ~NodeEffectXAudioXapo();
 
 	std::string virtual getTag()				{ return "EffectXAudioXapo"; }
 
@@ -156,11 +155,11 @@ private:
 };
 
 //! \note Due to XAudio2 limitations, only one EffectXAudioFilter can be attached in series. Connecting another will simply overwrite the first and you will only hear the second filter.
-class EffectXAudioFilter : public EffectNode, public NodeXAudio {
+class NodeEffectXAudioFilter : public NodeEffect, public NodeXAudio {
 public:
 
-	EffectXAudioFilter( const Format &format = Format() );
-	virtual ~EffectXAudioFilter();
+	NodeEffectXAudioFilter( const Format &format = Format() );
+	virtual ~NodeEffectXAudioFilter();
 
 	std::string virtual getTag()				{ return "EffectXAudioFilter"; }
 
@@ -176,7 +175,7 @@ class ContextXAudio : public Context {
 	ContextXAudio();
 	virtual ~ContextXAudio();
 
-	LineOutNodeRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	NodeLineOutRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	//! If deployment target is 0x601 (win vista) or greater, uses \a LineInWasapi, else returns an empty \a LineInRef
 	LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
 
@@ -189,7 +188,7 @@ class ContextXAudio : public Context {
 	//NodeTargetRef getTarget() override;
 
 	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a NodeLineOut.
-	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<LineOutXAudio>( mTarget )->getXAudio(); }
+	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<NodeLineOutXAudio>( mTarget )->getXAudio(); }
 
   private:
 };

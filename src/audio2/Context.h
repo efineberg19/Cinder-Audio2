@@ -38,7 +38,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns a platform-specific \a Context. If none is available, returns an empty \a ContextRef.
 	static ContextRef			create();
 
-	virtual LineOutNodeRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const NodeTarget::Format &format = NodeTarget::Format() ) = 0;
+	virtual NodeLineOutRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const NodeTarget::Format &format = NodeTarget::Format() ) = 0;
 	virtual LineInNodeRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	template<typename NodeT>
@@ -49,7 +49,7 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	virtual void setTarget( NodeTargetRef target );
 
-	//! If the target has not already been set, it is the default LineOutNode
+	//! If the target has not already been set, it is the default NodeLineOut
 	virtual NodeTargetRef getTarget(); // TODO: return & if possible
 	virtual void start();
 	virtual void stop();

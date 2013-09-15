@@ -33,9 +33,9 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class PlayerNode>		PlayerNodeRef;
-typedef std::shared_ptr<class BufferPlayerNode> BufferPlayerNodeRef;
-typedef std::shared_ptr<class FilePlayerNode>	FilePlayerNodeRef;
+typedef std::shared_ptr<class NodeSamplePlayer>		PlayerNodeRef;
+typedef std::shared_ptr<class NodeBufferPlayer> BufferPlayerNodeRef;
+typedef std::shared_ptr<class NodeFilePlayer>	FilePlayerNodeRef;
 
 class RingBuffer;
 
@@ -52,11 +52,11 @@ class NodeSource : public Node {
 	void setInput( const NodeRef &input, size_t bus ) override {}
 };
 
-class LineInNode : public NodeSource {
+class NodeLineIn : public NodeSource {
 public:
-	virtual ~LineInNode() {}
+	virtual ~NodeLineIn() {}
 
-	std::string virtual getTag() override			{ return "LineInNode"; }
+	std::string virtual getTag() override			{ return "NodeLineIn"; }
 
 	//! Returns the associated \a Device.
 	virtual const DeviceRef& getDevice() const		{ return mDevice; }
@@ -66,18 +66,18 @@ public:
 	virtual uint64_t getLastOverrun() = 0;
 
 protected:
-	LineInNode( const DeviceRef &device, const Format &format );
+	NodeLineIn( const DeviceRef &device, const Format &format );
 
 	DeviceRef mDevice;
 };
 
-//! \brief Base Node class for recorded audio playback
-//! \note PlayerNode itself doesn't process any audio.
-//! \see BufferPlayerNode
-//! \see FilePlayerNode
-class PlayerNode : public NodeSource {
+//! \brief Base Node class for sampled audio playback
+//! \note NodeSamplePlayer itself doesn't process any audio, but contains the common interface for Node's that do.
+//! \see NodeBufferPlayer
+//! \see NodeFilePlayer
+class NodeSamplePlayer : public NodeSource {
 public:
-	std::string virtual getTag() override			{ return "PlayerNode"; }
+	std::string virtual getTag() override			{ return "NodeSamplePlayer"; }
 
 	virtual void setReadPosition( size_t pos )	{ mReadPos = pos; }
 	virtual size_t getReadPosition() const	{ return mReadPos; }
@@ -88,21 +88,21 @@ public:
 	virtual size_t getNumFrames() const	{ return mNumFrames; }
 
 protected:
-	PlayerNode( const Format &format = Format() ) : NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
-	virtual ~PlayerNode() {}
+	NodeSamplePlayer( const Format &format = Format() ) : NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
+	virtual ~NodeSamplePlayer() {}
 
 	size_t mNumFrames;
 	std::atomic<size_t> mReadPos;
 	std::atomic<bool>	mLoop;
 };
 
-class BufferPlayerNode : public PlayerNode {
+class NodeBufferPlayer : public NodeSamplePlayer {
 public:
-	BufferPlayerNode( const Format &format = Format() );
-	BufferPlayerNode( const BufferRef &buffer, const Format &format = Format() );
-	virtual ~BufferPlayerNode() {}
+	NodeBufferPlayer( const Format &format = Format() );
+	NodeBufferPlayer( const BufferRef &buffer, const Format &format = Format() );
+	virtual ~NodeBufferPlayer() {}
 
-	std::string virtual getTag() override			{ return "BufferPlayerNode"; }
+	std::string virtual getTag() override			{ return "NodeBufferPlayer"; }
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -116,13 +116,13 @@ protected:
 };
 
 // TODO: use a thread pool to keep the overrall number of read threads to a minimum.
-class FilePlayerNode : public PlayerNode {
+class NodeFilePlayer : public NodeSamplePlayer {
 public:
-	FilePlayerNode( const Format &format = Format() );
-	FilePlayerNode( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
-	virtual ~FilePlayerNode();
+	NodeFilePlayer( const Format &format = Format() );
+	NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
+	virtual ~NodeFilePlayer();
 
-	std::string virtual getTag() override			{ return "FilePlayerNode"; }
+	std::string virtual getTag() override			{ return "NodeFilePlayer"; }
 
 	void initialize() override;
 
@@ -154,37 +154,35 @@ public:
 	std::atomic<size_t> mFramesPerBlock;
 };
 
-// TODO: UGenNode's are starting to seem unnesecarry
+// TODO: NodeGen's are starting to seem unnesecarry
 // - just make a NodeSource for all of the basic waveforms
-template <typename UGenT>
-struct UGenNode : public NodeSource {
-	UGenNode( const Format &format = Format() ) : NodeSource( format ) {
+template <typename GenT>
+struct NodeGen : public NodeSource {
+	NodeGen( const Format &format = Format() ) : NodeSource( format )
+	{
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 1 );
 	}
 
-	std::string virtual getTag() override			{ return "UGenNode"; }
+	std::string virtual getTag() override			{ return "NodeGen"; }
 
-	virtual void initialize() override {
+	virtual void initialize() override
+	{
 		size_t newSampleRate = getContext()->getSampleRate();
 		mGen.setSampleRate( getContext()->getSampleRate() );
 	}
 
-	virtual void process( Buffer *buffer ) override {
+	virtual void process( Buffer *buffer ) override
+	{
 		size_t count = buffer->getNumFrames();
 		mGen.process( buffer->getChannel( 0 ), count );
-
-		// with implicit summing, it is also seeming unnecessary to accomodate channels > 1
-		// - this same copy will happen there
-//		for( size_t ch = 1; ch < buffer->getNumChannels(); ch++ )
-//			memcpy( buffer->getChannel( ch ), buffer->getChannel( 0 ), count * sizeof( float ) );
 	}
 
-	UGenT& getUGen()				{ return mGen; }
-	const UGenT& getUGen() const	{ return mGen; }
+	GenT& getGen()				{ return mGen; }
+	const GenT& getGen() const	{ return mGen; }
 
 protected:
-	UGenT mGen;
+	GenT mGen;
 };
 
 } } // namespace cinder::audio2

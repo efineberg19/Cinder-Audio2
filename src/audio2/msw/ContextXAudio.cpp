@@ -22,7 +22,7 @@
 */
 
 #include "audio2/msw/ContextXAudio.h"
-#include "audio2/msw/LineInWasapi.h"
+#include "audio2/msw/NodeLineInWasapi.h"
 #include "audio2/msw/DeviceManagerWasapi.h"
 #include "audio2/msw/xaudio.h"
 
@@ -70,7 +70,7 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 };
 
 struct EngineCallbackImpl : public IXAudio2EngineCallback {
-	EngineCallbackImpl( LineOutXAudio *lineOut ) : mLineOut( lineOut ), mFramesPerBlock( lineOut->getFramesPerBlock() ) {}
+	EngineCallbackImpl( NodeLineOutXAudio *lineOut ) : mLineOut( lineOut ), mFramesPerBlock( lineOut->getFramesPerBlock() ) {}
 
 	void _stdcall OnProcessingPassStart() {}
 	void _stdcall OnProcessingPassEnd ()
@@ -82,7 +82,7 @@ struct EngineCallbackImpl : public IXAudio2EngineCallback {
 		LOG_E << "error: " << Error << endl;
 	}
 
-	LineOutXAudio *mLineOut;
+	NodeLineOutXAudio *mLineOut;
 	uint64_t mFramesPerBlock;
 };
 
@@ -98,8 +98,8 @@ NodeXAudio::~NodeXAudio()
 // MARK: - LineOutXAudio
 // ----------------------------------------------------------------------------------------------------
 
-LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
-: LineOutNode( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
+NodeLineOutXAudio::NodeLineOutXAudio( DeviceRef device, const Format &format )
+: NodeLineOut( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
 {
 #if defined( CINDER_XAUDIO_2_7 )
 	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
@@ -129,12 +129,12 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 	mXAudio->StopEngine();
 }
 
-LineOutXAudio::~LineOutXAudio()
+NodeLineOutXAudio::~NodeLineOutXAudio()
 {
 	mXAudio->Release();
 }
 
-void LineOutXAudio::initialize()
+void NodeLineOutXAudio::initialize()
 {
 	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
 	const wstring &deviceId = deviceManager->getDeviceId( mDevice->getKey() );
@@ -179,13 +179,13 @@ void LineOutXAudio::initialize()
 	mInitialized = true;
 }
 
-void LineOutXAudio::uninitialize()
+void NodeLineOutXAudio::uninitialize()
 {
 	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
 	mMasteringVoice->DestroyVoice();
 }
 
-void LineOutXAudio::start()
+void NodeLineOutXAudio::start()
 {
 	if( mEnabled || ! mInitialized )
 		return;
@@ -197,7 +197,7 @@ void LineOutXAudio::start()
 	LOG_V "started" << endl;
 }
 
-void LineOutXAudio::stop()
+void NodeLineOutXAudio::stop()
 {
 	if( ! mEnabled || ! mInitialized )
 		return;
@@ -207,7 +207,7 @@ void LineOutXAudio::stop()
 	LOG_V "stopped" << endl;
 }
 
-bool LineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
+bool NodeLineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
 {
 	return true;
 }
@@ -216,18 +216,18 @@ bool LineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
 // MARK: - SourceVoiceXAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceVoiceXAudio::SourceVoiceXAudio()
+NodeXAudioSourceVoice::NodeXAudioSourceVoice()
 : Node( Format() )
 {
 	setAutoEnabled( true );
-	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &SourceVoiceXAudio::submitNextBuffer, this ) ) );
+	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &NodeXAudioSourceVoice::submitNextBuffer, this ) ) );
 }
 
-SourceVoiceXAudio::~SourceVoiceXAudio()
+NodeXAudioSourceVoice::~NodeXAudioSourceVoice()
 {
 }
 
-void SourceVoiceXAudio::initialize()
+void NodeXAudioSourceVoice::initialize()
 {
 	// TODO: handle higher channel counts
 	// - use case: LineIn connected to 4 microphones
@@ -251,13 +251,13 @@ void SourceVoiceXAudio::initialize()
 	initSourceVoice();
 }
 
-void SourceVoiceXAudio::uninitialize()
+void NodeXAudioSourceVoice::uninitialize()
 {
 	uninitSourceVoice();
 	// FIXME: looks like SourceVoice senders need to be detached during its uninitialize, which was attached during CreateSourceVoice
 }
 
-void SourceVoiceXAudio::initSourceVoice()
+void NodeXAudioSourceVoice::initSourceVoice()
 {
 	ContextRef context = getContext();
 
@@ -275,7 +275,7 @@ void SourceVoiceXAudio::initSourceVoice()
 	mVoiceCallback->setInputVoice( mSourceVoice );
 }
 
-void SourceVoiceXAudio::uninitSourceVoice()
+void NodeXAudioSourceVoice::uninitSourceVoice()
 {
 	if( mSourceVoice ) {
 		mSourceVoice->DestroyVoice();
@@ -285,7 +285,7 @@ void SourceVoiceXAudio::uninitSourceVoice()
 
 // TODO: source voice must be made during initialize() pass, so there is a chance start/stop can be called
 // before. Decide on throwing, silently failing, or a something better.
-void SourceVoiceXAudio::start()
+void NodeXAudioSourceVoice::start()
 {
 	if( mEnabled )
 		return;
@@ -298,7 +298,7 @@ void SourceVoiceXAudio::start()
 	LOG_V << "started." << endl;
 }
 
-void SourceVoiceXAudio::stop()
+void NodeXAudioSourceVoice::stop()
 {
 	if( ! mEnabled )
 		return;
@@ -309,7 +309,7 @@ void SourceVoiceXAudio::stop()
 	LOG_V << "stopped." << endl;
 }
 
-void SourceVoiceXAudio::submitNextBuffer()
+void NodeXAudioSourceVoice::submitNextBuffer()
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
@@ -328,8 +328,8 @@ void SourceVoiceXAudio::submitNextBuffer()
 // ----------------------------------------------------------------------------------------------------
 
 // TODO: cover the 2 built-ins too, included via xaudio2fx.h
-EffectXAudioXapo::EffectXAudioXapo( XapoType type, const Format &format )
-: EffectNode( format ), mType( type )
+NodeEffectXAudioXapo::NodeEffectXAudioXapo( XapoType type, const Format &format )
+: NodeEffect( format ), mType( type )
 {
 	switch( type ) {
 		case XapoType::FXEcho:				makeXapo( __uuidof( ::FXEcho ) ); break;
@@ -342,16 +342,16 @@ EffectXAudioXapo::EffectXAudioXapo( XapoType type, const Format &format )
 	mEffectDesc.pEffect = mXapo.get();
 }
 
-EffectXAudioXapo::~EffectXAudioXapo()
+NodeEffectXAudioXapo::~NodeEffectXAudioXapo()
 {
 }
 
-void EffectXAudioXapo::initialize()
+void NodeEffectXAudioXapo::initialize()
 {
 	mEffectDesc.OutputChannels = getNumChannels();
 }
 
-void EffectXAudioXapo::makeXapo( REFCLSID clsid )
+void NodeEffectXAudioXapo::makeXapo( REFCLSID clsid )
 {
 	::IUnknown *xapo;
 	HRESULT hr = ::CreateFX( clsid, &xapo );
@@ -359,11 +359,11 @@ void EffectXAudioXapo::makeXapo( REFCLSID clsid )
 	mXapo = msw::makeComUnique( xapo );
 }
 
-void EffectXAudioXapo::notifyConnected()
+void NodeEffectXAudioXapo::notifyConnected()
 {
 	CI_ASSERT( mInitialized );
 
-	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	auto &effects = sourceVoice->getEffectsDescriptors();
 	mChainIndex = effects.size();
 	if( mChainIndex > 0 ) {
@@ -385,22 +385,22 @@ void EffectXAudioXapo::notifyConnected()
 	CI_ASSERT( hr == S_OK );
 }
 
-void EffectXAudioXapo::getParams( void *params, size_t sizeParams )
+void NodeEffectXAudioXapo::getParams( void *params, size_t sizeParams )
 {
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	HRESULT hr = sourceVoice->getNative()->GetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
 
-void EffectXAudioXapo::setParams( const void *params, size_t sizeParams )
+void NodeEffectXAudioXapo::setParams( const void *params, size_t sizeParams )
 {
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	HRESULT hr =  sourceVoice->getNative()->SetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
@@ -409,39 +409,39 @@ void EffectXAudioXapo::setParams( const void *params, size_t sizeParams )
 // MARK: - EffectXAudioFilter
 // ----------------------------------------------------------------------------------------------------
 
-EffectXAudioFilter::EffectXAudioFilter( const Format &format )
-: EffectNode( format )
+NodeEffectXAudioFilter::NodeEffectXAudioFilter( const Format &format )
+: NodeEffect( format )
 {
 }
 
-EffectXAudioFilter::~EffectXAudioFilter()
+NodeEffectXAudioFilter::~NodeEffectXAudioFilter()
 {
 
 }
 
-void EffectXAudioFilter::initialize()
+void NodeEffectXAudioFilter::initialize()
 {
 }
 
-void EffectXAudioFilter::uninitialize()
+void NodeEffectXAudioFilter::uninitialize()
 {
 }
 
-void EffectXAudioFilter::getParams( ::XAUDIO2_FILTER_PARAMETERS *params )
+void NodeEffectXAudioFilter::getParams( ::XAUDIO2_FILTER_PARAMETERS *params )
 {
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	sourceVoice->getNative()->GetFilterParameters( params );
 }
 
-void EffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
+void NodeEffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &params )
 {
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<SourceVoiceXAudio>( shared_from_this() );
+	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	HRESULT hr = sourceVoice->getNative()->SetFilterParameters( &params );
 	CI_ASSERT( hr == S_OK );
 }
@@ -458,14 +458,14 @@ ContextXAudio::~ContextXAudio()
 {
 }
 
-LineOutNodeRef ContextXAudio::createLineOut( DeviceRef device, const Node::Format &format )
+NodeLineOutRef ContextXAudio::createLineOut( DeviceRef device, const Node::Format &format )
 {
-	return makeNode( new LineOutXAudio( device, format ) );
+	return makeNode( new NodeLineOutXAudio( device, format ) );
 }
 
 LineInNodeRef ContextXAudio::createLineIn( DeviceRef device, const Node::Format &format )
 {
-	return makeNode( new LineInWasapi( device ) );
+	return makeNode( new NodeLineInWasapi( device ) );
 }
 
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
@@ -478,10 +478,10 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 
 		// if input is generic, it needs a SourceXAudio so add one implicitly
 		if( ! isNodeNativeXAudio( input ) ) {
-			shared_ptr<SourceVoiceXAudio> sourceVoice = findUpstreamNode<SourceVoiceXAudio>( input );
+			shared_ptr<NodeXAudioSourceVoice> sourceVoice = findUpstreamNode<NodeXAudioSourceVoice>( input );
 			if( ! sourceVoice ) {
 				// see if there is already a downstream source voice
-				sourceVoice = findDownStreamNode<SourceVoiceXAudio>( input );
+				sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( input );
 				if( sourceVoice ) {
 					LOG_V << "detected downstream source node, shuffling." << endl;
 					// FIXME: account account for multiple inputs in both input and sourceVoice
@@ -496,7 +496,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 				else {
 					LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
 
-					sourceVoice = makeNode( new SourceVoiceXAudio() );
+					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
 					sourceVoice->setNumChannels( input->getNumChannels() ); // TODO: this probably isn't necessary, should be taken care of in setInput if format is setup correct
 					sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
 					sourceVoice->initialize();
@@ -508,7 +508,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 			continue;
 		}
 		
-		shared_ptr<EffectXAudioXapo> xapo = dynamic_pointer_cast<EffectXAudioXapo>( input );
+		shared_ptr<NodeEffectXAudioXapo> xapo = dynamic_pointer_cast<NodeEffectXAudioXapo>( input );
 		if( xapo )
 			xapo->notifyConnected();
 	}

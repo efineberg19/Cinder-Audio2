@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "audio2/msw/LineInWasapi.h"
+#include "audio2/msw/NodeLineInWasapi.h"
 #include "audio2/msw/DeviceManagerWasapi.h"
 #include "audio2/msw/util.h"
 #include "audio2/audio.h"
@@ -37,7 +37,7 @@ using namespace std;
 
 namespace cinder { namespace audio2 { namespace msw {
 
-struct LineInWasapi::Impl {
+struct NodeLineInWasapi::Impl {
 	Impl() : mNumSamplesBuffered( 0 ) {}
 	~Impl() {}
 
@@ -62,16 +62,16 @@ inline ::REFERENCE_TIME samplesToReferenceTime( size_t samples, size_t sampleRat
 
 // TODO: default block sizes should be set in one place and propagate down the graph
 //  - update: it's now at getContext()->getFramesPerBlock() - can get it there
-LineInWasapi::LineInWasapi( const DeviceRef &device, const Format &format )
-: LineInNode( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
+NodeLineInWasapi::NodeLineInWasapi( const DeviceRef &device, const Format &format )
+: NodeLineIn( device, format ), mImpl( new NodeLineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
 }
 
-LineInWasapi::~LineInWasapi()
+NodeLineInWasapi::~NodeLineInWasapi()
 {
 }
 
-void LineInWasapi::initialize()
+void NodeLineInWasapi::initialize()
 {
 	CI_ASSERT( ! mImpl->mAudioClient );
 	mImpl->initAudioClient( mDevice->getKey() );
@@ -114,7 +114,7 @@ void LineInWasapi::initialize()
 }
 
 // TODO: consider uninitializing device
-void LineInWasapi::uninitialize()
+void NodeLineInWasapi::uninitialize()
 {
 	if( ! mInitialized )
 		return;
@@ -123,7 +123,7 @@ void LineInWasapi::uninitialize()
 	mInitialized = false;
 }
 
-void LineInWasapi::start()
+void NodeLineInWasapi::start()
 {
 	if( ! mInitialized ) {
 		LOG_E << "not initialized" << endl;
@@ -137,7 +137,7 @@ void LineInWasapi::start()
 	LOG_V << "started " << mDevice->getName() << endl;
 }
 
-void LineInWasapi::stop()
+void NodeLineInWasapi::stop()
 {
 	if( ! mInitialized ) {
 		LOG_E << "not initialized" << endl;
@@ -151,18 +151,18 @@ void LineInWasapi::stop()
 	LOG_V << "stopped " << mDevice->getName() << endl;
 }
 
-uint64_t LineInWasapi::getLastUnderrun()
+uint64_t NodeLineInWasapi::getLastUnderrun()
 {
 	return 0; // TODO
 }
 
-uint64_t LineInWasapi::getLastOverrun()
+uint64_t NodeLineInWasapi::getLastOverrun()
 {
 	return 0; // TODO
 }
 
 // TODO: set buffer over/under run atomic flags when they occur
-void LineInWasapi::process( Buffer *buffer )
+void NodeLineInWasapi::process( Buffer *buffer )
 {
 	mImpl->captureAudio();
 
@@ -188,7 +188,7 @@ void LineInWasapi::process( Buffer *buffer )
 // MARK: - InputWasapi::Impl
 // ----------------------------------------------------------------------------------------------------
 
-void LineInWasapi::Impl::initAudioClient( const string &deviceKey )
+void NodeLineInWasapi::Impl::initAudioClient( const string &deviceKey )
 {
 	CI_ASSERT( ! mAudioClient );
 
@@ -219,7 +219,7 @@ void LineInWasapi::Impl::initAudioClient( const string &deviceKey )
 	LOG_V << "activated audio client" << endl;
 }
 
-void LineInWasapi::Impl::initCapture( size_t numFrames ) {
+void NodeLineInWasapi::Impl::initCapture( size_t numFrames ) {
 	CI_ASSERT( mAudioClient );
 
 	::IAudioCaptureClient *captureClient;
@@ -230,7 +230,7 @@ void LineInWasapi::Impl::initCapture( size_t numFrames ) {
 	mRingBuffer.reset( new RingBuffer( numFrames * mNumChannels ) );
 }
 
-void LineInWasapi::Impl::captureAudio()
+void NodeLineInWasapi::Impl::captureAudio()
 {
 	UINT32 sizeNextPacket;
 	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket ); // TODO: treat this accordingly for stereo (2x)

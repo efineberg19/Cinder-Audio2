@@ -3,7 +3,7 @@
 
 #include "audio2/audio.h"
 #include "audio2/NodeSource.h"
-#include "audio2/EffectNode.h"
+#include "audio2/NodeEffect.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
@@ -42,16 +42,16 @@ void EffectNodeTestApp::setup()
 {
 	mContext = Context::create();
 
-	mGain = mContext->makeNode( new GainNode() );
+	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
 
-//	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
-//	noise->getUGen().setAmp( 0.25f );
+//	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
+//	noise->getGen().setAmp( 0.25f );
 //	mGen = noise;
 
-	auto sine = mContext->makeNode( new UGenNode<SineGen>() );
-	sine->getUGen().setAmp( 1.0f );
-	sine->getUGen().setFreq( 440.0f );
+	auto sine = mContext->makeNode( new NodeGen<SineGen>() );
+	sine->getGen().setAmp( 1.0f );
+	sine->getGen().setFreq( 440.0f );
 	mGen = sine;
 	mGen->setAutoEnabled();
 

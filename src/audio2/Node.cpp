@@ -332,16 +332,16 @@ bool Node::checkInput( const NodeRef &input )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - LineOutNode
+// MARK: - NodeLineOut
 // ----------------------------------------------------------------------------------------------------
 
-LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
+NodeLineOut::NodeLineOut( const DeviceRef &device, const Format &format )
 : NodeTarget( format ), mDevice( device )
 {
 	CI_ASSERT( mDevice );
 
-	mDevice->getSignalParamsWillChange().connect( bind( &LineOutNode::deviceParamsWillChange, this ) );
-	mDevice->getSignalParamsDidChange().connect( bind( &LineOutNode::deviceParamsDidChange, this ) );
+	mDevice->getSignalParamsWillChange().connect( bind( &NodeLineOut::deviceParamsWillChange, this ) );
+	mDevice->getSignalParamsDidChange().connect( bind( &NodeLineOut::deviceParamsDidChange, this ) );
 
 	setAutoEnabled();
 	
@@ -354,7 +354,7 @@ LineOutNode::LineOutNode( const DeviceRef &device, const Format &format )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
 }
 
-void LineOutNode::deviceParamsWillChange()
+void NodeLineOut::deviceParamsWillChange()
 {
 	LOG_V << "bang" << endl;
 	mWasEnabledBeforeParamsChange = mEnabled;
@@ -363,7 +363,7 @@ void LineOutNode::deviceParamsWillChange()
 	getContext()->uninitializeAllNodes();
 }
 
-void LineOutNode::deviceParamsDidChange()
+void NodeLineOut::deviceParamsDidChange()
 {
 	LOG_V << "bang" << endl;
 	getContext()->initializeAllNodes();

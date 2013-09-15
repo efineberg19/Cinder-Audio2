@@ -4,8 +4,8 @@
 
 #include "audio2/Context.h"
 #include "audio2/NodeSource.h"
-#include "audio2/EffectNode.h"
-#include "audio2/TapNode.h"
+#include "audio2/NodeEffect.h"
+#include "audio2/NodeTap.h"
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
@@ -38,7 +38,7 @@ class InputTestApp : public AppNative {
 
 	ContextRef mContext;
 	LineInNodeRef mLineIn;
-	LineOutNodeRef mLineOut;
+	NodeLineOutRef mLineOut;
 	TapNodeRef mTap;
 
 	VSelector mTestSelector;
@@ -114,13 +114,13 @@ void InputTestApp::setupInProcessOut()
 
 void InputTestApp::setupInTapOut()
 {
-	mTap = mContext->makeNode( new TapNode() );
+	mTap = mContext->makeNode( new NodeTap() );
 	mLineIn->connect( mTap )->connect( mContext->getTarget() );
 }
 
 void InputTestApp::setupInTapProcessOut()
 {
-	mTap = mContext->makeNode( new TapNode() );
+	mTap = mContext->makeNode( new NodeTap() );
 	auto ringMod = mContext->makeNode( new RingMod() );
 	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getTarget() );
 }

@@ -36,10 +36,10 @@ typedef std::shared_ptr<class Context> ContextRef;
 typedef std::shared_ptr<class Node> NodeRef;
 typedef std::shared_ptr<class NodeSource> NodeSourceRef;
 typedef std::shared_ptr<class NodeTarget> NodeTargetRef;
-typedef std::shared_ptr<class LineOutNode> LineOutNodeRef;
-typedef std::shared_ptr<class LineInNode> LineInNodeRef;
-typedef std::shared_ptr<class MixerNode> MixerNodeRef;
-typedef std::shared_ptr<class FilePlayerNode> FilePlayerNodeRef;
+typedef std::shared_ptr<class NodeLineOut> NodeLineOutRef;
+typedef std::shared_ptr<class NodeLineIn> LineInNodeRef;
+typedef std::shared_ptr<class NodeMixer> MixerNodeRef;
+typedef std::shared_ptr<class NodeFilePlayer> FilePlayerNodeRef;
 
 class Node : public std::enable_shared_from_this<Node> {
   public:
@@ -182,9 +182,9 @@ class NodeTarget : public Node {
 	const NodeRef& connect( const NodeRef &dest, size_t bus ) override	{ return dest; }
 };
 
-class LineOutNode : public NodeTarget {
+class NodeLineOut : public NodeTarget {
   public:
-	virtual ~LineOutNode() {}
+	virtual ~NodeLineOut() {}
 
 	const DeviceRef& getDevice() const		{ return mDevice; }
 
@@ -195,7 +195,7 @@ class LineOutNode : public NodeTarget {
 	virtual void deviceParamsDidChange();
 
   protected:
-	LineOutNode( const DeviceRef &device, const Format &format = Format() );
+	NodeLineOut( const DeviceRef &device, const Format &format = Format() );
 
 	DeviceRef mDevice;
 
@@ -204,10 +204,10 @@ class LineOutNode : public NodeTarget {
 };
 
 //! Note: currently abstract and unused
-class MixerNode : public Node {
+class NodeMixer : public Node {
   public:
-	MixerNode( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
-	virtual ~MixerNode() {}
+	NodeMixer( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
+	virtual ~NodeMixer() {}
 
 	std::string virtual getTag()				{ return "MixerNode"; }
 

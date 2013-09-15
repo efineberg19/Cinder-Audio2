@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "audio2/TapNode.h"
+#include "audio2/NodeTap.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/Fft.h"
 
@@ -35,20 +35,20 @@ using namespace ci;
 namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - TapNode
+// MARK: - NodeTap
 // ----------------------------------------------------------------------------------------------------
 
-TapNode::TapNode( const Format &format )
+NodeTap::NodeTap( const Format &format )
 : Node( format ), mWindowSize( format.getWindowSize() )
 {
 	setAutoEnabled();
 }
 
-TapNode::~TapNode()
+NodeTap::~NodeTap()
 {
 }
 
-void TapNode::initialize()
+void NodeTap::initialize()
 {
 	mCopiedBuffer = Buffer( mWindowSize, getNumChannels() );
 	for( size_t ch = 0; ch < getNumChannels(); ch++ )
@@ -57,13 +57,13 @@ void TapNode::initialize()
 	mInitialized = true;
 }
 
-void TapNode::process( Buffer *buffer )
+void NodeTap::process( Buffer *buffer )
 {
 	for( size_t ch = 0; ch < getNumChannels(); ch++ )
 		mRingBuffers[ch]->write( buffer->getChannel( ch ), buffer->getNumFrames() );
 }
 
-const Buffer& TapNode::getBuffer()
+const Buffer& NodeTap::getBuffer()
 {
 	for( size_t ch = 0; ch < getNumChannels(); ch++ )
 		mRingBuffers[ch]->read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() );
@@ -71,7 +71,7 @@ const Buffer& TapNode::getBuffer()
 	return mCopiedBuffer;
 }
 
-const float *TapNode::getChannel( size_t channel )
+const float *NodeTap::getChannel( size_t channel )
 {
 	CI_ASSERT( channel < mCopiedBuffer.getNumChannels() );
 
@@ -81,32 +81,32 @@ const float *TapNode::getChannel( size_t channel )
 	return buf;
 }
 
-float TapNode::getVolume()
+float NodeTap::getVolume()
 {
 	const Buffer& buffer = getBuffer();
 	return rms( buffer.getData(), buffer.getSize() );
 }
 
-float TapNode::getVolume( size_t channel )
+float NodeTap::getVolume( size_t channel )
 {
 	return rms( getChannel( channel ), mCopiedBuffer.getNumFrames() );
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - SpectrumTapNode
+// MARK: - NodeTapSpectral
 // ----------------------------------------------------------------------------------------------------
 
-SpectrumTapNode::SpectrumTapNode( const Format &format )
+NodeTapSpectral::NodeTapSpectral( const Format &format )
 : Node( format ), mFftSize( format.getFftSize() ), mWindowSize( format.getWindowSize() ),
 	mWindowType( format.getWindowType() ), mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
 {
 }
 
-SpectrumTapNode::~SpectrumTapNode()
+NodeTapSpectral::~NodeTapSpectral()
 {
 }
 
-void SpectrumTapNode::initialize()
+void NodeTapSpectral::initialize()
 {
 	if( ! mFftSize )
 		mFftSize = getContext()->getFramesPerBlock();
@@ -131,7 +131,7 @@ void SpectrumTapNode::initialize()
 
 // TODO: should really be using a Converter to go stereo (or more) -> mono
 // - a good implementation will use equal-power scaling as if the mono signal was two stereo channels panned to center
-void SpectrumTapNode::process( audio2::Buffer *buffer )
+void NodeTapSpectral::process( audio2::Buffer *buffer )
 {
 	lock_guard<mutex> lock( mMutex );
 
@@ -156,7 +156,7 @@ void SpectrumTapNode::process( audio2::Buffer *buffer )
 	mNumFramesCopied += numCopyFrames;
 }
 
-const std::vector<float>& SpectrumTapNode::getMagSpectrum()
+const std::vector<float>& NodeTapSpectral::getMagSpectrum()
 {
 	lock_guard<mutex> lock( mMutex );
 	if( mNumFramesCopied == mWindowSize ) {
@@ -185,7 +185,7 @@ const std::vector<float>& SpectrumTapNode::getMagSpectrum()
 	return mMagSpectrum;
 }
 
-void SpectrumTapNode::setSmoothingFactor( float factor )
+void NodeTapSpectral::setSmoothingFactor( float factor )
 {
 	mSmoothingFactor = ( factor < 0.0f ) ? 0.0f : ( ( factor > 1.0f ) ? 1.0f : factor );
 }

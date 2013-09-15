@@ -19,11 +19,11 @@
     <ClInclude Include="..\src\audio2\Debug.h" />
     <ClInclude Include="..\src\audio2\Device.h" />
     <ClInclude Include="..\src\audio2\Dsp.h" />
-    <ClInclude Include="..\src\audio2\EffectNode.h" />
+    <ClInclude Include="..\src\audio2\NodeEffect.h" />
     <ClInclude Include="..\src\audio2\Fft.h" />
     <ClInclude Include="..\src\audio2\File.h" />
     <ClInclude Include="..\src\audio2\msw\ContextXAudio.h" />
-    <ClInclude Include="..\src\audio2\msw\LineInWasapi.h" />
+    <ClInclude Include="..\src\audio2\msw\NodeLineInWasapi.h" />
     <ClInclude Include="..\src\audio2\msw\DeviceManagerWasapi.h" />
     <ClInclude Include="..\src\audio2\msw\FileMediaFoundation.h" />
     <ClInclude Include="..\src\audio2\msw\util.h" />
@@ -32,7 +32,7 @@
     <ClInclude Include="..\src\audio2\NodeSource.h" />
     <ClInclude Include="..\src\audio2\ooura\fftsg.h" />
     <ClInclude Include="..\src\audio2\RingBuffer.h" />
-    <ClInclude Include="..\src\audio2\TapNode.h" />
+    <ClInclude Include="..\src\audio2\NodeTap.h" />
     <ClInclude Include="..\src\Gui.h" />
     <ClInclude Include="..\src\Plot.h" />
   </ItemGroup>
@@ -44,14 +44,14 @@
     <ClCompile Include="..\src\audio2\Fft.cpp" />
     <ClCompile Include="..\src\audio2\File.cpp" />
     <ClCompile Include="..\src\audio2\msw\ContextXAudio.cpp" />
-    <ClCompile Include="..\src\audio2\msw\LineInWasapi.cpp" />
+    <ClCompile Include="..\src\audio2\msw\NodeLineInWasapi.cpp" />
     <ClCompile Include="..\src\audio2\msw\DeviceManagerWasapi.cpp" />
     <ClCompile Include="..\src\audio2\msw\FileMediaFoundation.cpp" />
     <ClCompile Include="..\src\audio2\msw\util.cpp" />
     <ClCompile Include="..\src\audio2\Node.cpp" />
     <ClCompile Include="..\src\audio2\NodeSource.cpp" />
     <ClCompile Include="..\src\audio2\ooura\fftsg.cpp" />
-    <ClCompile Include="..\src\audio2\TapNode.cpp" />
+    <ClCompile Include="..\src\audio2\NodeTap.cpp" />
     <ClCompile Include="..\src\Plot.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

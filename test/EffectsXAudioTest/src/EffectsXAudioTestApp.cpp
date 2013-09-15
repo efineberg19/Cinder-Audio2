@@ -1,17 +1,13 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/audio.h"
 #include "audio2/NodeSource.h"
-#include "audio2/EffectNode.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
 #include "audio2/msw/ContextXAudio.h"
 
 #include "Gui.h"
-
-// FIXME: first test working post dynamic initialize, but not the rest
 
 using namespace ci;
 using namespace ci::app;
@@ -45,11 +41,11 @@ public:
 	ContextRef mContext;
 
 	NodeRef mSource;
-	shared_ptr<EffectXAudioXapo> mEQ, mEcho;
+	shared_ptr<NodeEffectXAudioXapo> mEQ, mEcho;
 	FXEQ_PARAMETERS mEQParams;
 	FXECHO_PARAMETERS mEchoParams;
 
-	shared_ptr<EffectXAudioFilter> mFilterEffect;
+	shared_ptr<NodeEffectXAudioFilter> mFilterEffect;
 	XAUDIO2_FILTER_PARAMETERS mFilterParams;
 
 	vector<TestWidget *> mWidgets;
@@ -62,8 +58,8 @@ void EffectXAudioTestApp::setup()
 {
 	mContext = Context::create();
 
-	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
-	noise->getUGen().setAmp( 0.25f );
+	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
+	noise->getGen().setAmp( 0.25f );
 	noise->setAutoEnabled();
 	mSource = noise;
 
@@ -77,7 +73,7 @@ void EffectXAudioTestApp::setup()
 void EffectXAudioTestApp::setupOne()
 {
 	mFilterEffect.reset();
-	mEQ =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
+	mEQ =  mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEQ ) );
 
 	mSource->connect( mEQ )->connect( mContext->getTarget() );
 
@@ -92,8 +88,8 @@ void EffectXAudioTestApp::setupTwo()
 	Node::Format format;
 	//format.channels( 2 ); // force stereo
 
-	mEQ = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ, format ) );
-	mEcho = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
+	mEQ = mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEQ, format ) );
+	mEcho = mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEcho ) );
 
 	mSource->connect( mEQ )->connect( mEcho )->connect( mContext->getTarget() );
 
@@ -103,7 +99,7 @@ void EffectXAudioTestApp::setupTwo()
 
 void EffectXAudioTestApp::setupFilter()
 {
-	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
+	mFilterEffect = mContext->makeNode( new NodeEffectXAudioFilter() );
 
 
 	mSource->connect( mFilterEffect )->connect( mContext->getTarget() );
@@ -113,8 +109,8 @@ void EffectXAudioTestApp::setupFilter()
 
 void EffectXAudioTestApp::setupFilterThenDelay()
 {
-	mFilterEffect = mContext->makeNode( new EffectXAudioFilter() );
-	mEcho =  mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEcho ) );
+	mFilterEffect = mContext->makeNode( new NodeEffectXAudioFilter() );
+	mEcho =  mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEcho ) );
 
 	mSource->connect( mFilterEffect )->connect( mEcho )->connect( mContext->getTarget() );
 
@@ -126,7 +122,7 @@ void EffectXAudioTestApp::setupNativeThenGeneric()
 {
 	// TODO: catch exception
 
-	mEQ = mContext->makeNode( new EffectXAudioXapo( EffectXAudioXapo::XapoType::FXEQ ) );
+	mEQ = mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEQ ) );
 	auto ringMod = mContext->makeNode( new RingMod() );
 
 	mSource->connect( mEQ )->connect( ringMod )->connect( mContext->getTarget() );
