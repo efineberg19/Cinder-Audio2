@@ -94,130 +94,13 @@ NodeXAudio::~NodeXAudio()
 {
 }
 
-// ----------------------------------------------------------------------------------------------------
-// MARK: - LineOutXAudio
-// ----------------------------------------------------------------------------------------------------
-
-NodeLineOutXAudio::NodeLineOutXAudio( DeviceRef device, const Format &format )
-: NodeLineOut( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
-{
-#if defined( CINDER_XAUDIO_2_7 )
-	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
-	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
-
-	ci::msw::initializeCom();
-
-#else
-	LOG_V << "CINDER_XAUDIO_2_8, toolset: v110" << endl;
-	UINT32 flags = 0;
-#endif
-
-	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
-	CI_ASSERT( hr == S_OK );
-	hr = mXAudio->RegisterForCallbacks( mEngineCallback.get() );
-	CI_ASSERT( hr == S_OK );
-
-#if defined( CINDER_XAUDIO_2_8 )
-	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
-	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
-	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
-	debugConfig.LogFunctionName = true;
-	mXAudio->SetDebugConfiguration( &debugConfig );
-#endif
-
-	// mXAudio is started at creation time, so stop it here as mEnabled = false
-	mXAudio->StopEngine();
-}
-
-NodeLineOutXAudio::~NodeLineOutXAudio()
-{
-	mXAudio->Release();
-}
-
-void NodeLineOutXAudio::initialize()
-{
-	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
-	const wstring &deviceId = deviceManager->getDeviceId( mDevice->getKey() );
-	//const string &name = mDevice->getName();
-	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
-
-#if defined( CINDER_XAUDIO_2_8 )
-	// TODO: use mNumChannels / context sr
-	HRESULT hr = xaudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, deviceId.c_str() );
-	CI_ASSERT( hr == S_OK );
-#else
-
-	// TODO: on XAudio2.7, mKey (from WASAPI) is the device Id, but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
-	UINT32 deviceCount;
-	hr = mXAudio->GetDeviceCount( &deviceCount );
-	CI_ASSERT( hr == S_OK );
-	::XAUDIO2_DEVICE_DETAILS deviceDetails;
-	for( UINT32 i = 0; i < deviceCount; i++ ) {
-		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
-		CI_ASSERT( hr == S_OK );
-		if( mKey == ci::toUtf8( deviceDetails.DeviceID ) ) {
-			LOG_V << "found match: display name: " << deviceDetails.DisplayName << endl;
-			LOG_V << "device id: " << deviceDetails.DeviceID << endl;
-
-			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, i );
-			CI_ASSERT( hr == S_OK );
-		}
-
-	}
-
-	CI_ASSERT( mMasteringVoice );
-
-#endif
-
-	::XAUDIO2_VOICE_DETAILS voiceDetails;
-	mMasteringVoice->GetVoiceDetails( &voiceDetails );
-	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
-
-	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
-	// needs to ensure this guy is around before it can do anything and it can't call
-	// Node::initializeImpl(). So instead the flag is manually updated.
-	mInitialized = true;
-}
-
-void NodeLineOutXAudio::uninitialize()
-{
-	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
-	mMasteringVoice->DestroyVoice();
-}
-
-void NodeLineOutXAudio::start()
-{
-	if( mEnabled || ! mInitialized )
-		return;
-
-	mEnabled = true;
-
-	HRESULT hr = mXAudio->StartEngine();
-	CI_ASSERT( hr ==S_OK );
-	LOG_V "started" << endl;
-}
-
-void NodeLineOutXAudio::stop()
-{
-	if( ! mEnabled || ! mInitialized )
-		return;
-
-	mEnabled = false;
-	mXAudio->StopEngine();
-	LOG_V "stopped" << endl;
-}
-
-bool NodeLineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
-{
-	return true;
-}
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - SourceVoiceXAudio
 // ----------------------------------------------------------------------------------------------------
 
 NodeXAudioSourceVoice::NodeXAudioSourceVoice()
-: Node( Format() )
+	: Node( Format() )
 {
 	setAutoEnabled( true );
 	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &NodeXAudioSourceVoice::submitNextBuffer, this ) ) );
@@ -321,6 +204,125 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
 	CI_ASSERT( hr == S_OK );
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LineOutXAudio
+// ----------------------------------------------------------------------------------------------------
+
+NodeLineOutXAudio::NodeLineOutXAudio( DeviceRef device, const Format &format )
+: NodeLineOut( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
+{
+#if defined( CINDER_XAUDIO_2_7 )
+	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
+	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
+
+	ci::msw::initializeCom();
+
+#else
+	LOG_V << "CINDER_XAUDIO_2_8, toolset: v110" << endl;
+	UINT32 flags = 0;
+#endif
+
+	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
+	CI_ASSERT( hr == S_OK );
+	hr = mXAudio->RegisterForCallbacks( mEngineCallback.get() );
+	CI_ASSERT( hr == S_OK );
+
+#if defined( CINDER_XAUDIO_2_8 )
+	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
+	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.LogFunctionName = true;
+	mXAudio->SetDebugConfiguration( &debugConfig );
+#endif
+
+	// mXAudio is started at creation time, so stop it here as mEnabled = false
+	mXAudio->StopEngine();
+}
+
+NodeLineOutXAudio::~NodeLineOutXAudio()
+{
+	mXAudio->Release();
+}
+
+void NodeLineOutXAudio::initialize()
+{
+	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
+	const wstring &deviceId = deviceManager->getDeviceId( mDevice->getKey() );
+	//const string &name = mDevice->getName();
+	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
+
+#if defined( CINDER_XAUDIO_2_8 )
+	// TODO: use mNumChannels / context sr
+	HRESULT hr = xaudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, deviceId.c_str() );
+	CI_ASSERT( hr == S_OK );
+#else
+
+	// TODO: on XAudio2.7, mKey (from WASAPI) is the device Id, but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
+	UINT32 deviceCount;
+	hr = mXAudio->GetDeviceCount( &deviceCount );
+	CI_ASSERT( hr == S_OK );
+	::XAUDIO2_DEVICE_DETAILS deviceDetails;
+	for( UINT32 i = 0; i < deviceCount; i++ ) {
+		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
+		CI_ASSERT( hr == S_OK );
+		if( mKey == ci::toUtf8( deviceDetails.DeviceID ) ) {
+			LOG_V << "found match: display name: " << deviceDetails.DisplayName << endl;
+			LOG_V << "device id: " << deviceDetails.DeviceID << endl;
+
+			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, i );
+			CI_ASSERT( hr == S_OK );
+		}
+
+	}
+
+	CI_ASSERT( mMasteringVoice );
+
+#endif
+
+	::XAUDIO2_VOICE_DETAILS voiceDetails;
+	mMasteringVoice->GetVoiceDetails( &voiceDetails );
+	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
+
+	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
+	// needs to ensure this guy is around before it can do anything and it can't call
+	// Node::initializeImpl(). So instead the flag is manually updated.
+	mInitialized = true;
+}
+
+// TODO NEXT: make sure nothing is attached to mastering voice before uninitializing it.
+void NodeLineOutXAudio::uninitialize()
+{
+	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
+	mMasteringVoice->DestroyVoice();
+}
+
+void NodeLineOutXAudio::start()
+{
+	if( mEnabled || ! mInitialized )
+		return;
+
+	mEnabled = true;
+
+	HRESULT hr = mXAudio->StartEngine();
+	CI_ASSERT( hr ==S_OK );
+	LOG_V "started" << endl;
+}
+
+void NodeLineOutXAudio::stop()
+{
+	if( ! mEnabled || ! mInitialized )
+		return;
+
+	mEnabled = false;
+	mXAudio->StopEngine();
+	LOG_V "stopped" << endl;
+}
+
+bool NodeLineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
+{
+	return true;
 }
 
 // ----------------------------------------------------------------------------------------------------
