@@ -66,16 +66,16 @@ void NodeAudioUnit::uninitAu()
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - LineOutAudioUnit
+// MARK: - NodeLineOutAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
-: LineOutNode( device, format ), mProcessedFrames( 0 ), mSynchroniousIO( false )
+NodeLineOutAudioUnit::NodeLineOutAudioUnit( DeviceRef device, const Format &format )
+: NodeLineOut( device, format ), mProcessedFrames( 0 ), mSynchroniousIO( false )
 {
 	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 }
 
-void LineOutAudioUnit::initialize()
+void NodeLineOutAudioUnit::initialize()
 {
 	// LineOut always needs an internal buffer to deliver to the ouput AU, so force one to be made.
 	setProcessWithSumming();
@@ -92,7 +92,7 @@ void LineOutAudioUnit::initialize()
 	UInt32 enableInput = mSynchroniousIO;
 	setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, enableInput, kAudioUnitScope_Input, DeviceBus::INPUT );
 
-	::AURenderCallbackStruct callbackStruct { LineOutAudioUnit::renderCallback, &mRenderData };
+	::AURenderCallbackStruct callbackStruct { NodeLineOutAudioUnit::renderCallback, &mRenderData };
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
 
 #if defined( CINDER_MAC )
@@ -105,12 +105,12 @@ void LineOutAudioUnit::initialize()
 	initAu();
 }
 
-void LineOutAudioUnit::uninitialize()
+void NodeLineOutAudioUnit::uninitialize()
 {
 	uninitAu();
 }
 
-void LineOutAudioUnit::start()
+void NodeLineOutAudioUnit::start()
 {
 	if( mEnabled || ! mInitialized )
 		return;
@@ -122,7 +122,7 @@ void LineOutAudioUnit::start()
 	LOG_V << "started." << endl;
 }
 
-void LineOutAudioUnit::stop()
+void NodeLineOutAudioUnit::stop()
 {
 	if( ! mEnabled || ! mInitialized )
 		return;
@@ -134,7 +134,7 @@ void LineOutAudioUnit::stop()
 	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
-OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus NodeLineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
 	lock_guard<mutex> lock( renderData->context->getMutex() );
@@ -143,7 +143,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	if( ! renderData->node->getContext() )
 		return noErr;
 
-	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( renderData->node );
+	NodeLineOutAudioUnit *lineOut = static_cast<NodeLineOutAudioUnit *>( renderData->node );
 	lineOut->mInternalBuffer.zero();
 
 	renderData->context->setCurrentTimeStamp( timeStamp );
@@ -157,11 +157,11 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - LineInAudioUnit
+// MARK: - NodeLineInAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
-: LineInNode( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 )
+NodeLineInAudioUnit::NodeLineInAudioUnit( DeviceRef device, const Format &format )
+: NodeLineIn( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 )
 {
 	if( device->getNumOutputChannels() < mNumChannels )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
@@ -172,17 +172,17 @@ LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
 	}
 }
 
-LineInAudioUnit::~LineInAudioUnit()
+NodeLineInAudioUnit::~NodeLineInAudioUnit()
 {
 }
 
-void LineInAudioUnit::initialize()
+void NodeLineInAudioUnit::initialize()
 {
 	mRenderData.node = this;
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
 	// see if synchronous I/O is possible by looking at the LineOut
-	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getTarget() );
+	auto lineOutAu = dynamic_pointer_cast<NodeLineOutAudioUnit>( getContext()->getTarget() );
 
 	if( lineOutAu ) {
 		bool sameDevice = lineOutAu->getDevice() == mDevice;
@@ -206,7 +206,7 @@ void LineInAudioUnit::initialize()
 
 	if( mSynchronousIO ) {
 		LOG_V << "Synchronous I/O." << endl;
-		// LineOutAudioUnit is expected to initialize the AudioUnit, since it is pulling to here. But make sure input is enabled.
+		// NodeLineOutAudioUnit is expected to initialize the AudioUnit, since it is pulling to here. But make sure input is enabled.
 		if( ! lineOutAu->mSynchroniousIO ) {
 			lineOutAu->mSynchroniousIO = true;
 			if( lineOutAu->isInitialized() ) {
@@ -220,7 +220,7 @@ void LineInAudioUnit::initialize()
 
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
 
-		::AURenderCallbackStruct callbackStruct { LineOutAudioUnit::renderCallback, &mRenderData };
+		::AURenderCallbackStruct callbackStruct { NodeLineInAudioUnit::renderCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
 
 #if defined( CINDER_COCOA_TOUCH )
@@ -236,7 +236,7 @@ void LineInAudioUnit::initialize()
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
 
-		::AURenderCallbackStruct callbackStruct = { LineInAudioUnit::inputCallback, &mRenderData };
+		::AURenderCallbackStruct callbackStruct = { NodeLineInAudioUnit::inputCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_SetInputCallback, callbackStruct, kAudioUnitScope_Global, DeviceBus::INPUT );
 
 		UInt32 enableInput = 1;
@@ -255,15 +255,15 @@ void LineInAudioUnit::initialize()
 	}
 }
 
-// TODO: what about when synchronous IO and this guy is requested to uninit, does associated LineOutAudioUnit need to be uninitialized too?
-void LineInAudioUnit::uninitialize()
+// TODO: what about when synchronous IO and this guy is requested to uninit, does associated NodeLineOutAudioUnit need to be uninitialized too?
+void NodeLineInAudioUnit::uninitialize()
 {
 	if( ! mSynchronousIO ) {
 		uninitAu();
 	}
 }
 
-void LineInAudioUnit::start()
+void NodeLineInAudioUnit::start()
 {
 	if( mEnabled || ! mInitialized )
 		return;
@@ -278,7 +278,7 @@ void LineInAudioUnit::start()
 	}
 }
 
-void LineInAudioUnit::stop()
+void NodeLineInAudioUnit::stop()
 {
 	if( ! mEnabled || ! mInitialized )
 		return;
@@ -292,21 +292,21 @@ void LineInAudioUnit::stop()
 	}
 }
 
-uint64_t LineInAudioUnit::getLastUnderrun()
+uint64_t NodeLineInAudioUnit::getLastUnderrun()
 {
 	uint64_t result = mLastUnderrun;
 	mLastUnderrun = 0;
 	return result;
 }
 
-uint64_t LineInAudioUnit::getLastOverrun()
+uint64_t NodeLineInAudioUnit::getLastOverrun()
 {
 	uint64_t result = mLastOverrun;
 	mLastOverrun = 0;
 	return result;
 }
 
-void LineInAudioUnit::process( Buffer *buffer )
+void NodeLineInAudioUnit::process( Buffer *buffer )
 {
 	if( mSynchronousIO ) {
 		mProcessBuffer = buffer;
@@ -328,19 +328,19 @@ void LineInAudioUnit::process( Buffer *buffer )
 	}
 }
 
-OSStatus LineInAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus NodeLineInAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
-	LineInAudioUnit *lineIn = static_cast<LineInAudioUnit *>( renderData->node );
+	NodeLineInAudioUnit *lineIn = static_cast<NodeLineInAudioUnit *>( renderData->node );
 
 	copyToBufferList( bufferList, lineIn->mProcessBuffer );
 	return noErr;
 }
 
-OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus NodeLineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
-	LineInAudioUnit *lineIn = static_cast<LineInAudioUnit *>( renderData->node );
+	NodeLineInAudioUnit *lineIn = static_cast<NodeLineInAudioUnit *>( renderData->node );
 	CI_ASSERT( lineIn->mRingBuffer );
 	
 	::AudioBufferList *nodeBufferList = lineIn->mBufferList.get();
@@ -355,19 +355,19 @@ OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlag
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - EffectAudioUnit
+// MARK: - NodeEffectAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-EffectAudioUnit::EffectAudioUnit( UInt32 effectSubType, const Format &format )
-: EffectNode( format ), mEffectSubType( effectSubType )
+NodeEffectAudioUnit::NodeEffectAudioUnit( UInt32 effectSubType, const Format &format )
+: NodeEffect( format ), mEffectSubType( effectSubType )
 {
 }
 
-EffectAudioUnit::~EffectAudioUnit()
+NodeEffectAudioUnit::~NodeEffectAudioUnit()
 {
 }
 
-void EffectAudioUnit::initialize()
+void NodeEffectAudioUnit::initialize()
 {
 	mRenderData.node = this;
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
@@ -384,19 +384,19 @@ void EffectAudioUnit::initialize()
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Input );
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output );
 
-	::AURenderCallbackStruct callbackStruct = { EffectAudioUnit::renderCallback, &mRenderData };
+	::AURenderCallbackStruct callbackStruct = { NodeEffectAudioUnit::renderCallback, &mRenderData };
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
 
 	initAu();
 }
 
-void EffectAudioUnit::uninitialize()
+void NodeEffectAudioUnit::uninitialize()
 {
 	uninitAu();
 }
 
 // TODO: try pointing buffer list at processBuffer instead of copying
-void EffectAudioUnit::process( Buffer *buffer )
+void NodeEffectAudioUnit::process( Buffer *buffer )
 {
 	mProcessBuffer = buffer;
 
@@ -408,16 +408,16 @@ void EffectAudioUnit::process( Buffer *buffer )
 	copyFromBufferList( buffer, mBufferList.get() );
 }
 
-OSStatus EffectAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
+OSStatus NodeEffectAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
-	EffectAudioUnit *effectNode = static_cast<EffectAudioUnit *>( renderData->node );
+	NodeEffectAudioUnit *effectNode = static_cast<NodeEffectAudioUnit *>( renderData->node );
 
 	copyToBufferList( bufferList, effectNode->mProcessBuffer );
 	return noErr;
 }
 
-void EffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float val )
+void NodeEffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float val )
 {
 	setAudioUnitParam( mAudioUnit, paramId, val, kAudioUnitScope_Global );
 }
@@ -426,14 +426,14 @@ void EffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float val )
 // MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineOutNodeRef ContextAudioUnit::createLineOut( DeviceRef device, const NodeTarget::Format &format )
+NodeLineOutRef ContextAudioUnit::createLineOut( DeviceRef device, const NodeTarget::Format &format )
 {
-	return makeNode( new LineOutAudioUnit( device, format ) );
+	return makeNode( new NodeLineOutAudioUnit( device, format ) );
 }
 
-LineInNodeRef ContextAudioUnit::createLineIn( DeviceRef device, const Node::Format &format )
+NodeLineInRef ContextAudioUnit::createLineIn( DeviceRef device, const Node::Format &format )
 {
-	return makeNode( new LineInAudioUnit( device, format ) );
+	return makeNode( new NodeLineInAudioUnit( device, format ) );
 }
 
 ContextAudioUnit::~ContextAudioUnit()

@@ -24,8 +24,7 @@
 #pragma once
 
 #include "audio2/Context.h"
-#include "audio2/NodeSource.h"
-#include "audio2/EffectNode.h"
+#include "audio2/NodeEffect.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/cocoa/CinderCoreAudio.h"
 
@@ -57,12 +56,12 @@ class NodeAudioUnit {
 	} mRenderData;
 };
 
-class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
+class NodeLineOutAudioUnit : public NodeLineOut, public NodeAudioUnit {
   public:
-	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
-	virtual ~LineOutAudioUnit() = default;
+	NodeLineOutAudioUnit( DeviceRef device, const Format &format = Format() );
+	virtual ~NodeLineOutAudioUnit() = default;
 
-	std::string virtual getTag() override			{ return "LineOutAudioUnit"; }
+	std::string virtual getTag() override			{ return "NodeLineOutAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -78,15 +77,15 @@ class LineOutAudioUnit : public LineOutNode, public NodeAudioUnit {
 	std::atomic<uint64_t>				mProcessedFrames;
 	bool								mSynchroniousIO;
 
-	friend class LineInAudioUnit;
+	friend class NodeLineInAudioUnit;
 };
 
-class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
+class NodeLineInAudioUnit : public NodeLineIn, public NodeAudioUnit {
   public:
-	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
-	virtual ~LineInAudioUnit();
+	NodeLineInAudioUnit( DeviceRef device, const Format &format = Format() );
+	virtual ~NodeLineInAudioUnit();
 
-	std::string virtual getTag() override			{ return "LineInAudioUnit"; }
+	std::string virtual getTag() override			{ return "NodeLineInAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -111,12 +110,12 @@ class LineInAudioUnit : public LineInNode, public NodeAudioUnit {
 };
 
 // TODO: when stopped / mEnabled = false; kAudioUnitProperty_BypassEffect should be used
-class EffectAudioUnit : public EffectNode, public NodeAudioUnit {
+class NodeEffectAudioUnit : public NodeEffect, public NodeAudioUnit {
   public:
-	EffectAudioUnit( UInt32 subType, const Format &format = Format() );
-	virtual ~EffectAudioUnit();
+	NodeEffectAudioUnit( UInt32 subType, const Format &format = Format() );
+	virtual ~NodeEffectAudioUnit();
 
-	std::string virtual getTag() override			{ return "EffectAudioUnit"; }
+	std::string virtual getTag() override			{ return "NodeEffectAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -135,8 +134,8 @@ class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
 
-	virtual LineOutNodeRef		createLineOut( DeviceRef device, const NodeTarget::Format &format = NodeTarget::Format() ) override;
-	virtual LineInNodeRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	virtual NodeLineOutRef		createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
+	virtual NodeLineInRef		createLineIn( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 
 	//! set by the NodeTarget
 	void setCurrentTimeStamp( const ::AudioTimeStamp *timeStamp ) { mCurrentTimeStamp = timeStamp; }

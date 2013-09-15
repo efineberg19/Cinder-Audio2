@@ -49,7 +49,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 	ContextRef mContext;
 	NodeSourceRef mSource;
 
-	shared_ptr<EffectAudioUnit> mEffect, mEffect2;
+	shared_ptr<NodeEffectAudioUnit> mEffect, mEffect2;
 
 	VSelector mTestSelector;
 	Button mPlayButton;
@@ -60,13 +60,13 @@ void EffectsAudioUnitTestApp::setup()
 {
 	mContext = Context::create();
 
-	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
+	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
 	noise->setAutoEnabled();
-	noise->getUGen().setAmp( 0.25f );
+	noise->getGen().setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
-//	auto test = mContext->makeNode( new UGenNode<TestConstGen>() );
+//	auto test = mContext->makeNode( new NodeGen<TestConstGen>() );
 //	test->setAutoEnabled();
 //	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 //	mSource = test;
@@ -81,7 +81,7 @@ void EffectsAudioUnitTestApp::setup()
 
 void EffectsAudioUnitTestApp::setupOne()
 {
-	mEffect = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
+	mEffect = mContext->makeNode( new NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
 	mSource->connect( mEffect )->connect( mContext->getTarget() );
 
 	mBandpassSlider.mHidden = true;
@@ -89,8 +89,8 @@ void EffectsAudioUnitTestApp::setupOne()
 
 void EffectsAudioUnitTestApp::setupTwo()
 {
-	mEffect = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
-	mEffect2 = mContext->makeNode( new EffectAudioUnit( kAudioUnitSubType_BandPassFilter ) );
+	mEffect = mContext->makeNode( new NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
+	mEffect2 = mContext->makeNode( new NodeEffectAudioUnit( kAudioUnitSubType_BandPassFilter ) );
 
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 

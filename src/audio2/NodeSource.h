@@ -158,6 +158,7 @@ public:
 
 // TODO: NodeGen's are starting to seem unnesecarry
 // - just make a NodeSource for all of the basic waveforms
+// - also need to account for ramping params, which will not be possible with vector-based calculations
 template <typename GenT>
 struct NodeGen : public NodeSource {
 	NodeGen( const Format &format = Format() ) : NodeSource( format )
@@ -170,7 +171,6 @@ struct NodeGen : public NodeSource {
 
 	virtual void initialize() override
 	{
-		size_t newSampleRate = getContext()->getSampleRate();
 		mGen.setSampleRate( getContext()->getSampleRate() );
 	}
 

@@ -80,9 +80,9 @@ void MixerTestApp::setup()
 
 void MixerTestApp::setupSine()
 {
-	auto genNode = mContext->makeNode( new UGenNode<SineGen>( Node::Format().channels( 1 ) ) );
-	genNode->getUGen().setAmp( 0.2f );
-	genNode->getUGen().setFreq( 440.0f );
+	auto genNode = mContext->makeNode( new NodeGen<SineGen>( Node::Format().channels( 1 ) ) );
+	genNode->getGen().setAmp( 0.2f );
+	genNode->getGen().setFreq( 440.0f );
 
 	genNode->connect( mContext->getTarget() );
 	mSine = genNode;
@@ -95,9 +95,9 @@ void MixerTestApp::setupSine()
 
 void MixerTestApp::setupNoise()
 {
-	auto genNode = mContext->makeNode( new UGenNode<NoiseGen>() );
+	auto genNode = mContext->makeNode( new NodeGen<NoiseGen>() );
 	genNode->setAutoEnabled();
-	genNode->getUGen().setAmp( 0.2f );
+	genNode->getGen().setAmp( 0.2f );
 
 	genNode->connect( mContext->getTarget() );
 	mNoise = genNode;
@@ -110,13 +110,13 @@ void MixerTestApp::setupNoise()
 
 void MixerTestApp::setupMixer()
 {
-	auto noise = mContext->makeNode( new UGenNode<NoiseGen>() );
-	noise->getUGen().setAmp( 0.25f );
+	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
+	noise->getGen().setAmp( 0.25f );
 	mNoise = noise;
 
-	auto sine = mContext->makeNode( new UGenNode<SineGen>() );
-	sine->getUGen().setAmp( 0.25f );
-	sine->getUGen().setFreq( 440.0f );
+	auto sine = mContext->makeNode( new NodeGen<SineGen>() );
+	sine->getGen().setAmp( 0.25f );
+	sine->getGen().setFreq( 440.0f );
 	mSine = sine;
 
 	mMixer = mContext->createMixer();
@@ -140,10 +140,10 @@ void MixerTestApp::setupMixer()
 // TODO: this belongs in it's own test app - one for weird conversions
 void MixerTestApp::setupInterleavedPassThru()
 {
-	auto genNode = mContext->makeNode( new UGenNode<SineGen>() );
+	auto genNode = mContext->makeNode( new NodeGen<SineGen>() );
 	genNode->setAutoEnabled();
-	genNode->getUGen().setAmp( 0.2f );
-	genNode->getUGen().setFreq( 440.0f );
+	genNode->getGen().setAmp( 0.2f );
+	genNode->getGen().setFreq( 440.0f );
 	mSine = genNode;
 
 	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );

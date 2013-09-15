@@ -2,10 +2,10 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Timeline.h"
 
+#include "audio2/audio.h"
 #include "audio2/Context.h"
-#include "audio2/NodeSource.h"
-#include "audio2/EffectNode.h"
-#include "audio2/TapNode.h"
+#include "audio2/NodeEffect.h"
+#include "audio2/NodeTap.h"
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
@@ -37,10 +37,10 @@ class DeviceTestApp : public AppNative {
 	void setupIOProcessed();
 
 	ContextRef mContext;
-	LineInNodeRef mLineIn;
-	LineOutNodeRef mLineOut;
+	NodeLineInRef mLineIn;
+	NodeLineOutRef mLineOut;
 	TapNodeRef mTap;
-	GainNodeRef mGain;
+	NodeGainRef mGain;
 	NodeSourceRef mSourceNode;
 
 	vector<TestWidget *> mWidgets;
@@ -59,8 +59,8 @@ void DeviceTestApp::setup()
 	setupDefaultDevices();
 	//setupDedicatedDevice();
 
-	mGain = mContext->makeNode( new GainNode() );
-	mTap = mContext->makeNode( new TapNode() );
+	mGain = mContext->makeNode( new NodeGain() );
+	mTap = mContext->makeNode( new NodeTap() );
 
 	mGain->connect( mTap )->connect( mContext->getTarget() );
 
@@ -117,9 +117,9 @@ void DeviceTestApp::setupDedicatedDevice()
 
 void DeviceTestApp::setupSine()
 {
-	auto sineGen = mContext->makeNode( new UGenNode<SineGen>() );
-	sineGen->getUGen().setFreq( 440.0f );
-	sineGen->getUGen().setAmp( 0.5f );
+	auto sineGen = mContext->makeNode( new NodeGen<SineGen>() );
+	sineGen->getGen().setFreq( 440.0f );
+	sineGen->getGen().setAmp( 0.5f );
 	mSourceNode = sineGen;
 
 	mSourceNode->connect( mGain, 0 );
@@ -128,8 +128,8 @@ void DeviceTestApp::setupSine()
 
 void DeviceTestApp::setupNoise()
 {
-	auto noiseGen = mContext->makeNode( new UGenNode<NoiseGen>() );
-	noiseGen->getUGen().setAmp( 0.5f );
+	auto noiseGen = mContext->makeNode( new NodeGen<NoiseGen>() );
+	noiseGen->getGen().setAmp( 0.5f );
 	mSourceNode = noiseGen;
 
 	mSourceNode->connect( mGain, 0 );
