@@ -100,7 +100,7 @@ NodeXAudio::~NodeXAudio()
 // ----------------------------------------------------------------------------------------------------
 
 NodeXAudioSourceVoice::NodeXAudioSourceVoice()
-	: Node( Format() )
+	: Node( Format() ), mSourceVoice( nullptr )
 {
 	setAutoEnabled( true );
 	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &NodeXAudioSourceVoice::submitNextBuffer, this ) ) );
@@ -132,16 +132,20 @@ void NodeXAudioSourceVoice::initialize()
 	}
 
 	initSourceVoice();
+
+	// ContextXAudio may call this method, so make sure to update flag so it is seen
+	mInitialized = true;
 }
 
 void NodeXAudioSourceVoice::uninitialize()
 {
 	uninitSourceVoice();
-	// FIXME: looks like SourceVoice senders need to be detached during its uninitialize, which was attached during CreateSourceVoice
 }
 
 void NodeXAudioSourceVoice::initSourceVoice()
 {
+	CI_ASSERT( ! mSourceVoice );
+
 	ContextRef context = getContext();
 
 	// first ensure there is a valid mastering voice.
