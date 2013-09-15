@@ -29,7 +29,7 @@ class EffectNodeTestApp : public AppNative {
 
 	ContextRef mContext;
 	NodeSourceRef mGen;
-	GainNodeRef mGain;
+	NodeGainRef mGain;
 	shared_ptr<RingMod> mRingMod;
 
 	vector<TestWidget *> mWidgets;

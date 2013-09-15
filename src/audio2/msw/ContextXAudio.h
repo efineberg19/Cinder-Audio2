@@ -177,7 +177,7 @@ class ContextXAudio : public Context {
 
 	NodeLineOutRef	createLineOut( DeviceRef device, const Node::Format &format = Node::Format() ) override;
 	//! If deployment target is 0x601 (win vista) or greater, uses \a LineInWasapi, else returns an empty \a LineInRef
-	LineInNodeRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
+	NodeLineInRef	createLineIn( DeviceRef device, const Node::Format &format = Node::Format()  ) override;
 
 	void connectionsDidChange( const NodeRef &node ) override; 
 

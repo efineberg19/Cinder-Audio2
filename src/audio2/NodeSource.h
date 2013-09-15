@@ -33,9 +33,9 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeSamplePlayer>		PlayerNodeRef;
-typedef std::shared_ptr<class NodeBufferPlayer> BufferPlayerNodeRef;
-typedef std::shared_ptr<class NodeFilePlayer>	FilePlayerNodeRef;
+typedef std::shared_ptr<class NodeSamplePlayer>		NodeSamplePlayerRef;
+typedef std::shared_ptr<class NodeBufferPlayer>		NodeBufferPlayerRef;
+typedef std::shared_ptr<class NodeFilePlayer>		NodeFilePlayerRef;
 
 class RingBuffer;
 

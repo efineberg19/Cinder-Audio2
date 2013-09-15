@@ -45,7 +45,7 @@ class SpectrumTapTestApp : public AppNative {
 
 
 	ContextRef						mContext;
-	BufferPlayerNodeRef				mPlayerNode;
+	NodeBufferPlayerRef				mPlayerNode;
 	shared_ptr<NodeGen<SineGen> >	mSine;
 	SpectrumTapNodeRef				mSpectrumTap;
 	SourceFileRef					mSourceFile;

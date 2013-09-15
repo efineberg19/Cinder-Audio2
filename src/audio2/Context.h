@@ -39,7 +39,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	static ContextRef			create();
 
 	virtual NodeLineOutRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const NodeTarget::Format &format = NodeTarget::Format() ) = 0;
-	virtual LineInNodeRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual NodeLineInRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );

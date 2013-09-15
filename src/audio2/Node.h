@@ -32,14 +32,13 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class Context> ContextRef;
-typedef std::shared_ptr<class Node> NodeRef;
-typedef std::shared_ptr<class NodeSource> NodeSourceRef;
-typedef std::shared_ptr<class NodeTarget> NodeTargetRef;
-typedef std::shared_ptr<class NodeLineOut> NodeLineOutRef;
-typedef std::shared_ptr<class NodeLineIn> LineInNodeRef;
-typedef std::shared_ptr<class NodeMixer> MixerNodeRef;
-typedef std::shared_ptr<class NodeFilePlayer> FilePlayerNodeRef;
+typedef std::shared_ptr<class Context>			ContextRef;
+typedef std::shared_ptr<class Node>				NodeRef;
+typedef std::shared_ptr<class NodeSource>		NodeSourceRef;
+typedef std::shared_ptr<class NodeTarget>		NodeTargetRef;
+typedef std::shared_ptr<class NodeLineOut>		NodeLineOutRef;
+typedef std::shared_ptr<class NodeLineIn>		NodeLineInRef;
+typedef std::shared_ptr<class NodeMixer>		NodeMixerRef;
 
 class Node : public std::enable_shared_from_this<Node> {
   public:

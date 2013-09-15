@@ -37,7 +37,7 @@ class InputTestApp : public AppNative {
 	void setupInTapProcessOut();
 
 	ContextRef mContext;
-	LineInNodeRef mLineIn;
+	NodeLineInRef mLineIn;
 	NodeLineOutRef mLineOut;
 	TapNodeRef mTap;
 

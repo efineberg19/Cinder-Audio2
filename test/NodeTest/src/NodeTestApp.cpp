@@ -57,7 +57,7 @@ public:
 	void processTap( Vec2i pos );
 
 	ContextRef mContext;
-	GainNodeRef mGain;
+	NodeGainRef mGain;
 	NodeSourceRef mSine, mNoise;
 
 	vector<TestWidget *> mWidgets;

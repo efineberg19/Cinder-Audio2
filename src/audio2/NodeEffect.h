@@ -29,8 +29,8 @@
 
 namespace cinder { namespace audio2 {
 
-	typedef std::shared_ptr<class NodeEffect> EffectNodeRef;
-	typedef std::shared_ptr<class NodeGain> GainNodeRef;
+	typedef std::shared_ptr<class NodeEffect>		NodeEffectRef;
+	typedef std::shared_ptr<class NodeGain>			NodeGainRef;
 
 	class NodeEffect : public Node {
 	public:
