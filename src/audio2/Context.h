@@ -24,6 +24,8 @@
 #pragma once
 
 #include "audio2/Node.h"
+#include "audio2/NodeSource.h"
+#include "audio2/NodeTarget.h"
 
 #include <mutex>
 
@@ -38,7 +40,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns a platform-specific \a Context. If none is available, returns an empty \a ContextRef.
 	static ContextRef			create();
 
-	virtual NodeLineOutRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const NodeTarget::Format &format = NodeTarget::Format() ) = 0;
+	virtual NodeLineOutRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
 	virtual NodeLineInRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	template<typename NodeT>

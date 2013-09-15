@@ -22,6 +22,7 @@
 */
 
 #include "audio2/NodeSource.h"
+#include "audio2/audio.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/Debug.h"
 

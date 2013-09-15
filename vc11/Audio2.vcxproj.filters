@@ -88,6 +88,9 @@
     <ClInclude Include="..\src\audio2\NodeTap.h">
       <Filter>Source Files\audio2</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\audio2\NodeTarget.h">
+      <Filter>Source Files\audio2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio2\audio.cpp">
@@ -136,6 +139,9 @@
       <Filter>Source Files\audio2\msw</Filter>
     </ClCompile>
     <ClCompile Include="..\src\audio2\NodeTap.cpp">
+      <Filter>Source Files\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio2\NodeTarget.cpp">
       <Filter>Source Files\audio2</Filter>
     </ClCompile>
   </ItemGroup>

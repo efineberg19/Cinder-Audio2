@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "audio2/audio.h"
+#include "audio2/Node.h"
 #include "audio2/File.h"
 #include "audio2/Dsp.h"
 #include "audio2/Atomic.h"
@@ -33,6 +33,8 @@
 
 namespace cinder { namespace audio2 {
 
+typedef std::shared_ptr<class NodeSource>			NodeSourceRef;
+typedef std::shared_ptr<class NodeLineIn>			NodeLineInRef;
 typedef std::shared_ptr<class NodeSamplePlayer>		NodeSamplePlayerRef;
 typedef std::shared_ptr<class NodeBufferPlayer>		NodeBufferPlayerRef;
 typedef std::shared_ptr<class NodeFilePlayer>		NodeFilePlayerRef;

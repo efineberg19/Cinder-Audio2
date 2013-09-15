@@ -34,10 +34,6 @@ namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Context>			ContextRef;
 typedef std::shared_ptr<class Node>				NodeRef;
-typedef std::shared_ptr<class NodeSource>		NodeSourceRef;
-typedef std::shared_ptr<class NodeTarget>		NodeTargetRef;
-typedef std::shared_ptr<class NodeLineOut>		NodeLineOutRef;
-typedef std::shared_ptr<class NodeLineIn>		NodeLineInRef;
 typedef std::shared_ptr<class NodeMixer>		NodeMixerRef;
 
 class Node : public std::enable_shared_from_this<Node> {
@@ -160,46 +156,6 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	std::weak_ptr<Context>	mContext;
 	friend class Context;
-};
-
-class NodeTarget : public Node {
-  public:
-	virtual ~NodeTarget() {}
-
-	virtual size_t getSampleRate()				= 0;
-	virtual size_t getFramesPerBlock()			= 0;
-
-	//! Returns the total number of frames that have already been processed in the dsp loop.
-	virtual uint64_t getNumProcessedFrames()	= 0;
-
-  protected:
-	NodeTarget( const Format &format = Format() ) : Node( format ) {}
-
-  private:
-	// NodeTarget does not have outputs
-	const NodeRef& connect( const NodeRef &dest ) override				{ return dest; }
-	const NodeRef& connect( const NodeRef &dest, size_t bus ) override	{ return dest; }
-};
-
-class NodeLineOut : public NodeTarget {
-  public:
-	virtual ~NodeLineOut() {}
-
-	const DeviceRef& getDevice() const		{ return mDevice; }
-
-	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
-	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
-
-	virtual void deviceParamsWillChange();
-	virtual void deviceParamsDidChange();
-
-  protected:
-	NodeLineOut( const DeviceRef &device, const Format &format = Format() );
-
-	DeviceRef mDevice;
-
-  private:
-	bool mWasEnabledBeforeParamsChange;
 };
 
 //! Note: currently abstract and unused

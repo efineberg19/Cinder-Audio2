@@ -331,44 +331,4 @@ bool Node::checkInput( const NodeRef &input )
 	return ( input && ( input != shared_from_this() ) && ! isConnectedToInput( input ) );
 }
 
-// ----------------------------------------------------------------------------------------------------
-// MARK: - NodeLineOut
-// ----------------------------------------------------------------------------------------------------
-
-NodeLineOut::NodeLineOut( const DeviceRef &device, const Format &format )
-: NodeTarget( format ), mDevice( device )
-{
-	CI_ASSERT( mDevice );
-
-	mDevice->getSignalParamsWillChange().connect( bind( &NodeLineOut::deviceParamsWillChange, this ) );
-	mDevice->getSignalParamsDidChange().connect( bind( &NodeLineOut::deviceParamsDidChange, this ) );
-
-	setAutoEnabled();
-	
-	if( mChannelMode != ChannelMode::SPECIFIED ) {
-		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( 2 );
-	}
-
-	if( mDevice->getNumOutputChannels() < mNumChannels )
-		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
-}
-
-void NodeLineOut::deviceParamsWillChange()
-{
-	LOG_V << "bang" << endl;
-	mWasEnabledBeforeParamsChange = mEnabled;
-
-	stop();
-	getContext()->uninitializeAllNodes();
-}
-
-void NodeLineOut::deviceParamsDidChange()
-{
-	LOG_V << "bang" << endl;
-	getContext()->initializeAllNodes();
-
-	setEnabled( mWasEnabledBeforeParamsChange );
-}
-
 } } // namespace cinder::audio2
