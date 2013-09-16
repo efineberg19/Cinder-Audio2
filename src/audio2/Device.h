@@ -55,6 +55,8 @@ class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
 	size_t getSampleRate();
 	size_t getFramesPerBlock();
 
+	// TODO: these suave setter's are dangerous, shouldn't be so easy to unknowingly set a variable that reconstructs the entire graph
+	// - updateParams( const Device::Params &params ) seems appropriate. cache values and only do the whole shebang when actually changed
 	void setSampleRate( size_t sampleRate );
 	void setFramesPerBlock( size_t framesPerBlock );
 
@@ -84,6 +86,9 @@ class DeviceManager : public boost::noncopyable {
 	virtual DeviceRef getDefaultOutput()												= 0;
 	virtual DeviceRef getDefaultInput()													= 0;
 
+
+	// TODO: make this clearer / easier by passing in DeviceRef
+
 	virtual std::string getName( const std::string &key )								= 0;
 	virtual size_t getNumInputChannels( const std::string &key )						= 0;
 	virtual size_t getNumOutputChannels( const std::string &key )						= 0;
@@ -97,6 +102,8 @@ class DeviceManager : public boost::noncopyable {
 	DeviceManager()	{}
 
 	DeviceRef	addDevice( const std::string &key );
+
+	void emitParamsDidChange( const DeviceRef &device );
 
 	std::vector<DeviceRef> mDevices;
 };

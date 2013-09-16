@@ -99,7 +99,7 @@ void NodeLineOutAudioUnit::initialize()
 	auto manager = dynamic_cast<DeviceManagerCoreAudio *>( Context::deviceManager() );
 	CI_ASSERT( manager );
 
-	manager->setCurrentDevice( mDevice->getKey(), mAudioUnit );
+	manager->setCurrentDevice( mDevice, mAudioUnit );
 #endif
 
 	initAu();
@@ -249,7 +249,7 @@ void NodeLineInAudioUnit::initialize()
 		auto manager = dynamic_cast<DeviceManagerCoreAudio *>( Context::deviceManager() );
 		CI_ASSERT( manager );
 
-		manager->setCurrentDevice( mDevice->getKey(), mAudioUnit );
+		manager->setCurrentDevice( mDevice, mAudioUnit );
 #endif
 		initAu();
 	}

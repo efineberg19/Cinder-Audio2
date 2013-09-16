@@ -229,8 +229,6 @@ void DeviceTestApp::keyDown( KeyEvent event )
 	if( ! currentSelected )
 		return;
 
-	LOG_V << "currentSelected title: " << currentSelected->mTitle << endl;
-
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
 		if( currentSelected == &mSamplerateInput ) {
 			int sr = currentSelected->getValue();
