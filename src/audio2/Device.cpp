@@ -158,7 +158,7 @@ DeviceRef DeviceManager::addDevice( const string &key )
 
 void DeviceManager::emitParamsDidChange( const DeviceRef &device )
 {
-	device->mSignalParamsWillChange();
+	device->mSignalParamsDidChange();
 }
 
 } } // namespace cinder::audio2
