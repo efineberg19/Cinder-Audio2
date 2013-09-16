@@ -11,7 +11,10 @@
 
 #include "Gui.h"
 
-// TODO NEXT: get on-the-fly frames per block changes working
+// TODO NEXT: need to make sure nodes are registered as device change listeners more than once
+//	- its why I'm getting 5 NodeLineOut::deviceParamsDidChange() notifications per one update, because each init registers
+
+// TODO: exception handling for bad device params
 
 using namespace ci;
 using namespace ci::app;
@@ -79,9 +82,6 @@ void DeviceTestApp::setup()
 void DeviceTestApp::setupDefaultDevices()
 {
 	mLineIn = mContext->createLineIn();
-
-	Device::getDefaultOutput()->setSampleRate( 44100 );
-//	Device::getDefaultOutput()->setFramesPerBlock( 512 );
 
 	mLineOut = mContext->createLineOut();
 
@@ -234,14 +234,14 @@ void DeviceTestApp::keyDown( KeyEvent event )
 		if( currentSelected == &mSamplerateInput ) {
 			int sr = currentSelected->getValue();
 			LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
-			mLineOut->getDevice()->setSampleRate( sr );
+			mLineOut->getDevice()->updateParams( Device::Params().sampleRate( sr ) );
 			LOG_V << "... result: " << mLineOut->getSampleRate() << endl;
 
 		}
 		else if( currentSelected == &mFramesPerBlockInput ) {
 			int frames = currentSelected->getValue();
 			LOG_V << "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames << endl;
-			mLineOut->getDevice()->setFramesPerBlock( frames );
+			mLineOut->getDevice()->updateParams( Device::Params().framesPerBlock( frames ) );
 			LOG_V << "... result: " << mLineOut->getFramesPerBlock() << endl;
 		}
 		else

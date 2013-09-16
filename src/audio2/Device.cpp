@@ -93,28 +93,37 @@ size_t Device::getNumOutputChannels()
 
 size_t Device::getSampleRate()
 {
-	return ( mSampleRate ? mSampleRate : Context::deviceManager()->getSampleRate( mKey ) );
+	if( ! mSampleRate )
+		mSampleRate = Context::deviceManager()->getSampleRate( mKey );
+
+	return mSampleRate;
 }
 
 size_t Device::getFramesPerBlock()
 {
-	return Context::deviceManager()->getFramesPerBlock( mKey );
+	if( ! mFramesPerBlock )
+		mFramesPerBlock = Context::deviceManager()->getFramesPerBlock( mKey );
+
+	return mFramesPerBlock;
 }
 
-void Device::setSampleRate( size_t sampleRate )
+void Device::updateParams( const Params &params )
 {
-	if( sampleRate == mSampleRate )
+	size_t sampleRate = params.getSampleRate();
+	size_t framesPerBlock = params.getFramesPerBlock();
+	if( mSampleRate == sampleRate && mFramesPerBlock == framesPerBlock )
 		return;
 
 	mSignalParamsWillChange();
-	Context::deviceManager()->setSampleRate( mKey, sampleRate );
-	mSampleRate = sampleRate;
-}
 
-void Device::setFramesPerBlock( size_t framesPerBlock )
-{
-	mSignalParamsWillChange();
-	Context::deviceManager()->setFramesPerBlock( mKey, framesPerBlock );
+	if( sampleRate && sampleRate != mSampleRate ) {
+		Context::deviceManager()->setSampleRate( mKey, sampleRate );
+		mSampleRate = sampleRate;
+	}
+	if( framesPerBlock && framesPerBlock != mFramesPerBlock ) {
+		Context::deviceManager()->setFramesPerBlock( mKey, framesPerBlock );
+		mFramesPerBlock = framesPerBlock;
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------

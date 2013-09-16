@@ -55,19 +55,29 @@ class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
 	size_t getSampleRate();
 	size_t getFramesPerBlock();
 
-	// TODO: these suave setter's are dangerous, shouldn't be so easy to unknowingly set a variable that reconstructs the entire graph
-	// - updateParams( const Device::Params &params ) seems appropriate. cache values and only do the whole shebang when actually changed
-	void setSampleRate( size_t sampleRate );
-	void setFramesPerBlock( size_t framesPerBlock );
+	struct Params {
+		Params() : mSampleRate( 0 ), mFramesPerBlock( 0 ) {}
+
+		Params& sampleRate( size_t sr )				{ mSampleRate = sr;			return *this; }
+		Params& framesPerBlock( size_t frames )		{ mFramesPerBlock = frames; return *this; }
+
+		size_t getSampleRate() const				{ return mSampleRate; }
+		size_t getFramesPerBlock() const			{ return mFramesPerBlock; }
+
+	private:
+		size_t mSampleRate, mFramesPerBlock;
+	};
+
+	void updateParams( const Params &params );
 
 	signals::signal<void()>& getSignalParamsWillChange()	{ return mSignalParamsWillChange; }
 	signals::signal<void()>& getSignalParamsDidChange()		{ return mSignalParamsDidChange; }
 
   private:
-	Device( const std::string &key ) : mKey( key ), mSampleRate( 0 ) {}
+	Device( const std::string &key ) : mKey( key ), mSampleRate( 0 ), mFramesPerBlock( 0 ) {}
 
 	std::string mKey, mName;
-	size_t mSampleRate;
+	size_t mSampleRate, mFramesPerBlock;
 	signals::signal<void()> mSignalParamsWillChange, mSignalParamsDidChange;
 
 	friend class DeviceManager;
