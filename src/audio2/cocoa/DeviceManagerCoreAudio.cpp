@@ -195,14 +195,10 @@ void DeviceManagerCoreAudio::setSampleRate( const std::string &key, size_t sampl
 
 	size_t currentSr = getSampleRate( key );
 	LOG_V << "current samplerate: " << currentSr << endl;
-
 	LOG_V << "... setting to: " << sampleRate << endl;
 
 	Float64 data = static_cast<Float64>( sampleRate );
 	setAudioObjectProperty( deviceId, property, data );
-
-	size_t resultSr = getSampleRate( key );
-	LOG_V << "... result: " << resultSr << endl;
 }
 
 size_t DeviceManagerCoreAudio::getFramesPerBlock( const string &key )
@@ -218,6 +214,10 @@ void DeviceManagerCoreAudio::setFramesPerBlock( const std::string &key, size_t f
 {
 	::AudioDeviceID deviceId = getDeviceId( key );
 	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
+
+	size_t currentFramesPerBlock = getFramesPerBlock( key );
+	LOG_V << "current framesPerBlock: " << currentFramesPerBlock << endl;
+	LOG_V << "... setting to: " << framesPerBlock << endl;
 
 	UInt32 data = static_cast<UInt32>( framesPerBlock );
 	setAudioObjectProperty( deviceId, property, data );
