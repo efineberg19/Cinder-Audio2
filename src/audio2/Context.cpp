@@ -166,7 +166,7 @@ void Context::initRecursisve( const NodeRef &node )
 	for( const NodeRef &input : node->getInputs() )
 		initRecursisve( input );
 
-	node->initializeImpl();
+	node->configureConnections();
 }
 
 void Context::uninitRecursisve( const NodeRef &node )
