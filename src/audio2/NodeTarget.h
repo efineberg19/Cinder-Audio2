@@ -31,7 +31,7 @@ typedef std::shared_ptr<class NodeTarget>		NodeTargetRef;
 typedef std::shared_ptr<class NodeLineOut>		NodeLineOutRef;
 
 class NodeTarget : public Node {
-public:
+  public:
 	virtual ~NodeTarget() {}
 
 	virtual size_t getSampleRate()				= 0;
@@ -40,17 +40,17 @@ public:
 	//! Returns the total number of frames that have already been processed in the dsp loop.
 	virtual uint64_t getNumProcessedFrames()	= 0;
 
-protected:
+  protected:
 	NodeTarget( const Format &format = Format() ) : Node( format ) {}
 
-private:
+  private:
 	// NodeTarget does not have outputs
 	const NodeRef& connect( const NodeRef &dest ) override				{ return dest; }
 	const NodeRef& connect( const NodeRef &dest, size_t bus ) override	{ return dest; }
 };
 
 class NodeLineOut : public NodeTarget {
-public:
+  public:
 	virtual ~NodeLineOut() {}
 
 	const DeviceRef& getDevice() const		{ return mDevice; }
@@ -58,16 +58,21 @@ public:
 	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
 	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
 
+	//! Enables clip detection, so that values over \a threshold will be interpreted as a clip (enabled by default). \note Implementations may silence the buffer to prevent speaker damage.
+	void enableClipDetection( bool enable = true, float threshold = 2.0f );
+	//! Returns the frame of the last buffer clip or 0 if none since the last time this method was called.
+	virtual uint64_t getLastClip() = 0;
+
 	virtual void deviceParamsWillChange();
 	virtual void deviceParamsDidChange();
 
-protected:
+  protected:
 	NodeLineOut( const DeviceRef &device, const Format &format = Format() );
 
 	DeviceRef mDevice;
 
-private:
-	bool mWasEnabledBeforeParamsChange;
+	bool	mWasEnabledBeforeParamsChange, mClipDetectionEnabled;
+	float	mClipThreshold;
 };
 
 } } // namespace cinder::audio2

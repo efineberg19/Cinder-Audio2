@@ -30,7 +30,7 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 NodeLineOut::NodeLineOut( const DeviceRef &device, const Format &format )
-	: NodeTarget( format ), mDevice( device )
+	: NodeTarget( format ), mDevice( device ), mClipDetectionEnabled( true ), mClipThreshold( 2.0f )
 {
 	CI_ASSERT( mDevice );
 
@@ -63,6 +63,13 @@ void NodeLineOut::deviceParamsDidChange()
 	getContext()->initializeAllNodes();
 
 	setEnabled( mWasEnabledBeforeParamsChange );
+}
+
+void NodeLineOut::enableClipDetection( bool enable, float threshold )
+{
+	lock_guard<mutex> lock( getContext()->getMutex() );
+	mClipDetectionEnabled = enable;
+	mClipThreshold = threshold;
 }
 
 } } // namespace cinder::audio2

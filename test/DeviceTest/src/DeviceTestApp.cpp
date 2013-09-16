@@ -48,8 +48,8 @@ class DeviceTestApp : public AppNative {
 	Button mPlayButton;
 	TextInput mSamplerateInput, mFramesPerBlockInput;
 
-	Anim<float> mUnderrunFade, mOverrunFade;
-	Rectf mUnderrunRect, mOverrunRect;
+	Anim<float> mUnderrunFade, mOverrunFade, mClipFade;
+	Rectf mUnderrunRect, mOverrunRect, mClipRect;
 };
 
 void DeviceTestApp::setup()
@@ -185,6 +185,7 @@ void DeviceTestApp::setupUI()
 	Vec2i xrunSize( 80, 26 );
 	mUnderrunRect = Rectf( getWindowWidth() - xrunSize.x, getWindowHeight() - xrunSize.y, getWindowWidth(), getWindowHeight() );
 	mOverrunRect = mUnderrunRect - Vec2f( xrunSize.x + 10, 0 );
+	mClipRect = mOverrunRect - Vec2f( xrunSize.x + 10, 0 );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
@@ -263,6 +264,8 @@ void DeviceTestApp::update()
 		timeline().apply( &mUnderrunFade, 1.0f, 0.0f, xrunFadeTime );
 	if( mLineIn->getLastOverrun() )
 		timeline().apply( &mOverrunFade, 1.0f, 0.0f, xrunFadeTime );
+	if( mLineOut->getLastClip() )
+		timeline().apply( &mClipFade, 1.0f, 0.0f, xrunFadeTime );
 }
 
 void DeviceTestApp::draw()
@@ -307,6 +310,11 @@ void DeviceTestApp::draw()
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
 		gl::drawSolidRect( mOverrunRect );
 		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
+	}
+	if( mClipFade > 0.0001 ) {
+		gl::color( ColorA( 1.0f, 0.1f, 0.0f, mClipFade ) );
+		gl::drawSolidRect( mClipRect );
+		gl::drawStringCentered( "clip", mClipRect.getCenter(), Color::black() );
 	}
 }
 

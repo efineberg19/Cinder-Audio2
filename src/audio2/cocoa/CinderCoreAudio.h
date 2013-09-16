@@ -86,7 +86,11 @@ inline void copyFromBufferList( Buffer *buffer, const ::AudioBufferList *bufferL
 		memcpy( buffer->getChannel( i ), bufferList->mBuffers[i].mData, bufferList->mBuffers[i].mDataByteSize );
 }
 
-void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFrames, float clipThreshold = 2.0f );
+inline void zeroBufferList( const ::AudioBufferList *bufferList )
+{
+	for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
+		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
+}
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Audio Unit Helper Functions

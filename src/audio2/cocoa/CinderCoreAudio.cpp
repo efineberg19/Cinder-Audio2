@@ -162,15 +162,6 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 	return asbd;
 }
 
-void checkBufferListNotClipping( const AudioBufferList *bufferList, UInt32 numFrames, float clipThreshold )
-{
-	for( UInt32 c = 0; c < bufferList->mNumberBuffers; c++ ) {
-		float *buf = (float *)bufferList->mBuffers[c].mData;
-		for( UInt32 i = 0; i < numFrames; i++ )
-			CI_ASSERT_MSG( buf[i] < clipThreshold, "Audio Clipped" );
-	}
-}
-
 ::AudioComponentDescription getOutputAudioUnitDesc()
 {
 	::AudioComponentDescription result{ 0 };

@@ -70,7 +70,7 @@ void NodeAudioUnit::uninitAu()
 // ----------------------------------------------------------------------------------------------------
 
 NodeLineOutAudioUnit::NodeLineOutAudioUnit( DeviceRef device, const Format &format )
-: NodeLineOut( device, format ), mProcessedFrames( 0 ), mSynchroniousIO( false )
+: NodeLineOut( device, format ), mProcessedFrames( 0 ), mLastClip( 0 ), mSynchroniousIO( false )
 {
 	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 }
@@ -134,12 +134,33 @@ void NodeLineOutAudioUnit::stop()
 	LOG_V << "stopped: " << mDevice->getName() << endl;
 }
 
+uint64_t NodeLineOutAudioUnit::getLastClip()
+{
+	uint64_t result = mLastClip;
+	mLastClip = 0;
+	return result;
+}
+
+bool NodeLineOutAudioUnit::checkNotClipping()
+{
+	float *buf = mInternalBuffer.getData();
+	size_t count = mInternalBuffer.getSize();
+	for( size_t t = 0; t < count; t++ ) {
+		if( fabs( buf[t] ) > mClipThreshold ) {
+			mLastClip = mProcessedFrames + t % mInternalBuffer.getNumFrames(); // record the sample that clipped
+			return true;
+		}
+	}
+	return false;
+}
+
 OSStatus NodeLineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
 	lock_guard<mutex> lock( renderData->context->getMutex() );
 
 	// verify associated context still exists proceeding, which may not be true if we blocked in ~Context()
+	// TODO: rethink this once more, that it is 100% safe at shutdown
 	if( ! renderData->node->getContext() )
 		return noErr;
 
@@ -147,12 +168,15 @@ OSStatus NodeLineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActi
 	lineOut->mInternalBuffer.zero();
 
 	renderData->context->setCurrentTimeStamp( timeStamp );
-	renderData->node->pullInputs( &lineOut->mInternalBuffer );
-	copyToBufferList( bufferList, &lineOut->mInternalBuffer );
+	lineOut->pullInputs( &lineOut->mInternalBuffer );
+
+	// if clip detection is enabled and buffer clipped, silence it
+	if( lineOut->mClipDetectionEnabled && lineOut->checkNotClipping() )
+		zeroBufferList( bufferList );
+	else
+		copyToBufferList( bufferList, &lineOut->mInternalBuffer );
 
 	lineOut->mProcessedFrames += lineOut->getFramesPerBlock();
-
-	checkBufferListNotClipping( bufferList, numFrames );
 	return noErr;
 }
 

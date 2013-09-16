@@ -70,11 +70,13 @@ class NodeLineOutAudioUnit : public NodeLineOut, public NodeAudioUnit {
 	void stop() override;
 
 	uint64_t getNumProcessedFrames() override		{ return mProcessedFrames; }
+	uint64_t getLastClip() override;
 
   private:
+	bool checkNotClipping();
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
-	std::atomic<uint64_t>				mProcessedFrames;
+	std::atomic<uint64_t>				mProcessedFrames, mLastClip;
 	bool								mSynchroniousIO;
 
 	friend class NodeLineInAudioUnit;
