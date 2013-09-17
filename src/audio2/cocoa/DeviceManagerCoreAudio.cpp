@@ -207,11 +207,6 @@ void DeviceManagerCoreAudio::setFramesPerBlock( const DeviceRef &device, size_t 
 		throw AudioDeviceExc( "Invalid frames per block." );
 
 	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
-
-	size_t currentFramesPerBlock = getFramesPerBlock( device );
-	LOG_V << "current framesPerBlock: " << currentFramesPerBlock << endl;
-	LOG_V << "... setting to: " << framesPerBlock << endl;
-
 	UInt32 data = static_cast<UInt32>( framesPerBlock );
 	setAudioObjectProperty( deviceId, property, data );
 }
