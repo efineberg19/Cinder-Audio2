@@ -47,18 +47,20 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	void setFramesPerBlock( const std::string &key, size_t framesPerBlock )		override;
 
 	//! Sets the device related to \a key and managed by \a componenetInstance as the current active audio device.
-	void setCurrentDevice( const DeviceRef &key, ::AudioComponentInstance componentInstance );
+	void setCurrentOutputDevice( const DeviceRef &device, ::AudioComponentInstance componentInstance );
+	void setCurrentInputDevice( const DeviceRef &device, ::AudioComponentInstance componentInstance );
 
   private:
-	void registerPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId );
-	void unregisterPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId );
+	void setCurrentDeviceImpl( const DeviceRef &device, const DeviceRef &current, ::AudioComponentInstance componentInstance, bool isOutput );
+	void registerPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId, bool isOutput );
+	void unregisterPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId, bool isOutput );
 
 	::AudioDeviceID getDeviceId( const std::string &key );
 	static std::string keyForDeviceId( ::AudioDeviceID deviceId );
 
 	std::map<DeviceRef,::AudioDeviceID>		mDeviceIds;
-	DeviceRef								mCurrentDevice;
-	::AudioObjectPropertyListenerBlock		mPropertyListenerBlock;
+	DeviceRef								mCurrentOutputDevice, mCurrentInputDevice;
+	::AudioObjectPropertyListenerBlock		mOutputDeviceListenerBlock, mInputDeviceListenerBlock;
 };
 
 } } } // namespace cinder::audio2::cocoa
