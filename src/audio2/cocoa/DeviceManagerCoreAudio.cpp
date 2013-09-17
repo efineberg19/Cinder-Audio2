@@ -169,8 +169,6 @@ size_t DeviceManagerCoreAudio::getNumOutputChannels( const string &key )
 
 size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
 {
-	//	vector<::AudioValueRange> nsr = getAudioObjectPropertyVector<::AudioValueRange>( deviceId, kAudioDevicePropertyAvailableNominalSampleRates );
-
 	::AudioDeviceID deviceId = getDeviceId( key );
 	::AudioObjectPropertyAddress propertyAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
 	auto result = getAudioObjectProperty<Float64>( deviceId, propertyAddress );
@@ -181,12 +179,12 @@ size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
 void DeviceManagerCoreAudio::setSampleRate( const std::string &key, size_t sampleRate )
 {
 	::AudioDeviceID deviceId = getDeviceId( key );
+
+	auto acceptable = getAcceptableSampleRates( deviceId );
+	if( find( acceptable.begin(), acceptable.end(), sampleRate ) == acceptable.end() )
+		throw AudioDeviceExc( "Invalid samplerate." );
+
 	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
-
-	size_t currentSr = getSampleRate( key );
-	LOG_V << "current samplerate: " << currentSr << endl;
-	LOG_V << "... setting to: " << sampleRate << endl;
-
 	Float64 data = static_cast<Float64>( sampleRate );
 	setAudioObjectProperty( deviceId, property, data );
 }
@@ -203,6 +201,11 @@ size_t DeviceManagerCoreAudio::getFramesPerBlock( const string &key )
 void DeviceManagerCoreAudio::setFramesPerBlock( const std::string &key, size_t framesPerBlock )
 {
 	::AudioDeviceID deviceId = getDeviceId( key );
+
+	auto range = getAcceptableFramesPerBlockRange( deviceId );
+	if( framesPerBlock < range.first || framesPerBlock > range.second )
+		throw AudioDeviceExc( "Invalid frames per block." );
+
 	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
 
 	size_t currentFramesPerBlock = getFramesPerBlock( key );
@@ -357,6 +360,26 @@ const std::vector<DeviceRef>& DeviceManagerCoreAudio::getDevices()
 		}
 	}
 	return mDevices;
+}
+
+vector<size_t> DeviceManagerCoreAudio::getAcceptableSampleRates( ::AudioDeviceID deviceId )
+{
+	vector<::AudioValueRange> nsr = getAudioObjectPropertyVector<::AudioValueRange>( deviceId, kAudioDevicePropertyAvailableNominalSampleRates );
+	vector<size_t> result;
+	for( auto valueRange : nsr ) {
+		CI_ASSERT_MSG( valueRange.mMinimum == valueRange.mMaximum, "exptected min and max range to be equal" );
+		result.push_back( valueRange.mMinimum );
+	}
+
+	return result;
+}
+
+pair<size_t, size_t> DeviceManagerCoreAudio::getAcceptableFramesPerBlockRange( ::AudioDeviceID deviceId )
+{
+	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSizeRange );
+	::AudioValueRange fpbRange = getAudioObjectProperty<::AudioValueRange>( deviceId, property );
+
+	return make_pair( (size_t)fpbRange.mMinimum, (size_t)fpbRange.mMaximum );
 }
 
 // note: we cannot just rely on 'model UID', when it is there (which it isn't always), becasue it can be the same

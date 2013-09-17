@@ -11,7 +11,7 @@
 
 #include "Gui.h"
 
-// TODO: exception handling for bad device params
+// FIXME: changing buffer size on the fly is still turning off asyn I/O
 
 // TODO: take a closer look at buffer sizes when context sr doesn't match device
 
@@ -225,6 +225,8 @@ void DeviceTestApp::processTap( Vec2i pos )
 		if( currentTest == "I/O (processed)" ) {
 			setupIOProcessed();
 		}
+
+		printDeviceDetails();
 	}
 }
 
@@ -235,20 +237,26 @@ void DeviceTestApp::keyDown( KeyEvent event )
 		return;
 
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
-		if( currentSelected == &mSamplerateInput ) {
-			int sr = currentSelected->getValue();
-			LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
-			mLineOut->getDevice()->updateParams( Device::Params().sampleRate( sr ) );
-			LOG_V << "... result: " << mLineOut->getSampleRate() << endl;
+		try {
+			if( currentSelected == &mSamplerateInput ) {
+				int sr = currentSelected->getValue();
+				LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
+				mLineOut->getDevice()->updateParams( Device::Params().sampleRate( sr ) );
+			}
+			else if( currentSelected == &mFramesPerBlockInput ) {
+				int frames = currentSelected->getValue();
+				LOG_V << "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames << endl;
+				mLineOut->getDevice()->updateParams( Device::Params().framesPerBlock( frames ) );
+			}
+			else
+				LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;
 		}
-		else if( currentSelected == &mFramesPerBlockInput ) {
-			int frames = currentSelected->getValue();
-			LOG_V << "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames << endl;
-			mLineOut->getDevice()->updateParams( Device::Params().framesPerBlock( frames ) );
-			LOG_V << "... result: " << mLineOut->getFramesPerBlock() << endl;
+		catch( AudioDeviceExc &exc ) {
+			LOG_E << "AudioDeviceExc caught, what: " << exc.what() << endl;
+			mSamplerateInput.setValue( mContext->getSampleRate() );
+			mFramesPerBlockInput.setValue( mContext->getFramesPerBlock() );
+			return;
 		}
-		else
-			LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;
 	}
 	else {
 		if( event.getCode() == KeyEvent::KEY_BACKSPACE )

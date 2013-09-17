@@ -55,7 +55,10 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	void registerPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId, bool isOutput );
 	void unregisterPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId, bool isOutput );
 
-	::AudioDeviceID getDeviceId( const std::string &key );
+	std::vector<size_t>			getAcceptableSampleRates( ::AudioDeviceID deviceId );
+	std::pair<size_t, size_t>	getAcceptableFramesPerBlockRange( ::AudioDeviceID deviceId );
+
+	::AudioDeviceID getDeviceId( const std::string &key ); // TODO: if DeviceRef's are passed in as keys, this isn't necessary.
 	static std::string keyForDeviceId( ::AudioDeviceID deviceId );
 
 	std::map<DeviceRef,::AudioDeviceID>		mDeviceIds;

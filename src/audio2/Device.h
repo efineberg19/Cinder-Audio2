@@ -68,6 +68,7 @@ class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
 		size_t mSampleRate, mFramesPerBlock;
 	};
 
+	//! \note Update may be asynchronous.
 	void updateParams( const Params &params );
 
 	signals::signal<void()>& getSignalParamsWillChange()	{ return mSignalParamsWillChange; }
