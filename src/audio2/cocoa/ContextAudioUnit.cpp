@@ -256,6 +256,8 @@ void NodeLineInAudioUnit::initialize()
 	}
 	else {
 		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
+		if( mDevice->getSampleRate() != lineOutAu->getSampleRate() || mDevice->getFramesPerBlock() != lineOutAu->getFramesPerBlock() )
+			mDevice->updateParams( Device::Params().sampleRate( lineOutAu->getSampleRate() ).framesPerBlock( lineOutAu->getFramesPerBlock() ) );
 
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
@@ -277,6 +279,9 @@ void NodeLineInAudioUnit::initialize()
 #endif
 		initAu();
 	}
+
+	CI_ASSERT( getContext()->getSampleRate() == getDevice()->getSampleRate() );
+	CI_ASSERT( getContext()->getFramesPerBlock() == getDevice()->getFramesPerBlock() );
 }
 
 // TODO: what about when synchronous IO and this guy is requested to uninit, does associated NodeLineOutAudioUnit need to be uninitialized too?

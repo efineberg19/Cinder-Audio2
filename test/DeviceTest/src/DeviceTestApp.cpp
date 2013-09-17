@@ -11,10 +11,9 @@
 
 #include "Gui.h"
 
-// TODO NEXT: need to make sure nodes are registered as device change listeners more than once
-//	- its why I'm getting 5 NodeLineOut::deviceParamsDidChange() notifications per one update, because each init registers
-
 // TODO: exception handling for bad device params
+
+// TODO: take a closer look at buffer sizes when context sr doesn't match device
 
 using namespace ci;
 using namespace ci::app;
@@ -33,6 +32,7 @@ class DeviceTestApp : public AppNative {
 
 	void setupDefaultDevices();
 	void setupDedicatedDevice();
+	void printDeviceDetails();
 
 	void setupSine();
 	void setupIOClean();
@@ -60,7 +60,7 @@ void DeviceTestApp::setup()
 	mContext = Context::create();
 
 	setupDefaultDevices();
-	//setupDedicatedDevice();
+	printDeviceDetails();
 
 	mGain = mContext->makeNode( new NodeGain() );
 	mTap = mContext->makeNode( new NodeTap() );
@@ -76,28 +76,32 @@ void DeviceTestApp::setup()
 
 	printGraph( mContext );
 
+	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	printDeviceDetails(); } );
+
 	LOG_V << "Context samplerate: " << mContext->getSampleRate() << endl;
 }
 
 void DeviceTestApp::setupDefaultDevices()
 {
 	mLineIn = mContext->createLineIn();
-
 	mLineOut = mContext->createLineOut();
 
-	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
-	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
-	console() << "\t samplerate: " << mLineIn->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << mLineIn->getDevice()->getFramesPerBlock() << endl;
+	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
 
+	mContext->setTarget( mLineOut );
+}
+
+void DeviceTestApp::printDeviceDetails()
+{
 	LOG_V << "output device name: " << mLineOut->getDevice()->getName() << endl;
 	console() << "\t channels: " << mLineOut->getDevice()->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << mLineOut->getDevice()->getSampleRate() << endl;
 	console() << "\t block size: " << mLineOut->getDevice()->getFramesPerBlock() << endl;
 
-	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
-
-	mContext->setTarget( mLineOut );
+	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
+	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
+	console() << "\t samplerate: " << mLineIn->getDevice()->getSampleRate() << endl;
+	console() << "\t block size: " << mLineIn->getDevice()->getFramesPerBlock() << endl;
 }
 
 void DeviceTestApp::setupDedicatedDevice()
@@ -236,7 +240,6 @@ void DeviceTestApp::keyDown( KeyEvent event )
 			LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
 			mLineOut->getDevice()->updateParams( Device::Params().sampleRate( sr ) );
 			LOG_V << "... result: " << mLineOut->getSampleRate() << endl;
-
 		}
 		else if( currentSelected == &mFramesPerBlockInput ) {
 			int frames = currentSelected->getValue();

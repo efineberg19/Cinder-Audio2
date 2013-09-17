@@ -283,7 +283,8 @@ void DeviceManagerCoreAudio::registerPropertyListeners( const DeviceRef &device,
 			}
 		}
 
-		if( paramsUpdated )
+		// only output device gets update signals
+		if( isOutput && paramsUpdated )
 			emitParamsDidChange( device );
     };
 
