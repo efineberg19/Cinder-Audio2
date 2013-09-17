@@ -50,12 +50,15 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	void setCurrentDevice( const DeviceRef &key, ::AudioComponentInstance componentInstance );
 
   private:
-	void registerPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId, ::AudioComponentInstance componentInstance );
+	void registerPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId );
+	void unregisterPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId );
 
 	::AudioDeviceID getDeviceId( const std::string &key );
 	static std::string keyForDeviceId( ::AudioDeviceID deviceId );
 
-	std::map<DeviceRef,::AudioDeviceID> mDeviceIds;
+	std::map<DeviceRef,::AudioDeviceID>		mDeviceIds;
+	DeviceRef								mCurrentDevice;
+	::AudioObjectPropertyListenerBlock		mPropertyListenerBlock;
 };
 
 } } } // namespace cinder::audio2::cocoa

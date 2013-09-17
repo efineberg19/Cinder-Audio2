@@ -149,14 +149,22 @@ DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultInputId ) );
 }
 
+// TODO: account for separate current input and output devices
 void DeviceManagerCoreAudio::setCurrentDevice( const DeviceRef &device, ::AudioComponentInstance componentInstance )
 {
+	if( mCurrentDevice == device )
+		return;
+
+	if( mCurrentDevice )
+		unregisterPropertyListeners( mCurrentDevice, mDeviceIds.at( mCurrentDevice ) );
+
 	::AudioDeviceID deviceId = mDeviceIds.at( device );
 
 	OSStatus status = ::AudioUnitSetProperty( componentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
 	CI_ASSERT( status == noErr );
 
-	registerPropertyListeners( device, deviceId, componentInstance );
+	registerPropertyListeners( device, deviceId );
+	mCurrentDevice = device;
 }
 
 std::string DeviceManagerCoreAudio::getName( const string &key )
@@ -229,7 +237,7 @@ void DeviceManagerCoreAudio::setFramesPerBlock( const std::string &key, size_t f
 
 // note: device doesn't need to be copied because DeviceManagerCoreAudio owns it.
 // TODO: if device is considered 'default', register for kAudioHardwarePropertyDefaultOutputDevice and update when required
-void DeviceManagerCoreAudio::registerPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId, ::AudioComponentInstance componentInstance )
+void DeviceManagerCoreAudio::registerPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId )
 {
 	AudioObjectPropertyListenerBlock listenerBlock = ^( UInt32 inNumberAddresses, const AudioObjectPropertyAddress inAddresses[] ) {
 
@@ -269,17 +277,42 @@ void DeviceManagerCoreAudio::registerPropertyListeners( const DeviceRef &device,
 			emitParamsDidChange( device );
     };
 
+	mPropertyListenerBlock = Block_copy( listenerBlock );
+
 	// data source (ex. internal speakers, headphones)
 	::AudioObjectPropertyAddress dataSourceAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeOutput );
-	::AudioObjectAddPropertyListenerBlock( deviceId, &dataSourceAddress, dispatch_get_current_queue(), listenerBlock );
+	OSStatus status = ::AudioObjectAddPropertyListenerBlock( deviceId, &dataSourceAddress, dispatch_get_current_queue(), mPropertyListenerBlock );
+	CI_ASSERT( status == noErr );
 
 	// device samplerate
 	::AudioObjectPropertyAddress samplerateAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
-	::AudioObjectAddPropertyListenerBlock( deviceId, &samplerateAddress, dispatch_get_current_queue(), listenerBlock );
+	status = ::AudioObjectAddPropertyListenerBlock( deviceId, &samplerateAddress, dispatch_get_current_queue(), mPropertyListenerBlock );
+	CI_ASSERT( status == noErr );
 
 	// frames per block
 	::AudioObjectPropertyAddress frameSizeAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
-	::AudioObjectAddPropertyListenerBlock( deviceId, &frameSizeAddress, dispatch_get_current_queue(), listenerBlock );
+	status = ::AudioObjectAddPropertyListenerBlock( deviceId, &frameSizeAddress, dispatch_get_current_queue(), mPropertyListenerBlock );
+	CI_ASSERT( status == noErr );
+}
+
+void DeviceManagerCoreAudio::unregisterPropertyListeners( const DeviceRef &device, ::AudioDeviceID deviceId )
+{
+	// data source (ex. internal speakers, headphones)
+	::AudioObjectPropertyAddress dataSourceAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyDataSource, kAudioDevicePropertyScopeOutput );
+	OSStatus status = ::AudioObjectRemovePropertyListenerBlock( deviceId, &dataSourceAddress, dispatch_get_current_queue(), mPropertyListenerBlock );
+	CI_ASSERT( status == noErr );
+
+	// device samplerate
+	::AudioObjectPropertyAddress samplerateAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
+	status = ::AudioObjectRemovePropertyListenerBlock( deviceId, &samplerateAddress, dispatch_get_current_queue(), mPropertyListenerBlock );
+	CI_ASSERT( status == noErr );
+
+	// frames per block
+	::AudioObjectPropertyAddress frameSizeAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
+	status = ::AudioObjectRemovePropertyListenerBlock( deviceId, &frameSizeAddress, dispatch_get_current_queue(), mPropertyListenerBlock );
+	CI_ASSERT( status == noErr );
+
+	Block_release( mPropertyListenerBlock );
 }
 
 ::AudioDeviceID DeviceManagerCoreAudio::getDeviceId( const std::string &key )
