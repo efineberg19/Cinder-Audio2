@@ -53,7 +53,7 @@ void NodeLineOut::deviceParamsWillChange()
 	LOG_V << "bang" << endl;
 	mWasEnabledBeforeParamsChange = mEnabled;
 
-	stop();
+	getContext()->stop();
 	getContext()->uninitializeAllNodes();
 }
 
@@ -62,7 +62,7 @@ void NodeLineOut::deviceParamsDidChange()
 	LOG_V << "bang" << endl;
 	getContext()->initializeAllNodes();
 
-	setEnabled( mWasEnabledBeforeParamsChange );
+	getContext()->setEnabled( mWasEnabledBeforeParamsChange );
 }
 
 void NodeLineOut::enableClipDetection( bool enable, float threshold )
