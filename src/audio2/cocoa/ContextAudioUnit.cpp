@@ -187,9 +187,6 @@ OSStatus NodeLineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActi
 NodeLineInAudioUnit::NodeLineInAudioUnit( DeviceRef device, const Format &format )
 : NodeLineIn( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 )
 {
-	if( device->getNumOutputChannels() < mNumChannels )
-		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
-
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 2 );
