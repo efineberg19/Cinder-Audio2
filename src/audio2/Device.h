@@ -97,17 +97,14 @@ class DeviceManager : public boost::noncopyable {
 	virtual DeviceRef getDefaultOutput()												= 0;
 	virtual DeviceRef getDefaultInput()													= 0;
 
+	virtual std::string		getName( const DeviceRef &device )										= 0;
+	virtual size_t			getNumInputChannels( const DeviceRef &device )							= 0;
+	virtual size_t			getNumOutputChannels( const DeviceRef &device )							= 0;
+	virtual size_t			getSampleRate( const DeviceRef &device )								= 0;
+	virtual size_t			getFramesPerBlock( const DeviceRef &device )							= 0;
 
-	// TODO: make this clearer / easier by passing in DeviceRef
-
-	virtual std::string getName( const std::string &key )								= 0;
-	virtual size_t getNumInputChannels( const std::string &key )						= 0;
-	virtual size_t getNumOutputChannels( const std::string &key )						= 0;
-	virtual size_t getSampleRate( const std::string &key )								= 0;
-	virtual size_t getFramesPerBlock( const std::string &key )							= 0;
-
-	virtual void setSampleRate( const std::string &key, size_t sampleRate )				= 0;
-	virtual void setFramesPerBlock( const std::string &key, size_t framesPerBlock )		= 0;
+	virtual void			setSampleRate( const DeviceRef &device, size_t sampleRate )				= 0;
+	virtual void			setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )		= 0;
 
   protected:
 	DeviceManager()	{}

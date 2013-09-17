@@ -71,7 +71,7 @@ const vector<DeviceRef>& Device::getDevices()
 const string& Device::getName()
 {
 	if( mName.empty() )
-		mName = Context::deviceManager()->getName( mKey );
+		mName = Context::deviceManager()->getName( shared_from_this() );
 
 	return mName;
 }
@@ -83,18 +83,18 @@ const string& Device::getKey()
 
 size_t Device::getNumInputChannels()
 {
-	return Context::deviceManager()->getNumInputChannels( mKey );
+	return Context::deviceManager()->getNumInputChannels( shared_from_this() );
 }
 
 size_t Device::getNumOutputChannels()
 {
-	return Context::deviceManager()->getNumOutputChannels( mKey );
+	return Context::deviceManager()->getNumOutputChannels( shared_from_this() );
 }
 
 size_t Device::getSampleRate()
 {
 	if( ! mSampleRate )
-		mSampleRate = Context::deviceManager()->getSampleRate( mKey );
+		mSampleRate = Context::deviceManager()->getSampleRate( shared_from_this() );
 
 	return mSampleRate;
 }
@@ -102,7 +102,7 @@ size_t Device::getSampleRate()
 size_t Device::getFramesPerBlock()
 {
 	if( ! mFramesPerBlock )
-		mFramesPerBlock = Context::deviceManager()->getFramesPerBlock( mKey );
+		mFramesPerBlock = Context::deviceManager()->getFramesPerBlock( shared_from_this() );
 
 	return mFramesPerBlock;
 }
@@ -117,11 +117,11 @@ void Device::updateParams( const Params &params )
 	mSignalParamsWillChange();
 
 	if( sampleRate && sampleRate != mSampleRate ) {
-		Context::deviceManager()->setSampleRate( mKey, sampleRate );
+		Context::deviceManager()->setSampleRate( shared_from_this(), sampleRate );
 		mSampleRate = sampleRate;
 	}
 	if( framesPerBlock && framesPerBlock != mFramesPerBlock ) {
-		Context::deviceManager()->setFramesPerBlock( mKey, framesPerBlock );
+		Context::deviceManager()->setFramesPerBlock( shared_from_this(), framesPerBlock );
 		mFramesPerBlock = framesPerBlock;
 	}
 }

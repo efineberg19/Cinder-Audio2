@@ -149,36 +149,36 @@ DeviceRef DeviceManagerCoreAudio::getDefaultInput()
 	return findDeviceByKey( DeviceManagerCoreAudio::keyForDeviceId( defaultInputId ) );
 }
 
-std::string DeviceManagerCoreAudio::getName( const string &key )
+std::string DeviceManagerCoreAudio::getName( const DeviceRef &device )
 {
-	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioDeviceID deviceId = mDeviceIds.at( device );
 	return getAudioObjectPropertyString( deviceId, kAudioObjectPropertyName );
 }
 
-size_t DeviceManagerCoreAudio::getNumInputChannels( const string &key )
+size_t DeviceManagerCoreAudio::getNumInputChannels( const DeviceRef &device )
 {
-	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioDeviceID deviceId = mDeviceIds.at( device );
 	return getAudioObjectNumChannels( deviceId, true );
 }
 
-size_t DeviceManagerCoreAudio::getNumOutputChannels( const string &key )
+size_t DeviceManagerCoreAudio::getNumOutputChannels( const DeviceRef &device )
 {
-	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioDeviceID deviceId = mDeviceIds.at( device );
 	return getAudioObjectNumChannels( deviceId, false );
 }
 
-size_t DeviceManagerCoreAudio::getSampleRate( const string &key )
+size_t DeviceManagerCoreAudio::getSampleRate( const DeviceRef &device )
 {
-	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioDeviceID deviceId = mDeviceIds.at( device );
 	::AudioObjectPropertyAddress propertyAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
 	auto result = getAudioObjectProperty<Float64>( deviceId, propertyAddress );
 
 	return static_cast<size_t>( result );
 }
 
-void DeviceManagerCoreAudio::setSampleRate( const std::string &key, size_t sampleRate )
+void DeviceManagerCoreAudio::setSampleRate( const DeviceRef &device, size_t sampleRate )
 {
-	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioDeviceID deviceId = mDeviceIds.at( device );
 
 	auto acceptable = getAcceptableSampleRates( deviceId );
 	if( find( acceptable.begin(), acceptable.end(), sampleRate ) == acceptable.end() )
@@ -189,18 +189,18 @@ void DeviceManagerCoreAudio::setSampleRate( const std::string &key, size_t sampl
 	setAudioObjectProperty( deviceId, property, data );
 }
 
-size_t DeviceManagerCoreAudio::getFramesPerBlock( const string &key )
+size_t DeviceManagerCoreAudio::getFramesPerBlock( const DeviceRef &device )
 {
-	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioDeviceID deviceId = mDeviceIds.at( device );
 	::AudioObjectPropertyAddress propertyAddress = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
 	auto result = getAudioObjectProperty<UInt32>( deviceId, propertyAddress );
 
 	return static_cast<size_t>( result );
 }
 
-void DeviceManagerCoreAudio::setFramesPerBlock( const std::string &key, size_t framesPerBlock )
+void DeviceManagerCoreAudio::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
 {
-	::AudioDeviceID deviceId = getDeviceId( key );
+	::AudioDeviceID deviceId = mDeviceIds.at( device );
 
 	auto range = getAcceptableFramesPerBlockRange( deviceId );
 	if( framesPerBlock < range.first || framesPerBlock > range.second )
@@ -208,7 +208,7 @@ void DeviceManagerCoreAudio::setFramesPerBlock( const std::string &key, size_t f
 
 	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
 
-	size_t currentFramesPerBlock = getFramesPerBlock( key );
+	size_t currentFramesPerBlock = getFramesPerBlock( device );
 	LOG_V << "current framesPerBlock: " << currentFramesPerBlock << endl;
 	LOG_V << "... setting to: " << framesPerBlock << endl;
 
@@ -335,18 +335,6 @@ void DeviceManagerCoreAudio::unregisterPropertyListeners( const DeviceRef &devic
 	CI_ASSERT( status == noErr );
 
 	Block_release( listenerBlock );
-}
-
-::AudioDeviceID DeviceManagerCoreAudio::getDeviceId( const std::string &key )
-{
-	CI_ASSERT( ! mDeviceIds.empty() );
-
-	for( const auto& devicePair : mDeviceIds ) {
-		if( devicePair.first->getKey() == key )
-			return devicePair.second;
-	}
-
-	CI_ASSERT( 0 && "unreachable" );
 }
 
 const std::vector<DeviceRef>& DeviceManagerCoreAudio::getDevices()

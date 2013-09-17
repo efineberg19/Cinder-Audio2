@@ -37,14 +37,14 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	DeviceRef getDefaultOutput()												override;
 	DeviceRef getDefaultInput()													override;
 
-	std::string getName( const std::string &key )								override;
-	size_t getNumInputChannels( const std::string &key )						override;
-	size_t getNumOutputChannels( const std::string &key )						override;
-	size_t getSampleRate( const std::string &key )								override;
-	size_t getFramesPerBlock( const std::string &key )							override;
+	std::string getName( const DeviceRef &device )								override;
+	size_t getNumInputChannels( const DeviceRef &device )						override;
+	size_t getNumOutputChannels( const DeviceRef &device )						override;
+	size_t getSampleRate( const DeviceRef &device )								override;
+	size_t getFramesPerBlock( const DeviceRef &device )							override;
 
-	void setSampleRate( const std::string &key, size_t sampleRate )				override;
-	void setFramesPerBlock( const std::string &key, size_t framesPerBlock )		override;
+	void setSampleRate( const DeviceRef &device, size_t sampleRate )				override;
+	void setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )		override;
 
 	//! Sets the device related to \a key and managed by \a componenetInstance as the current active audio device.
 	void setCurrentOutputDevice( const DeviceRef &device, ::AudioComponentInstance componentInstance );
@@ -58,7 +58,6 @@ class DeviceManagerCoreAudio : public DeviceManager {
 	std::vector<size_t>			getAcceptableSampleRates( ::AudioDeviceID deviceId );
 	std::pair<size_t, size_t>	getAcceptableFramesPerBlockRange( ::AudioDeviceID deviceId );
 
-	::AudioDeviceID getDeviceId( const std::string &key ); // TODO: if DeviceRef's are passed in as keys, this isn't necessary.
 	static std::string keyForDeviceId( ::AudioDeviceID deviceId );
 
 	std::map<DeviceRef,::AudioDeviceID>		mDeviceIds;
