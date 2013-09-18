@@ -13,8 +13,6 @@
 
 // FIXME: changing buffer size on the fly is still turning off asyn I/O
 
-// TODO: take a closer look at buffer sizes when context sr doesn't match device
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;

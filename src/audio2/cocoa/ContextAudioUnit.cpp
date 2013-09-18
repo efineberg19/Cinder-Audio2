@@ -222,7 +222,10 @@ void NodeLineInAudioUnit::initialize()
 		}
 	}
 
-	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
+	size_t framesPerBlock = lineOutAu->getFramesPerBlock();
+	size_t sampleRate = lineOutAu->getSampleRate();
+
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), sampleRate );
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
 
 	if( mSynchronousIO ) {
@@ -239,7 +242,7 @@ void NodeLineInAudioUnit::initialize()
 			}
 		}
 
-		mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
+		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
 
 		::AURenderCallbackStruct callbackStruct { NodeLineInAudioUnit::renderCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
@@ -253,11 +256,12 @@ void NodeLineInAudioUnit::initialize()
 	}
 	else {
 		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
-		if( mDevice->getSampleRate() != lineOutAu->getSampleRate() || mDevice->getFramesPerBlock() != lineOutAu->getFramesPerBlock() )
-			mDevice->updateParams( Device::Params().sampleRate( lineOutAu->getSampleRate() ).framesPerBlock( lineOutAu->getFramesPerBlock() ) );
+		if( mDevice->getSampleRate() != sampleRate || mDevice->getFramesPerBlock() != framesPerBlock )
+			mDevice->updateParams( Device::Params().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
 
-		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( mDevice->getFramesPerBlock() * getNumChannels() ) );
-		mBufferList = createNonInterleavedBufferList( getNumChannels(), mDevice->getFramesPerBlock() );
+		// set params from Context, since mDevice may be updating async
+		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( framesPerBlock * getNumChannels() ) );
+		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
 
 		::AURenderCallbackStruct callbackStruct = { NodeLineInAudioUnit::inputCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_SetInputCallback, callbackStruct, kAudioUnitScope_Global, DeviceBus::INPUT );
@@ -276,12 +280,10 @@ void NodeLineInAudioUnit::initialize()
 #endif
 		initAu();
 	}
-
-	CI_ASSERT( getContext()->getSampleRate() == getDevice()->getSampleRate() );
-	CI_ASSERT( getContext()->getFramesPerBlock() == getDevice()->getFramesPerBlock() );
 }
 
 // TODO: what about when synchronous IO and this guy is requested to uninit, does associated NodeLineOutAudioUnit need to be uninitialized too?
+// - line out should notify line in we're going out
 void NodeLineInAudioUnit::uninitialize()
 {
 	if( ! mSynchronousIO ) {
@@ -363,15 +365,16 @@ OSStatus NodeLineInAudioUnit::renderCallback( void *data, ::AudioUnitRenderActio
 	return noErr;
 }
 
+// note: Not all AudioUnitRender status errors are fatal here. For instance, if samplerate just changed we may not be able to pull input just yet, but we will next frame.
 OSStatus NodeLineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
 	NodeLineInAudioUnit *lineIn = static_cast<NodeLineInAudioUnit *>( renderData->node );
-	CI_ASSERT( lineIn->mRingBuffer );
-	
+
 	::AudioBufferList *nodeBufferList = lineIn->mBufferList.get();
 	OSStatus status = ::AudioUnitRender( lineIn->getAudioUnit(), flags, timeStamp, DeviceBus::INPUT, numFrames, nodeBufferList );
-	CI_ASSERT( status == noErr );
+	if( status != noErr )
+		return status;
 
 	for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {
 		float *channel = static_cast<float *>( nodeBufferList->mBuffers[ch].mData );
