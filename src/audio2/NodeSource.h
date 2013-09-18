@@ -70,7 +70,7 @@ public:
 protected:
 	NodeLineIn( const DeviceRef &device, const Format &format );
 
-	DeviceRef mDevice;
+	DeviceRef	mDevice;
 };
 
 //! \brief Base Node class for sampled audio playback

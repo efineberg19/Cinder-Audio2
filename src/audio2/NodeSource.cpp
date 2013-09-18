@@ -51,7 +51,7 @@ NodeSource::NodeSource( const Format &format ) : Node( format )
 // ----------------------------------------------------------------------------------------------------
 
 NodeLineIn::NodeLineIn( const DeviceRef &device, const Format &format )
-	: NodeSource( format ), mDevice( device )
+: NodeSource( format ), mDevice( device )
 {
 	if( device->getNumInputChannels() < mNumChannels )
 		throw AudioFormatExc( "Device can not accomodate specified number of channels." );
