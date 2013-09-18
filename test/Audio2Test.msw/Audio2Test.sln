@@ -33,6 +33,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio2Unit", "..\unit\vc11\
 		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6} = {F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeviceTest", "..\DeviceTest\vc11\DeviceTest.vcxproj", "{74DC81AA-4A14-4966-BB88-794EB0C0F354}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6} = {F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -67,6 +72,10 @@ Global
 		{C812F577-7750-4839-8814-D6ED2435A817}.Debug|Win32.Build.0 = Debug|Win32
 		{C812F577-7750-4839-8814-D6ED2435A817}.Release|Win32.ActiveCfg = Release|Win32
 		{C812F577-7750-4839-8814-D6ED2435A817}.Release|Win32.Build.0 = Release|Win32
+		{74DC81AA-4A14-4966-BB88-794EB0C0F354}.Debug|Win32.ActiveCfg = Debug|Win32
+		{74DC81AA-4A14-4966-BB88-794EB0C0F354}.Debug|Win32.Build.0 = Debug|Win32
+		{74DC81AA-4A14-4966-BB88-794EB0C0F354}.Release|Win32.ActiveCfg = Release|Win32
+		{74DC81AA-4A14-4966-BB88-794EB0C0F354}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

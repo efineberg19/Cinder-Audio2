@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1056FC4F-4912-475D-8A19-4B3703F45AA5}</ProjectGuid>
+    <ProjectGuid>{74DC81AA-4A14-4966-BB88-794EB0C0F354}</ProjectGuid>
     <RootNamespace>DeviceTest</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>

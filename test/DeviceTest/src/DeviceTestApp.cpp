@@ -11,8 +11,6 @@
 
 #include "Gui.h"
 
-// FIXME: changing buffer size on the fly is still turning off asyn I/O
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
