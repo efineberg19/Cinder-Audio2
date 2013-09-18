@@ -229,18 +229,21 @@ void DeviceManagerCoreAudio::setCurrentInputDevice( const DeviceRef &device, ::A
 
 void DeviceManagerCoreAudio::setCurrentDeviceImpl( const DeviceRef &device, const DeviceRef &current, ::AudioComponentInstance componentInstance, bool isOutput )
 {
-	if( device == current )
-		return;
-
-	if( current )
-		unregisterPropertyListeners( current, mDeviceIds.at( current ), isOutput );
-
 	::AudioDeviceID deviceId = mDeviceIds.at( device );
+
+	// this isn't accurate unless the componenetInstance is stored and compared as well
+//	if( device == current )
+//		return;
+
+	if( device != current ) {
+		if( current )
+			unregisterPropertyListeners( current, mDeviceIds.at( current ), isOutput );
+
+		registerPropertyListeners( device, deviceId, true );
+	}
 
 	OSStatus status = ::AudioUnitSetProperty( componentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
 	CI_ASSERT( status == noErr );
-
-	registerPropertyListeners( device, deviceId, true );
 }
 
 // note: device doesn't need to be copied because DeviceManagerCoreAudio owns it.
