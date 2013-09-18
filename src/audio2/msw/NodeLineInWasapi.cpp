@@ -41,7 +41,7 @@ struct NodeLineInWasapi::Impl {
 	Impl() : mNumSamplesBuffered( 0 ) {}
 	~Impl() {}
 
-	void initAudioClient( const string &deviceId );
+	void initAudioClient( const DeviceRef &device );
 	void initCapture( size_t numFrames );
 	void captureAudio();
 
@@ -74,7 +74,7 @@ NodeLineInWasapi::~NodeLineInWasapi()
 void NodeLineInWasapi::initialize()
 {
 	CI_ASSERT( ! mImpl->mAudioClient );
-	mImpl->initAudioClient( mDevice->getKey() );
+	mImpl->initAudioClient( mDevice );
 
 	size_t sampleRate = getContext()->getSampleRate();
 
@@ -188,14 +188,14 @@ void NodeLineInWasapi::process( Buffer *buffer )
 // MARK: - InputWasapi::Impl
 // ----------------------------------------------------------------------------------------------------
 
-void NodeLineInWasapi::Impl::initAudioClient( const string &deviceKey )
+void NodeLineInWasapi::Impl::initAudioClient( const DeviceRef &device )
 {
 	CI_ASSERT( ! mAudioClient );
 
 	DeviceManagerWasapi *manager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
 	CI_ASSERT( manager );
 
-	shared_ptr<::IMMDevice> immDevice = manager->getIMMDevice( deviceKey );
+	shared_ptr<::IMMDevice> immDevice = manager->getIMMDevice( device );
 
 	::IAudioClient *audioClient;
 	HRESULT hr = immDevice->Activate( __uuidof(::IAudioClient), CLSCTX_ALL, NULL, (void**)&audioClient );

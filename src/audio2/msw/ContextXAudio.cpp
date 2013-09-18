@@ -253,7 +253,7 @@ NodeLineOutXAudio::~NodeLineOutXAudio()
 void NodeLineOutXAudio::initialize()
 {
 	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
-	const wstring &deviceId = deviceManager->getDeviceId( mDevice->getKey() );
+	const wstring &deviceId = deviceManager->getDeviceId( mDevice );
 	//const string &name = mDevice->getName();
 	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
 
@@ -322,6 +322,11 @@ void NodeLineOutXAudio::stop()
 	mEnabled = false;
 	mXAudio->StopEngine();
 	LOG_V "stopped" << endl;
+}
+
+uint64_t NodeLineOutXAudio::getLastClip()
+{
+	return 0; // TODO: set clip frame from source nodes
 }
 
 bool NodeLineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const

@@ -38,18 +38,18 @@ class DeviceManagerWasapi : public DeviceManager {
 
 	const std::vector<DeviceRef>& getDevices() override;
 
-	std::string getName( const std::string &key ) override;
-	size_t getNumInputChannels( const std::string &key ) override;
-	size_t getNumOutputChannels( const std::string &key ) override;
-	size_t getSampleRate( const std::string &key ) override;
-	size_t getFramesPerBlock( const std::string &key ) override;
+	std::string getName( const DeviceRef &device ) override;
+	size_t getNumInputChannels( const DeviceRef &device ) override;
+	size_t getNumOutputChannels( const DeviceRef &device ) override;
+	size_t getSampleRate( const DeviceRef &device ) override;
+	size_t getFramesPerBlock( const DeviceRef &device ) override;
 
-	virtual void setSampleRate( const std::string &key, size_t sampleRate )	override {} // TODO
-	virtual void setFramesPerBlock( const std::string &key, size_t framesPerBlock )	override {} // TODO
+	virtual void setSampleRate( const DeviceRef &device, size_t sampleRate )	override {} // TODO
+	virtual void setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )	override {} // TODO
 
-	const std::wstring& getDeviceId( const std::string &key );
+	const std::wstring& getDeviceId( const DeviceRef &device );
 
-	std::shared_ptr<::IMMDevice> getIMMDevice( const std::string &key );
+	std::shared_ptr<::IMMDevice> getIMMDevice( const DeviceRef &device );
 
   private:
 
@@ -62,7 +62,7 @@ class DeviceManagerWasapi : public DeviceManager {
 		  size_t numChannels, sampleRate;
 	  };
 
-	  DeviceInfo& getDeviceInfo( const std::string &key );
+	  DeviceInfo& getDeviceInfo( const DeviceRef &device );
 	  void parseDevices( DeviceInfo::Usage usage );
 
 	  std::vector<DeviceInfo> mDeviceInfoArray;

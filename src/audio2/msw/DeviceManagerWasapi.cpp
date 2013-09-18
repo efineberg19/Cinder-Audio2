@@ -112,28 +112,28 @@ const std::vector<DeviceRef>& DeviceManagerWasapi::getDevices()
 	return mDevices;
 }
 
-std::string DeviceManagerWasapi::getName( const string &key )
+std::string DeviceManagerWasapi::getName( const DeviceRef &device )
 {
-	return getDeviceInfo( key ).name;
+	return getDeviceInfo( device ).name;
 }
 
-size_t DeviceManagerWasapi::getNumInputChannels( const string &key )
+size_t DeviceManagerWasapi::getNumInputChannels( const DeviceRef &device )
 {
 	// FIXME: need a way to distinguish inputs and outputs in devInfo 
 	return 0;
 }
 
-size_t DeviceManagerWasapi::getNumOutputChannels( const string &key )
+size_t DeviceManagerWasapi::getNumOutputChannels( const DeviceRef &device )
 {
-	return getDeviceInfo( key ).numChannels;
+	return getDeviceInfo( device ).numChannels;
 }
 
-size_t DeviceManagerWasapi::getSampleRate( const string &key )
+size_t DeviceManagerWasapi::getSampleRate( const DeviceRef &device )
 {
-	return getDeviceInfo( key ).sampleRate;
+	return getDeviceInfo( device ).sampleRate;
 }
 
-size_t DeviceManagerWasapi::getFramesPerBlock( const string &key )
+size_t DeviceManagerWasapi::getFramesPerBlock( const DeviceRef &device )
 {
 	// ???: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
 	// - if it doesn't need a way to tell the user they should not listen to this value,
@@ -142,39 +142,40 @@ size_t DeviceManagerWasapi::getFramesPerBlock( const string &key )
 	return 512;
 }
 
-const std::wstring& DeviceManagerWasapi::getDeviceId( const std::string &key )
+const std::wstring& DeviceManagerWasapi::getDeviceId( const DeviceRef &device )
 {
-	return getDeviceInfo( key ).deviceId;
+	return getDeviceInfo( device ).deviceId;
 }
 
-shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const std::string &key )
+shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const DeviceRef &device )
 {
 	::IMMDeviceEnumerator *enumerator;
 	HRESULT hr = ::CoCreateInstance( __uuidof(::MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(::IMMDeviceEnumerator), (void**)&enumerator );
 	CI_ASSERT( hr == S_OK );
 	auto enumeratorPtr = msw::makeComUnique( enumerator );
 
-	::IMMDevice *device;
-	const wstring &endpointId = getDeviceInfo( key ).endpointId;
-	hr = enumerator->GetDevice( endpointId.c_str(), &device );
+	::IMMDevice *deviceImm;
+	const wstring &endpointId = getDeviceInfo( device ).endpointId;
+	hr = enumerator->GetDevice( endpointId.c_str(), &deviceImm );
 	CI_ASSERT( hr == S_OK );
 
-	return 	ci::msw::makeComShared( device );
+	return 	ci::msw::makeComShared( deviceImm );
 }
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Private
 // ----------------------------------------------------------------------------------------------------
 
-DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const std::string &key )
+DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const DeviceRef &device )
 {
 	CI_ASSERT( ! mDeviceInfoArray.empty() );
 
+	const string &key = device->getKey();
 	for( auto& devInfo : mDeviceInfoArray ) {
 		if( key == devInfo.key )
 			return devInfo;
 	}
-	throw AudioDeviceExc( string( "could not find device info for key: " ) + key );
+	throw AudioDeviceExc( string( "could not find device info for device with key: " ) + key );
 }
 
 //DeviceManagerWasapi::DeviceContainerT& DeviceManagerWasapi::getDevices()

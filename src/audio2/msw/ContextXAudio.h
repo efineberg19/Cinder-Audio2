@@ -104,6 +104,7 @@ class NodeLineOutXAudio : public NodeLineOut, public NodeXAudio {
 	void stop() override;
 
 	uint64_t getNumProcessedFrames() override	{ return mProcessedFrames; }
+	uint64_t getLastClip() override;
 
 	bool supportsSourceNumChannels( size_t numChannels ) const override;
 
