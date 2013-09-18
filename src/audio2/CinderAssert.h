@@ -23,7 +23,16 @@
 
 #pragma once
 
+// define to break into the debugger when assertion fails, rather than abort.
+//#define CI_ASSERT_DEBUG_BREAK
+
+
+#if defined( CI_ASSERT_DEBUG_BREAK ) && ! defined( BOOST_ENABLE_ASSERT_HANDLER )
+	#define BOOST_ENABLE_ASSERT_HANDLER
+#endif
+
 #include <boost/assert.hpp>
 
 #define CI_ASSERT( expr ) BOOST_ASSERT( expr )
-#define CI_ASSERT_MSG( expr, msg ) BOOST_ASSERT_MSG(expr, msg )
+#define CI_ASSERT_MSG( expr, msg ) BOOST_ASSERT_MSG( expr, msg )
+

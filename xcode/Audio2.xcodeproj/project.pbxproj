@@ -45,6 +45,8 @@
 		1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1180FD8917AB7CB70070AC30 /* Node.cpp */; };
 		1180FD8D17AB7CB70070AC30 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = 1180FD8A17AB7CB70070AC30 /* Node.h */; };
 		1180FD8E17AB7CB70070AC30 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = 1180FD8A17AB7CB70070AC30 /* Node.h */; };
+		11A669EE17E9623B003DF9B1 /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */; };
+		11A669EF17E9623B003DF9B1 /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */; };
 		11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B041AE179B89F80034BEE2 /* Plot.cpp */; };
 		11B041B1179B89F80034BEE2 /* Plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041AF179B89F80034BEE2 /* Plot.h */; };
 		11B041B3179B8A0C0034BEE2 /* CinderAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041B2179B8A0C0034BEE2 /* CinderAssert.h */; };
@@ -134,6 +136,7 @@
 		11446DB317E64CCD00457AC6 /* NodeTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeTarget.h; sourceTree = "<group>"; };
 		1180FD8917AB7CB70070AC30 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
 		1180FD8A17AB7CB70070AC30 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
+		11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderAssert.cpp; sourceTree = "<group>"; };
 		11B041AE179B89F80034BEE2 /* Plot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Plot.cpp; sourceTree = "<group>"; };
 		11B041AF179B89F80034BEE2 /* Plot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Plot.h; sourceTree = "<group>"; };
 		11B041B2179B8A0C0034BEE2 /* CinderAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderAssert.h; sourceTree = "<group>"; };
@@ -220,6 +223,7 @@
 				1104F46517754A6E003EAA2B /* audio.h */,
 				1104F46617754A6E003EAA2B /* Buffer.h */,
 				11B041B2179B8A0C0034BEE2 /* CinderAssert.h */,
+				11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */,
 				1104F47417754A6E003EAA2B /* Context.cpp */,
 				1104F47517754A6E003EAA2B /* Context.h */,
 				1104F47617754A6E003EAA2B /* Debug.h */,
@@ -422,6 +426,7 @@
 				1104F4B317754A6E003EAA2B /* NodeSource.cpp in Sources */,
 				11C58DE9177943DA00DF99F8 /* CinderCoreAudio.cpp in Sources */,
 				1104F4AC17754A6E003EAA2B /* Dsp.cpp in Sources */,
+				11A669EE17E9623B003DF9B1 /* CinderAssert.cpp in Sources */,
 				11D6946017D0475000B0D2BB /* fftsg.cpp in Sources */,
 				1104F4AA17754A6E003EAA2B /* Device.cpp in Sources */,
 				1104F4A717754A6E003EAA2B /* Context.cpp in Sources */,
@@ -445,6 +450,7 @@
 				11B0421D179B92CB0034BEE2 /* DeviceManagerAudioSession.cpp in Sources */,
 				11B041F4179B90450034BEE2 /* NodeSource.cpp in Sources */,
 				11B041F6179B90450034BEE2 /* CinderCoreAudio.cpp in Sources */,
+				11A669EF17E9623B003DF9B1 /* CinderAssert.cpp in Sources */,
 				11D6946117D0475000B0D2BB /* fftsg.cpp in Sources */,
 				11B041F7179B90450034BEE2 /* Dsp.cpp in Sources */,
 				11B041F8179B90450034BEE2 /* Device.cpp in Sources */,
