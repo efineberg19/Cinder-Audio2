@@ -123,10 +123,11 @@ void Node::setInput( const NodeRef &input, size_t bus )
 	if( bus > mInputs.size() )
 		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
 
-	NodeRef& existingInput = mInputs[bus];
-	if( existingInput )
-		existingInput->disconnect();
 
+	// TODO: this disconnection kills nodes that are solely owned by the graph. but make sure not disconnecting works out.
+	//NodeRef& existingInput = mInputs[bus];
+	//if( existingInput )
+	//	existingInput->disconnect();
 	{
 		lock_guard<mutex> lock( getContext()->getMutex() );
 
