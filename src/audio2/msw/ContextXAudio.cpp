@@ -87,7 +87,7 @@ struct EngineCallbackImpl : public IXAudio2EngineCallback {
 };
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - XAudioNode
+// MARK: - NodeXAudio
 // ----------------------------------------------------------------------------------------------------
 
 NodeXAudio::~NodeXAudio()
@@ -108,6 +108,7 @@ NodeXAudioSourceVoice::NodeXAudioSourceVoice()
 
 NodeXAudioSourceVoice::~NodeXAudioSourceVoice()
 {
+	uninitSourceVoice();
 }
 
 void NodeXAudioSourceVoice::initialize()
