@@ -83,6 +83,9 @@ void Node::disconnect( size_t bus )
 				parentInputs[i].reset();
 		}
 	}
+
+	if( mAutoEnabled )
+		stop();
 }
 
 void Node::setInput( const NodeRef &input )
@@ -113,6 +116,9 @@ void Node::setInput( const NodeRef &input )
 
 	// must call once lock has been released
 	getContext()->connectionsDidChange( shared_from_this() );
+
+	if( mAutoEnabled )
+		start();
 }
 
 void Node::setInput( const NodeRef &input, size_t bus )
@@ -138,6 +144,9 @@ void Node::setInput( const NodeRef &input, size_t bus )
 
 	// must call once lock has been released
 	getContext()->connectionsDidChange( shared_from_this() );
+
+	if( mAutoEnabled )
+		start();
 }
 
 bool Node::isConnectedToInput( const NodeRef &input ) const

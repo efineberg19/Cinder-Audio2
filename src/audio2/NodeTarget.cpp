@@ -37,8 +37,6 @@ NodeLineOut::NodeLineOut( const DeviceRef &device, const Format &format )
 	mDevice->getSignalParamsWillChange().connect( bind( &NodeLineOut::deviceParamsWillChange, this ) );
 	mDevice->getSignalParamsDidChange().connect( bind( &NodeLineOut::deviceParamsDidChange, this ) );
 
-	setAutoEnabled();
-
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 2 );

@@ -53,11 +53,13 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	//! If the target has not already been set, it is the default NodeLineOut
 	virtual const NodeTargetRef& getTarget();
+	//! Enables audio processing. Effectively the same as calling getTarget()->start()
 	virtual void start();
+	//! Enables audio processing. Effectively the same as calling getTarget()->stop()
 	virtual void stop();
-	//! start / stop the graph via bool
+	//! start / stop audio processing via boolean
 	void setEnabled( bool enabled = true );
-
+	//! Returns whether or not this \a Context is current enabled and processing audio.
 	bool isEnabled() const		{ return mEnabled; }
 
 	//! Disconnect all Node's related by this Context
@@ -79,8 +81,8 @@ class Context : public std::enable_shared_from_this<Context> {
   protected:
 	Context() : mEnabled( false ) {}
 
-	void startRecursive( const NodeRef &node );
-	void stopRecursive( const NodeRef &node );
+	//void startRecursive( const NodeRef &node );
+	//void stopRecursive( const NodeRef &node );
 	void disconnectRecursive( const NodeRef &node );
 	void initRecursisve( const NodeRef &node );
 	void uninitRecursisve( const NodeRef &node );

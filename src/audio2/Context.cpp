@@ -81,10 +81,18 @@ void Context::start()
 {
 	if( mEnabled )
 		return;
-	CI_ASSERT( mTarget );
+
 	mEnabled = true;
-	
-	startRecursive( mTarget );
+	getTarget()->start();
+}
+
+void Context::stop()
+{
+	if( ! mEnabled )
+		return;
+
+	mEnabled = false;
+	getTarget()->stop();
 }
 
 void Context::disconnectAllNodes()
@@ -93,15 +101,6 @@ void Context::disconnectAllNodes()
 		stop();
 	
 	disconnectRecursive( mTarget );
-}
-
-void Context::stop()
-{
-	if( ! mEnabled )
-		return;
-	mEnabled = false;
-
-	stopRecursive( mTarget );
 }
 
 void Context::setEnabled( bool enabled )
@@ -124,29 +123,27 @@ const NodeTargetRef& Context::getTarget()
 	return mTarget;
 }
 
-void Context::startRecursive( const NodeRef &node )
-{
-	if( ! node )
-		return;
-	for( auto& input : node->getInputs() )
-		startRecursive( input );
+//void Context::startRecursive( const NodeRef &node )
+//{
+//	if( ! node )
+//		return;
+//	for( auto& input : node->getInputs() )
+//		startRecursive( input );
+//
+//	if( node->isAutoEnabled() )
+//		node->start();
+//}
 
-	// TODO: consider doing this instead when the node is finished being connected.
-	// - if Node::Format().autoEnable() is added as well, this'll make it more modular
-	if( node->isAutoEnabled() )
-		node->start();
-}
-
-void Context::stopRecursive( const NodeRef &node )
-{
-	if( ! node )
-		return;
-	for( auto& input : node->getInputs() )
-		stopRecursive( input );
-
-	if( node->isAutoEnabled() )
-		node->stop();
-}
+//void Context::stopRecursive( const NodeRef &node )
+//{
+//	if( ! node )
+//		return;
+//	for( auto& input : node->getInputs() )
+//		stopRecursive( input );
+//
+//	if( node->isAutoEnabled() )
+//		node->stop();
+//}
 
 void Context::disconnectRecursive( const NodeRef &node )
 {
