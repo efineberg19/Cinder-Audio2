@@ -46,6 +46,9 @@ mNumChannels( 1 ), mInputs( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
 		mNumChannels = format.getChannels();
 		mChannelMode = ChannelMode::SPECIFIED;
 	}
+
+	if( ! boost::indeterminate( format.getAutoEnable() ) )
+		setAutoEnabled( format.getAutoEnable() );
 }
 
 Node::~Node()

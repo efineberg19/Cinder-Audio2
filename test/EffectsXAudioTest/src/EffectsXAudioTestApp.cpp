@@ -58,9 +58,8 @@ void EffectXAudioTestApp::setup()
 {
 	mContext = Context::create();
 
-	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
+	auto noise = mContext->makeNode( new NodeGen<NoiseGen>( Node::Format().autoEnable() ) );
 	noise->getGen().setAmp( 0.25f );
-	noise->setAutoEnabled();
 	mSource = noise;
 
 	setupOne();

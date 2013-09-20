@@ -35,7 +35,8 @@ namespace cinder { namespace audio2 {
 	class NodeEffect : public Node {
 	public:
 		NodeEffect( const Format &format = Format() ) : Node( format ) {
-			setAutoEnabled();
+			if( boost::indeterminate( format.getAutoEnable() ) )
+				setAutoEnabled();
 		}
 		virtual ~NodeEffect() {}
 	};

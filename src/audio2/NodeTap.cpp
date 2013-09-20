@@ -41,7 +41,8 @@ namespace cinder { namespace audio2 {
 NodeTap::NodeTap( const Format &format )
 : Node( format ), mWindowSize( format.getWindowSize() )
 {
-	setAutoEnabled();
+	if( boost::indeterminate( format.getAutoEnable() ) )
+		setAutoEnabled();
 }
 
 NodeTap::~NodeTap()

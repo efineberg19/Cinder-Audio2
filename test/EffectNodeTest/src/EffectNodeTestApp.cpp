@@ -49,11 +49,10 @@ void EffectNodeTestApp::setup()
 //	noise->getGen().setAmp( 0.25f );
 //	mGen = noise;
 
-	auto sine = mContext->makeNode( new NodeGen<SineGen>() );
+	auto sine = mContext->makeNode( new NodeGen<SineGen>( Node::Format().autoEnable() ) );
 	sine->getGen().setAmp( 1.0f );
 	sine->getGen().setFreq( 440.0f );
 	mGen = sine;
-	mGen->setAutoEnabled();
 
 	setupOne();
 //	setupForceStereo();

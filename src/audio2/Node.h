@@ -27,6 +27,8 @@
 #include "audio2/Buffer.h"
 #include "audio2/Atomic.h"
 
+#include <boost/logic/tribool.hpp>
+
 #include <memory>
 #include <vector>
 
@@ -45,17 +47,21 @@ class Node : public std::enable_shared_from_this<Node> {
 	};
 
 	struct Format {
-		Format() : mChannels( 0 ), mChannelMode( ChannelMode::MATCHES_INPUT ) {}
+		Format() : mChannels( 0 ), mChannelMode( ChannelMode::MATCHES_INPUT ), mAutoEnable( boost::logic::indeterminate ) {}
 
 		Format& channels( size_t ch )							{ mChannels = ch; return *this; }
 		Format& channelMode( ChannelMode mode )					{ mChannelMode = mode; return *this; }
+		//! Whether or not the Node will be auto-enabled when connection changes occur.  Default is false for base \a Node class, although sub-classes may choose a different default.
+		Format& autoEnable( boost::tribool tb = true )			{ mAutoEnable = tb; return *this; }
 
-		size_t	getChannels() const								{ return mChannels; }
-		ChannelMode	getChannelMode() const						{ return mChannelMode; }
+		size_t			getChannels() const						{ return mChannels; }
+		ChannelMode		getChannelMode() const					{ return mChannelMode; }
+		boost::tribool	getAutoEnable() const					{ return mAutoEnable; }
 
 	protected:
-		size_t mChannels;
-		ChannelMode mChannelMode;
+		size_t			mChannels;
+		ChannelMode		mChannelMode;
+		boost::tribool	mAutoEnable;
 	};
 
 	Node( const Format &format );
