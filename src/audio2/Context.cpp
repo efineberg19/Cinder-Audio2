@@ -117,7 +117,7 @@ void Context::setTarget( NodeTargetRef target )
 	mTarget = target;
 }
 
-NodeTargetRef Context::getTarget()
+const NodeTargetRef& Context::getTarget()
 {
 	if( ! mTarget )
 		setTarget( createLineOut() );

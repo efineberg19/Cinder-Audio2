@@ -52,7 +52,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual void setTarget( NodeTargetRef target );
 
 	//! If the target has not already been set, it is the default NodeLineOut
-	virtual NodeTargetRef getTarget(); // TODO: return & if possible
+	virtual const NodeTargetRef& getTarget();
 	virtual void start();
 	virtual void stop();
 	//! start / stop the graph via bool
