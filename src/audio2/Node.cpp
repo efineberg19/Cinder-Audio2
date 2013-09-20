@@ -69,6 +69,9 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t bus )
 
 void Node::disconnect( size_t bus )
 {
+	if( mAutoEnabled )
+		stop();
+
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	for( NodeRef &input : mInputs )
@@ -86,9 +89,6 @@ void Node::disconnect( size_t bus )
 				parentInputs[i].reset();
 		}
 	}
-
-	if( mAutoEnabled )
-		stop();
 }
 
 void Node::setInput( const NodeRef &input )
