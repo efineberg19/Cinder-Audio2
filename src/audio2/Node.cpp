@@ -69,9 +69,6 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t bus )
 
 void Node::disconnect( size_t bus )
 {
-	if( mAutoEnabled )
-		stop();
-
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	for( NodeRef &input : mInputs )
@@ -119,9 +116,6 @@ void Node::setInput( const NodeRef &input )
 
 	// must call once lock has been released
 	getContext()->connectionsDidChange( shared_from_this() );
-
-	if( mAutoEnabled )
-		start();
 }
 
 void Node::setInput( const NodeRef &input, size_t bus )
@@ -147,9 +141,6 @@ void Node::setInput( const NodeRef &input, size_t bus )
 
 	// must call once lock has been released
 	getContext()->connectionsDidChange( shared_from_this() );
-
-	if( mAutoEnabled )
-		start();
 }
 
 bool Node::isConnectedToInput( const NodeRef &input ) const
@@ -232,6 +223,9 @@ void Node::initializeImpl()
 	initialize();
 	mInitialized = true;
 	LOG_V << getTag() << " initialized." << endl;
+
+	if( mAutoEnabled )
+		start();
 }
 
 
@@ -239,6 +233,9 @@ void Node::uninitializeImpl()
 {
 	if( ! mInitialized )
 		return;
+
+	if( mAutoEnabled )
+		stop();
 
 	uninitialize();
 	mInitialized = false;

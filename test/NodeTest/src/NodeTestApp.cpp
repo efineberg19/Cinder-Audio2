@@ -15,10 +15,16 @@ using namespace std;
 
 using namespace ci::audio2;
 
+// TODO: consider whether its a good idea to control node auto-enabling during initialization
+//   - it better matches the dynamic connections and how they can effect multiple nodes in a graph
+//	 - it causes more work in the xaudio case, probably not others.
+//   - start() / stop() are getting called sync from the main thread, so they cannot explicitly begin processing audio.
+//			- Once again, was really only a weird xaudio issue, but I found a workaround.
+
 struct InterleavedPassThruNode : public Node {
 	InterleavedPassThruNode() : Node( Format() )
 	{
-		mAutoEnabled = true;
+		setAutoEnabled();
 		mChannelMode = ChannelMode::SPECIFIED;
 		setNumChannels( 2 );
 	}
