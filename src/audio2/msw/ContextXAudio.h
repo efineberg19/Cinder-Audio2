@@ -36,19 +36,11 @@ class NodeXAudio;
 
 class NodeXAudio {
   public:
-	NodeXAudio() : mFilterEnabled( false ), mFilterConnected( false ) {}
+	NodeXAudio() {}
 	virtual ~NodeXAudio();
-
-	// TODO: get rid of these, just always have filters or not
-	// - to disable, add settable flag to context
-	void setFilterEnabled( bool b = true )	{ mFilterEnabled = b; }
-	bool isFilterEnabled() const			{ return mFilterEnabled; }
-	void setFilterConnected( bool b = true )	{ mFilterConnected = b; }
-	bool isFilterConnected() const			{ return mFilterConnected; }
 
   protected:
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-	bool										mFilterEnabled, mFilterConnected;
 };
 
 struct VoiceCallbackImpl;
@@ -191,7 +183,13 @@ class ContextXAudio : public Context {
 	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a NodeLineOut.
 	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<NodeLineOutXAudio>( mTarget )->getXAudio(); }
 
+	//! Sets whether to enable filter usage within this audio context (default = true). \see NodeEffectXAudioFilter
+	void setFilterEffectsEnabled( bool b = true )	{ mFilterEnabled = b; }
+	//! Returns whether filter usage is enabled within this audio context (default = true). \see NodeEffectXAudioFilter
+	bool isFilterEffectsEnabled() const			{ return mFilterEnabled; }
+
   private:
+	bool	mFilterEnabled;
 };
 
 } } } // namespace cinder::audio2::msw

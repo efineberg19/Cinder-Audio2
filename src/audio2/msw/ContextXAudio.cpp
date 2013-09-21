@@ -157,7 +157,7 @@ void NodeXAudioSourceVoice::initSourceVoice()
 {
 	CI_ASSERT( ! mSourceVoice );
 
-	ContextRef context = getContext();
+	auto context = dynamic_pointer_cast<ContextXAudio>( getContext() );
 
 	// first ensure there is a valid mastering voice.
 	NodeTargetRef target = context->getTarget();
@@ -166,8 +166,8 @@ void NodeXAudioSourceVoice::initSourceVoice()
 
 	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), context->getSampleRate() );
 
-	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
-	UINT32 flags = ( mFilterEnabled ? XAUDIO2_VOICE_USEFILTER : 0 );
+	IXAudio2 *xaudio = context->getXAudio();
+	UINT32 flags = ( context->isFilterEffectsEnabled() ? XAUDIO2_VOICE_USEFILTER : 0 );
 	HRESULT hr = xaudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
 	mVoiceCallback->setInputVoice( mSourceVoice );
@@ -472,6 +472,7 @@ void NodeEffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &param
 // ----------------------------------------------------------------------------------------------------
 
 ContextXAudio::ContextXAudio()
+: mFilterEnabled( true )
 {
 }
 
@@ -518,8 +519,6 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
 
 					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
-					sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
-
 					node->setInput( sourceVoice, i );
 					sourceVoice->setInput( input );
 
