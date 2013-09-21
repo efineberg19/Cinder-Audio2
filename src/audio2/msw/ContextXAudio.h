@@ -172,14 +172,10 @@ class ContextXAudio : public Context {
 	//! If deployment target is 0x601 (win vista) or greater, uses \a LineInWasapi, else returns an empty \a LineInRef
 	NodeLineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
 
+	//! When connections change, ensure a NodeXAudioSourceVoice is in the right position to enable pulling audio samples.
 	void connectionsDidChange( const NodeRef &node ) override; 
-
-	//! ContextXAudio's \a NodeTarget is always an instance of LineOutXAudio
-	// TODO: override setTarget() and assert type is LineOutXAudio
-	// - allows for variable channel / samplerate
-	// - re-setting the target will also require walking the graph and re-initting all source nodes / effects
-	//NodeTargetRef getTarget() override;
-
+	//! Overridden to assert type is NodeLineOutXAudio
+	void setTarget( const NodeTargetRef &target ) override;
 	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a NodeLineOut.
 	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<NodeLineOutXAudio>( mTarget )->getXAudio(); }
 

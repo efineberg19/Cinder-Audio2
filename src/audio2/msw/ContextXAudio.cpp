@@ -490,6 +490,12 @@ NodeLineInRef ContextXAudio::createLineIn( const DeviceRef &device, const Node::
 	return makeNode( new NodeLineInWasapi( device ) );
 }
 
+void ContextXAudio::setTarget( const NodeTargetRef &target )
+{
+	CI_ASSERT_MSG( dynamic_pointer_cast<NodeLineOutXAudio>( target ), "ContextXAudio only supports a target of type NodeLineOutXAudio" );
+	Context::setTarget( target );
+}
+
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
 {
 	// recurse through inputs (this is only called when an input is set, not out)
