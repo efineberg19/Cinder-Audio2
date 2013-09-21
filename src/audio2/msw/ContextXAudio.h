@@ -79,7 +79,7 @@ private:
 	void submitNextBuffer();
 
 	::IXAudio2SourceVoice						*mSourceVoice;
-	::XAUDIO2_BUFFER							mXAudio2Buffer;
+	::XAUDIO2_BUFFER							mXAudioBuffer;
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
 	BufferInterleaved							mBufferInterleaved;
 	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;

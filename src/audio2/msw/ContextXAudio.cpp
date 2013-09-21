@@ -120,16 +120,16 @@ void NodeXAudioSourceVoice::initialize()
 	setProcessWithSumming();
 	size_t numSamples = mInternalBuffer.getSize();
 
-	memset( &mXAudio2Buffer, 0, sizeof( mXAudio2Buffer ) );
-	mXAudio2Buffer.AudioBytes = numSamples * sizeof( float );
+	memset( &mXAudioBuffer, 0, sizeof( mXAudioBuffer ) );
+	mXAudioBuffer.AudioBytes = numSamples * sizeof( float );
 	if( getNumChannels() == 2 ) {
 		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
 		mBufferInterleaved = BufferInterleaved( mInternalBuffer.getNumFrames(), mInternalBuffer.getNumChannels() );
-		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.getData() );
+		mXAudioBuffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.getData() );
 	}
 	else {
 		// setup mono
-		mXAudio2Buffer.pAudioData = reinterpret_cast<BYTE *>( mInternalBuffer.getData() );
+		mXAudioBuffer.pAudioData = reinterpret_cast<BYTE *>( mInternalBuffer.getData() );
 	}
 
 	initSourceVoice();
@@ -207,7 +207,7 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 	if( getNumChannels() == 2 )
 		interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
 
-	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudio2Buffer );
+	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudioBuffer );
 	CI_ASSERT( hr == S_OK );
 }
 
