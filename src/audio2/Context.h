@@ -40,8 +40,8 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns a platform-specific \a Context. If none is available, returns an empty \a ContextRef.
 	static ContextRef			create();
 
-	virtual NodeLineOutRef		createLineOut( DeviceRef device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
-	virtual NodeLineInRef		createLineIn( DeviceRef device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual NodeLineOutRef		createLineOut( const DeviceRef &device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual NodeLineInRef		createLineIn( const DeviceRef &device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );
@@ -49,7 +49,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
 	static DeviceManager* deviceManager();
 
-	virtual void setTarget( NodeTargetRef target );
+	virtual void setTarget( const NodeTargetRef &target );
 
 	//! If the target has not already been set, it is the default NodeLineOut
 	virtual const NodeTargetRef& getTarget();

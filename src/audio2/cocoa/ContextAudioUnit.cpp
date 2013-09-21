@@ -455,12 +455,12 @@ void NodeEffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float va
 // MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-NodeLineOutRef ContextAudioUnit::createLineOut( DeviceRef device, const NodeTarget::Format &format )
+NodeLineOutRef ContextAudioUnit::createLineOut( const DeviceRef &device, const NodeTarget::Format &format )
 {
 	return makeNode( new NodeLineOutAudioUnit( device, format ) );
 }
 
-NodeLineInRef ContextAudioUnit::createLineIn( DeviceRef device, const Node::Format &format )
+NodeLineInRef ContextAudioUnit::createLineIn( const DeviceRef &device, const Node::Format &format )
 {
 	return makeNode( new NodeLineInAudioUnit( device, format ) );
 }

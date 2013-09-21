@@ -480,12 +480,12 @@ ContextXAudio::~ContextXAudio()
 {
 }
 
-NodeLineOutRef ContextXAudio::createLineOut( DeviceRef device, const Node::Format &format )
+NodeLineOutRef ContextXAudio::createLineOut( const DeviceRef &device, const Node::Format &format )
 {
 	return makeNode( new NodeLineOutXAudio( device, format ) );
 }
 
-NodeLineInRef ContextXAudio::createLineIn( DeviceRef device, const Node::Format &format )
+NodeLineInRef ContextXAudio::createLineIn( const DeviceRef &device, const Node::Format &format )
 {
 	return makeNode( new NodeLineInWasapi( device ) );
 }

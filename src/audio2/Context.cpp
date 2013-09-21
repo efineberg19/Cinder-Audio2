@@ -111,7 +111,7 @@ void Context::setEnabled( bool enabled )
 		stop();
 }
 
-void Context::setTarget( NodeTargetRef target )
+void Context::setTarget( const NodeTargetRef &target )
 {
 	mTarget = target;
 }
