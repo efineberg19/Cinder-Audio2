@@ -170,14 +170,7 @@ shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const DeviceRef &devi
 
 DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const DeviceRef &device )
 {
-	const string &key = device->getKey();
-	for( auto& devInfo : mDeviceInfoArray ) {
-		if( key == devInfo.mKey )
-			return devInfo;
-	}
-
-	CI_ASSERT( 0 && "unreachable" );
-	return mDeviceInfoArray.front();
+	return mDeviceInfoSet.at( device );
 }
 
 // This call is performed twice because a separate Device subclass is used for input and output
@@ -252,8 +245,7 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 	CI_ASSERT( hr == S_OK);
 
 	for ( UINT i = 0; i < numDevices; i++ )	{
-		mDeviceInfoArray.push_back( DeviceInfo() );
-		DeviceInfo &devInfo = mDeviceInfoArray.back();
+		DeviceInfo devInfo;
 		devInfo.mUsage = usage;
 
 		::IMMDevice *deviceImm;
@@ -279,7 +271,7 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 		::CoTaskMemFree( endpointIdLpwStr );
 		
 		// Wasapi's device Id is actually a subset of the one xaudio needs, so we find and use the match.
-		// TODO: probably should just do this for output, since input is fine working with the mKey 
+		// TODO: add xaudio-specific method to get the required string from device, which does the formatting
 		for( auto it = deviceIds.begin(); it != deviceIds.end(); ++it ) {
 			if( it->find( devInfo.mEndpointId ) != wstring::npos ) {
 				devInfo.mDeviceId = *it;
@@ -296,10 +288,8 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 		devInfo.mNumChannels = format->nChannels;
 		devInfo.mSampleRate = format->nSamplesPerSec;
 
-
-		//DeviceRef device = ( mUsage == DeviceInfo::Usage::INPUT ? DeviceRef( new DeviceInputWasapi( devInfo.mKey ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.mKey ) ) );
-		//mDevices.push_back( device );
-		addDevice( devInfo.mKey );
+		DeviceRef addedDevice = addDevice( devInfo.mKey );
+		auto result = mDeviceInfoSet.insert( make_pair( addedDevice, devInfo ) );
 	}
 }
 

@@ -25,6 +25,8 @@
 
 #include "audio2/Device.h"
 
+#include <map>
+
 struct IMMDevice;
 
 namespace cinder { namespace audio2 { namespace msw {
@@ -63,8 +65,7 @@ class DeviceManagerWasapi : public DeviceManager {
 	  DeviceInfo& getDeviceInfo( const DeviceRef &device );
 	  void parseDevices( DeviceInfo::Usage usage );
 
-	  // TODO: make this std::map<DeviceRef, DeviceInfo>
-	  std::vector<DeviceInfo> mDeviceInfoArray;
+	  std::map<DeviceRef, DeviceInfo> mDeviceInfoSet;
 };
 
 } } } // namespace cinder::audio2::msw
