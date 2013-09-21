@@ -46,18 +46,28 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 	VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
 
 	void setInputVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
-
-	// TODO: apparently passing in XAUDIO2_VOICE_NOSAMPLESPLAYED to GetState is 4x faster
-	void _stdcall OnBufferEnd( void *pBufferContext ) {
+	void renderIfNecessary()
+	{
 		::XAUDIO2_VOICE_STATE state;
-		mSourceVoice->GetState( &state );
+		mSourceVoice->GetState( &state, XAUDIO2_VOICE_NOSAMPLESPLAYED );
 		if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
 			mRenderCallback();
 	}
 
+	void _stdcall OnBufferEnd( void *pBufferContext )
+	{
+		// called when a buffer has been consumed, so check if we need to submit another
+		renderIfNecessary();
+	}
+
+	void _stdcall OnVoiceProcessingPassStart( UINT32 SamplesRequired )
+	{
+		// called after Node::start(), and there after
+		renderIfNecessary();
+	}
+
 	void _stdcall OnStreamEnd() {}
 	void _stdcall OnVoiceProcessingPassEnd() {}
-	void _stdcall OnVoiceProcessingPassStart( UINT32 SamplesRequired ) {}
 	void _stdcall OnBufferStart( void *pBufferContext ) {}
 	void _stdcall OnLoopEnd( void *pBufferContext ) {}
 	void _stdcall OnVoiceError( void *pBufferContext, HRESULT Error )
@@ -181,7 +191,6 @@ void NodeXAudioSourceVoice::start()
 	CI_ASSERT( mSourceVoice );
 	mEnabled = true;
 	mSourceVoice->Start();
-	submitNextBuffer();
 
 	LOG_V << "started." << endl;
 }
@@ -500,7 +509,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					NodeRef sourceInput = sourceVoice->getInputs()[0];
 					sourceVoice->disconnect();
 					node->setInput( sourceVoice, i );
-					sourceVoice->setInput( input );
+					sourceVoice->setInput( input, 0 );
 					input->setInput( sourceInput, 0 );
 				}
 				else if( findDownStreamNode<NodeXAudio>( input ) )
@@ -511,10 +520,12 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
 					sourceVoice->setNumChannels( input->getNumChannels() ); // TODO: this probably isn't necessary, should be taken care of in setInput if format is setup correct
 					sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
-					sourceVoice->initialize();
+					sourceVoice->initialize(); // ???: necessary?
 
 					node->setInput( sourceVoice, i );
 					sourceVoice->setInput( input );
+
+					sourceVoice->start();
 				}
 			}
 			continue;
