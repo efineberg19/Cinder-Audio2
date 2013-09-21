@@ -106,31 +106,33 @@ DeviceRef DeviceManagerWasapi::getDefaultInput()
 const std::vector<DeviceRef>& DeviceManagerWasapi::getDevices()
 {
 	if( mDevices.empty() ) {
-		parseDevices( DeviceInfo::Usage::Input );
-		parseDevices( DeviceInfo::Usage::Output );
+		parseDevices( DeviceInfo::Usage::INPUT );
+		parseDevices( DeviceInfo::Usage::OUTPUT );
 	}
 	return mDevices;
 }
 
 std::string DeviceManagerWasapi::getName( const DeviceRef &device )
 {
-	return getDeviceInfo( device ).name;
+	return getDeviceInfo( device ).mName;
 }
 
 size_t DeviceManagerWasapi::getNumInputChannels( const DeviceRef &device )
 {
-	// FIXME: need a way to distinguish inputs and outputs in devInfo 
-	return 0;
+	auto& devInfo = getDeviceInfo( device );
+	CI_ASSERT( devInfo.mUsage == DeviceInfo::Usage::INPUT );
+	return devInfo.mNumChannels;
 }
 
 size_t DeviceManagerWasapi::getNumOutputChannels( const DeviceRef &device )
 {
-	return getDeviceInfo( device ).numChannels;
-}
+	auto& devInfo = getDeviceInfo( device );
+	CI_ASSERT( devInfo.mUsage == DeviceInfo::Usage::OUTPUT );
+	return devInfo.mNumChannels;}
 
 size_t DeviceManagerWasapi::getSampleRate( const DeviceRef &device )
 {
-	return getDeviceInfo( device ).sampleRate;
+	return getDeviceInfo( device ).mSampleRate;
 }
 
 size_t DeviceManagerWasapi::getFramesPerBlock( const DeviceRef &device )
@@ -144,7 +146,7 @@ size_t DeviceManagerWasapi::getFramesPerBlock( const DeviceRef &device )
 
 const std::wstring& DeviceManagerWasapi::getDeviceId( const DeviceRef &device )
 {
-	return getDeviceInfo( device ).deviceId;
+	return getDeviceInfo( device ).mDeviceId;
 }
 
 shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const DeviceRef &device )
@@ -155,7 +157,7 @@ shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const DeviceRef &devi
 	auto enumeratorPtr = msw::makeComUnique( enumerator );
 
 	::IMMDevice *deviceImm;
-	const wstring &endpointId = getDeviceInfo( device ).endpointId;
+	const wstring &endpointId = getDeviceInfo( device ).mEndpointId;
 	hr = enumerator->GetDevice( endpointId.c_str(), &deviceImm );
 	CI_ASSERT( hr == S_OK );
 
@@ -168,24 +170,15 @@ shared_ptr<::IMMDevice> DeviceManagerWasapi::getIMMDevice( const DeviceRef &devi
 
 DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const DeviceRef &device )
 {
-	CI_ASSERT( ! mDeviceInfoArray.empty() );
-
 	const string &key = device->getKey();
 	for( auto& devInfo : mDeviceInfoArray ) {
-		if( key == devInfo.key )
+		if( key == devInfo.mKey )
 			return devInfo;
 	}
-	throw AudioDeviceExc( string( "could not find device info for device with key: " ) + key );
-}
 
-//DeviceManagerWasapi::DeviceContainerT& DeviceManagerWasapi::getDevices()
-//{
-//	if( mDevices.empty() ) {
-//		parseDevices( DeviceInfo::Usage::Input );
-//		parseDevices( DeviceInfo::Usage::Output );
-//	}
-//	return mDevices;
-//}
+	CI_ASSERT( 0 && "unreachable" );
+	return mDeviceInfoArray.front();
+}
 
 // This call is performed twice because a separate Device subclass is used for input and output
 // and by using eRender / eCapture instead of eAll when enumerating the endpoints, it is easier
@@ -194,7 +187,7 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 {
 	const size_t kMaxPropertyStringLength = 2048;
 
-	CONST ::GUID *devInterfaceGuid = ( usage == DeviceInfo::Usage::Input ? &DEVINTERFACE_AUDIO_CAPTURE : &DEVINTERFACE_AUDIO_RENDER );
+	CONST ::GUID *devInterfaceGuid = ( usage == DeviceInfo::Usage::INPUT ? &DEVINTERFACE_AUDIO_CAPTURE : &DEVINTERFACE_AUDIO_RENDER );
 	::HDEVINFO devInfoSet = ::SetupDiGetClassDevs( devInterfaceGuid, 0, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT );
 	if( devInfoSet == INVALID_HANDLE_VALUE ) {
 		LOG_E << "INVALID_HANDLE_VALUE, detailed error: " << GetLastError() << endl;
@@ -248,7 +241,7 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 	CI_ASSERT( hr == S_OK);
 	auto enumeratorPtr = msw::makeComUnique( enumerator );
 
-	::EDataFlow dataFlow = ( usage == DeviceInfo::Usage::Input ? eCapture : eRender );
+	::EDataFlow dataFlow = ( usage == DeviceInfo::Usage::INPUT ? eCapture : eRender );
 	::IMMDeviceCollection *devices;
 	hr = enumerator->EnumAudioEndpoints( dataFlow, DEVICE_STATE_ACTIVE, &devices );
 	CI_ASSERT( hr == S_OK);
@@ -261,7 +254,7 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 	for ( UINT i = 0; i < numDevices; i++ )	{
 		mDeviceInfoArray.push_back( DeviceInfo() );
 		DeviceInfo &devInfo = mDeviceInfoArray.back();
-		devInfo.usage = usage;
+		devInfo.mUsage = usage;
 
 		::IMMDevice *deviceImm;
 		hr = devices->Item( i, &deviceImm );
@@ -276,20 +269,20 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 		::PROPVARIANT nameVar;
 		hr = properties->GetValue( PKEY_Device_FriendlyName, &nameVar );
 		CI_ASSERT( hr == S_OK );
-		devInfo.name = ci::toUtf8( nameVar.pwszVal );
+		devInfo.mName = ci::toUtf8( nameVar.pwszVal );
 
 		LPWSTR endpointIdLpwStr;
 		hr = deviceImm->GetId( &endpointIdLpwStr );
 		CI_ASSERT( hr == S_OK );
-		devInfo.endpointId = wstring( endpointIdLpwStr );
-		devInfo.key = ci::toUtf8( devInfo.endpointId );
+		devInfo.mEndpointId = wstring( endpointIdLpwStr );
+		devInfo.mKey = ci::toUtf8( devInfo.mEndpointId );
 		::CoTaskMemFree( endpointIdLpwStr );
 		
 		// Wasapi's device Id is actually a subset of the one xaudio needs, so we find and use the match.
-		// TODO: probably should just do this for output, since input is fine working with the key 
+		// TODO: probably should just do this for output, since input is fine working with the mKey 
 		for( auto it = deviceIds.begin(); it != deviceIds.end(); ++it ) {
-			if( it->find( devInfo.endpointId ) != wstring::npos ) {
-				devInfo.deviceId = *it;
+			if( it->find( devInfo.mEndpointId ) != wstring::npos ) {
+				devInfo.mDeviceId = *it;
 				deviceIds.erase( it );
 				break;
 			}
@@ -300,13 +293,13 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 		CI_ASSERT( hr == S_OK );
 		::WAVEFORMATEX *format = (::WAVEFORMATEX *)formatVar.blob.pBlobData;
 
-		devInfo.numChannels = format->nChannels;
-		devInfo.sampleRate = format->nSamplesPerSec;
+		devInfo.mNumChannels = format->nChannels;
+		devInfo.mSampleRate = format->nSamplesPerSec;
 
 
-		//DeviceRef device = ( usage == DeviceInfo::Usage::Input ? DeviceRef( new DeviceInputWasapi( devInfo.key ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.key ) ) );
+		//DeviceRef device = ( mUsage == DeviceInfo::Usage::INPUT ? DeviceRef( new DeviceInputWasapi( devInfo.mKey ) ) : DeviceRef( new DeviceOutputXAudio( devInfo.mKey ) ) );
 		//mDevices.push_back( device );
-		addDevice( devInfo.key );
+		addDevice( devInfo.mKey );
 	}
 }
 

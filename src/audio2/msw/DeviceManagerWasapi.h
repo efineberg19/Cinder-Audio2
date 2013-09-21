@@ -29,8 +29,6 @@ struct IMMDevice;
 
 namespace cinder { namespace audio2 { namespace msw {
 
-// TODO: minimal DeviceManagerXp
-
 class DeviceManagerWasapi : public DeviceManager {
   public:
 	DeviceRef getDefaultOutput() override;
@@ -54,17 +52,18 @@ class DeviceManagerWasapi : public DeviceManager {
   private:
 
 	  struct DeviceInfo {
-		  std::string key;						//! key used by Device to get more info from manager
-		  std::string name;						//! friendly name
-		  enum Usage { Input, Output } usage;
-		  std::wstring			deviceId;		//! id used when creating XAudio2 master voice
-		  std::wstring			endpointId;		//! id used by Wasapi / MMDevice
-		  size_t numChannels, sampleRate;
+		  std::string mKey;						//! mKey used by Device to get more info from manager
+		  std::string mName;						//! friendly mName
+		  enum Usage { INPUT, OUTPUT } mUsage;
+		  std::wstring			mDeviceId;		//! id used when creating XAudio2 master voice
+		  std::wstring			mEndpointId;		//! id used by Wasapi / MMDevice
+		  size_t mNumChannels, mSampleRate;
 	  };
 
 	  DeviceInfo& getDeviceInfo( const DeviceRef &device );
 	  void parseDevices( DeviceInfo::Usage usage );
 
+	  // TODO: make this std::map<DeviceRef, DeviceInfo>
 	  std::vector<DeviceInfo> mDeviceInfoArray;
 };
 
