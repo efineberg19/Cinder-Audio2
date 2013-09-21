@@ -518,9 +518,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
 
 					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
-					sourceVoice->setNumChannels( input->getNumChannels() ); // TODO: this probably isn't necessary, should be taken care of in setInput if format is setup correct
 					sourceVoice->setFilterEnabled(); // TODO: detect if there is an effect upstream before enabling filters
-					sourceVoice->initialize(); // ???: necessary?
 
 					node->setInput( sourceVoice, i );
 					sourceVoice->setInput( input );
