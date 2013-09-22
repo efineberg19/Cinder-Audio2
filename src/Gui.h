@@ -306,7 +306,8 @@ struct TextInput : public TestWidget {
 
 	void processBackspace()
 	{
-		mInputString.pop_back();
+		if( ! mInputString.empty() )
+			mInputString.pop_back();
 	}
 
 	static void disableAll()
