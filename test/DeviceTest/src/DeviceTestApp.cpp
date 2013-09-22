@@ -43,7 +43,7 @@ class DeviceTestApp : public AppNative {
 	NodeSourceRef mSourceNode;
 
 	vector<TestWidget *> mWidgets;
-	VSelector mTestSelector;
+	VSelector mTestSelector, mInputSelector, mOutputSelector;
 	Button mPlayButton;
 	TextInput mSamplerateInput, mFramesPerBlockInput;
 
@@ -169,13 +169,19 @@ void DeviceTestApp::setupUI()
 	mTestSelector.mBounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 #endif
 
+	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40.0f, getWindowWidth(), getWindowHeight() );
+	for( const auto &dev : Device::getOutputDevices() ) {
+		mOutputSelector.mSegments.push_back( dev->getName() );
+	}
+	mWidgets.push_back( &mOutputSelector );
+
 	Rectf textInputBounds( 0.0f, getWindowCenter().y + 40.0f, 200.0f, getWindowCenter().y + 70.0f  );
 	mSamplerateInput.mBounds = textInputBounds;
 	mSamplerateInput.mTitle = "samplerate";
 	mSamplerateInput.setValue( mContext->getSampleRate() );
 	mWidgets.push_back( &mSamplerateInput );
 
-	textInputBounds += Vec2f( textInputBounds.getWidth() + 10.0f, 0.0f );
+	textInputBounds += Vec2f( 0.0f, textInputBounds.getHeight() + 24.0f );
 	mFramesPerBlockInput.mBounds = textInputBounds;
 	mFramesPerBlockInput.mTitle = "frames per block";
 	mFramesPerBlockInput.setValue( mContext->getFramesPerBlock() );
