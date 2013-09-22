@@ -27,6 +27,7 @@ class DeviceTestApp : public AppNative {
 
 	void setupUI();
 	void processTap( Vec2i pos );
+	void processDrag( Vec2i pos );
 	void keyDown( KeyEvent event );
 
 	void setupDefaultDevices();
@@ -48,6 +49,7 @@ class DeviceTestApp : public AppNative {
 	vector<TestWidget *> mWidgets;
 	VSelector mTestSelector, mInputSelector, mOutputSelector;
 	Button mPlayButton;
+	HSlider mGainSlider;
 	TextInput mSamplerateInput, mFramesPerBlockInput;
 
 	Anim<float> mUnderrunFade, mOverrunFade, mClipFade;
@@ -69,18 +71,18 @@ void DeviceTestApp::setup()
 	mGain = mContext->makeNode( new NodeGain() );
 	mTap = mContext->makeNode( new NodeTap() );
 
+	mGain->setGain( 0.6f );
 	mGain->connect( mTap )->connect( mContext->getTarget() );
 
 	// TODO: add this as a test control
 	//mLineIn->getFormat().setNumChannels( 1 );
 
+	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	printDeviceDetails(); } );
+
 	setupSine();
-
-	setupUI();
-
 	printGraph( mContext );
 
-	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	printDeviceDetails(); } );
+	setupUI();
 
 	LOG_V << "Context samplerate: " << mContext->getSampleRate() << endl;
 }
@@ -177,6 +179,11 @@ void DeviceTestApp::setupUI()
 	mTestSelector.mBounds = Rectf( getWindowCenter().x + 110, 0.0f, getWindowWidth(), 160.0f );
 #endif
 
+	mGainSlider.mBounds = Rectf( mTestSelector.mBounds.x1, mTestSelector.mBounds.y2 + 10.0f, mTestSelector.mBounds.x2, mTestSelector.mBounds.y2 + 50.0f );
+	mGainSlider.mTitle = "Gain";
+	mGainSlider.set( mGain->getGain() );
+	mWidgets.push_back( &mGainSlider );
+
 	mOutputSelector.mTitle = "Output Devices";
 	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40.0f, getWindowWidth(), getWindowHeight() );
 	for( const auto &dev : Device::getOutputDevices() ) {
@@ -214,9 +221,20 @@ void DeviceTestApp::setupUI()
 	mClipRect = mOverrunRect + Vec2f( xrunSize.x + 10.0f, 0.0f );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
+	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
+	getWindow()->getSignalTouchesMoved().connect( [this] ( TouchEvent &event ) {
+		for( const TouchEvent::Touch &touch : getActiveTouches() )
+			processDrag( touch.getPos() );
+	} );
 
 	gl::enableAlphaBlending();
+}
+
+void DeviceTestApp::processDrag( Vec2i pos )
+{
+	if( mGainSlider.hitTest( pos ) )
+		mGain->setGain( mGainSlider.mValueScaled );
 }
 
 void DeviceTestApp::processTap( Vec2i pos )
