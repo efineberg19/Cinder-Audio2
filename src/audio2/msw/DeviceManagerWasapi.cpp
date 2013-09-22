@@ -124,15 +124,20 @@ std::string DeviceManagerWasapi::getName( const DeviceRef &device )
 size_t DeviceManagerWasapi::getNumInputChannels( const DeviceRef &device )
 {
 	auto& devInfo = getDeviceInfo( device );
-	CI_ASSERT( devInfo.mUsage == DeviceInfo::Usage::INPUT );
+	if( devInfo.mUsage != DeviceInfo::Usage::INPUT )
+		return 0;
+
 	return devInfo.mNumChannels;
 }
 
 size_t DeviceManagerWasapi::getNumOutputChannels( const DeviceRef &device )
 {
 	auto& devInfo = getDeviceInfo( device );
-	CI_ASSERT( devInfo.mUsage == DeviceInfo::Usage::OUTPUT );
-	return devInfo.mNumChannels;}
+	if( devInfo.mUsage != DeviceInfo::Usage::OUTPUT )
+		return 0;	
+
+	return devInfo.mNumChannels;
+}
 
 size_t DeviceManagerWasapi::getSampleRate( const DeviceRef &device )
 {

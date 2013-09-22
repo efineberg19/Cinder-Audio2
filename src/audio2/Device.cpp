@@ -68,6 +68,28 @@ const vector<DeviceRef>& Device::getDevices()
 	return Context::deviceManager()->getDevices();
 }
 
+vector<DeviceRef> Device::getOutputDevices()
+{
+	vector<DeviceRef> result;
+	for( const auto &dev : getDevices() ) {
+		if( dev->getNumOutputChannels() > 0 )
+			result.push_back( dev );
+	}
+
+	return result;
+}
+
+vector<DeviceRef> Device::getInputDevices()
+{
+	vector<DeviceRef> result;
+	for( const auto &dev : getDevices() ) {
+		if( dev->getNumInputChannels() > 0 )
+			result.push_back( dev );
+	}
+
+	return result;
+}
+
 const string& Device::getName()
 {
 	if( mName.empty() )

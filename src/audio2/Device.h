@@ -47,6 +47,8 @@ class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
 	static DeviceRef findDeviceByKey( const std::string &key );
 
 	static const std::vector<DeviceRef>& getDevices();
+	static std::vector<DeviceRef> getOutputDevices();
+	static std::vector<DeviceRef> getInputDevices();
 
 	const std::string& getName();
 	const std::string& getKey();
