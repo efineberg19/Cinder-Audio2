@@ -25,19 +25,19 @@ class DeviceTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void setupUI();
-	void processTap( Vec2i pos );
-	void processDrag( Vec2i pos );
-	void keyDown( KeyEvent event );
-
-	void setupDefaultDevices();
-	void setupDedicatedDevice();
-	void printDeviceDetails();
+	void setOutputDevice( const DeviceRef &device );
+	void setInputDevice( const DeviceRef &device );
+	void printDeviceDetails( const DeviceRef &device );
 
 	void setupSine();
 	void setupIOClean();
 	void setupNoise();
 	void setupIOProcessed();
+
+	void setupUI();
+	void processTap( Vec2i pos );
+	void processDrag( Vec2i pos );
+	void keyDown( KeyEvent event );
 
 	ContextRef mContext;
 	NodeLineInRef mLineIn;
@@ -65,19 +65,19 @@ void DeviceTestApp::setup()
 {
 	mContext = Context::create();
 
-	setupDefaultDevices();
-	printDeviceDetails();
+	setOutputDevice( Device::getDefaultOutput() );
+	setInputDevice( Device::getDefaultInput() );
+
+	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V << "LineOut params changed:" << endl; printDeviceDetails( mLineOut->getDevice() ); } );
+
+	// TODO: add this as a test control
+	//mLineIn->getFormat().setNumChannels( 1 );
 
 	mGain = mContext->makeNode( new NodeGain() );
 	mTap = mContext->makeNode( new NodeTap() );
 
 	mGain->setGain( 0.6f );
-	mGain->connect( mTap )->connect( mContext->getTarget() );
-
-	// TODO: add this as a test control
-	//mLineIn->getFormat().setNumChannels( 1 );
-
-	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	printDeviceDetails(); } );
+	mGain->connect( mTap )->connect( mLineOut );
 
 	setupSine();
 	printGraph( mContext );
@@ -87,42 +87,41 @@ void DeviceTestApp::setup()
 	LOG_V << "Context samplerate: " << mContext->getSampleRate() << endl;
 }
 
-void DeviceTestApp::setupDefaultDevices()
+void DeviceTestApp::setOutputDevice( const DeviceRef &device )
 {
-	mLineIn = mContext->createLineIn();
-	mLineOut = mContext->createLineOut();
+	NodeSourceRef currentSource = findUpstreamStreamNode<NodeSource>( mGain );
+	SaveNodeEnabledState enabled( currentSource );
 
-	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
+	mContext->uninitializeAllNodes();
+
+	mLineOut = mContext->createLineOut( device );
+	mLineOut->setInput( mTap, 0 );
 
 	mContext->setTarget( mLineOut );
+
+	mContext->initializeAllNodes();
+
+	LOG_V << "LineOut device properties: " << endl;
+	printDeviceDetails( device );
 }
 
-void DeviceTestApp::printDeviceDetails()
+void DeviceTestApp::setInputDevice( const DeviceRef &device )
 {
-	LOG_V << "output device name: " << mLineOut->getDevice()->getName() << endl;
-	console() << "\t channels: " << mLineOut->getDevice()->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << mLineOut->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << mLineOut->getDevice()->getFramesPerBlock() << endl;
-
-	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
-	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
-	console() << "\t samplerate: " << mLineIn->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << mLineIn->getDevice()->getFramesPerBlock() << endl;
-}
-
-void DeviceTestApp::setupDedicatedDevice()
-{
-	DeviceRef device = Device::findDeviceByName( "PreSonus FIREPOD (1431)" );
-	CI_ASSERT( device );
-
 	mLineIn = mContext->createLineIn( device );
-	auto output = mContext->createLineOut( device );
-	mContext->setTarget( output );
 
-	LOG_V << "shared device name: " << output->getDevice()->getName() << endl;
-	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << output->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << output->getDevice()->getFramesPerBlock() << endl;
+	LOG_V << "LineIn device properties: " << endl;
+	printDeviceDetails( device );
+}
+
+void DeviceTestApp::printDeviceDetails( const DeviceRef &device )
+{
+	console() << "\t name: " << device->getName() << endl;
+	console() << "\t channels: " << device->getNumOutputChannels() << endl;
+	console() << "\t samplerate: " << device->getSampleRate() << endl;
+	console() << "\t block size: " << device->getFramesPerBlock() << endl;
+
+	if( mLineIn && mLineOut )
+		console() << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
 }
 
 void DeviceTestApp::setupSine()
@@ -262,7 +261,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 		if( currentTest == "I/O (processed)" )
 			setupIOProcessed();
 
-		printDeviceDetails();
+		printGraph( mContext );
 		return;
 	}
 
@@ -271,10 +270,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 		DeviceRef dev = Device::findDeviceByName( mOutputSelector.mSegments[mOutputSelector.mCurrentSectionIndex] );
 		LOG_V << "selected device named: " << dev->getName() << ", key: " << dev->getKey() << endl;
 
-		// TODO NEXT: sort how best to swap line-outs, and what to leave up to the user
-		mLineOut = mContext->createLineOut( dev );
-		mContext->setTarget( mLineOut );
-		mGain->connect( mLineOut );
+		setOutputDevice( dev );
 	}
 
 }
