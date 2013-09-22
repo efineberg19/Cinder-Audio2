@@ -117,12 +117,12 @@ void Device::updateParams( const Params &params )
 	mSignalParamsWillChange();
 
 	if( sampleRate && sampleRate != mSampleRate ) {
-		Context::deviceManager()->setSampleRate( shared_from_this(), sampleRate );
 		mSampleRate = sampleRate;
+		Context::deviceManager()->setSampleRate( shared_from_this(), sampleRate );
 	}
 	if( framesPerBlock && framesPerBlock != mFramesPerBlock ) {
-		Context::deviceManager()->setFramesPerBlock( shared_from_this(), framesPerBlock );
 		mFramesPerBlock = framesPerBlock;
+		Context::deviceManager()->setFramesPerBlock( shared_from_this(), framesPerBlock );
 	}
 }
 
