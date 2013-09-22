@@ -268,8 +268,7 @@ void NodeLineOutXAudio::initialize()
 	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
 
 #if defined( CINDER_XAUDIO_2_8 )
-	// TODO: use mNumChannels / context sr
-	HRESULT hr = xaudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, deviceId.c_str() );
+	HRESULT hr = xaudio->CreateMasteringVoice( &mMasteringVoice, getNumChannels(), getSampleRate(), 0, deviceId.c_str() );
 	CI_ASSERT( hr == S_OK );
 #else
 
@@ -285,7 +284,7 @@ void NodeLineOutXAudio::initialize()
 			LOG_V << "found match: display name: " << deviceDetails.DisplayName << endl;
 			LOG_V << "device id: " << deviceDetails.DeviceID << endl;
 
-			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, i );
+			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice,  getNumChannels(), getSampleRate(), 0, i );
 			CI_ASSERT( hr == S_OK );
 		}
 
@@ -305,7 +304,6 @@ void NodeLineOutXAudio::initialize()
 	mInitialized = true;
 }
 
-// TODO NEXT: make sure nothing is attached to mastering voice before uninitializing it.
 void NodeLineOutXAudio::uninitialize()
 {
 	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
