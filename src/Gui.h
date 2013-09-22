@@ -196,6 +196,7 @@ struct VSelector : public TestWidget {
 		mBackgroundColor = ColorA( "MidnightBlue", 0.75f );
 		mSelectedColor = ColorA( "SpringGreen", 0.95f );
 		mUnselectedColor = ColorA::gray( 0.5 );
+		mTitleColor = ColorA::gray( 0.75f, 0.5f );
 	}
 
 	bool hitTest( const Vec2i &pos )
@@ -245,11 +246,17 @@ struct VSelector : public TestWidget {
 
 		gl::color( mSelectedColor );
 		mTexFont->drawString( mSegments[mCurrentSectionIndex], Vec2f( section.x1 + mPadding, section.getCenter().y + mTexFont->getFont().getDescent() ) );
+
+		if( ! mTitle.empty() ) {
+			gl::color( mTitleColor );
+			mTexFont->drawString( mTitle, Vec2f( mBounds.x1 + mPadding, mBounds.y1 - mTexFont->getFont().getDescent() ) );
+		}
 	}
 
 	std::vector<std::string> mSegments;
-	ColorA mSelectedColor, mUnselectedColor;
+	ColorA mSelectedColor, mUnselectedColor, mTitleColor;
 	size_t mCurrentSectionIndex;
+	std::string mTitle;
 };
 
 struct TextInput : public TestWidget {
