@@ -44,8 +44,8 @@ class DeviceManagerWasapi : public DeviceManager {
 	size_t getSampleRate( const DeviceRef &device ) override;
 	size_t getFramesPerBlock( const DeviceRef &device ) override;
 
-	virtual void setSampleRate( const DeviceRef &device, size_t sampleRate )	override {} // TODO
-	virtual void setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )	override {} // TODO
+	virtual void setSampleRate( const DeviceRef &device, size_t sampleRate ) override;
+	virtual void setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock ) override;
 
 	const std::wstring& getDeviceId( const DeviceRef &device );
 
@@ -59,7 +59,7 @@ class DeviceManagerWasapi : public DeviceManager {
 		  enum Usage { INPUT, OUTPUT } mUsage;
 		  std::wstring			mDeviceId;		//! id used when creating XAudio2 master voice
 		  std::wstring			mEndpointId;		//! id used by Wasapi / MMDevice
-		  size_t mNumChannels, mSampleRate;
+		  size_t mNumChannels, mSampleRate, mFramesPerBlock;
 	  };
 
 	  DeviceInfo& getDeviceInfo( const DeviceRef &device );

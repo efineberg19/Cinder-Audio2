@@ -45,6 +45,12 @@ DEFINE_GUID(DEVINTERFACE_AUDIO_RENDER , 0xe6327cad, 0xdcec, 0x4949, 0xae, 0x8a, 
 DEFINE_GUID(DEVINTERFACE_AUDIO_CAPTURE, 0x2eef81be, 0x33fa, 0x4800, 0x96, 0x70, 0x1c, 0xd4, 0x74, 0x97, 0x2c, 0x3f);
 #endif
 
+// TODO: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
+// - if it doesn't need a way to tell the user they should not listen to this value,
+//   or we can use a pretty standard default (like 512 or 1024).
+// - IAudioClient::GetBufferSize seems to be a possiblity, needs to be activated first
+#define PREFERRED_FRAMES_PER_BLOCK 512
+
 using namespace std;
 
 namespace cinder { namespace audio2 { namespace msw {
@@ -52,8 +58,6 @@ namespace cinder { namespace audio2 { namespace msw {
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManagerWasapi
 // ----------------------------------------------------------------------------------------------------
-
-// TODO: consider if lazy-loading the devices container will improve startup time
 
 DeviceRef DeviceManagerWasapi::getDefaultOutput()
 {
@@ -137,11 +141,27 @@ size_t DeviceManagerWasapi::getSampleRate( const DeviceRef &device )
 
 size_t DeviceManagerWasapi::getFramesPerBlock( const DeviceRef &device )
 {
-	// ???: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
-	// - if it doesn't need a way to tell the user they should not listen to this value,
-	//   or we can use a pretty standard default (like 512 or 1024).
-	// - IAudioClient::GetBufferSize seems to be a possiblity, needs to be activated first
-	return 512;
+	size_t frames = getDeviceInfo( device ).mFramesPerBlock;
+	//return getDeviceInfo( device ).mFramesPerBlock;
+	return frames;
+}
+
+// TODO: it is really only possible to change the devices samplerate in exclusive mode
+// - but this is a kludge to allow context's other samplerates / block sizes until Context handles it.
+void DeviceManagerWasapi::setSampleRate( const DeviceRef &device, size_t sampleRate )
+{
+	//throw AudioDeviceExc( "Samplerate cannot be changed for Wasapi devices in shared mode." );
+	getDeviceInfo( device ).mSampleRate = sampleRate;
+	emitParamsDidChange( device );
+}
+
+void DeviceManagerWasapi::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
+{
+	//throw AudioDeviceExc( "Frames per block changes not supported for Wasapi devices." );
+
+	// also temp kludge:
+	getDeviceInfo( device ).mFramesPerBlock = framesPerBlock;
+	emitParamsDidChange( device );
 }
 
 const std::wstring& DeviceManagerWasapi::getDeviceId( const DeviceRef &device )
@@ -244,6 +264,7 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 
 		devInfo.mNumChannels = format->nChannels;
 		devInfo.mSampleRate = format->nSamplesPerSec;
+		devInfo.mFramesPerBlock = PREFERRED_FRAMES_PER_BLOCK;
 
 		DeviceRef addedDevice = addDevice( devInfo.mKey );
 		auto result = mDeviceInfoSet.insert( make_pair( addedDevice, devInfo ) );
