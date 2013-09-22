@@ -198,9 +198,9 @@ class NodeMixer : public Node {
 	size_t mMaxNumBusses;
 };
 
-//! Helper routine for finding an upstream \a NodeT of a specific type (traverses outputs).
+//! Convenience routine for finding the first downstream \a Node of type \a NodeT (traverses outputs).
 template <typename NodeT>
-static std::shared_ptr<NodeT> findUpstreamNode( NodeRef node )
+static std::shared_ptr<NodeT> findDownstreamNode( NodeRef node )
 {
 	while( node ) {
 		auto castedNode = std::dynamic_pointer_cast<NodeT>( node );
@@ -211,11 +211,11 @@ static std::shared_ptr<NodeT> findUpstreamNode( NodeRef node )
 	return std::shared_ptr<NodeT>();
 }
 
-//! Helper routine for finding a downstream \a NodeT of a specific type (traverses inputs ).
+//! Convenience routine for finding the first upstream \a Node of type \a NodeT (traverses inputs).
 // FIXME: account for multiple inputs
 // TODO: pass as const&, but requires switching to recursive traversal
 template <typename NodeT>
-static std::shared_ptr<NodeT> findDownStreamNode( NodeRef node )
+static std::shared_ptr<NodeT> findUpstreamStreamNode( NodeRef node )
 {
 	while( node ) {
 		auto castedNode =std::dynamic_pointer_cast<NodeT>( node );

@@ -382,7 +382,7 @@ void NodeEffectXAudioXapo::notifyConnected()
 {
 	CI_ASSERT( mInitialized );
 
-	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
+	auto sourceVoice = findUpstreamStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	auto &effects = sourceVoice->getEffectsDescriptors();
 	mChainIndex = effects.size();
 	if( mChainIndex > 0 ) {
@@ -409,7 +409,7 @@ void NodeEffectXAudioXapo::getParams( void *params, size_t sizeParams )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
+	auto sourceVoice = findUpstreamStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	HRESULT hr = sourceVoice->getNative()->GetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
@@ -419,7 +419,7 @@ void NodeEffectXAudioXapo::setParams( const void *params, size_t sizeParams )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
+	auto sourceVoice = findUpstreamStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	HRESULT hr =  sourceVoice->getNative()->SetEffectParameters( mChainIndex, params, sizeParams );
 	CI_ASSERT( hr == S_OK );
 }
@@ -451,7 +451,7 @@ void NodeEffectXAudioFilter::getParams( ::XAUDIO2_FILTER_PARAMETERS *params )
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
+	auto sourceVoice = findUpstreamStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	sourceVoice->getNative()->GetFilterParameters( params );
 }
 
@@ -460,7 +460,7 @@ void NodeEffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &param
 	if( ! mInitialized )
 		throw AudioParamExc( "must be initialized before accessing params" );
 
-	auto sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
+	auto sourceVoice = findUpstreamStreamNode<NodeXAudioSourceVoice>( shared_from_this() );
 	HRESULT hr = sourceVoice->getNative()->SetFilterParameters( &params );
 	CI_ASSERT( hr == S_OK );
 }
@@ -504,12 +504,12 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 
 		// if input is generic, it needs a SourceXAudio so add one implicitly
 		if( ! isNodeNativeXAudio( input ) ) {
-			shared_ptr<NodeXAudioSourceVoice> sourceVoice = findUpstreamNode<NodeXAudioSourceVoice>( input );
+			shared_ptr<NodeXAudioSourceVoice> sourceVoice = findDownstreamNode<NodeXAudioSourceVoice>( input );
 			if( ! sourceVoice ) {
-				// see if there is already a downstream source voice
-				sourceVoice = findDownStreamNode<NodeXAudioSourceVoice>( input );
+				// see if there is already an upstream source voice
+				sourceVoice = findUpstreamStreamNode<NodeXAudioSourceVoice>( input );
 				if( sourceVoice ) {
-					LOG_V << "detected downstream source node, shuffling." << endl;
+					LOG_V << "detected upstream source node, shuffling." << endl;
 					// FIXME: account account for multiple inputs in both input and sourceVoice
 					NodeRef sourceInput = sourceVoice->getInputs()[0];
 					sourceVoice->disconnect();
@@ -517,7 +517,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					sourceVoice->setInput( input, 0 );
 					input->setInput( sourceInput, 0 );
 				}
-				else if( findDownStreamNode<NodeXAudio>( input ) )
+				else if( findUpstreamStreamNode<NodeXAudio>( input ) )
 					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 				else {
 					LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
