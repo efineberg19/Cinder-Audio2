@@ -47,7 +47,7 @@ NodeSource::NodeSource( const Format &format ) : Node( format )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeBufferPlayer
+// MARK: - NodeLineIn
 // ----------------------------------------------------------------------------------------------------
 
 NodeLineIn::NodeLineIn( const DeviceRef &device, const Format &format )

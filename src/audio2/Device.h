@@ -55,6 +55,7 @@ class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
 	size_t getSampleRate();
 	size_t getFramesPerBlock();
 
+	// TODO: rename Format? Params is vague
 	struct Params {
 		Params() : mSampleRate( 0 ), mFramesPerBlock( 0 ) {}
 
