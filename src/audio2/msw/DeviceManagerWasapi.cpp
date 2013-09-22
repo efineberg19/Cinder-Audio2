@@ -176,73 +176,30 @@ DeviceManagerWasapi::DeviceInfo& DeviceManagerWasapi::getDeviceInfo( const Devic
 // This call is performed twice because a separate Device subclass is used for input and output
 // and by using eRender / eCapture instead of eAll when enumerating the endpoints, it is easier
 // to distinguish between the two.
+// TODO: this isn't true any more, at the moment there are no Device subclasses, just DeviceManager subclasses
 void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 {
 	const size_t kMaxPropertyStringLength = 2048;
 
-	CONST ::GUID *devInterfaceGuid = ( usage == DeviceInfo::Usage::INPUT ? &DEVINTERFACE_AUDIO_CAPTURE : &DEVINTERFACE_AUDIO_RENDER );
-	::HDEVINFO devInfoSet = ::SetupDiGetClassDevs( devInterfaceGuid, 0, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT );
-	if( devInfoSet == INVALID_HANDLE_VALUE ) {
-		LOG_E << "INVALID_HANDLE_VALUE, detailed error: " << GetLastError() << endl;
-		CI_ASSERT( false );
-		return;
-	}
+	vector<wstring> deviceIds = parseDeviceIds( usage );
 
-	::SP_DEVICE_INTERFACE_DATA devInterface = {0};
-	devInterface.cbSize = sizeof( ::SP_DEVICE_INTERFACE_DATA );
-	DWORD deviceIndex = 0;
-	vector<wstring> deviceIds;
-
-	while ( true ) {
-		if( ! ::SetupDiEnumDeviceInterfaces( devInfoSet, 0, devInterfaceGuid, deviceIndex, &devInterface ) ) {
-			DWORD error = GetLastError();
-			if( error == ERROR_NO_MORE_ITEMS ) {
-				// ok, we're done.
-				break;
-			} else {
-				LOG_V << "get device returned false. error: " << error << endl;
-				CI_ASSERT( false );
-			}
-		}
-		deviceIndex++;
-
-		// See how large a buffer we require for the device interface details (ignore error, it should be returning ERROR_INSUFFICIENT_BUFFER)
-		DWORD sizeDevInterface;
-		::SetupDiGetDeviceInterfaceDetail( devInfoSet, &devInterface, 0, 0, &sizeDevInterface, 0 );
-
-		shared_ptr<::SP_DEVICE_INTERFACE_DETAIL_DATA> interfaceDetail( (::SP_DEVICE_INTERFACE_DETAIL_DATA*)calloc( 1, sizeDevInterface ), free );
-		CI_ASSERT( interfaceDetail );
-		interfaceDetail->cbSize = sizeof( ::SP_DEVICE_INTERFACE_DETAIL_DATA );
-
-		::SP_DEVINFO_DATA devInfo = {0};
-		devInfo.cbSize = sizeof( ::SP_DEVINFO_DATA );
-		if( ! ::SetupDiGetDeviceInterfaceDetail( devInfoSet, &devInterface, interfaceDetail.get(), sizeDevInterface, 0, &devInfo ) ) {
-			continue;
-			DWORD error = ::GetLastError();
-			LOG_V << "get device returned false. error: " << error << endl;
-		}
-
-		deviceIds.push_back( wstring( interfaceDetail->DevicePath ) );
-	}
-	if( devInfoSet )
-		::SetupDiDestroyDeviceInfoList( devInfoSet );
 
 	::IMMDeviceEnumerator *enumerator;
 	const ::CLSID CLSID_MMDeviceEnumerator = __uuidof( ::MMDeviceEnumerator );
 	const ::IID IID_IMMDeviceEnumerator = __uuidof( ::IMMDeviceEnumerator );
 	HRESULT hr = CoCreateInstance( CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&enumerator );
-	CI_ASSERT( hr == S_OK);
+	CI_ASSERT( hr == S_OK );
 	auto enumeratorPtr = msw::makeComUnique( enumerator );
 
 	::EDataFlow dataFlow = ( usage == DeviceInfo::Usage::INPUT ? eCapture : eRender );
 	::IMMDeviceCollection *devices;
 	hr = enumerator->EnumAudioEndpoints( dataFlow, DEVICE_STATE_ACTIVE, &devices );
-	CI_ASSERT( hr == S_OK);
+	CI_ASSERT( hr == S_OK );
 	auto devicesPtr = msw::makeComUnique( devices );
 
 	UINT numDevices;
 	hr = devices->GetCount( &numDevices );
-	CI_ASSERT( hr == S_OK);
+	CI_ASSERT( hr == S_OK );
 
 	for ( UINT i = 0; i < numDevices; i++ )	{
 		DeviceInfo devInfo;
@@ -250,12 +207,12 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 
 		::IMMDevice *deviceImm;
 		hr = devices->Item( i, &deviceImm );
-		CI_ASSERT( hr == S_OK);
+		CI_ASSERT( hr == S_OK );
 		auto devicePtr = msw::makeComUnique( deviceImm );
 
 		::IPropertyStore *properties;
 		hr = deviceImm->OpenPropertyStore( STGM_READ, &properties );
-		CI_ASSERT( hr == S_OK);
+		CI_ASSERT( hr == S_OK );
 		auto propertiesPtr = msw::makeComUnique( properties );
 
 		::PROPVARIANT nameVar;
@@ -292,5 +249,60 @@ void DeviceManagerWasapi::parseDevices( DeviceInfo::Usage usage )
 		auto result = mDeviceInfoSet.insert( make_pair( addedDevice, devInfo ) );
 	}
 }
+
+// This method uses the SetupDi api to recover device id strings that Xaudio2.8 needs for
+// creating a mastering voice with non-default device 
+vector<wstring> DeviceManagerWasapi::parseDeviceIds( DeviceInfo::Usage usage )
+{
+	vector<wstring> result;
+	DWORD deviceIndex = 0;
+	::SP_DEVICE_INTERFACE_DATA devInterface = { 0 };
+	devInterface.cbSize = sizeof( ::SP_DEVICE_INTERFACE_DATA );
+
+	CONST ::GUID *devInterfaceGuid = ( usage == DeviceInfo::Usage::INPUT ? &DEVINTERFACE_AUDIO_CAPTURE : &DEVINTERFACE_AUDIO_RENDER );
+	::HDEVINFO devInfoSet = ::SetupDiGetClassDevs( devInterfaceGuid, 0, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT );
+	if( devInfoSet == INVALID_HANDLE_VALUE ) {
+		LOG_E << "INVALID_HANDLE_VALUE, detailed error: " << GetLastError() << endl;
+		CI_ASSERT( false );
+		return result;
+	}
+
+	while( true ) {
+		if( ! ::SetupDiEnumDeviceInterfaces( devInfoSet, 0, devInterfaceGuid, deviceIndex, &devInterface ) ) {
+			DWORD error = GetLastError();
+			if( error == ERROR_NO_MORE_ITEMS )
+				break;
+			else {
+				LOG_V << "SetupDiEnumDeviceInterfaces returned error: " << error << endl;
+				CI_ASSERT( 0 );
+			}
+		}
+		deviceIndex++;
+
+		// See how large a buffer we require for the device interface details (ignore error, it should be returning ERROR_INSUFFICIENT_BUFFER)
+		DWORD sizeDevInterface;
+		::SetupDiGetDeviceInterfaceDetail( devInfoSet, &devInterface, 0, 0, &sizeDevInterface, 0 );
+
+		shared_ptr<::SP_DEVICE_INTERFACE_DETAIL_DATA> interfaceDetail( (::SP_DEVICE_INTERFACE_DETAIL_DATA*)calloc( 1, sizeDevInterface ), free );
+		CI_ASSERT( interfaceDetail );
+		interfaceDetail->cbSize = sizeof( ::SP_DEVICE_INTERFACE_DETAIL_DATA );
+
+		::SP_DEVINFO_DATA devInfo = {0};
+		devInfo.cbSize = sizeof( ::SP_DEVINFO_DATA );
+		if( ! ::SetupDiGetDeviceInterfaceDetail( devInfoSet, &devInterface, interfaceDetail.get(), sizeDevInterface, 0, &devInfo ) ) {
+			continue;
+			DWORD error = ::GetLastError();
+			LOG_V << "get device returned false. error: " << error << endl;
+		}
+
+		result.push_back( wstring( interfaceDetail->DevicePath ) );
+	}
+
+	if( devInfoSet )
+		::SetupDiDestroyDeviceInfoList( devInfoSet );
+
+	return result;
+}
+
 
 }} } // namespace cinder::audio2::msw
