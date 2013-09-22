@@ -11,6 +11,8 @@
 
 #include "Gui.h"
 
+// FIXME: I/O test seems broken
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -18,6 +20,7 @@ using namespace ci::audio2;
 
 class DeviceTestApp : public AppNative {
   public:
+	void prepareSettings( Settings *settings );
 	void setup();
 	void update();
 	void draw();
@@ -50,6 +53,11 @@ class DeviceTestApp : public AppNative {
 	Anim<float> mUnderrunFade, mOverrunFade, mClipFade;
 	Rectf mUnderrunRect, mOverrunRect, mClipRect;
 };
+
+void DeviceTestApp::prepareSettings( Settings *settings )
+{
+	settings->setWindowSize( 800, 600 );
+}
 
 void DeviceTestApp::setup()
 {
@@ -166,14 +174,26 @@ void DeviceTestApp::setupUI()
 	mTestSelector.mBounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
 #else
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
-	mTestSelector.mBounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.mBounds = Rectf( getWindowCenter().x + 110, 0.0f, getWindowWidth(), 160.0f );
 #endif
 
+	mOutputSelector.mTitle = "Output Devices";
 	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40.0f, getWindowWidth(), getWindowHeight() );
 	for( const auto &dev : Device::getOutputDevices() ) {
+		if( dev == mLineOut->getDevice() )
+			mOutputSelector.mCurrentSectionIndex = mOutputSelector.mSegments.size();
 		mOutputSelector.mSegments.push_back( dev->getName() );
 	}
 	mWidgets.push_back( &mOutputSelector );
+
+	mInputSelector.mTitle = "Input Devices";
+	mInputSelector.mBounds = mOutputSelector.mBounds - Vec2f( mOutputSelector.mBounds.getWidth() + 10.0f, 0.0f );
+	for( const auto &dev : Device::getInputDevices() ) {
+		if( dev == mLineIn->getDevice() )
+		mInputSelector.mCurrentSectionIndex = mInputSelector.mSegments.size();
+		mInputSelector.mSegments.push_back( dev->getName() );
+	}
+	mWidgets.push_back( &mInputSelector );
 
 	Rectf textInputBounds( 0.0f, getWindowCenter().y + 40.0f, 200.0f, getWindowCenter().y + 70.0f  );
 	mSamplerateInput.mBounds = textInputBounds;
@@ -188,10 +208,10 @@ void DeviceTestApp::setupUI()
 	mWidgets.push_back( &mFramesPerBlockInput );
 
 
-	Vec2i xrunSize( 80, 26 );
-	mUnderrunRect = Rectf( getWindowWidth() - xrunSize.x, getWindowHeight() - xrunSize.y, getWindowWidth(), getWindowHeight() );
-	mOverrunRect = mUnderrunRect - Vec2f( xrunSize.x + 10, 0 );
-	mClipRect = mOverrunRect - Vec2f( xrunSize.x + 10, 0 );
+	Vec2f xrunSize( 80.0f, 26.0f );
+	mUnderrunRect = Rectf( 0, mPlayButton.mBounds.y2 + 10.0f, xrunSize.x, mPlayButton.mBounds.y2 + xrunSize.y + 10.0f );
+	mOverrunRect = mUnderrunRect + Vec2f( xrunSize.x + 10.0f, 0.0f );
+	mClipRect = mOverrunRect + Vec2f( xrunSize.x + 10.0f, 0.0f );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
@@ -210,26 +230,35 @@ void DeviceTestApp::processTap( Vec2i pos )
 		LOG_V << "mFramesPerBlockInput selected" << endl;
 	}
 
-	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
+	size_t currentTestIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentTestIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		if( currentTest == "sinewave" ) {
+		if( currentTest == "sinewave" )
 			setupSine();
-		}
-		if( currentTest == "noise" ) {
+		if( currentTest == "noise" )
 			setupNoise();
-		}
-		if( currentTest == "I/O (clean)" ) {
+		if( currentTest == "I/O (clean)" )
 			setupIOClean();
-		}
-		if( currentTest == "I/O (processed)" ) {
+		if( currentTest == "I/O (processed)" )
 			setupIOProcessed();
-		}
 
 		printDeviceDetails();
+		return;
 	}
+
+	size_t currentOutputIndex = mOutputSelector.mCurrentSectionIndex;
+	if( mOutputSelector.hitTest( pos ) && currentOutputIndex != mOutputSelector.mCurrentSectionIndex ) {
+		DeviceRef dev = Device::findDeviceByName( mOutputSelector.mSegments[mOutputSelector.mCurrentSectionIndex] );
+		LOG_V << "selected device named: " << dev->getName() << ", key: " << dev->getKey() << endl;
+
+		// TODO NEXT: sort how best to swap line-outs, and what to leave up to the user
+		mLineOut = mContext->createLineOut( dev );
+		mContext->setTarget( mLineOut );
+		mGain->connect( mLineOut );
+	}
+
 }
 
 void DeviceTestApp::keyDown( KeyEvent event )
