@@ -229,4 +229,20 @@ static std::shared_ptr<NodeT> findUpstreamStreamNode( NodeRef node )
 	return std::shared_ptr<NodeT>();
 }
 
+//! Convenience class that pushes and pops a \a Node's current enabled state.
+struct SaveNodeEnabledState {
+	SaveNodeEnabledState( const NodeRef &node ) : mNode( node )
+	{
+		mEnabled = ( mNode ? mNode->isEnabled() : false );
+	}
+	~SaveNodeEnabledState()
+	{
+		if( mNode )
+			mNode->setEnabled( mEnabled );
+	}
+  private:
+	NodeRef mNode;
+	bool mEnabled;
+};
+
 } } // namespace cinder::audio2
