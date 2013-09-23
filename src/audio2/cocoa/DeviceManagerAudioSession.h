@@ -26,6 +26,12 @@
 #include "audio2/audio.h"
 #include "audio2/Device.h"
 
+#if defined( __OBJC__ )
+	@class AudioSessionInterruptionHandlerImpl;
+#else
+	class AudioSessionInterruptionHandlerImpl;
+#endif
+
 namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
@@ -33,7 +39,7 @@ class DeviceAudioUnit;
 class DeviceManagerAudioSession : public DeviceManager {
   public:
 	DeviceManagerAudioSession();
-	virtual ~DeviceManagerAudioSession() = default;
+	virtual ~DeviceManagerAudioSession();
 
 	DeviceRef	getDefaultOutput()								override;
 	DeviceRef	getDefaultInput()								override;
@@ -60,10 +66,13 @@ class DeviceManagerAudioSession : public DeviceManager {
 	void							activateSession();
 	std::string						getSessionCategory();
 
+	AudioSessionInterruptionHandlerImpl *getSessionInterruptionHandler();
+
 
 	DeviceRef mRemoteIODevice;
-
 	bool mSessionIsActive, mInputEnabled;
+
+	AudioSessionInterruptionHandlerImpl *mSessionInterruptionHandler;
 };
 
 } } } // namespace cinder::audio2::cocoa

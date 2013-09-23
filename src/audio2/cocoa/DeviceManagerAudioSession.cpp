@@ -32,7 +32,24 @@
 #import <AVFoundation/AVAudioSession.h>
 
 #if( __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_6_0 )
-	#include <AudioToolbox/AudioSession.h>	// still needed for IO buffer duration on pre iOS 6
+
+#include <AudioToolbox/AudioSession.h>	// still needed for IO buffer duration on pre iOS 6
+
+@interface AudioSessionInterruptionHandlerImpl : NSObject <AVAudioSessionDelegate>
+
+- (void)beginInterruption;
+- (void)endInterruptionWithFlags:(NSUInteger)flags;
+
+@end
+
+#else
+
+@interface AudioSessionInterruptionHandlerImpl : NSObject
+
+- (void)notifyInterrupted:(NSNotification *)notification;
+
+@end
+
 #endif
 
 
@@ -44,6 +61,7 @@ const string kRemoteIOKey = "iOS-RemoteIO";
 
 namespace {
 
+// TODO: remove this for now, assert until otherwise needed
 void throwIfError( NSError *error, const std::string &when )
 {
 	if( error ) {
@@ -59,9 +77,15 @@ void throwIfError( NSError *error, const std::string &when )
 // ----------------------------------------------------------------------------------------------------
 
 DeviceManagerAudioSession::DeviceManagerAudioSession()
-: DeviceManager(), mSessionIsActive( false ), mInputEnabled( false )
+: DeviceManager(), mSessionIsActive( false ), mInputEnabled( false ), mSessionInterruptionHandler( nullptr )
 {
 	activateSession();
+}
+
+DeviceManagerAudioSession::~DeviceManagerAudioSession()
+{
+	if( mSessionInterruptionHandler )
+		[mSessionInterruptionHandler release];
 }
 
 DeviceRef DeviceManagerAudioSession::getDefaultOutput()
@@ -162,7 +186,17 @@ size_t DeviceManagerAudioSession::getFramesPerBlock( const DeviceRef &device )
 
 void DeviceManagerAudioSession::setSampleRate( const DeviceRef &device, size_t sampleRate )
 {
-	// TODO
+	NSError *error = nil;
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 )
+	BOOL didUpdate = [[AVAudioSession sharedInstance] setPreferredSampleRate:sampleRate error:&error];
+#else
+	BOOL didUpdate = [[AVAudioSession sharedInstance] setPreferredHardwareSampleRate:sampleRate error:&error];
+#endif
+	throwIfError( error, "setting samplerate" );
+
+	if( ! didUpdate )
+		throw AudioDeviceExc( "Failed to update samplerate." );
+
 }
 
 void DeviceManagerAudioSession::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
@@ -185,7 +219,13 @@ const DeviceRef& DeviceManagerAudioSession::getRemoteIODevice()
 void DeviceManagerAudioSession::activateSession()
 {
 	AVAudioSession *globalSession = [AVAudioSession sharedInstance];
-	//	globalSession.delegate = self; // TODO
+
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 )
+	[[NSNotificationCenter defaultCenter] addObserver:getSessionInterruptionHandler() selector:@selector(notifyInterrupted:) name:AVAudioSessionInterruptionNotification object:nil];
+#else
+	globalSession.delegate = getSessionInterruptionHandler();
+#endif
+
 	NSError *error = nil;
 	bool didActivate = [globalSession setActive:YES error:&error];
 	throwIfError( error, "activating session" );
@@ -201,4 +241,46 @@ string DeviceManagerAudioSession::getSessionCategory()
 	return ci::cocoa::convertNsString( category );
 }
 
+AudioSessionInterruptionHandlerImpl *DeviceManagerAudioSession::getSessionInterruptionHandler()
+{
+	if( ! mSessionInterruptionHandler ) {
+		mSessionInterruptionHandler = [AudioSessionInterruptionHandlerImpl new];
+	}
+	return mSessionInterruptionHandler;
+}
+
 } } } // namespace cinder::audio2::cocoa
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - AudioSessionInterruptionHandlerImpl
+// ----------------------------------------------------------------------------------------------------
+
+@implementation AudioSessionInterruptionHandlerImpl
+
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_6_0 )
+
+- (void)beginInterruption
+{
+	LOG_V << "bang" << endl;
+}
+
+- (void)endInterruptionWithFlags:(NSUInteger)flags
+{
+	LOG_V << "bang" << endl;
+}
+
+#else // iOS 6+
+
+- (void)notifyInterrupted:(NSNotification*)notification
+{
+	NSUInteger interruptionType = (NSUInteger)[[notification userInfo] objectForKey:AVAudioSessionInterruptionTypeKey];
+
+	if( interruptionType == AVAudioSessionInterruptionTypeBegan )
+		LOG_V << "interruption began" << endl;
+	else
+		LOG_V << "interruption ended" << endl;
+}
+
+#endif // iOS pre 6
+
+@end
