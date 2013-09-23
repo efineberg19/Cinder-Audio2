@@ -26,10 +26,6 @@
 #include "audio2/audio.h"
 #include "audio2/Device.h"
 
-// TODO: switch this to use AVAudioSession
-// - while I prefer the C api, it is deprecated in iOS 7 and av can do everything
-// - AVAudioSession's IOBufferDuration is only available in iOS 6+, so use kAudioSessionProperty_CurrentHardwareIOBufferDuration is deployment target = 5.0
-
 namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceAudioUnit;
@@ -55,14 +51,14 @@ class DeviceManagerAudioSession : public DeviceManager {
 	void			setSampleRate( const DeviceRef &device, size_t sampleRate )				override;
 	void			setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )		override;
 
-	void setInputEnabled( bool b = true );
+	void setInputEnabled( bool enable = true );
 	bool isInputEnabled() const		{ return mInputEnabled; }
 
   private:
 
 	const DeviceRef&				getRemoteIODevice();
 	void							activateSession();
-	uint32_t						getSessionCategory();
+	std::string						getSessionCategory();
 
 
 	DeviceRef mRemoteIODevice;

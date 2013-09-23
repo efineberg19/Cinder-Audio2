@@ -25,9 +25,16 @@
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
+#include "cinder/cocoa/CinderCocoa.h"
+
 #include <cmath>
 
-#include <AudioToolbox/AudioToolbox.h>
+#import <AVFoundation/AVAudioSession.h>
+
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_6_0 )
+	#include <AudioToolbox/AudioSession.h>	// still needed for IO buffer duration on pre iOS 6
+#endif
+
 
 using namespace std;
 
@@ -35,13 +42,17 @@ namespace cinder { namespace audio2 { namespace cocoa {
 
 const string kRemoteIOKey = "iOS-RemoteIO";
 
-template <typename ResultT>
-inline void audioSessionProperty( ::AudioSessionPropertyID property, ResultT &result )
+namespace {
+
+void throwIfError( NSError *error, const std::string &when )
 {
-	UInt32 resultSize = sizeof( result );
-	OSStatus status = ::AudioSessionGetProperty( property, &resultSize, &result );
-	CI_ASSERT( status == noErr );
+	if( error ) {
+		string errorString = string( "AVAudioSession error, when: " ) + when + ", localized description: " + ci::cocoa::convertNsString( [error localizedDescription] );
+		throw AudioDeviceExc( errorString );
+	}
 }
+
+} // anonymous namespace
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceManagerAudioSession
@@ -50,10 +61,6 @@ inline void audioSessionProperty( ::AudioSessionPropertyID property, ResultT &re
 DeviceManagerAudioSession::DeviceManagerAudioSession()
 : DeviceManager(), mSessionIsActive( false ), mInputEnabled( false )
 {
-	// TODO: install interrupt listener
-	OSStatus status = ::AudioSessionInitialize( NULL, NULL, NULL, NULL );
-	CI_ASSERT( status == noErr );
-
 	activateSession();
 }
 
@@ -85,15 +92,17 @@ const std::vector<DeviceRef>& DeviceManagerAudioSession::getDevices()
 	return mDevices;
 }
 
-void DeviceManagerAudioSession::setInputEnabled( bool b )
+void DeviceManagerAudioSession::setInputEnabled( bool enable )
 {
-	UInt32 category = kAudioSessionCategory_AmbientSound;
-	if( b ) {
-		LOG_V << "setting category to kAudioSessionCategory_PlayAndRecord" << endl;
-		category = kAudioSessionCategory_PlayAndRecord;
+	NSString *category = AVAudioSessionCategoryAmbient;
+	if( enable ) {
+		LOG_V << "setting category to AVAudioSessionCategoryPlayAndRecord" << endl;
+		category = AVAudioSessionCategoryPlayAndRecord;
 	}
-	OSStatus status = ::AudioSessionSetProperty( kAudioSessionProperty_AudioCategory, sizeof( category ), &category );
-	CI_ASSERT( status == noErr );
+
+	NSError *error;
+	[[AVAudioSession sharedInstance] setCategory:category error:&error];
+	throwIfError( error, "setting category" );
 }
 
 std::string DeviceManagerAudioSession::getName( const DeviceRef &device )
@@ -103,34 +112,51 @@ std::string DeviceManagerAudioSession::getName( const DeviceRef &device )
 
 size_t DeviceManagerAudioSession::getNumInputChannels( const DeviceRef &device )
 {
-	if( ! isInputEnabled() ) {
-//		LOG_V << "Warning: input is disabled due to session category, so no inputs." << endl;
+	if( ! isInputEnabled() )
 		return 0;
-	}
-	
-	UInt32 result;
-	audioSessionProperty( kAudioSessionProperty_CurrentHardwareInputNumberChannels, result );
+
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 )
+	NSInteger result = [[AVAudioSession sharedInstance] inputNumberOfChannels];
+#else
+	NSInteger result = [[AVAudioSession sharedInstance] currentHardwareInputNumberOfChannels];
+#endif
+
 	return static_cast<size_t>( result );
 }
 
 size_t DeviceManagerAudioSession::getNumOutputChannels( const DeviceRef &device )
 {
-	UInt32 result;
-	audioSessionProperty( kAudioSessionProperty_CurrentHardwareOutputNumberChannels, result );
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 )
+	NSInteger result = [[AVAudioSession sharedInstance] outputNumberOfChannels];
+#else
+	NSInteger result = [[AVAudioSession sharedInstance] currentHardwareOutputNumberOfChannels];
+#endif
+
 	return static_cast<size_t>( result );
 }
 
 size_t DeviceManagerAudioSession::getSampleRate( const DeviceRef &device )
 {
-	Float64 result;
-	audioSessionProperty( kAudioSessionProperty_CurrentHardwareSampleRate, result );
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 )
+	double result = [[AVAudioSession sharedInstance] sampleRate];
+#else
+	double result = [[AVAudioSession sharedInstance] currentHardwareSampleRate];
+#endif
+
 	return static_cast<size_t>( result );
 }
 
 size_t DeviceManagerAudioSession::getFramesPerBlock( const DeviceRef &device )
 {
+#if( __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 )
+	double durationSeconds = [[AVAudioSession sharedInstance] IOBufferDuration];
+#else
 	Float32 durationSeconds;
-	audioSessionProperty( kAudioSessionProperty_CurrentHardwareIOBufferDuration, durationSeconds );
+	UInt32 durationSecondsSize = sizeof( durationSeconds );
+	OSStatus status = ::AudioSessionGetProperty( kAudioSessionProperty_CurrentHardwareIOBufferDuration, &durationSecondsSize, &durationSeconds );
+	CI_ASSERT( status == noErr );
+#endif
+
 	return std::lround( static_cast<Float32>( getSampleRate( device ) ) * durationSeconds );
 }
 
@@ -158,17 +184,21 @@ const DeviceRef& DeviceManagerAudioSession::getRemoteIODevice()
 
 void DeviceManagerAudioSession::activateSession()
 {
-	OSStatus status = ::AudioSessionSetActive( true );
-	CI_ASSERT( status == noErr );
+	AVAudioSession *globalSession = [AVAudioSession sharedInstance];
+	//	globalSession.delegate = self; // TODO
+	NSError *error = nil;
+	bool didActivate = [globalSession setActive:YES error:&error];
+	throwIfError( error, "activating session" );
+	if( ! didActivate )
+		throw AudioDeviceExc( "Failed to activate global AVAudioSession." );
 
 	mSessionIsActive = true;
 }
 
-uint32_t DeviceManagerAudioSession::getSessionCategory()
+string DeviceManagerAudioSession::getSessionCategory()
 {
-	UInt32 result;
-	audioSessionProperty( kAudioSessionProperty_AudioCategory, result );
-	return static_cast<uint32_t>( result );
+	NSString *category = [[AVAudioSession sharedInstance] category];
+	return ci::cocoa::convertNsString( category );
 }
 
 } } } // namespace cinder::audio2::cocoa
