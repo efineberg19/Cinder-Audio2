@@ -11,7 +11,7 @@
 
 #include "Gui.h"
 
-// FIXME: I/O test seems broken
+// TODO: finish testing on-the-fly device changes with fireface
 
 using namespace ci;
 using namespace ci::app;
@@ -107,7 +107,13 @@ void DeviceTestApp::setOutputDevice( const DeviceRef &device )
 
 void DeviceTestApp::setInputDevice( const DeviceRef &device )
 {
+	NodeRef currentLineInOutput = ( mLineIn ? mLineIn->getOutput() : NodeRef() );
+	SaveNodeEnabledState enabled( mLineIn );
+
 	mLineIn = mContext->createLineIn( device );
+
+	if( currentLineInOutput )
+		currentLineInOutput->connect( mLineIn, 0 ); // TODO: this assumes line in was connected at bus 0. support detecting if it was connected on a different bus.
 
 	LOG_V << "LineIn device properties: " << endl;
 	printDeviceDetails( device );
