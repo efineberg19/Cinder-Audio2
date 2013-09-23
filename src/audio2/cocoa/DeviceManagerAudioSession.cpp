@@ -96,12 +96,12 @@ void DeviceManagerAudioSession::setInputEnabled( bool b )
 	CI_ASSERT( status == noErr );
 }
 
-std::string DeviceManagerAudioSession::getName( const std::string &key )
+std::string DeviceManagerAudioSession::getName( const DeviceRef &device )
 {
 	return kRemoteIOKey;
 }
 
-size_t DeviceManagerAudioSession::getNumInputChannels( const string &key )
+size_t DeviceManagerAudioSession::getNumInputChannels( const DeviceRef &device )
 {
 	if( ! isInputEnabled() ) {
 //		LOG_V << "Warning: input is disabled due to session category, so no inputs." << endl;
@@ -113,25 +113,35 @@ size_t DeviceManagerAudioSession::getNumInputChannels( const string &key )
 	return static_cast<size_t>( result );
 }
 
-size_t DeviceManagerAudioSession::getNumOutputChannels( const string &key )
+size_t DeviceManagerAudioSession::getNumOutputChannels( const DeviceRef &device )
 {
 	UInt32 result;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareOutputNumberChannels, result );
 	return static_cast<size_t>( result );
 }
 
-size_t DeviceManagerAudioSession::getSampleRate( const string &key )
+size_t DeviceManagerAudioSession::getSampleRate( const DeviceRef &device )
 {
 	Float64 result;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareSampleRate, result );
 	return static_cast<size_t>( result );
 }
 
-size_t DeviceManagerAudioSession::getFramesPerBlock( const string &key )
+size_t DeviceManagerAudioSession::getFramesPerBlock( const DeviceRef &device )
 {
 	Float32 durationSeconds;
 	audioSessionProperty( kAudioSessionProperty_CurrentHardwareIOBufferDuration, durationSeconds );
-	return std::lround( static_cast<Float32>( getSampleRate( key ) ) * durationSeconds );
+	return std::lround( static_cast<Float32>( getSampleRate( device ) ) * durationSeconds );
+}
+
+void DeviceManagerAudioSession::setSampleRate( const DeviceRef &device, size_t sampleRate )
+{
+	// TODO
+}
+
+void DeviceManagerAudioSession::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
+{
+	// TODO
 }
 
 // ----------------------------------------------------------------------------------------------------

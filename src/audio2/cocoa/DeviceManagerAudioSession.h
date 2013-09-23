@@ -39,18 +39,21 @@ class DeviceManagerAudioSession : public DeviceManager {
 	DeviceManagerAudioSession();
 	virtual ~DeviceManagerAudioSession() = default;
 
-	DeviceRef getDefaultOutput() override;
-	DeviceRef getDefaultInput() override;
-	DeviceRef findDeviceByName( const std::string &name ) override;
-	DeviceRef findDeviceByKey( const std::string &key ) override;
+	DeviceRef	getDefaultOutput()								override;
+	DeviceRef	getDefaultInput()								override;
+	DeviceRef	findDeviceByName( const std::string &name )		override;
+	DeviceRef	findDeviceByKey( const std::string &key )		override;
 
-	const std::vector<DeviceRef>& getDevices() override;
+	const std::vector<DeviceRef>&	getDevices()				override;
 
-	std::string getName( const std::string &key ) override;
-	size_t getNumInputChannels( const std::string &key ) override;
-	size_t getNumOutputChannels( const std::string &key ) override;
-	size_t getSampleRate( const std::string &key ) override;
-	size_t getFramesPerBlock( const std::string &key ) override;
+	std::string		getName( const DeviceRef &device )										override;
+	size_t			getNumInputChannels( const DeviceRef &device )							override;
+	size_t			getNumOutputChannels( const DeviceRef &device )							override;
+	size_t			getSampleRate( const DeviceRef &device )								override;
+	size_t			getFramesPerBlock( const DeviceRef &device )							override;
+
+	void			setSampleRate( const DeviceRef &device, size_t sampleRate )				override;
+	void			setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )		override;
 
 	void setInputEnabled( bool b = true );
 	bool isInputEnabled() const		{ return mInputEnabled; }

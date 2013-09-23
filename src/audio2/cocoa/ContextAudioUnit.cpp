@@ -248,7 +248,7 @@ void NodeLineInAudioUnit::initialize()
 		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
 
 #if defined( CINDER_COCOA_TOUCH )
-		auto manager = dynamic_cast<DeviceManagerAudioSession *>( DeviceManager::instance() );
+		auto manager = dynamic_cast<DeviceManagerAudioSession *>( Context::deviceManager() );
 		CI_ASSERT( manager );
 
 		manager->setInputEnabled();
