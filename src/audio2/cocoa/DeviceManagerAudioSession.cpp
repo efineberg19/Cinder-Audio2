@@ -194,8 +194,8 @@ void DeviceManagerAudioSession::setSampleRate( const DeviceRef &device, size_t s
 #endif
 	throwIfError( error, "setting samplerate" );
 
-	if( ! didUpdate )
-		throw AudioDeviceExc( "Failed to update samplerate." );
+	if( ! didUpdate || getSampleRate( device ) != sampleRate )
+		throw AudioDeviceExc( "Failed to update samplerate to the requested value." );
 }
 
 void DeviceManagerAudioSession::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
@@ -206,8 +206,8 @@ void DeviceManagerAudioSession::setFramesPerBlock( const DeviceRef &device, size
 	BOOL didUpdate = [[AVAudioSession sharedInstance] setPreferredIOBufferDuration:bufferDuration error:&error];
 	CI_ASSERT( ! error );
 
-	if( ! didUpdate )
-		throw AudioDeviceExc( "Failed to update frames per block." );
+	if( ! didUpdate || getFramesPerBlock( device ) != framesPerBlock )
+		throw AudioDeviceExc( "Failed to update frames per block to the requested value." );
 }
 
 // ----------------------------------------------------------------------------------------------------
