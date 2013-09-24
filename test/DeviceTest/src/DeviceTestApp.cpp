@@ -53,6 +53,7 @@ class DeviceTestApp : public AppNative {
 	TextInput mSamplerateInput, mFramesPerBlockInput;
 
 	Anim<float> mUnderrunFade, mOverrunFade, mClipFade;
+	Anim<float> mViewYOffset; // for iOS keyboard
 	Rectf mUnderrunRect, mOverrunRect, mClipRect;
 };
 
@@ -63,6 +64,8 @@ void DeviceTestApp::prepareSettings( Settings *settings )
 
 void DeviceTestApp::setup()
 {
+	mViewYOffset = 0.0f;
+
 	mContext = Context::create();
 
 	setOutputDevice( Device::getDefaultOutput() );
@@ -244,14 +247,29 @@ void DeviceTestApp::processDrag( Vec2i pos )
 
 void DeviceTestApp::processTap( Vec2i pos )
 {
+	string keyboardString;
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	else if( mSamplerateInput.hitTest( pos ) ) {
 		LOG_V << "mSamplerateInput selected" << endl;
+		keyboardString = mSamplerateInput.mInputString;
 	}
 	else if( mFramesPerBlockInput.hitTest( pos ) ) {
 		LOG_V << "mFramesPerBlockInput selected" << endl;
+		keyboardString = mFramesPerBlockInput.mInputString;
 	}
+
+#if defined( CINDER_COCOA_TOUCH )
+	if( ! keyboardString.empty() ) {
+		showKeyboard();
+
+		// TODO: setKeyboardString _has_ to be called after show on first go, since it is created there.
+		//		- can be overcome by adding lazy initializing keyboard the first time it's accessor is used
+		//		- can also possible kill 2 birds with one stone here: if keyboard property is public, advanced users can manipulate it's appearance via that getter.
+		setKeyboardString( keyboardString );
+		timeline().apply( &mViewYOffset, -100.0f, 0.4f );
+	}
+#endif
 
 	size_t currentTestIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentTestIndex != mTestSelector.mCurrentSectionIndex ) {
@@ -288,6 +306,11 @@ void DeviceTestApp::keyDown( KeyEvent event )
 		return;
 
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
+#if defined( CINDER_COCOA_TOUCH )
+		hideKeyboard();
+		timeline().apply( &mViewYOffset, 0.0f, 0.4f );
+#endif
+
 		try {
 			if( currentSelected == &mSamplerateInput ) {
 				int sr = currentSelected->getValue();
@@ -335,6 +358,9 @@ void DeviceTestApp::draw()
 	gl::clear();
 	gl::color( 0.0f, 0.9f, 0.0f );
 
+	gl::pushMatrices();
+	gl::translate( 0.0f, mViewYOffset );
+
 	if( mTap && mTap->isInitialized() ) {
 		const audio2::Buffer &buffer = mTap->getBuffer();
 
@@ -378,6 +404,8 @@ void DeviceTestApp::draw()
 		gl::drawSolidRect( mClipRect );
 		gl::drawStringCentered( "clip", mClipRect.getCenter(), Color::black() );
 	}
+
+	gl::popMatrices();
 }
 
 CINDER_APP_NATIVE( DeviceTestApp, RendererGl )
