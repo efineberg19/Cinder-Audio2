@@ -109,6 +109,9 @@ class DeviceManager : public boost::noncopyable {
 	virtual void			setSampleRate( const DeviceRef &device, size_t sampleRate )				= 0;
 	virtual void			setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )		= 0;
 
+	//! override if subclass needs to update params async, and will issue formatWillChange callbacks
+	virtual bool			updatesFormatAsync() const		{ return false; }
+
   protected:
 	DeviceManager()	{}
 
