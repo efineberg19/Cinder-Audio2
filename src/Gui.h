@@ -244,8 +244,10 @@ struct VSelector : public TestWidget {
 		section.y2 = section.y1 + sectionHeight;
 		gl::drawStrokedRect( section );
 
-		gl::color( mSelectedColor );
-		mTexFont->drawString( mSegments[mCurrentSectionIndex], Vec2f( section.x1 + mPadding, section.getCenter().y + mTexFont->getFont().getDescent() ) );
+		if( ! mSegments.empty() ) {
+			gl::color( mSelectedColor );
+			mTexFont->drawString( mSegments[mCurrentSectionIndex], Vec2f( section.x1 + mPadding, section.getCenter().y + mTexFont->getFont().getDescent() ) );
+		}
 
 		if( ! mTitle.empty() ) {
 			gl::color( mTitleColor );
