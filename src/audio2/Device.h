@@ -57,12 +57,11 @@ class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
 	size_t getSampleRate();
 	size_t getFramesPerBlock();
 
-	// TODO: rename Format? Params is vague
-	struct Params {
-		Params() : mSampleRate( 0 ), mFramesPerBlock( 0 ) {}
+	struct Format {
+		Format() : mSampleRate( 0 ), mFramesPerBlock( 0 ) {}
 
-		Params& sampleRate( size_t sr )				{ mSampleRate = sr;			return *this; }
-		Params& framesPerBlock( size_t frames )		{ mFramesPerBlock = frames; return *this; }
+		Format& sampleRate( size_t sr )				{ mSampleRate = sr;			return *this; }
+		Format& framesPerBlock( size_t frames )		{ mFramesPerBlock = frames; return *this; }
 
 		size_t getSampleRate() const				{ return mSampleRate; }
 		size_t getFramesPerBlock() const			{ return mFramesPerBlock; }
@@ -72,7 +71,7 @@ class Device : public std::enable_shared_from_this<Device>, boost::noncopyable {
 	};
 
 	//! \note Update may be asynchronous.
-	void updateParams( const Params &params );
+	void updateFormat( const Format &format );
 
 	signals::signal<void()>& getSignalParamsWillChange()	{ return mSignalParamsWillChange; }
 	signals::signal<void()>& getSignalParamsDidChange()		{ return mSignalParamsDidChange; }

@@ -315,12 +315,12 @@ void DeviceTestApp::keyDown( KeyEvent event )
 			if( currentSelected == &mSamplerateInput ) {
 				int sr = currentSelected->getValue();
 				LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
-				mLineOut->getDevice()->updateParams( Device::Params().sampleRate( sr ) );
+				mLineOut->getDevice()->updateFormat( Device::Format().sampleRate( sr ) );
 			}
 			else if( currentSelected == &mFramesPerBlockInput ) {
 				int frames = currentSelected->getValue();
 				LOG_V << "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames << endl;
-				mLineOut->getDevice()->updateParams( Device::Params().framesPerBlock( frames ) );
+				mLineOut->getDevice()->updateFormat( Device::Format().framesPerBlock( frames ) );
 			}
 			else
 				LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;

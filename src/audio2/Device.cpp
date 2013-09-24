@@ -129,10 +129,10 @@ size_t Device::getFramesPerBlock()
 	return mFramesPerBlock;
 }
 
-void Device::updateParams( const Params &params )
+void Device::updateFormat( const Format &format )
 {
-	size_t sampleRate = params.getSampleRate();
-	size_t framesPerBlock = params.getFramesPerBlock();
+	size_t sampleRate = format.getSampleRate();
+	size_t framesPerBlock = format.getFramesPerBlock();
 	if( mSampleRate == sampleRate && mFramesPerBlock == framesPerBlock )
 		return;
 

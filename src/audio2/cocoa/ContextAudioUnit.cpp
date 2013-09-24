@@ -256,8 +256,9 @@ void NodeLineInAudioUnit::initialize()
 	}
 	else {
 		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
+		
 		if( mDevice->getSampleRate() != sampleRate || mDevice->getFramesPerBlock() != framesPerBlock )
-			mDevice->updateParams( Device::Params().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
+			mDevice->updateFormat( Device::Format().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
 
 		// set params from Context, since mDevice may be updating async
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( framesPerBlock * getNumChannels() ) );
