@@ -118,15 +118,17 @@ const std::vector<DeviceRef>& DeviceManagerAudioSession::getDevices()
 
 void DeviceManagerAudioSession::setInputEnabled( bool enable )
 {
-	NSString *category = AVAudioSessionCategoryAmbient;
-	if( enable ) {
-		LOG_V << "setting category to AVAudioSessionCategoryPlayAndRecord" << endl;
-		category = AVAudioSessionCategoryPlayAndRecord;
-	}
+	if( mInputEnabled == enable )
+		return;
+	
+	NSString *category = ( enable ? AVAudioSessionCategoryPlayAndRecord : AVAudioSessionCategoryAmbient );
 
 	NSError *error;
 	[[AVAudioSession sharedInstance] setCategory:category error:&error];
 	throwIfError( error, "setting category" );
+
+	mInputEnabled = enable;
+	LOG_V << "set session category to: " << getSessionCategory() << endl;
 }
 
 std::string DeviceManagerAudioSession::getName( const DeviceRef &device )
