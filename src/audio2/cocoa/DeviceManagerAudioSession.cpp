@@ -202,7 +202,7 @@ void DeviceManagerAudioSession::setSampleRate( const DeviceRef &device, size_t s
 
 void DeviceManagerAudioSession::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
 {
-	NSTimeInterval bufferDuration = std::lround( (NSTimeInterval)framesPerBlock / (NSTimeInterval)getSampleRate( device ) );
+	NSTimeInterval bufferDuration = (NSTimeInterval)framesPerBlock / (NSTimeInterval)getSampleRate( device );
 
 	NSError *error = nil;
 	BOOL didUpdate = [[AVAudioSession sharedInstance] setPreferredIOBufferDuration:bufferDuration error:&error];
