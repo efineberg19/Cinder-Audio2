@@ -57,18 +57,9 @@ using namespace std;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
-const string kRemoteIOKey = "iOS-RemoteIO";
-
 namespace {
 
-// TODO: remove this for now, assert until otherwise needed
-void throwIfError( NSError *error, const std::string &when )
-{
-	if( error ) {
-		string errorString = string( "AVAudioSession error, when: " ) + when + ", localized description: " + ci::cocoa::convertNsString( [error localizedDescription] );
-		throw AudioDeviceExc( errorString );
-	}
-}
+const string kRemoteIOKey = "iOS-RemoteIO";
 
 } // anonymous namespace
 
@@ -123,9 +114,9 @@ void DeviceManagerAudioSession::setInputEnabled( bool enable )
 	
 	NSString *category = ( enable ? AVAudioSessionCategoryPlayAndRecord : AVAudioSessionCategoryAmbient );
 
-	NSError *error;
+	NSError *error = nil;
 	[[AVAudioSession sharedInstance] setCategory:category error:&error];
-	throwIfError( error, "setting category" );
+	CI_ASSERT( ! error );
 
 	mInputEnabled = enable;
 	LOG_V << "set session category to: " << getSessionCategory() << endl;
@@ -194,7 +185,7 @@ void DeviceManagerAudioSession::setSampleRate( const DeviceRef &device, size_t s
 #else
 	BOOL didUpdate = [[AVAudioSession sharedInstance] setPreferredHardwareSampleRate:sampleRate error:&error];
 #endif
-	throwIfError( error, "setting samplerate" );
+	CI_ASSERT( ! error );
 
 	if( ! didUpdate || getSampleRate( device ) != sampleRate )
 		throw AudioDeviceExc( "Failed to update samplerate to the requested value." );
@@ -236,7 +227,8 @@ void DeviceManagerAudioSession::activateSession()
 
 	NSError *error = nil;
 	bool didActivate = [globalSession setActive:YES error:&error];
-	throwIfError( error, "activating session" );
+	CI_ASSERT( ! error );
+
 	if( ! didActivate )
 		throw AudioDeviceExc( "Failed to activate global AVAudioSession." );
 
