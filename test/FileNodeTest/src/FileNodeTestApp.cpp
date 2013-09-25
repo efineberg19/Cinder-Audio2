@@ -4,7 +4,7 @@
 
 #include "audio2/audio.h"
 #include "audio2/NodeSource.h"
-#include "audio2/TapNode.h"
+#include "audio2/NodeTap.h"
 #include "Plot.h"
 #include "audio2/Debug.h"
 
@@ -39,10 +39,10 @@ class FileNodeTestApp : public AppNative {
 	void seek( size_t xPos );
 
 	ContextRef mContext;
-	PlayerNodeRef mPlayerNode;
+	NodeSamplePlayerRef mSamplePlayer;
 	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
-	TapNodeRef mTap;
+	NodeTapRef mTap;
 
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
@@ -80,8 +80,8 @@ void FileNodeTestApp::setupBufferPlayer()
 
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
-	mPlayerNode = mContext->makeNode( new BufferPlayerNode( audioBuffer ) );
-	mPlayerNode->connect( mContext->getTarget() );
+	mSamplePlayer = mContext->makeNode( new NodeBufferPlayer( audioBuffer ) );
+	mSamplePlayer->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupFilePlayer()
@@ -91,12 +91,12 @@ void FileNodeTestApp::setupFilePlayer()
 //	mSourceFile->setNumFramesPerRead( 4096 );
 	mSourceFile->setNumFramesPerRead( 8192 );
 
-//	mPlayerNode = mContext->makeNode( new FilePlayerNode( mSourceFile ) );
-	mPlayerNode = mContext->makeNode( new FilePlayerNode( mSourceFile, false ) ); // synchronous file i/o
+//	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
+	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
-	mTap = mContext->makeNode( new TapNode( TapNode::Format().windowSize( 512 ) ) ); // TODO: why is this hard-coded?
+	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 512 ) ) ); // TODO: why is this hard-coded?
 
-	mPlayerNode->connect( mTap )->connect( mContext->getTarget() );
+	mSamplePlayer->connect( mTap )->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupUI()
@@ -140,22 +140,22 @@ void FileNodeTestApp::processTap( Vec2i pos )
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	else if( mStartPlaybackButton.hitTest( pos ) )
-		mPlayerNode->start();
+		mSamplePlayer->start();
 	else if( mLoopButton.hitTest( pos ) )
-		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
+		mSamplePlayer->setLoop( ! mSamplePlayer->getLoop() );
 	else
 		seek( pos.x );
 }
 
 void FileNodeTestApp::seek( size_t xPos )
 {
-	size_t seek = mPlayerNode->getNumFrames() * xPos / getWindowWidth();
-	mPlayerNode->setReadPosition( seek );
+	size_t seek = mSamplePlayer->getNumFrames() * xPos / getWindowWidth();
+	mSamplePlayer->setReadPosition( seek );
 }
 
 void FileNodeTestApp::mouseDown( MouseEvent event )
 {
-//	mPlayerNode->start();
+//	mSamplePlayer->start();
 
 //	size_t step = mBuffer.getNumFrames() / getWindowWidth();
 //    size_t xLoc = event.getX() * step;
@@ -179,7 +179,7 @@ void FileNodeTestApp::draw()
 	gl::clear();
 	mWaveformPlot.draw();
 
-	float readPos = (float)getWindowWidth() * mPlayerNode->getReadPosition() / mPlayerNode->getNumFrames();
+	float readPos = (float)getWindowWidth() * mSamplePlayer->getReadPosition() / mSamplePlayer->getNumFrames();
 
 	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
 	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );

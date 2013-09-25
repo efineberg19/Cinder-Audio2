@@ -37,8 +37,8 @@ namespace cinder { namespace audio2 {
 class RingBuffer;
 class Fft;
 
-typedef std::shared_ptr<class NodeTap> TapNodeRef;
-typedef std::shared_ptr<class NodeTapSpectral> SpectrumTapNodeRef;
+typedef std::shared_ptr<class NodeTap> NodeTapRef;
+typedef std::shared_ptr<class NodeTapSpectral> NodeTapSpectralRef;
 
 class NodeTap : public Node {
 public:

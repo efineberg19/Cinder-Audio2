@@ -39,7 +39,7 @@ class InputTestApp : public AppNative {
 	ContextRef mContext;
 	NodeLineInRef mLineIn;
 	NodeLineOutRef mLineOut;
-	TapNodeRef mTap;
+	NodeTapRef mTap;
 
 	VSelector mTestSelector;
 	Button mPlayButton;

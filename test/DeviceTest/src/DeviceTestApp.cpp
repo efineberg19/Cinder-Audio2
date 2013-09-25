@@ -42,7 +42,7 @@ class DeviceTestApp : public AppNative {
 	ContextRef mContext;
 	NodeLineInRef mLineIn;
 	NodeLineOutRef mLineOut;
-	TapNodeRef mTap;
+	NodeTapRef mTap;
 	NodeGainRef mGain;
 	NodeSourceRef mSourceNode;
 
