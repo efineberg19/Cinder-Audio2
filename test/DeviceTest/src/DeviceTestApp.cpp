@@ -67,8 +67,6 @@ void DeviceTestApp::prepareSettings( Settings *settings )
 
 void DeviceTestApp::setup()
 {
-	mViewYOffset = 0.0f;
-
 	mContext = Context::create();
 
 	setOutputDevice( Device::getDefaultOutput() );
@@ -239,6 +237,13 @@ void DeviceTestApp::setupUI()
 			processDrag( touch.getPos() );
 	} );
 
+	mViewYOffset = 0.0f;
+
+#if defined( CINDER_COCOA_TOUCH )
+	getSignalKeyboardWillShow().connect( [this] { timeline().apply( &mViewYOffset, -100.0f, 0.3f, EaseInOutCubic() );	} );
+	getSignalKeyboardWillHide().connect( [this] { timeline().apply( &mViewYOffset, 0.0f, 0.3f, EaseInOutCubic() ); } );
+#endif
+
 	gl::enableAlphaBlending();
 }
 
@@ -250,29 +255,20 @@ void DeviceTestApp::processDrag( Vec2i pos )
 
 void DeviceTestApp::processTap( Vec2i pos )
 {
-	string keyboardString;
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	else if( mSamplerateInput.hitTest( pos ) ) {
 		LOG_V << "mSamplerateInput selected" << endl;
-		keyboardString = mSamplerateInput.mInputString;
+#if defined( CINDER_COCOA_TOUCH )
+		showKeyboard( KeyboardOptions().type( KeyboardType::NUMERICAL ).initialString( mSamplerateInput.mInputString ) );
+#endif
 	}
 	else if( mFramesPerBlockInput.hitTest( pos ) ) {
 		LOG_V << "mFramesPerBlockInput selected" << endl;
-		keyboardString = mFramesPerBlockInput.mInputString;
-	}
-
 #if defined( CINDER_COCOA_TOUCH )
-	if( ! keyboardString.empty() ) {
-		showKeyboard();
-
-		// TODO: setKeyboardString _has_ to be called after show on first go, since it is created there.
-		//		- can be overcome by adding lazy initializing keyboard the first time it's accessor is used
-		//		- can also possible kill 2 birds with one stone here: if keyboard property is public, advanced users can manipulate it's appearance via that getter.
-		setKeyboardString( keyboardString );
-		timeline().apply( &mViewYOffset, -100.0f, 0.4f );
-	}
+		showKeyboard( KeyboardOptions().type( KeyboardType::NUMERICAL ).initialString( mFramesPerBlockInput.mInputString ) );
 #endif
+	}
 
 	size_t currentTestIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentTestIndex != mTestSelector.mCurrentSectionIndex ) {
@@ -299,7 +295,6 @@ void DeviceTestApp::processTap( Vec2i pos )
 
 		setOutputDevice( dev );
 	}
-
 }
 
 void DeviceTestApp::keyDown( KeyEvent event )
@@ -311,7 +306,6 @@ void DeviceTestApp::keyDown( KeyEvent event )
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
 #if defined( CINDER_COCOA_TOUCH )
 		hideKeyboard();
-		timeline().apply( &mViewYOffset, 0.0f, 0.4f );
 #endif
 
 		try {
