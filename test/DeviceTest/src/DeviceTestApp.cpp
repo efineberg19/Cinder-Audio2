@@ -11,6 +11,9 @@
 
 #include "Gui.h"
 
+// NOTE: currently requires the experimental cinder branch 'ios_keyboard'
+
+// FIXME: synchronous I/O broken... just silence on both mac and iOS.
 // TODO: finish testing on-the-fly device changes with fireface
 
 using namespace ci;

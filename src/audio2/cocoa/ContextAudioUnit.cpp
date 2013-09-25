@@ -245,7 +245,7 @@ void NodeLineInAudioUnit::initialize()
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
 
 		::AURenderCallbackStruct callbackStruct { NodeLineInAudioUnit::renderCallback, &mRenderData };
-		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
+		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::INPUT );
 
 #if defined( CINDER_COCOA_TOUCH )
 		auto manager = dynamic_cast<DeviceManagerAudioSession *>( Context::deviceManager() );

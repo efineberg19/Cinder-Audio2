@@ -96,6 +96,8 @@ inline void zeroBufferList( const ::AudioBufferList *bufferList )
 // MARK: - Audio Unit Helper Functions
 // ----------------------------------------------------------------------------------------------------
 
+// TODO: make bus required, it has caused too many bugs when defaulted to 0
+
 ::AudioComponentDescription getOutputAudioUnitDesc();
 ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 );
 
