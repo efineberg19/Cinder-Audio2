@@ -149,7 +149,7 @@ void Device::updateFormat( const Format &format )
 		Context::deviceManager()->setFramesPerBlock( shared_from_this(), framesPerBlock );
 	}
 
-	if( ! Context::deviceManager()->updatesFormatAsync() )
+	if( ! Context::deviceManager()->isFormatUpdatedAsync() )
 		mSignalParamsDidChange();
 }
 

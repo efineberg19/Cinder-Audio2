@@ -109,7 +109,7 @@ class DeviceManager : public boost::noncopyable {
 	virtual void			setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )		= 0;
 
 	//! override if subclass needs to update params async, and will issue formatWillChange callbacks
-	virtual bool			updatesFormatAsync() const		{ return false; }
+	virtual bool			isFormatUpdatedAsync() const		{ return false; }
 
   protected:
 	DeviceManager()	{}
