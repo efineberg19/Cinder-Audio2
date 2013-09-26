@@ -81,22 +81,22 @@ DeviceManagerAudioSession::~DeviceManagerAudioSession()
 
 DeviceRef DeviceManagerAudioSession::getDefaultOutput()
 {
-	return static_pointer_cast<Device>( getRemoteIODevice() );
+	return getRemoteIODevice();
 }
 
 DeviceRef DeviceManagerAudioSession::getDefaultInput()
 {
-	return getDefaultOutput();
+	return getRemoteIODevice();
 }
 
 DeviceRef DeviceManagerAudioSession::findDeviceByName( const std::string &name )
 {
-	return getDefaultOutput();
+	return getRemoteIODevice();
 }
 
 DeviceRef DeviceManagerAudioSession::findDeviceByKey( const std::string &key )
 {
-	return getDefaultOutput();
+	return getRemoteIODevice();
 }
 
 const std::vector<DeviceRef>& DeviceManagerAudioSession::getDevices()
