@@ -187,9 +187,16 @@ OSStatus NodeLineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActi
 NodeLineInAudioUnit::NodeLineInAudioUnit( DeviceRef device, const Format &format )
 : NodeLineIn( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 )
 {
+#if defined( CINDER_COCOA_TOUCH )
+	auto manager = dynamic_cast<DeviceManagerAudioSession *>( Context::deviceManager() );
+	CI_ASSERT( manager );
+
+	manager->setInputEnabled();
+#endif
+
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( 2 );
+		setNumChannels( mDevice->getNumInputChannels() );
 	}
 }
 
@@ -246,13 +253,6 @@ void NodeLineInAudioUnit::initialize()
 
 		::AURenderCallbackStruct callbackStruct { NodeLineInAudioUnit::renderCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::INPUT );
-
-#if defined( CINDER_COCOA_TOUCH )
-		auto manager = dynamic_cast<DeviceManagerAudioSession *>( Context::deviceManager() );
-		CI_ASSERT( manager );
-
-		manager->setInputEnabled();
-#endif
 	}
 	else {
 		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
