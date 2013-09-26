@@ -93,23 +93,21 @@ inline void zeroBufferList( const ::AudioBufferList *bufferList )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - Audio Unit Helper Functions
+// MARK: - Audio Unit Utils
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: make bus required, it has caused too many bugs when defaulted to 0
-
 ::AudioComponentDescription getOutputAudioUnitDesc();
-::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 );
+::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus );
 
 template <typename PropT>
-inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 )
+inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus )
 {
 	OSStatus status = ::AudioUnitSetProperty( audioUnit, propertyId, scope, bus, &property, sizeof( property ) );
 	CI_ASSERT( status == noErr );
 }
 
 template <typename PropT>
-inline PropT getAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, ::AudioUnitScope scope, ::AudioUnitElement bus = 0 )
+inline PropT getAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, ::AudioUnitScope scope, ::AudioUnitElement bus )
 {
 	PropT result;
 	UInt32 resultSize = sizeof( result );
@@ -119,7 +117,7 @@ inline PropT getAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID 
 }
 
 template <typename ResultT>
-inline void getAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID paramId, ResultT &result, ::AudioUnitScope scope, size_t bus = 0 )
+inline void getAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID paramId, ResultT &result, ::AudioUnitScope scope, size_t bus )
 {
 	::AudioUnitParameterValue param;
 	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
@@ -129,7 +127,7 @@ inline void getAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID par
 }
 
 template <typename ParamT>
-inline void setAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID paramId, const ParamT &param, ::AudioUnitScope scope, size_t bus = 0 )
+inline void setAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID paramId, const ParamT &param, ::AudioUnitScope scope, size_t bus )
 {
 	::AudioUnitParameterValue value = static_cast<::AudioUnitParameterValue>( param );
 	::AudioUnitElement busElement = static_cast<::AudioUnitElement>( bus );
@@ -137,7 +135,7 @@ inline void setAudioUnitParam( ::AudioUnit audioUnit, ::AudioUnitParameterID par
 	CI_ASSERT( status == noErr );
 }
 
-inline std::vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, ::AudioUnitElement bus = 0 )
+inline std::vector<::AUChannelInfo> getAudioUnitChannelInfo( ::AudioUnit audioUnit, ::AudioUnitElement bus )
 {
 	std::vector<::AUChannelInfo> result;
 	UInt32 resultSize;

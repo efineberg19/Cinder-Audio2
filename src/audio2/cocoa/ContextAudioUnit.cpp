@@ -411,11 +411,11 @@ void NodeEffectAudioUnit::initialize()
 	mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
 
 	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
-	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Input );
-	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output );
+	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Input, 0 );
+	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, 0 );
 
 	::AURenderCallbackStruct callbackStruct = { NodeEffectAudioUnit::renderCallback, &mRenderData };
-	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
+	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, 0 );
 
 	initAu();
 }
@@ -449,7 +449,7 @@ OSStatus NodeEffectAudioUnit::renderCallback( void *data, ::AudioUnitRenderActio
 
 void NodeEffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float val )
 {
-	setAudioUnitParam( mAudioUnit, paramId, val, kAudioUnitScope_Global );
+	setAudioUnitParam( mAudioUnit, paramId, val, kAudioUnitScope_Global, 0 );
 }
 
 // ----------------------------------------------------------------------------------------------------
