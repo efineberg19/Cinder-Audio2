@@ -83,7 +83,7 @@ void NodeLineOutAudioUnit::initialize()
 	mRenderData.node = this;
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
-	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getContext()->getSampleRate() );
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), getSampleRate() );
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Input, DeviceBus::OUTPUT );
 
 	UInt32 enableOutput = 1;
@@ -93,7 +93,7 @@ void NodeLineOutAudioUnit::initialize()
 	setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, enableInput, kAudioUnitScope_Input, DeviceBus::INPUT );
 
 	::AURenderCallbackStruct callbackStruct { NodeLineOutAudioUnit::renderCallback, &mRenderData };
-	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input );
+	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::OUTPUT );
 
 #if defined( CINDER_MAC )
 	auto manager = dynamic_cast<DeviceManagerCoreAudio *>( Context::deviceManager() );
