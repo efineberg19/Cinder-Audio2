@@ -70,7 +70,7 @@ void NodeAudioUnit::uninitAu()
 // ----------------------------------------------------------------------------------------------------
 
 NodeLineOutAudioUnit::NodeLineOutAudioUnit( DeviceRef device, const Format &format )
-: NodeLineOut( device, format ), mProcessedFrames( 0 ), mLastClip( 0 ), mSynchroniousIO( false )
+: NodeLineOut( device, format ), mProcessedFrames( 0 ), mLastClip( 0 ), mSynchronousIO( false )
 {
 	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 }
@@ -89,7 +89,7 @@ void NodeLineOutAudioUnit::initialize()
 	UInt32 enableOutput = 1;
 	setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, enableOutput, kAudioUnitScope_Output, DeviceBus::OUTPUT );
 
-	UInt32 enableInput = mSynchroniousIO;
+	UInt32 enableInput = mSynchronousIO;
 	setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, enableInput, kAudioUnitScope_Input, DeviceBus::INPUT );
 
 	::AURenderCallbackStruct callbackStruct { NodeLineOutAudioUnit::renderCallback, &mRenderData };
@@ -231,28 +231,31 @@ void NodeLineInAudioUnit::initialize()
 
 	size_t framesPerBlock = lineOutAu->getFramesPerBlock();
 	size_t sampleRate = lineOutAu->getSampleRate();
-
 	::AudioStreamBasicDescription asbd = createFloatAsbd( getNumChannels(), sampleRate );
-	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
 
 	if( mSynchronousIO ) {
 		LOG_V << "Synchronous I/O." << endl;
 		// NodeLineOutAudioUnit is expected to initialize the AudioUnit, since it is pulling to here. But make sure input is enabled.
-		if( ! lineOutAu->mSynchroniousIO ) {
-			lineOutAu->mSynchroniousIO = true;
-			if( lineOutAu->isInitialized() ) {
-				bool lineOutEnabled = lineOutAu->isEnabled();
-				lineOutAu->stop();
-				lineOutAu->uninitialize();
-				lineOutAu->initialize();
-				lineOutAu->setEnabled( lineOutEnabled );
-			}
+		// TODO: this path can surely be optimized to not require line out being initialized twice
+		lineOutAu->mSynchronousIO = true;
+		bool lineOutWasInitialized = lineOutAu->isInitialized();
+		bool lineOutWasEnabled = lineOutAu->isEnabled();
+		if( lineOutWasInitialized ) {
+			lineOutAu->stop();
+			lineOutAu->uninitialize();
 		}
 
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
 
 		::AURenderCallbackStruct callbackStruct { NodeLineInAudioUnit::renderCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::INPUT );
+		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
+
+		if( lineOutWasInitialized )
+			lineOutAu->initialize();
+		if( lineOutWasEnabled )
+			lineOutAu->setEnabled();
+
 	}
 	else {
 		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
@@ -272,6 +275,8 @@ void NodeLineInAudioUnit::initialize()
 
 		UInt32 enableOutput = 0;
 		setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, enableOutput, kAudioUnitScope_Output, DeviceBus::OUTPUT );
+
+		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
 
 #if defined( CINDER_MAC )
 		auto manager = dynamic_cast<DeviceManagerCoreAudio *>( Context::deviceManager() );

@@ -77,7 +77,7 @@ class NodeLineOutAudioUnit : public NodeLineOut, public NodeAudioUnit {
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	std::atomic<uint64_t>				mProcessedFrames, mLastClip;
-	bool								mSynchroniousIO;
+	bool								mSynchronousIO;
 
 	friend class NodeLineInAudioUnit;
 };
