@@ -13,8 +13,8 @@
 
 // NOTE: currently requires the experimental cinder branch 'ios_keyboard'
 
-// FIXME: synchronous I/O broken... just silence on both mac and iOS.
 // TODO: finish testing on-the-fly device changes with fireface
+// TODO: check iOS 6+ interruption handlers via notification
 
 using namespace ci;
 using namespace ci::app;
@@ -84,8 +84,8 @@ void DeviceTestApp::setup()
 	mGain->connect( mTap )->connect( mLineOut );
 
 	setupSine();
-	printGraph( mContext );
 
+	printGraph( mContext );
 	setupUI();
 
 	LOG_V << "Context samplerate: " << mContext->getSampleRate() << endl;
@@ -117,7 +117,7 @@ void DeviceTestApp::setInputDevice( const DeviceRef &device )
 	mLineIn = mContext->createLineIn( device );
 
 	if( currentLineInOutput )
-		currentLineInOutput->connect( mLineIn, 0 ); // TODO: this assumes line in was connected at bus 0. support detecting if it was connected on a different bus.
+		currentLineInOutput->setInput( mLineIn, 0 ); // TODO: this assumes line in was connected at bus 0. support detecting if it was connected on a different bus.
 
 	LOG_V << "LineIn device properties: " << endl;
 	printDeviceDetails( device );
@@ -126,12 +126,14 @@ void DeviceTestApp::setInputDevice( const DeviceRef &device )
 void DeviceTestApp::printDeviceDetails( const DeviceRef &device )
 {
 	console() << "\t name: " << device->getName() << endl;
-	console() << "\t channels: " << device->getNumOutputChannels() << endl;
+	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
+	console() << "\t input channels: " << device->getNumInputChannels() << endl;
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t block size: " << device->getFramesPerBlock() << endl;
 
-	if( mLineIn && mLineOut )
-		console() << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
+	bool isSyncIO = mLineIn && mLineOut && ( mLineIn->getDevice() == mLineOut->getDevice() );
+
+	console() << "\t sync IO: " << boolalpha << isSyncIO << dec << endl;
 }
 
 void DeviceTestApp::setupSine()
@@ -171,6 +173,9 @@ void DeviceTestApp::setupIOProcessed()
 
 void DeviceTestApp::setupUI()
 {
+	mUnderrunFade = mOverrunFade = mClipFade = 0.0f;
+	mViewYOffset = 0.0f;
+
 	mPlayButton = Button( true, "stopped", "playing" );
 	mWidgets.push_back( &mPlayButton );
 
@@ -236,8 +241,6 @@ void DeviceTestApp::setupUI()
 		for( const TouchEvent::Touch &touch : getActiveTouches() )
 			processDrag( touch.getPos() );
 	} );
-
-	mViewYOffset = 0.0f;
 
 #if defined( CINDER_COCOA_TOUCH )
 	getSignalKeyboardWillShow().connect( [this] { timeline().apply( &mViewYOffset, -100.0f, 0.3f, EaseInOutCubic() );	} );

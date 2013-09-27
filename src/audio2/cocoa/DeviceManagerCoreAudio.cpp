@@ -244,6 +244,8 @@ void DeviceManagerCoreAudio::setCurrentDeviceImpl( const DeviceRef &device, cons
 
 	OSStatus status = ::AudioUnitSetProperty( componentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
 	CI_ASSERT( status == noErr );
+
+	LOG_V << "set current device to: " << device->getName() << ", isOutput: " << boolalpha << isOutput << dec << endl;
 }
 
 // note: device doesn't need to be copied because DeviceManagerCoreAudio owns it.
