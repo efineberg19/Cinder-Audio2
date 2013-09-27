@@ -10,10 +10,11 @@
 
 #include "Gui.h"
 
+// TODO NEXT: support loading SourceFileMediaFoundation from windows resource.
+// Involves IMFMediaSource / IMFByteStream
+
 // FIXME: (mac) FilePlayerNode crash with heavy seeking, non-multithreaded
 // - it's happening in SourceFileCoreAudio's read call - buffer ends might be overlapping
-
-// TODO NEXT: finish implementing SourceFileMediaFoundation
 
 using namespace ci;
 using namespace ci::app;
