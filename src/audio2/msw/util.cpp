@@ -27,22 +27,95 @@
 
 namespace cinder { namespace audio2 { namespace msw {
 
-	std::shared_ptr<::WAVEFORMATEX> interleavedFloatWaveFormat( size_t numChannels, size_t sampleRate )
+std::shared_ptr<::WAVEFORMATEX> interleavedFloatWaveFormat( size_t numChannels, size_t sampleRate )
+{
+	::WAVEFORMATEXTENSIBLE *wfx = (::WAVEFORMATEXTENSIBLE *)calloc( 1, sizeof( ::WAVEFORMATEXTENSIBLE ) );
+
+	wfx->Format.wFormatTag				= WAVE_FORMAT_EXTENSIBLE ;
+	wfx->Format.nSamplesPerSec			= sampleRate;
+	wfx->Format.nChannels				= numChannels;
+	wfx->Format.wBitsPerSample			= 32;
+	wfx->Format.nBlockAlign				= wfx->Format.nChannels * wfx->Format.wBitsPerSample / 8;
+	wfx->Format.nAvgBytesPerSec			= wfx->Format.nSamplesPerSec * wfx->Format.nBlockAlign;
+	wfx->Format.cbSize					= sizeof( ::WAVEFORMATEXTENSIBLE ) - sizeof( ::WAVEFORMATEX );
+	wfx->Samples.wValidBitsPerSample	= wfx->Format.wBitsPerSample;
+	wfx->SubFormat						= KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+	wfx->dwChannelMask					= 0; // this could be a very complicated bit mask of channel order, but 0 means 'first channel is left, second channel is right, etc'
+
+	return std::shared_ptr<::WAVEFORMATEX>( (::WAVEFORMATEX *)wfx, free );
+}
+
+HRESULT STDMETHODCALLTYPE ComIStream::QueryInterface(REFIID iid, void ** ppvObject)
+{ 
+	if (iid == __uuidof(IUnknown)
+		|| iid == __uuidof(IStream)
+		|| iid == __uuidof(ISequentialStream))
 	{
-		::WAVEFORMATEXTENSIBLE *wfx = (::WAVEFORMATEXTENSIBLE *)calloc( 1, sizeof( ::WAVEFORMATEXTENSIBLE ) );
-
-		wfx->Format.wFormatTag				= WAVE_FORMAT_EXTENSIBLE ;
-		wfx->Format.nSamplesPerSec			= sampleRate;
-		wfx->Format.nChannels				= numChannels;
-		wfx->Format.wBitsPerSample			= 32;
-		wfx->Format.nBlockAlign				= wfx->Format.nChannels * wfx->Format.wBitsPerSample / 8;
-		wfx->Format.nAvgBytesPerSec			= wfx->Format.nSamplesPerSec * wfx->Format.nBlockAlign;
-		wfx->Format.cbSize					= sizeof( ::WAVEFORMATEXTENSIBLE ) - sizeof( ::WAVEFORMATEX );
-		wfx->Samples.wValidBitsPerSample	= wfx->Format.wBitsPerSample;
-		wfx->SubFormat						= KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
-		wfx->dwChannelMask					= 0; // this could be a very complicated bit mask of channel order, but 0 means 'first channel is left, second channel is right, etc'
-
-		return std::shared_ptr<::WAVEFORMATEX>( (::WAVEFORMATEX *)wfx, free );
+		*ppvObject = static_cast<IStream*>(this);
+		AddRef();
+		return S_OK;
 	}
+	else
+		return E_NOINTERFACE; 
+}
+
+ULONG STDMETHODCALLTYPE ComIStream::AddRef() 
+{ 
+	return (ULONG)InterlockedIncrement(&_refcount); 
+}
+
+ULONG STDMETHODCALLTYPE ComIStream::Release() 
+{
+	ULONG res = (ULONG) InterlockedDecrement(&_refcount);
+	if (res == 0) 
+		delete this;
+	return res;
+}
+
+HRESULT STDMETHODCALLTYPE ComIStream::Read( void* pv, ULONG cb, ULONG* pcbRead )
+{
+	ULONG dataLeft = mIStream->size() - mIStream->tell();
+	if( dataLeft < cb ) {
+		mIStream->readData( pv, dataLeft );
+		*pcbRead = dataLeft;
+		return S_FALSE;
+	}
+	else {
+		mIStream->readData( pv, cb );
+		*pcbRead = cb;
+		return S_OK;
+	}
+}
+
+HRESULT STDMETHODCALLTYPE ComIStream::Seek( LARGE_INTEGER liDistanceToMove, DWORD dwOrigin, ULARGE_INTEGER* lpNewFilePointer )
+{ 
+	switch( dwOrigin ) {
+	case STREAM_SEEK_SET:
+		mIStream->seekAbsolute( (off_t)liDistanceToMove.QuadPart );
+		break;
+	case STREAM_SEEK_CUR:
+		mIStream->seekRelative( (off_t)liDistanceToMove.QuadPart );
+		break;
+	case STREAM_SEEK_END:
+		mIStream->seekAbsolute( (off_t)(-liDistanceToMove.QuadPart) );
+		break;
+	default:   
+		return STG_E_INVALIDFUNCTION;
+		break;
+	}
+	off_t pos = mIStream->tell();
+	if( lpNewFilePointer )
+		lpNewFilePointer->QuadPart = pos;
+
+	return S_OK;
+}
+
+HRESULT STDMETHODCALLTYPE ComIStream::Stat( STATSTG* pStatstg, DWORD grfStatFlag)
+{
+	pStatstg->pwcsName = NULL;
+	pStatstg->cbSize.QuadPart = (ULONGLONG)mIStream->size();
+
+	return S_OK;
+}
 
 } } } // namespace cinder::audio2::msw

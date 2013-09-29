@@ -23,7 +23,10 @@
 
 #pragma once
 
+#include "cinder/Stream.h"
+
 #include <memory>
+#include <Objidl.h>
 
 struct tWAVEFORMATEX;
 typedef struct tWAVEFORMATEX WAVEFORMATEX;
@@ -50,5 +53,37 @@ inline std::unique_ptr<T, VoiceDeleter> makeVoiceUnique( T *p )	{ return std::un
 
 //! return pointer type is actually a WAVEFORMATEXTENSIBLE, identifiable by the wFormat tag
 std::shared_ptr<::WAVEFORMATEX> interleavedFloatWaveFormat( size_t numChannels, size_t sampleRate );
+
+//! Wraps a cinder::IStream with a COM ::IStream
+class ComIStream : public ::IStream
+{
+public:
+	ComIStream( cinder::IStreamRef aIStream ) : mIStream( aIStream ), _refcount( 1 ) {}
+
+	virtual HRESULT STDMETHODCALLTYPE QueryInterface( REFIID iid, void ** ppvObject );
+	virtual ULONG STDMETHODCALLTYPE AddRef();
+	virtual ULONG STDMETHODCALLTYPE Release(); 
+
+	// ISequentialStream Interface
+public:
+	virtual HRESULT STDMETHODCALLTYPE Read( void* pv, ULONG cb, ULONG* pcbRead );
+	virtual HRESULT STDMETHODCALLTYPE Write( void const* pv, ULONG cb, ULONG* pcbWritten ) { return E_NOTIMPL; }
+	// IStream Interface
+public:
+	virtual HRESULT STDMETHODCALLTYPE SetSize( ULARGE_INTEGER ) { return E_NOTIMPL; }
+	virtual HRESULT STDMETHODCALLTYPE CopyTo( ::IStream*, ULARGE_INTEGER, ULARGE_INTEGER*, ULARGE_INTEGER* ) { return E_NOTIMPL; }
+	virtual HRESULT STDMETHODCALLTYPE Commit( DWORD ) { return E_NOTIMPL; }
+	virtual HRESULT STDMETHODCALLTYPE Revert() { return E_NOTIMPL; }
+	virtual HRESULT STDMETHODCALLTYPE LockRegion( ULARGE_INTEGER, ULARGE_INTEGER, DWORD ) { return E_NOTIMPL; }
+	virtual HRESULT STDMETHODCALLTYPE UnlockRegion( ULARGE_INTEGER, ULARGE_INTEGER, DWORD ) { return E_NOTIMPL; }
+	virtual HRESULT STDMETHODCALLTYPE Clone(IStream **) { return E_NOTIMPL; }
+	virtual HRESULT STDMETHODCALLTYPE Seek( LARGE_INTEGER liDistanceToMove, DWORD dwOrigin, ULARGE_INTEGER* lpNewFilePointer );
+	virtual HRESULT STDMETHODCALLTYPE Stat( STATSTG* pStatstg, DWORD grfStatFlag);
+
+private:
+	cinder::IStreamRef	mIStream;
+	LONG			_refcount;
+};
+
 
 } } } // namespace cinder::audio2::msw

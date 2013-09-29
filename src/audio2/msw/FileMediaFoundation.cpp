@@ -35,8 +35,8 @@
 #pragma comment(lib, "mfuuid.lib")
 #pragma comment(lib, "mfreadwrite.lib")
 
-// TODO NEXT: need to closely look at IMFSourceReader in able to decide 
-// how to pack audio2::Buffer's via it's ReadSample methods
+// TODO: see if I can pack audio2::Buffer's directly via IMFSourceReader::ReadSample's output
+// - currently uses an intermediate vector<float>
 // - want to have minimal copies when loading a buffer for BufferPlayerNode, so
 //   might use a private read method that takes float * and count
 
@@ -209,7 +209,14 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 		CI_ASSERT( hr == S_OK );
 	}
 	else {
-		CI_ASSERT( 0 && "TODO: MSW resources." );
+		mComIStream = makeComUnique( new ComIStream( dataSource->createStream() ) );
+		::IMFByteStream *byteStream;
+		hr = ::MFCreateMFByteStreamOnStream( mComIStream.get(), &byteStream );
+		CI_ASSERT( hr == S_OK );
+		mByteStream = makeComUnique( byteStream );
+
+		hr = ::MFCreateSourceReaderFromByteStream( byteStream, attributesPtr.get(), &sourceReader );
+		CI_ASSERT( hr == S_OK );
 	}
 
 	mSourceReader = makeComUnique( sourceReader );

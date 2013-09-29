@@ -10,9 +10,6 @@
 
 #include "Gui.h"
 
-// TODO NEXT: support loading SourceFileMediaFoundation from windows resource.
-// Involves IMFMediaSource / IMFByteStream
-
 // FIXME: (mac) FilePlayerNode crash with heavy seeking, non-multithreaded
 // - it's happening in SourceFileCoreAudio's read call - buffer ends might be overlapping
 
@@ -58,14 +55,7 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 
-#if defined( CINDER_MSW )
-	// kludge: temp workaround until cinder resources are sorted.
-	fs::path assetPath = getAppPath() / fs::path("..\\..\\..\\..\\..\\assets");
-	addAssetDirectory( assetPath );
-	DataSourceRef dataSource = loadAsset( "tone440.wav" );
-#else
 	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
-#endif
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 

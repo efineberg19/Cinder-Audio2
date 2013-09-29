@@ -30,6 +30,7 @@
 #include <vector>
 
 struct IMFSourceReader;
+struct IMFByteStream;
 
 namespace cinder { namespace audio2 { namespace msw {
 
@@ -53,7 +54,9 @@ class SourceFileMediaFoundation : public SourceFile {
 	size_t processNextReadSample();
 	void resizeReadBufferIfNecessary( size_t requiredSize );
 
-	std::unique_ptr<::IMFSourceReader, ComReleaser> mSourceReader;
+	std::unique_ptr<::IMFSourceReader, ComReleaser>		mSourceReader;
+	std::unique_ptr<ComIStream, ComReleaser>			mComIStream;
+	std::unique_ptr<::IMFByteStream, ComReleaser>		mByteStream;
 	Format mSampleFormat;
 
 	size_t mReadPos; // TODO: remove if not needed
