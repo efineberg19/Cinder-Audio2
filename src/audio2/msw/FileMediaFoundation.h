@@ -36,7 +36,7 @@ namespace cinder { namespace audio2 { namespace msw {
 
 class SourceFileMediaFoundation : public SourceFile {
   public:
-	enum Format { INT_16, FLOAT_32 }; // TODO: give more descriptive name
+	enum Format { INT_16, FLOAT_32 }; // TODO: remove
 
 	SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
 	virtual ~SourceFileMediaFoundation();
@@ -52,11 +52,12 @@ class SourceFileMediaFoundation : public SourceFile {
 	void initMediaFoundation();
 	void initReader( const DataSourceRef &dataSource );
 	size_t processNextReadSample();
-	void resizeReadBufferIfNecessary( size_t requiredSize );
+	void resizeReadBufferIfNecessary( size_t requiredFrames );
 
 	std::unique_ptr<::IMFSourceReader, ComReleaser>		mSourceReader;
 	std::unique_ptr<ComIStream, ComReleaser>			mComIStream;
 	std::unique_ptr<::IMFByteStream, ComReleaser>		mByteStream;
+	size_t mBytesPerSample;
 	Format mSampleFormat;
 
 	size_t mReadPos; // TODO: remove if not needed

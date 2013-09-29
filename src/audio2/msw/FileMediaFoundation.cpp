@@ -35,10 +35,10 @@
 #pragma comment(lib, "mfuuid.lib")
 #pragma comment(lib, "mfreadwrite.lib")
 
-// TODO: see if I can pack audio2::Buffer's directly via IMFSourceReader::ReadSample's output
+// TODO: try to minimize the number of copies between IMFSourceReader::ReadSample's IMFSample and loading audio2::Buffer
 // - currently uses an intermediate vector<float>
 // - want to have minimal copies when loading a buffer for BufferPlayerNode, so
-//   might use a private read method that takes float * and count
+// - this is on hold until audio2::Converter is re-addressed
 
 using namespace std;
 using namespace ci;
@@ -125,11 +125,7 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 	//if( mReadPos != 0 )
 	//	seek( 0 );
 
-	CI_ASSERT( mNumChannels == 1 && "TODO: multi-channel" );
-	
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
-
-	float *resultData = result->getData();
 
 	size_t numFramesRead = 0;
 	while( numFramesRead != mNumFrames ) {
@@ -139,7 +135,11 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 
 		CI_ASSERT( numFramesRead + readCount <= mNumFrames );
 
-		memcpy( resultData + numFramesRead, mReadBuffer.data(), readCount * sizeof( float ) );
+		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+			float *channelData = result->getChannel( ch );
+			memcpy( channelData + numFramesRead, mReadBuffer.data() + (ch * readCount), readCount * sizeof( float ) );
+		}
+
 		numFramesRead += readCount;
 	}
 
@@ -232,9 +232,11 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 
 	//mNativeFormat = *nativeFormat;
 
-	GUID outputSubType = MFAudioFormat_PCM; // default to PCM, upgrade if we can
+	GUID outputSubType = MFAudioFormat_PCM; // default to PCM, upgrade if we can.
 	mSampleFormat = Format::INT_16;
-	LOG_V << "native bits per sample: " << fileFormat->wBitsPerSample << endl;
+	mBytesPerSample = fileFormat->wBitsPerSample / 8;
+	LOG_V << "native bytes per sample: " << mBytesPerSample << endl;
+
 	if( fileFormat->wBitsPerSample == 32 ) {
 		mSampleFormat = Format::FLOAT_32;
 		outputSubType = MFAudioFormat_Float;
@@ -324,21 +326,40 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	hr = samplePtr->ConvertToContiguousBuffer( &mediaBuffer );
 	hr = mediaBuffer->Lock( &audioData, NULL, &audioDataLength );
 
-	// TODO: copy / de-interleave audioData into buffer, converting to float if necessary
-	// - use std::copy or some other more efficient way to do this copy
-	size_t numSamplesRead;
+	size_t numFramesRead = audioDataLength / ( mBytesPerSample * mFileNumChannels );
+
+	// FIXME: I don't know why num channels needs to be divided through twice, indicating he square needs to be used above.
+	// - this is probably wrong and may break with more channels.  understand and fix.
+	numFramesRead /= mFileNumChannels;
+
+	resizeReadBufferIfNecessary( numFramesRead );
+
 	if( mSampleFormat == Format::FLOAT_32 ) {
 		float *floatSamples = (float *)audioData;
-		numSamplesRead = audioDataLength / 4;
-		resizeReadBufferIfNecessary( numSamplesRead );
-		memcpy( mReadBuffer.data(), floatSamples, numSamplesRead * sizeof( float ) );
-	} else if( mSampleFormat == Format::INT_16 ) {
+		if( mFileNumChannels == 1) {
+			memcpy( mReadBuffer.data(), floatSamples, numFramesRead * sizeof( float ) );
+		} else {
+			for( size_t ch = 0; ch < mFileNumChannels; ch++ ) {
+				for( size_t i = 0; i < numFramesRead; i++ )
+					mReadBuffer[ch * numFramesRead + i] = floatSamples[mFileNumChannels * i + ch];
+			}
+		}
+	}
+	else if( mSampleFormat == Format::INT_16 ) {
 		INT16 *signedIntSamples = (INT16 *)audioData;
-		numSamplesRead = audioDataLength / 2;
-		resizeReadBufferIfNecessary( numSamplesRead );
-		for( size_t i = 0; i < numSamplesRead; ++i )
-			mReadBuffer[i] = (float)signedIntSamples[i] / 32768.0f;
-	} else
+		if( mFileNumChannels == 1 ) {
+			for( size_t i = 0; i < numFramesRead; ++i )
+				mReadBuffer[i] = (float)signedIntSamples[i] / 32768.0f;
+		}
+		else {
+			for( size_t ch = 0; ch < mFileNumChannels; ch++ ) {
+				for( size_t i = 0; i < numFramesRead; i++ ) {
+					mReadBuffer[ch * numFramesRead + i] = (float)signedIntSamples[mFileNumChannels * i + ch] / 32768.0f;
+				}
+			}
+		}
+	}
+	else
 		CI_ASSERT( 0 && "unknown Format"); 
 
 	hr = mediaBuffer->Unlock();
@@ -346,13 +367,14 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 	mediaBuffer->Release();
 
-	LOG_V << "num samples read: " << numSamplesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" << endl;
+	LOG_V << "frames read: " << numFramesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" << endl;
 
-	return numSamplesRead;
+	return numFramesRead;
 }
 
-void SourceFileMediaFoundation::resizeReadBufferIfNecessary( size_t requiredSize )
+void SourceFileMediaFoundation::resizeReadBufferIfNecessary( size_t requiredFrames )
 {
+	size_t requiredSize = requiredFrames * mFileNumChannels;
 	if( requiredSize > mReadBuffer.size() ) {
 		LOG_V << "RESIZE buffer to " << requiredSize << endl;
 		mReadBuffer.resize( requiredSize );

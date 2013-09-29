@@ -54,8 +54,13 @@ void FileNodeTestApp::prepareSettings( Settings *settings )
 void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
+	
+	//DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+	//DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
+	DataSourceRef dataSource = loadResource( RES_TONE440L220R_FLOAT_WAV );
 
-	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+	
+
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
