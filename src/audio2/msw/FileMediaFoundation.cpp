@@ -133,7 +133,11 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 		if( ! readCount )
 			break;
 
-		CI_ASSERT( numFramesRead + readCount <= mNumFrames );
+
+		if( numFramesRead + readCount > mNumFrames ) {
+			LOG_E << "overwrite, breaking." << endl; // TODO: should resize buffer if necessary
+			break;
+		}
 
 		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
 			float *channelData = result->getChannel( ch );
@@ -234,11 +238,12 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 
 	GUID outputSubType = MFAudioFormat_PCM; // default to PCM, upgrade if we can.
 	mSampleFormat = Format::INT_16;
-	mBytesPerSample = fileFormat->wBitsPerSample / 8;
+	mBytesPerSample = 2;
 	LOG_V << "native bytes per sample: " << mBytesPerSample << endl;
 
 	if( fileFormat->wBitsPerSample == 32 ) {
 		mSampleFormat = Format::FLOAT_32;
+		mBytesPerSample = 4;
 		outputSubType = MFAudioFormat_Float;
 	}
 
