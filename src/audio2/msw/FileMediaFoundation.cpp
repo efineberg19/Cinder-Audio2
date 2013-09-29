@@ -62,6 +62,20 @@ inline LONGLONG secondsToNanoSeconds( float seconds )
 //
 //}
 
+struct MfInitializer {
+	MfInitializer()
+	{
+		HRESULT hr = ::MFStartup( MF_VERSION ); // TODO: try passing in MFSTARTUP_LITE (no sockets) and see if load is faster
+		CI_ASSERT( hr == S_OK );
+	}
+
+	~MfInitializer()
+	{
+		HRESULT hr = ::MFShutdown();
+		CI_ASSERT( hr == S_OK );
+	}
+};
+
 } // anonymous namespace
 
 // ----------------------------------------------------------------------------------------------------
@@ -71,6 +85,7 @@ inline LONGLONG secondsToNanoSeconds( float seconds )
 SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 : SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 ), mCanSeek( false ), mSeconds( 0.0f )
 {
+	initMediaFoundation();
 	initReader( dataSource );
 
 	if( ! mNumChannels )
@@ -91,8 +106,7 @@ SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataS
 
 SourceFileMediaFoundation::~SourceFileMediaFoundation()
 {
-	HRESULT hr = ::MFShutdown();
-	CI_ASSERT( hr == S_OK );
+	mSourceReader.reset(); // needs to be released before MfInitializer goes out of scope
 }
 
 inline bool readWasSuccessful( HRESULT hr, DWORD streamFlags )
@@ -173,18 +187,18 @@ void SourceFileMediaFoundation::setNumChannels( size_t numChannels )
 	//updateOutputFormat();
 }
 
-// TODO: consider moving MFStartup / MFShutdown to a singleton
-// - reference count the current number of SourceFileMediaFoundation objects
-// - call shutdown at zero
+void SourceFileMediaFoundation::initMediaFoundation()
+{
+	static unique_ptr<MfInitializer> sMfInitializer;
+	if( ! sMfInitializer )
+		sMfInitializer = unique_ptr<MfInitializer>( new MfInitializer() );
+}
 
 // TODO: test setting MF_LOW_LATENCY attribute
 void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 {
-	HRESULT hr = ::MFStartup( MF_VERSION ); // TODO: try passing in MFSTARTUP_LITE (no sockets) and see if load is faster
-	CI_ASSERT( hr == S_OK );
-
 	::IMFAttributes *attributes;
-	hr = ::MFCreateAttributes( &attributes, 1 );
+	HRESULT hr = ::MFCreateAttributes( &attributes, 1 );
 	CI_ASSERT( hr == S_OK );
 	auto attributesPtr = makeComUnique( attributes );
 

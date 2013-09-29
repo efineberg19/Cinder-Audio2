@@ -48,6 +48,7 @@ class SourceFileMediaFoundation : public SourceFile {
 	void	setNumChannels( size_t channels ) override;
 
   private:
+	void initMediaFoundation();
 	void initReader( const DataSourceRef &dataSource );
 	size_t processNextReadSample();
 	void resizeReadBufferIfNecessary( size_t requiredSize );
