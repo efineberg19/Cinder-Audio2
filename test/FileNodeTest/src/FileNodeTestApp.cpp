@@ -58,8 +58,15 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 
+#if defined( CINDER_MSW )
+	// kludge: temp workaround until cinder resources are sorted.
+	fs::path assetPath = getAppPath() / fs::path("..\\..\\..\\..\\..\\assets");
+	addAssetDirectory( assetPath );
+	DataSourceRef dataSource = loadAsset( "tone440.wav" );
+#else
 	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
-	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
+#endif
+	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
 	setupBufferPlayer();

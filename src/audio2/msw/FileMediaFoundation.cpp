@@ -45,212 +45,7 @@ using namespace ci;
 
 namespace cinder { namespace audio2 { namespace msw {
 
-// ----------------------------------------------------------------------------------------------------
-// MARK: - SourceFileMediaFoundation
-// ----------------------------------------------------------------------------------------------------
-
-// TODO: consider moving MFStartup / MFShutdown to a singleton
-// - reference count the current number of SourceFileMediaFoundation objects
-// - call shutdown at zero
-
-// TODO: test setting MF_LOW_LATENCY attribute
-
-SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
-: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 ), mCanSeek( false ), mSeconds( 0.0f )
-{
-	 HRESULT hr = ::MFStartup( MF_VERSION ); // TODO: try passing in MFSTARTUP_LITE (no sockets) and see if load is faster
-	 CI_ASSERT( hr == S_OK );
-
-	 ::IMFAttributes *attributes;
-	 hr = ::MFCreateAttributes( &attributes, 1 );
-	 CI_ASSERT( hr == S_OK );
-	 auto attributesPtr = makeComUnique( attributes );
-
-	 ::IMFSourceReader *sourceReader;
-
-	 if( dataSource->isFilePath() ) {
-		 hr = ::MFCreateSourceReaderFromURL( dataSource->getFilePath().wstring().c_str(), attributesPtr.get(), &sourceReader );
-		 CI_ASSERT( hr == S_OK );
-	 }
-	 else {
-		 CI_ASSERT( 0 && "TODO: MSW resources." );
-	 }
-
-	 mSourceReader = makeComUnique( sourceReader );
-
-	 // get files native format
-	 ::IMFMediaType *nativeType;
-	 ::WAVEFORMATEX *fileFormat;
-	 UINT32 formatSize;
-	 hr = mSourceReader->GetNativeMediaType( MF_SOURCE_READER_FIRST_AUDIO_STREAM, 0, &nativeType );
-	 CI_ASSERT( hr == S_OK );
-	 hr = ::MFCreateWaveFormatExFromMFMediaType( nativeType, &fileFormat, &formatSize );
-	 CI_ASSERT( hr == S_OK );
-
-	 //mNativeFormat = *nativeFormat;
-
-	 GUID outputSubType = MFAudioFormat_PCM; // default to PCM, upgrade if we can
-	 mSampleFormat = Format::INT_16;
-	 LOG_V << "native bits per sample: " << fileFormat->wBitsPerSample << endl;
-	 if( fileFormat->wBitsPerSample == 32 ) {
-		 mSampleFormat = Format::FLOAT_32;
-		 outputSubType = MFAudioFormat_Float;
-	 }
-
-	 mFileNumChannels = fileFormat->nChannels;
-	 mFileSampleRate = fileFormat->nSamplesPerSec;
-
-	 LOG_V << "file channels: " << mFileNumChannels << ", samplerate: " << mFileSampleRate << endl;
-
-	 CoTaskMemFree( fileFormat );
-
-	 // set output type, which loads the proper decoder:
-	 ::IMFMediaType *outputType;
-	 hr = ::MFCreateMediaType( &outputType );
-	 auto outputTypeRef = makeComUnique( outputType );
-	 hr = outputTypeRef->SetGUID( MF_MT_MAJOR_TYPE, MFMediaType_Audio );
-	 CI_ASSERT( hr == S_OK );
-	 hr = outputTypeRef->SetGUID( MF_MT_SUBTYPE, outputSubType );
-	 CI_ASSERT( hr == S_OK );
-
-	 hr = mSourceReader->SetCurrentMediaType( MF_SOURCE_READER_FIRST_AUDIO_STREAM, 0, outputTypeRef.get() );
-	 CI_ASSERT( hr == S_OK );
-
-	 // after the decoder is loaded, we have to now get the 'complete' output type before retrieving its format
-	 ::IMFMediaType *completeOutputType;
-	 hr = mSourceReader->GetCurrentMediaType( MF_SOURCE_READER_FIRST_AUDIO_STREAM, &completeOutputType );
-	 CI_ASSERT( hr == S_OK );
-
-	 ::WAVEFORMATEX *format;
-	 hr = MFCreateWaveFormatExFromMFMediaType( completeOutputType, &format, &formatSize );
-	 CI_ASSERT( hr == S_OK );
-
-	 //mFormat = *format;
-
-	 // if the format was 16bit, we're going to convert to floats so we update to reflect that
-	 //if( mSampleFormat == Format::INT_16 ) {
-		// mFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-		// mFormat.wBitsPerSample = 32; // we converted to float in SoundReader
-		// mFormat.nBlockAlign = mFormat.nChannels * mFormat.wBitsPerSample / 8;
-		// mFormat.nAvgBytesPerSec = mFormat.nSamplesPerSec * mFormat.nBlockAlign;
-	 //}
-
-	 storeAttributes();
-
-	// TODO: need mNumFrames for pre-buffering
-	//mNumFrames = static_cast<size_t>( numFrames );
-
-	 CI_ASSERT( ! mNumChannels && ! mSampleFormat ); // TODO: figure out how to convert MF
-	if( ! mNumChannels )
-		mNumChannels = mFileNumChannels;
-	if( ! mSampleRate )
-		mSampleRate = mFileSampleRate;
-
-
-	 ::CoTaskMemFree( format );
-	 LOG_V << "complete." << endl;
-}
-
-SourceFileMediaFoundation::~SourceFileMediaFoundation()
-{
-	HRESULT hr = ::MFShutdown();
-	CI_ASSERT( hr == S_OK );
-}
-size_t SourceFileMediaFoundation::read( Buffer *buffer )
-{
-	::IMFSample *mediaSample;
-	DWORD streamFlags = 0;
-	LONGLONG timeStamp;
-	HRESULT hr = mSourceReader->ReadSample( MF_SOURCE_READER_FIRST_AUDIO_STREAM, 0, NULL, &streamFlags, &timeStamp, &mediaSample );
-	CI_ASSERT( hr == S_OK );
-
-	if( streamFlags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED ) {
-		LOG_E << "type change" << endl;
-		return 0;
-	}
-	if( streamFlags & MF_SOURCE_READERF_ENDOFSTREAM ) {
-		LOG_V << "end of file." << endl;
-		//mFinished = true;
-		return 0;
-	}
-	if( ! mediaSample ) {
-		LOG_V << "no sample." << endl;
-		return 0;
-	}
-	auto samplePtr = makeComUnique( mediaSample ); // ???: can this be reused? It is released at every iteration
-
-	DWORD bufferCount;
-	hr = samplePtr->GetBufferCount( &bufferCount );
-	CI_ASSERT( hr == S_OK );
-
-	CI_ASSERT( bufferCount == 1 ); // just looking out for a file type with more than one buffer.. haven't seen one yet.
-
-	// get the buffer
-	DWORD currentLength;
-	::IMFMediaBuffer *mediaBuffer;
-	BYTE *audioData = NULL;
-
-	hr = samplePtr->ConvertToContiguousBuffer( &mediaBuffer );
-	hr = mediaBuffer->Lock( &audioData, NULL, &currentLength );
-
-	// TODO NEXT: copy / deinterleave audioData into buffer, converting to float if necessary
-	// - use std::copy or some other more efficient way to do this copy
-	//if( mSampleFormat == Format::FLOAT_32 ) {
-	//	currentLength /= 4;
-	//	resizeIfNecessary( buffer, currentLength );
-	//	float *floatSamples = (float *)audioData;
-	//	for( DWORD i = 0; i < currentLength; ++i ) {
-	//		buffer->at( i ) = floatSamples[i];
-	//	}
-	//} else if( mSampleFormat == Format::INT_16 ) {
-	//	currentLength /= 2;
-	//	resizeIfNecessary( buffer, currentLength );
-	//	INT16 *signedIntSamples = (INT16 *)audioData;
-	//	for( DWORD i = 0; i < currentLength; ++i ) {
-	//		buffer->at( i ) = (float)signedIntSamples[i] / 32768.0f;
-	//	}
-	//} else {
-	//	CI_ASSERT( 0 && "unknown Format"); 
-	//	return 0;
-	//}
-
-	hr = mediaBuffer->Unlock();
-	CI_ASSERT( hr == S_OK );
-
-	mediaBuffer->Release();
-
-	audioData = NULL;
-
-	//LOG_V << "num samples read: " << numSamplesRead  << ", timestamp: " << (float)timeStamp / 10000000.0f << "s" << endl;
-
-	return currentLength;
-}
-
-BufferRef SourceFileMediaFoundation::loadBuffer()
-{
-	//if( mReadPos != 0 )
-	//	seek( 0 );
-	//
-	//BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
-
-	//size_t currReadPos = 0;
-	//while( currReadPos < mNumFrames ) {
-	//	UInt32 frameCount = std::min( mNumFrames - currReadPos, mNumFramesPerRead );
-
- //       for( int i = 0; i < mNumChannels; i++ ) {
- //           mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
- //           mBufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
- //       }
-
-	//	OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
-	//	CI_ASSERT( status == noErr );
-
- //       currReadPos += frameCount;
-	//}
-	//return result;
-	return BufferRef();
-}
-
+namespace {
 
 inline float nanoSecondsToSeconds( LONGLONG ns )
 {
@@ -260,15 +55,87 @@ inline float nanoSecondsToSeconds( LONGLONG ns )
 inline LONGLONG secondsToNanoSeconds( float seconds )
 {
 	return (LONGLONG)seconds * 10000000;
-} 
+}
+
+//inline size_t nanonSecondsToFrames( LONGLONG ns, size_t numChannels )
+//{
+//
+//}
+
+} // anonymous namespace
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - SourceFileMediaFoundation
+// ----------------------------------------------------------------------------------------------------
+
+SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
+: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 ), mCanSeek( false ), mSeconds( 0.0f )
+{
+	initReader( dataSource );
+
+	if( ! mNumChannels )
+		mNumChannels = mFileNumChannels;
+	if( ! mSampleRate )
+		mSampleRate = mFileSampleRate;
+
+	// TODO: need a converter here if there's a channel or samplerate mismatch
+
+	CI_ASSERT( mFileNumChannels == mNumChannels );
+	CI_ASSERT( mSampleRate == mFileSampleRate );
+
+	// TODO: use nanoseconds instead of mSeconds
+	mNumFrames = static_cast<size_t>( mSeconds * mSampleRate  / mFileNumChannels );
+
+	LOG_V << "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek << endl;
+}
+
+SourceFileMediaFoundation::~SourceFileMediaFoundation()
+{
+	HRESULT hr = ::MFShutdown();
+	CI_ASSERT( hr == S_OK );
+}
+
+inline bool readWasSuccessful( HRESULT hr, DWORD streamFlags )
+{
+
+}
+
+size_t SourceFileMediaFoundation::read( Buffer *buffer )
+{
+	CI_ASSERT( 0 && "not implemented" );
+	return 0;
+}
+
+BufferRef SourceFileMediaFoundation::loadBuffer()
+{
+	//if( mReadPos != 0 )
+	//	seek( 0 );
+
+	CI_ASSERT( mNumChannels == 1 && "TODO: multi-channel" );
+	
+	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
+
+	float *resultData = result->getData();
+
+	size_t numFramesRead = 0;
+	while( numFramesRead != mNumFrames ) {
+		size_t readCount = processNextReadSample();
+		if( ! readCount )
+			break;
+
+		CI_ASSERT( numFramesRead + readCount <= mNumFrames );
+
+		memcpy( resultData + numFramesRead, mReadBuffer.data(), readCount * sizeof( float ) );
+		numFramesRead += readCount;
+	}
+
+	return result;
+}
 
 void SourceFileMediaFoundation::seek( size_t readPosition )
 {
 	//if( readPosition >= mNumFrames )
 	//	return;
-
-	//OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPosition );
-	//CI_ASSERT( status == noErr );
 
 	//mReadPos = readPosition;
 
@@ -306,40 +173,169 @@ void SourceFileMediaFoundation::setNumChannels( size_t numChannels )
 	//updateOutputFormat();
 }
 
-void SourceFileMediaFoundation::updateOutputFormat()
+// TODO: consider moving MFStartup / MFShutdown to a singleton
+// - reference count the current number of SourceFileMediaFoundation objects
+// - call shutdown at zero
+
+// TODO: test setting MF_LOW_LATENCY attribute
+void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 {
-	//::AudioStreamBasicDescription outputFormat = audio2::cocoa::nonInterleavedFloatABSD( mNumChannels, mSampleRate );
-	//OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
-	//CI_ASSERT( status == noErr );
-
-	//// numFrames will be updated at read time
-	//mBufferList = audio2::cocoa::createNonInterleavedBufferList( mNumChannels, 0 );
-}
-
-// TODO: query number of streams, so we know if file has more than one.
-void SourceFileMediaFoundation::storeAttributes()
-{
-	// get seconds:
-	::PROPVARIANT prop;
-	const float kTenMillion = 10000000.0f;
-
-	HRESULT hr = mSourceReader->GetPresentationAttribute( MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &prop );
+	HRESULT hr = ::MFStartup( MF_VERSION ); // TODO: try passing in MFSTARTUP_LITE (no sockets) and see if load is faster
 	CI_ASSERT( hr == S_OK );
-	LONGLONG duration = prop.uhVal.QuadPart; // nanoseconds, divide by 10 million to get seconds. TODO: use PropVariantToInt64
+
+	::IMFAttributes *attributes;
+	hr = ::MFCreateAttributes( &attributes, 1 );
+	CI_ASSERT( hr == S_OK );
+	auto attributesPtr = makeComUnique( attributes );
+
+	::IMFSourceReader *sourceReader;
+
+	if( dataSource->isFilePath() ) {
+		hr = ::MFCreateSourceReaderFromURL( dataSource->getFilePath().wstring().c_str(), attributesPtr.get(), &sourceReader );
+		CI_ASSERT( hr == S_OK );
+	}
+	else {
+		CI_ASSERT( 0 && "TODO: MSW resources." );
+	}
+
+	mSourceReader = makeComUnique( sourceReader );
+
+	// get files native format
+	::IMFMediaType *nativeType;
+	::WAVEFORMATEX *fileFormat;
+	UINT32 formatSize;
+	hr = mSourceReader->GetNativeMediaType( MF_SOURCE_READER_FIRST_AUDIO_STREAM, 0, &nativeType );
+	CI_ASSERT( hr == S_OK );
+	hr = ::MFCreateWaveFormatExFromMFMediaType( nativeType, &fileFormat, &formatSize );
+	CI_ASSERT( hr == S_OK );
+
+	//mNativeFormat = *nativeFormat;
+
+	GUID outputSubType = MFAudioFormat_PCM; // default to PCM, upgrade if we can
+	mSampleFormat = Format::INT_16;
+	LOG_V << "native bits per sample: " << fileFormat->wBitsPerSample << endl;
+	if( fileFormat->wBitsPerSample == 32 ) {
+		mSampleFormat = Format::FLOAT_32;
+		outputSubType = MFAudioFormat_Float;
+	}
+
+	mFileNumChannels = fileFormat->nChannels;
+	mFileSampleRate = fileFormat->nSamplesPerSec;
+
+	LOG_V << "file channels: " << mFileNumChannels << ", samplerate: " << mFileSampleRate << endl;
+
+	::CoTaskMemFree( fileFormat );
+
+	// set output type, which loads the proper decoder:
+	::IMFMediaType *outputType;
+	hr = ::MFCreateMediaType( &outputType );
+	auto outputTypeRef = makeComUnique( outputType );
+	hr = outputTypeRef->SetGUID( MF_MT_MAJOR_TYPE, MFMediaType_Audio );
+	CI_ASSERT( hr == S_OK );
+	hr = outputTypeRef->SetGUID( MF_MT_SUBTYPE, outputSubType );
+	CI_ASSERT( hr == S_OK );
+
+	hr = mSourceReader->SetCurrentMediaType( MF_SOURCE_READER_FIRST_AUDIO_STREAM, 0, outputTypeRef.get() );
+	CI_ASSERT( hr == S_OK );
+
+	// after the decoder is loaded, we have to now get the 'complete' output type before retrieving its format
+	// TODO: still needed?
+	::IMFMediaType *completeOutputType;
+	hr = mSourceReader->GetCurrentMediaType( MF_SOURCE_READER_FIRST_AUDIO_STREAM, &completeOutputType );
+	CI_ASSERT( hr == S_OK );
+
+	::WAVEFORMATEX *format;
+	hr = MFCreateWaveFormatExFromMFMediaType( completeOutputType, &format, &formatSize );
+	CI_ASSERT( hr == S_OK );
+	::CoTaskMemFree( format );
+
+	// get seconds:
+	::PROPVARIANT durationProp;
+	hr = mSourceReader->GetPresentationAttribute( MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &durationProp );
+	CI_ASSERT( hr == S_OK );
+	LONGLONG duration = durationProp.uhVal.QuadPart; // nanoseconds, divide by 10 million to get seconds. TODO: use PropVariantToInt64
 
 	mSeconds = nanoSecondsToSeconds( duration );
-	::PropVariantClear( &prop );
-	LOG_V << "total seconds: " << mSeconds << endl;
 
-	// see if seek is supported
-	PropVariantInit( &prop );
-
-	hr = mSourceReader->GetPresentationAttribute( MF_SOURCE_READER_MEDIASOURCE, MF_SOURCE_READER_MEDIASOURCE_CHARACTERISTICS, &prop );
+	::PROPVARIANT seekProp;
+	hr = mSourceReader->GetPresentationAttribute( MF_SOURCE_READER_MEDIASOURCE, MF_SOURCE_READER_MEDIASOURCE_CHARACTERISTICS, &seekProp );
 	CI_ASSERT( hr == S_OK );
-	ULONG flags = prop.ulVal;
+	ULONG flags = seekProp.ulVal;
 	mCanSeek = ( ( flags & MFMEDIASOURCE_CAN_SEEK ) == MFMEDIASOURCE_CAN_SEEK );
+}
 
-	LOG_V << "can seek: " << mCanSeek << endl;
+size_t SourceFileMediaFoundation::processNextReadSample()
+{
+	::IMFSample *mediaSample;
+	DWORD streamFlags = 0;
+	LONGLONG timeStamp;
+	HRESULT hr = mSourceReader->ReadSample( MF_SOURCE_READER_FIRST_AUDIO_STREAM, 0, NULL, &streamFlags, &timeStamp, &mediaSample );
+	CI_ASSERT( hr == S_OK );
+
+	if( streamFlags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED ) {
+		LOG_E << "type change" << endl;
+		return 0;
+	}
+	if( streamFlags & MF_SOURCE_READERF_ENDOFSTREAM ) {
+		LOG_V << "end of file." << endl;
+		//mFinished = true;
+		return 0;
+	}
+	if( ! mediaSample ) {
+		LOG_V << "no sample." << endl;
+		mediaSample->Release();
+		return 0;
+	}
+
+	auto samplePtr = makeComUnique( mediaSample ); // ???: can this be reused? It is released at every iteration
+
+	DWORD bufferCount;
+	hr = samplePtr->GetBufferCount( &bufferCount );
+	CI_ASSERT( hr == S_OK );
+
+	CI_ASSERT( bufferCount == 1 ); // just looking out for a file type with more than one buffer.. haven't seen one yet.
+
+	// get the buffer
+	::IMFMediaBuffer *mediaBuffer;
+	BYTE *audioData = NULL;
+	DWORD audioDataLength;
+
+	hr = samplePtr->ConvertToContiguousBuffer( &mediaBuffer );
+	hr = mediaBuffer->Lock( &audioData, NULL, &audioDataLength );
+
+	// TODO: copy / de-interleave audioData into buffer, converting to float if necessary
+	// - use std::copy or some other more efficient way to do this copy
+	size_t numSamplesRead;
+	if( mSampleFormat == Format::FLOAT_32 ) {
+		float *floatSamples = (float *)audioData;
+		numSamplesRead = audioDataLength / 4;
+		resizeReadBufferIfNecessary( numSamplesRead );
+		memcpy( mReadBuffer.data(), floatSamples, numSamplesRead * sizeof( float ) );
+	} else if( mSampleFormat == Format::INT_16 ) {
+		INT16 *signedIntSamples = (INT16 *)audioData;
+		numSamplesRead = audioDataLength / 2;
+		resizeReadBufferIfNecessary( numSamplesRead );
+		for( size_t i = 0; i < numSamplesRead; ++i )
+			mReadBuffer[i] = (float)signedIntSamples[i] / 32768.0f;
+	} else
+		CI_ASSERT( 0 && "unknown Format"); 
+
+	hr = mediaBuffer->Unlock();
+	CI_ASSERT( hr == S_OK );
+
+	mediaBuffer->Release();
+
+	LOG_V << "num samples read: " << numSamplesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" << endl;
+
+	return numSamplesRead;
+}
+
+void SourceFileMediaFoundation::resizeReadBufferIfNecessary( size_t requiredSize )
+{
+	if( requiredSize > mReadBuffer.size() ) {
+		LOG_V << "RESIZE buffer to " << requiredSize << endl;
+		mReadBuffer.resize( requiredSize );
+	}
 }
 
 } } } // namespace cinder::audio2::msw

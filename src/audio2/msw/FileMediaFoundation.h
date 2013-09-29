@@ -27,13 +27,15 @@
 #include "audio2/NodeSource.h"
 #include "audio2/msw/util.h"
 
+#include <vector>
+
 struct IMFSourceReader;
 
 namespace cinder { namespace audio2 { namespace msw {
 
 class SourceFileMediaFoundation : public SourceFile {
   public:
-	enum Format { INT_16, FLOAT_32 };
+	enum Format { INT_16, FLOAT_32 }; // TODO: give more descriptive name
 
 	SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
 	virtual ~SourceFileMediaFoundation();
@@ -46,15 +48,17 @@ class SourceFileMediaFoundation : public SourceFile {
 	void	setNumChannels( size_t channels ) override;
 
   private:
-	void updateOutputFormat();
-	void storeAttributes();
-	
+	void initReader( const DataSourceRef &dataSource );
+	size_t processNextReadSample();
+	void resizeReadBufferIfNecessary( size_t requiredSize );
+
 	std::unique_ptr<::IMFSourceReader, ComReleaser> mSourceReader;
 	Format mSampleFormat;
 
 	size_t mReadPos; // TODO: remove if not needed
 	float mSeconds;
 	bool mCanSeek;
+	std::vector<float> mReadBuffer;
 };
 
 } } } // namespace cinder::audio2::msw
