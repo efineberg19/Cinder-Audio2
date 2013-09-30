@@ -155,6 +155,7 @@ public:
 template <typename T>
 class DynamicBufferT : public BufferT<T> {
   public:
+	  DynamicBufferT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferT<T>( numFrames, numChannels ) {}
 
 	void resize( size_t numFrames, size_t numChannels ) {
 		BufferT<T>::mNumFrames = numFrames;

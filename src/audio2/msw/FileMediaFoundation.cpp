@@ -57,11 +57,6 @@ inline LONGLONG secondsToNanoSeconds( float seconds )
 	return (LONGLONG)seconds * 10000000;
 }
 
-//inline size_t nanonSecondsToFrames( LONGLONG ns, size_t numChannels )
-//{
-//
-//}
-
 struct MfInitializer {
 	MfInitializer()
 	{
@@ -98,7 +93,6 @@ SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataS
 	CI_ASSERT( mFileNumChannels == mNumChannels );
 	CI_ASSERT( mSampleRate == mFileSampleRate );
 
-	// TODO: use nanoseconds instead of mSeconds
 	mNumFrames = static_cast<size_t>( mSeconds * mSampleRate  / mFileNumChannels );
 
 	LOG_V << "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek << endl;
@@ -125,7 +119,7 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 	//if( mReadPos != 0 )
 	//	seek( 0 );
 
-	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
+	DynamicBufferRef result( new DynamicBuffer( mNumFrames, mNumChannels ) );
 
 	size_t numFramesRead = 0;
 	while( numFramesRead != mNumFrames ) {
@@ -135,8 +129,9 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 
 
 		if( numFramesRead + readCount > mNumFrames ) {
-			LOG_E << "overwrite, breaking." << endl; // TODO: should resize buffer if necessary
-			break;
+			LOG_V << "warning, buffer resize from: " << mNumFrames << " to: " << numFramesRead + readCount << endl; // TODO: should resize buffer if necessary
+			mNumFrames = numFramesRead + readCount;
+			result->resize( mNumFrames, mNumChannels );
 		}
 
 		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
@@ -268,12 +263,13 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 
 	// after the decoder is loaded, we have to now get the 'complete' output type before retrieving its format
 	// TODO: still needed?
+	// - format seems to always have a reliable bits per sample
 	::IMFMediaType *completeOutputType;
 	hr = mSourceReader->GetCurrentMediaType( MF_SOURCE_READER_FIRST_AUDIO_STREAM, &completeOutputType );
 	CI_ASSERT( hr == S_OK );
 
 	::WAVEFORMATEX *format;
-	hr = MFCreateWaveFormatExFromMFMediaType( completeOutputType, &format, &formatSize );
+	hr = ::MFCreateWaveFormatExFromMFMediaType( completeOutputType, &format, &formatSize );
 	CI_ASSERT( hr == S_OK );
 	::CoTaskMemFree( format );
 
@@ -281,8 +277,8 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 	::PROPVARIANT durationProp;
 	hr = mSourceReader->GetPresentationAttribute( MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &durationProp );
 	CI_ASSERT( hr == S_OK );
-	LONGLONG duration = durationProp.uhVal.QuadPart; // nanoseconds, divide by 10 million to get seconds. TODO: use PropVariantToInt64
-
+	LONGLONG duration = durationProp.uhVal.QuadPart;
+	
 	mSeconds = nanoSecondsToSeconds( duration );
 
 	::PROPVARIANT seekProp;
@@ -334,7 +330,7 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	size_t numFramesRead = audioDataLength / ( mBytesPerSample * mFileNumChannels );
 
 	// FIXME: I don't know why num channels needs to be divided through twice, indicating he square needs to be used above.
-	// - this is probably wrong and may break with more channels.  understand and fix.
+	// - this is probably wrong and may break with more channels.
 	numFramesRead /= mFileNumChannels;
 
 	resizeReadBufferIfNecessary( numFramesRead );
