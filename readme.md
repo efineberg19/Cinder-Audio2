@@ -1,6 +1,6 @@
 # Cinder-Audio2
 
-WOP repo for [Cinder][1]'s next audio API.
+WIP repo for [Cinder][1]'s next audio API.
 
 
 
