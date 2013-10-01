@@ -26,7 +26,7 @@
 #include "audio2/Node.h"
 #include "audio2/File.h"
 #include "audio2/Dsp.h"
-#include "audio2/Atomic.h"
+#include "audio2/RingBuffer.h"
 
 #include "cinder/DataSource.h"
 #include "cinder/Thread.h"
@@ -38,8 +38,6 @@ typedef std::shared_ptr<class NodeLineIn>			NodeLineInRef;
 typedef std::shared_ptr<class NodeSamplePlayer>		NodeSamplePlayerRef;
 typedef std::shared_ptr<class NodeBufferPlayer>		NodeBufferPlayerRef;
 typedef std::shared_ptr<class NodeFilePlayer>		NodeFilePlayerRef;
-
-class RingBuffer;
 
 class NodeSource : public Node {
   public:

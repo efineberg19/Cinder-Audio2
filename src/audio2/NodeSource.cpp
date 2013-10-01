@@ -218,8 +218,8 @@ void NodeFilePlayer::process( Buffer *buffer )
 	size_t readCount = std::min( mNumFramesBuffered, numFrames );
 
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
-		size_t count = mRingBuffer->read( buffer->getChannel( ch ), readCount );
-		CI_ASSERT( count == readCount );
+		CI_ASSERT( mRingBuffer->getAvailableRead() >= readCount );
+		mRingBuffer->read( buffer->getChannel( ch ), readCount );
 	}
 	mNumFramesBuffered -= readCount;
 

@@ -355,9 +355,13 @@ void NodeLineInAudioUnit::process( Buffer *buffer )
 		// copy from ringbuffer
 		size_t numFrames = buffer->getNumFrames();
 		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
-			size_t count = mRingBuffer->read( buffer->getChannel( ch ), numFrames );
-			if( count < numFrames )
-				mLastUnderrun = getContext()->getNumProcessedFrames();
+
+			// TODO NEXT: multi-channeled buffering needs to be handled better. this'd work fine for mono, but not stereo.
+			if( mRingBuffer->getAvailableRead() < numFrames ) {
+				mLastOverrun = getContext()->getNumProcessedFrames();
+				return;
+			}
+			mRingBuffer->read( buffer->getChannel( ch ), numFrames );
 		}
 	}
 }

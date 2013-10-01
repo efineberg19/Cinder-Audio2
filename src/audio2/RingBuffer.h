@@ -23,64 +23,12 @@
 
 #pragma once
 
-// note: as of boost 1.53, lockfree requires Boost.Atomic on iOS - so libboost_atomic.a is linked in for that arch
-// - while lockfree::spsc_queue works fine with the current version of libc++, other data structs in the lib don't
-//   yet due to a known bug, so boost::atomic will be used until then
-// - vc2010 also requires boost::atomic
-
 #include "audio2/CinderAssert.h"
-#include <boost/lockfree/spsc_queue.hpp>
-#include <vector>
+
+#include <atomic>
+#include <algorithm>
 
 namespace cinder { namespace audio2 {
-
-class RingBuffer {
-  public:
-	RingBuffer() : mLockFreeQueue( 0 ) {}
-
-	// note: give lockfree one extra sample, which it uses internally to track the positions of head and tail
-	// reported here: https://svn.boost.org/trac/boost/ticket/8560
-	RingBuffer( size_t size ) : mLockFreeQueue( size + 1 ), mSize( size ) {}
-	~RingBuffer() {}
-
-	size_t getSize() const	{ return mSize; }
-
-	//! pushes vector \t samples to internal buffer, overwriting oldest samples
-	void write( const std::vector<float> &samples )	{ write( samples.data(), samples.size() ); }
-	//! fills vector \t samples and removes them from internal buffer. returns the amount actually copied.
-	size_t read( std::vector<float> *samples )	{ return read( samples->data(), samples->size() ); }
-
-	//! pushes \t count \t samples to buffer, overwriting oldest samples. returns the amount overwritten or 0.
-	size_t write( const float *samples, size_t count ) {
-		if( count > mSize )
-			count = mSize;
-
-		size_t numPushed = mLockFreeQueue.push( samples, count );
-		if( count > numPushed ) {
-			size_t numLeft = count - numPushed;
-			
-			// ???: is there a more efficient way to overwrite?
-			float old;
-			for( size_t i = 0; i < numLeft; i++ )
-				mLockFreeQueue.pop( old );
-			numPushed = mLockFreeQueue.push( &samples[numPushed], numLeft );
-			CI_ASSERT( numPushed == numLeft );
-			return numLeft;
-		}
-		return 0;
-	}
-
-	//! fills array \t samples and removes them from internal buffer. returns the amount actually copied.
-	size_t read( float *samples, size_t count ) {
-		if( count > mSize )
-			count = mSize;
-		return mLockFreeQueue.pop( samples, count );
-	}
-
-  private:
-	boost::lockfree::spsc_queue<float> mLockFreeQueue;
-	size_t mSize;
-};
 
 //! Other than minor modifications, this ringbuffer is a direct copy of Tim Blechmann's fine work,
 //! found as the base structure of boost::lockfree::spsc_queue (ringbuffer_base). Whereas the boost::lockfree
@@ -92,6 +40,8 @@ class RingBuffer {
 template <typename T>
 class RingBufferT {
 public:
+	//! Constructs a RingBufferT with size = 0
+	RingBufferT() : mAllocatedSize( 0 ), mWriteIndex( 0 ), mReadIndex( 0 ) {}
 
 	//! Constructs a RingBufferT with \a size maximum elements.
 	RingBufferT( size_t size )
@@ -112,26 +62,28 @@ public:
 	}
 
 	//! Returns the number of elements available for wrtiing. \note Only safe to call from the write thread.
-	size_t getAvailableWrite()
+	size_t getAvailableWrite() const
 	{
 		return getAvailableWrite( mWriteIndex, mReadIndex );
 	}
 
 	//! Returns the number of elements available for wrtiing. \note Only safe to call from the read thread.
-	size_t getAvailableRead()
+	size_t getAvailableRead() const
 	{
 		return getAvailableRead( mWriteIndex, mReadIndex );
 	}
 
+	//! Writes \a count elements into the internal buffer from \a array.
 	//! \note only safe to call from the write thread.
 	// TODO: decide what is best to do when buffer fills;
 	// assert, fill as much as possible, or overwrite circular.
-	void write( const T *array, size_t count )
+	size_t write( const T *array, size_t count )
 	{
 		const size_t writeIndex = mWriteIndex.load( std::memory_order_relaxed );
 		const size_t readIndex = mReadIndex.load( std::memory_order_acquire );
 
-		assert( count <= getAvailableWrite( writeIndex, readIndex ) );
+		if( count > getAvailableWrite( writeIndex, readIndex ) )
+			return 0;
 
 		size_t writeIndexAfter = writeIndex + count;
 
@@ -149,15 +101,17 @@ public:
 		}
 
 		mWriteIndex.store( writeIndexAfter, std::memory_order_release );
+		return count;
 	}
 
-	//! \note only safe to call from the read thread.
-	void read( T *array, size_t count )
+	//! Reads \a count elements from the internal buffer into \a array. \note only safe to call from the read thread.
+	size_t read( T *array, size_t count )
 	{
 		const size_t writeIndex = mWriteIndex.load( std::memory_order_acquire );
 		const size_t readIndex = mReadIndex.load( std::memory_order_relaxed );
 
-		assert( count <= getAvailableRead( writeIndex, readIndex ) );
+		if( count > getAvailableRead( writeIndex, readIndex ) )
+			return 0;
 
 		size_t readIndexAfter = readIndex + count;
 
@@ -177,10 +131,11 @@ public:
 		}
 
 		mReadIndex.store( readIndexAfter, std::memory_order_release );
+		return count;
 	}
 
 private:
-	size_t getAvailableWrite( size_t writeIndex, size_t readIndex )
+	size_t getAvailableWrite( size_t writeIndex, size_t readIndex ) const
 	{
 		size_t result = readIndex - writeIndex - 1;
 		if( writeIndex >= readIndex )
@@ -189,7 +144,7 @@ private:
 		return result;
 	}
 
-	size_t getAvailableRead( size_t writeIndex, size_t readIndex )
+	size_t getAvailableRead( size_t writeIndex, size_t readIndex ) const
 	{
 		if( writeIndex >= readIndex )
 			return writeIndex - readIndex;
@@ -202,6 +157,9 @@ private:
 	size_t					mAllocatedSize;
 	std::atomic<size_t>		mWriteIndex, mReadIndex;
 };
+
+
+typedef RingBufferT<float> RingBuffer;
 
 
 } } // namespace cinder::audio2

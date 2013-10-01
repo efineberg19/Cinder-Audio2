@@ -29,12 +29,12 @@
 
 #include "audio2/Context.h"
 #include "audio2/Dsp.h"
+#include "audio2/RingBuffer.h"
 
 #include "cinder/Thread.h"
 
 namespace cinder { namespace audio2 {
 
-class RingBuffer;
 class Fft;
 
 typedef std::shared_ptr<class NodeTap> NodeTapRef;

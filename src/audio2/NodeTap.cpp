@@ -60,14 +60,28 @@ void NodeTap::initialize()
 
 void NodeTap::process( Buffer *buffer )
 {
-	for( size_t ch = 0; ch < getNumChannels(); ch++ )
+	for( size_t ch = 0; ch < getNumChannels(); ch++ ) {
+		size_t count = min( buffer->getNumFrames(), mRingBuffers[ch]->getAvailableWrite() );
+		if( count < buffer->getNumFrames() ) {
+			LOG_E << "overrun, size: " << buffer->getNumFrames() << ", avail: " << count << endl;
+		}
+
 		mRingBuffers[ch]->write( buffer->getChannel( ch ), buffer->getNumFrames() );
+	}
 }
 
+// TODO NEXT: address multi-channel buffering and underrruns
 const Buffer& NodeTap::getBuffer()
 {
-	for( size_t ch = 0; ch < getNumChannels(); ch++ )
+	for( size_t ch = 0; ch < getNumChannels(); ch++ ) {
+		size_t avail = mRingBuffers[ch]->getAvailableRead();
+		if( avail < mWindowSize ) {
+			LOG_E << "underrun, needed: " << mWindowSize << ", avail: " << avail << endl;
+			break;
+		}
 		mRingBuffers[ch]->read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() );
+
+	}
 
 	return mCopiedBuffer;
 }
