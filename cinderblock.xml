@@ -25,7 +25,6 @@
 	<platform os="ios">
 		<headerPattern>src/audio2/cocoa/*.h</headerPattern>
 		<sourcePattern>src/audio2/cocoa/*.cpp</sourcePattern>
-		<staticLibrary>lib/ios/libboost_atomic.a</staticLibrary>
 	</platform>
 	<platform os="msw">
 		<headerPattern>src/audio2/msw/*.h</headerPattern>
