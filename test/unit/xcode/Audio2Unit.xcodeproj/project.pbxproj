@@ -50,6 +50,7 @@
 		00B784B10FF439BC000DE1D7 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		00B784B20FF439BC000DE1D7 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		11172B9917FA88F0000EB0BF /* RingBufferUnit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RingBufferUnit.h; path = ../src/RingBufferUnit.h; sourceTree = "<group>"; };
 		1129A6AF17D289B4006AC8F5 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
 		1187CCAE17D2E64300414EC4 /* BufferUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BufferUnit.h; path = ../src/BufferUnit.h; sourceTree = "<group>"; };
 		1187CCAF17D2E64300414EC4 /* FftUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FftUnit.h; path = ../src/FftUnit.h; sourceTree = "<group>"; };
@@ -88,6 +89,7 @@
 			children = (
 				1187CCAE17D2E64300414EC4 /* BufferUnit.h */,
 				1187CCAF17D2E64300414EC4 /* FftUnit.h */,
+				11172B9917FA88F0000EB0BF /* RingBufferUnit.h */,
 				1187CCB017D2E64300414EC4 /* main.cpp */,
 				1187CCB117D2E64300414EC4 /* utils.h */,
 			);

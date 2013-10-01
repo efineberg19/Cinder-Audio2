@@ -82,4 +82,126 @@ class RingBuffer {
 	size_t mSize;
 };
 
+//! Other than minor modifications, this ringbuffer is a direct copy of Tim Blechmann's fine work,
+//! found as the base structure of boost::lockfree::spsc_queue (ringbuffer_base). Whereas the boost::lockfree
+//! data structures are meant for a wide range of applications, this version specifically caters to audio processing.
+//!
+//! The implementation remains lock-free and thread-safe within a single write thread / single read thread context.
+//!
+//! \note \a T must be POD.
+template <typename T>
+class RingBufferT {
+public:
+
+	//! Constructs a RingBufferT with \a size maximum elements.
+	RingBufferT( size_t size )
+	: mAllocatedSize( size + 1 ), mWriteIndex( 0 ), mReadIndex( 0 )
+	{
+		mData = (T *)calloc( mAllocatedSize, sizeof( T ) );
+	}
+
+	~RingBufferT()
+	{
+		free( mData );
+	}
+
+	//! Returns the number of elements. \note Actual allocation size is +1, the extra element being a marker to determine when the internal buffer is full.
+	size_t getSize() const
+	{
+		return mAllocatedSize - 1;
+	}
+
+	//! Returns the number of elements available for wrtiing. \note Only safe to call from the write thread.
+	size_t getAvailableWrite()
+	{
+		return getAvailableWrite( mWriteIndex, mReadIndex );
+	}
+
+	//! Returns the number of elements available for wrtiing. \note Only safe to call from the read thread.
+	size_t getAvailableRead()
+	{
+		return getAvailableRead( mWriteIndex, mReadIndex );
+	}
+
+	//! \note only safe to call from the write thread.
+	// TODO: decide what is best to do when buffer fills;
+	// assert, fill as much as possible, or overwrite circular.
+	void write( const T *array, size_t count )
+	{
+		const size_t writeIndex = mWriteIndex.load( std::memory_order_relaxed );
+		const size_t readIndex = mReadIndex.load( std::memory_order_acquire );
+
+		assert( count <= getAvailableWrite( writeIndex, readIndex ) );
+
+		size_t writeIndexAfter = writeIndex + count;
+
+		if( writeIndex + count > mAllocatedSize ) {
+			size_t countA = mAllocatedSize - writeIndex;
+
+			std::copy( array, array + countA, mData + writeIndex );
+			std::copy( array + countA, array + count, mData );
+			writeIndexAfter -= mAllocatedSize;
+		}
+		else {
+			std::copy( array, array + count, mData + writeIndex );
+			if( writeIndexAfter == mAllocatedSize )
+				writeIndexAfter = 0;
+		}
+
+		mWriteIndex.store( writeIndexAfter, std::memory_order_release );
+	}
+
+	//! \note only safe to call from the read thread.
+	void read( T *array, size_t count )
+	{
+		const size_t writeIndex = mWriteIndex.load( std::memory_order_acquire );
+		const size_t readIndex = mReadIndex.load( std::memory_order_relaxed );
+
+		assert( count <= getAvailableRead( writeIndex, readIndex ) );
+
+		size_t readIndexAfter = readIndex + count;
+
+		if( readIndex + count > mAllocatedSize ) {
+			size_t countA = mAllocatedSize - readIndex;
+			size_t countB = count - countA;
+
+			std::copy( mData + readIndex, mData + mAllocatedSize, array );
+			std::copy( mData, mData + countB, array + countA );
+
+			readIndexAfter -= mAllocatedSize;
+		}
+		else {
+			std::copy( mData + readIndex, mData + mReadIndex + count, array );
+			if( readIndexAfter == mAllocatedSize )
+				readIndexAfter = 0;
+		}
+
+		mReadIndex.store( readIndexAfter, std::memory_order_release );
+	}
+
+private:
+	size_t getAvailableWrite( size_t writeIndex, size_t readIndex )
+	{
+		size_t result = readIndex - writeIndex - 1;
+		if( writeIndex >= readIndex )
+			result += mAllocatedSize;
+
+		return result;
+	}
+
+	size_t getAvailableRead( size_t writeIndex, size_t readIndex )
+	{
+		if( writeIndex >= readIndex )
+			return writeIndex - readIndex;
+
+		return writeIndex + mAllocatedSize - readIndex;
+	}
+	
+	
+	T						*mData;
+	size_t					mAllocatedSize;
+	std::atomic<size_t>		mWriteIndex, mReadIndex;
+};
+
+
 } } // namespace cinder::audio2
