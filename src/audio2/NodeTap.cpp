@@ -53,6 +53,8 @@ void NodeTap::initialize()
 {
 	if( ! mWindowSize )
 		mWindowSize = getContext()->getFramesPerBlock();
+	else if( ! isPowerOf2( mWindowSize ) )
+		mWindowSize = nextPowerOf2( static_cast<uint32_t>( mWindowSize ) );
 
 	mRingBuffer.resize( mWindowSize * mRingBufferPaddingFactor );
 	mCopiedBuffer = Buffer( mWindowSize, getNumChannels() );
@@ -91,8 +93,7 @@ void NodeTap::fillCopiedBuffer()
 // ----------------------------------------------------------------------------------------------------
 
 NodeTapSpectral::NodeTapSpectral( const Format &format )
-: Node( format ), mFftSize( format.getFftSize() ), mWindowSize( format.getWindowSize() ),
-	mWindowType( format.getWindowType() ), mNumFramesCopied( 0 ), mApplyWindow( true ), mSmoothingFactor( 0.65f )
+	: NodeTap( format ), mFftSize( format.getFftSize() ), mWindowType( format.getWindowType() ), mSmoothingFactor( 0.5f )
 {
 }
 
@@ -102,13 +103,15 @@ NodeTapSpectral::~NodeTapSpectral()
 
 void NodeTapSpectral::initialize()
 {
-	if( ! mFftSize )
-		mFftSize = getContext()->getFramesPerBlock();
+	NodeTap::initialize();
+
+	if( mFftSize < mWindowSize )
+		mFftSize = mWindowSize;
 	if( ! isPowerOf2( mFftSize ) )
 		mFftSize = nextPowerOf2( static_cast<uint32_t>( mFftSize ) );
 	
 	mFft = unique_ptr<Fft>( new Fft( mFftSize ) );
-	mBuffer = audio2::Buffer( mFftSize );
+	mFftBuffer = audio2::Buffer( mFftSize );
 	mBufferSpectral = audio2::BufferSpectral( mFftSize );
 	mMagSpectrum.resize( mFftSize / 2 );
 
@@ -117,71 +120,55 @@ void NodeTapSpectral::initialize()
 	else if( ! isPowerOf2( mWindowSize ) )
 		mWindowSize = nextPowerOf2( static_cast<uint32_t>( mWindowSize ) );
 
-	mWindow = makeAlignedArray<float>( mWindowSize );
-	generateWindow( mWindowType, mWindow.get(), mWindowSize );
+	mWindowingTable = makeAlignedArray<float>( mWindowSize );
+	generateWindow( mWindowType, mWindowingTable.get(), mWindowSize );
 
 	LOG_V << "complete. fft size: " << mFftSize << ", window size: " << mWindowSize << endl;
 }
 
-// TODO: should really be using a Converter to go stereo (or more) -> mono
-// - a good implementation will use equal-power scaling as if the mono signal was two stereo channels panned to center
-void NodeTapSpectral::process( audio2::Buffer *buffer )
-{
-	lock_guard<mutex> lock( mMutex );
-
-	if( mNumFramesCopied >= mWindowSize )
-		return;
-
-	size_t numCopyFrames = std::min( buffer->getNumFrames(), mWindowSize - mNumFramesCopied );
-	size_t numSourceChannels = buffer->getNumChannels();
-	float *offsetBuffer = &mBuffer[mNumFramesCopied];
-	if( numSourceChannels == 1 ) {
-		memcpy( offsetBuffer, buffer->getData(), numCopyFrames * sizeof( float ) );
-	}
-	else {
-		// naive average of all channels
-		float scale = 1.0f / numSourceChannels;
-		for( size_t ch = 0; ch < numSourceChannels; ch++ ) {
-			for( size_t i = 0; i < numCopyFrames; i++ )
-				offsetBuffer[i] += buffer->getChannel( ch )[i] * scale;
-		}
-	}
-
-	mNumFramesCopied += numCopyFrames;
-}
-
+// TODO: When mNumChannels > 1, use generic channel converter.
+// - alternatively, this tap can force mono output, which only works if it isn't a tap but is really a leaf node (no output).
 const std::vector<float>& NodeTapSpectral::getMagSpectrum()
 {
-	lock_guard<mutex> lock( mMutex );
-	if( mNumFramesCopied == mWindowSize ) {
+	fillCopiedBuffer();
 
-		if( mApplyWindow )
-			multiply( mBuffer.getData(), mWindow.get(), mBuffer.getData(), mWindowSize );
-
-		mFft->forward( &mBuffer, &mBufferSpectral );
-
-		float *real = mBufferSpectral.getReal();
-		float *imag = mBufferSpectral.getImag();
-
-		// remove nyquist component.
-		imag[0] = 0.0f;
-
-		// compute normalized magnitude spectrum
-		const float kMagScale = 1.0f / mFft->getSize();
-		for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
-			float re = real[i];
-			float im = imag[i];
-			mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + sqrt( re * re + im * im ) * kMagScale * ( 1.0f - mSmoothingFactor );
+	// window the copied buffer and computer forward FFT transform
+	if( mNumChannels > 1 ) {
+		// naive average of all channels
+		mFftBuffer.zero();
+		float scale = 1.0f / mNumChannels;
+		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+			for( size_t i = 0; i < mWindowSize; i++ )
+				mFftBuffer[i] += mCopiedBuffer.getChannel( ch )[i] * scale;
 		}
-		mNumFramesCopied = 0;
-		mBuffer.zero();
+		multiply( mFftBuffer.getData(), mWindowingTable.get(), mFftBuffer.getData(), mWindowSize );
 	}
+	else
+		multiply( mCopiedBuffer.getData(), mWindowingTable.get(), mFftBuffer.getData(), mWindowSize );
+
+	mFft->forward( &mFftBuffer, &mBufferSpectral );
+
+	float *real = mBufferSpectral.getReal();
+	float *imag = mBufferSpectral.getImag();
+
+	// remove nyquist component
+	imag[0] = 0.0f;
+
+	// compute normalized magnitude spectrum
+	// TODO: break this into vector cartisian -> polar and then vector lowpass. skip lowpass if smoothing factor is very small
+	const float kMagScale = 1.0f / mFft->getSize();
+	for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
+		float re = real[i];
+		float im = imag[i];
+		mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + sqrt( re * re + im * im ) * kMagScale * ( 1.0f - mSmoothingFactor );
+	}
+
 	return mMagSpectrum;
 }
 
 void NodeTapSpectral::setSmoothingFactor( float factor )
 {
-	mSmoothingFactor = ( factor < 0.0f ) ? 0.0f : ( ( factor > 1.0f ) ? 1.0f : factor );
+	mSmoothingFactor = math<float>::clamp( factor );
 }
 
 } } // namespace cinder::audio2

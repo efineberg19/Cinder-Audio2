@@ -40,8 +40,12 @@ class Fft;
 typedef std::shared_ptr<class NodeTap> NodeTapRef;
 typedef std::shared_ptr<class NodeTapSpectral> NodeTapSpectralRef;
 
+class NodeTapBase : public Node {
+
+};
+
 class NodeTap : public Node {
-public:
+  public:
 	struct Format : public Node::Format {
 		Format() : mWindowSize( 0 ) {}
 
@@ -50,7 +54,7 @@ public:
 		//! Returns the window size.
 		size_t getWindowSize() const			{ return mWindowSize; }
 
-	protected:
+	  protected:
 		size_t mWindowSize;
 	};
 
@@ -69,7 +73,8 @@ public:
 	virtual void initialize() override;
 	virtual void process( Buffer *buffer ) override;
 
-private:
+  protected:
+	//! Copies audio frames from the RingBuffer into mCopiedBuffer, which is suitable for operation on the main thread.
 	void fillCopiedBuffer();
 	
 	RingBuffer	mRingBuffer;
@@ -78,27 +83,24 @@ private:
 	size_t		mRingBufferPaddingFactor;
 };
 
-// TODO: is there any good reason not to inherit from NodeTap?
-class NodeTapSpectral : public Node {
-public:
-	struct Format : public Node::Format {
-		Format() : mFftSize( 0 ), mWindowSize( 0 ), mWindowType( WindowType::BLACKMAN ) {}
+class NodeTapSpectral : public NodeTap {
+  public:
+	struct Format : public NodeTap::Format {
+		Format() : NodeTap::Format(), mFftSize( 0 ), mWindowType( WindowType::BLACKMAN ) {}
 
-		//! defaults to Context's frames-per-block
+		//! Sets the FFT size, rounded up to the nearest power of 2 greated than \a windowSize. Setting this larger than \a windowSize causes the FFT transform to be 'zero-padded'. Default is the same as windowSize.
 		Format&		fftSize( size_t size )			{ mFftSize = size; return *this; }
-		size_t		getFftSize() const				{ return mFftSize; }
-
-		//! If window size is not set, defaults to fftSize. If fftSize is not set, defaults to Context::getFramesPerBlock().
-		Format&		windowSize( size_t size )		{ mWindowSize = size; return *this; }
-		size_t		getWindowSize() const			{ return mWindowSize; }
-
 		//! defaults to WindowType::BLACKMAN
 		Format&		windowType( WindowType type )	{ mWindowType = type; return *this; }
+		//! \see NodeTap::windowSize()
+		Format&		windowSize( size_t size )		{ NodeTap::Format::windowSize( size ); return *this; }
+
+		size_t		getFftSize() const				{ return mFftSize; }
 		WindowType	getWindowType() const			{ return mWindowType; }
 
-	protected:
-		size_t mWindowSize, mFftSize;
-		WindowType mWindowType;
+      protected:
+		size_t		mFftSize;
+		WindowType	mWindowType;
 	};
 
 	NodeTapSpectral( const Format &format = Format() );
@@ -107,33 +109,24 @@ public:
 	std::string virtual getTag() override			{ return "NodeTapSpectral"; }
 
 	virtual void initialize() override;
-	virtual void process( Buffer *buffer ) override;
 
 	const std::vector<float>& getMagSpectrum();
-
-	void setWindowingEnabled( bool b = true )	{ mApplyWindow = b; }
-	bool isWindowingEnabled() const				{ return mApplyWindow; }
 
 	size_t getFftSize() const	{ return mFftSize; }
 
 	float getSmoothingFactor() const	{ return mSmoothingFactor; }
 	void setSmoothingFactor( float factor );
 
-private:
-	std::unique_ptr<Fft> mFft;
-	std::mutex mMutex;
-
-	// TODO: consider storing this in Fft - it has to be the same size as Fft::getSize
-	// - but all 'NodeTap's could use this - move it to base class?
-	Buffer mBuffer;
-	BufferSpectral mBufferSpectral;
-	std::vector<float> mMagSpectrum;
-	AlignedArrayPtr mWindow;
-	std::atomic<bool> mApplyWindow;
-	std::atomic<size_t> mNumFramesCopied;
-	size_t mWindowSize, mFftSize;
-	WindowType mWindowType;
-	float mSmoothingFactor;
+  private:
+	std::unique_ptr<Fft>	mFft;
+	Buffer					mFftBuffer;			// windowed samples before transform
+	BufferSpectral			mBufferSpectral;	// transformed samples
+	std::vector<float>		mMagSpectrum;		// computed magnitude spectrum from frequency-domain samples
+	AlignedArrayPtr			mWindowingTable;
+//	std::atomic<size_t>		mNumFramesCopied;
+	size_t					mFftSize;
+	WindowType				mWindowType;
+	float					mSmoothingFactor;
 };
 
 } } // namespace cinder::audio2

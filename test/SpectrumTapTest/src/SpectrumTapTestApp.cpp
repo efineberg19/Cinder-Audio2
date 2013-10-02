@@ -51,7 +51,7 @@ class SpectrumTapTestApp : public AppNative {
 	SourceFileRef					mSourceFile;
 
 	vector<TestWidget *>			mWidgets;
-	Button							mEnableGraphButton, mPlaybackButton, mLoopButton, mApplyWindowButton, mScaleDecibelsButton;
+	Button							mEnableGraphButton, mPlaybackButton, mLoopButton, mScaleDecibelsButton;
 	VSelector						mTestSelector;
 	HSlider							mSmoothingFactorSlider, mFreqSlider;
 	SpectrumPlot					mSpectrumPlot;
@@ -98,7 +98,6 @@ void SpectrumTapTestApp::setup()
 	mContext->start();
 	mEnableGraphButton.setEnabled( true );
 
-	mApplyWindowButton.setEnabled( mSpectrumTap->isWindowingEnabled() );
 	mScaleDecibelsButton.setEnabled( mSpectrumPlot.getScaleDecibels() );
 
 	printGraph( mContext );
@@ -141,13 +140,6 @@ void SpectrumTapTestApp::setupUI()
 	mLoopButton.mTitleEnabled = "loop on";
 	mLoopButton.mBounds = buttonRect;
 	mWidgets.push_back( &mLoopButton );
-
-	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
-	mApplyWindowButton.mIsToggle = true;
-	mApplyWindowButton.mTitleNormal = "apply window";
-	mApplyWindowButton.mTitleEnabled = "apply window";
-	mApplyWindowButton.mBounds = buttonRect;
-	mWidgets.push_back( &mApplyWindowButton );
 
 	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0.0f );
 	mScaleDecibelsButton.mIsToggle = true;
@@ -220,8 +212,6 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 	}
 	else if( mLoopButton.hitTest( pos ) )
 		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
-	else if( mApplyWindowButton.hitTest( pos ) )
-		mSpectrumTap->setWindowingEnabled( ! mSpectrumTap->isWindowingEnabled() );
 	else if( mScaleDecibelsButton.hitTest( pos ) )
 		mSpectrumPlot.setScaleDecibels( ! mSpectrumPlot.getScaleDecibels() );
 	else
