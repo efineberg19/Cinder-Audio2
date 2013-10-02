@@ -104,7 +104,8 @@ class NodeLineInAudioUnit : public NodeLineIn, public NodeAudioUnit {
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 
-	std::unique_ptr<RingBuffer>			mRingBuffer;
+	RingBuffer							mRingBuffer;
+	size_t								mRingBufferPaddingFactor;
 	AudioBufferListPtr					mBufferList;
 	std::atomic<uint64_t>				mLastUnderrun, mLastOverrun;
 	bool								mSynchronousIO;

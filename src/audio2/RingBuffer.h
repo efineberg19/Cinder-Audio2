@@ -42,37 +42,49 @@ class RingBufferT {
 public:
 	//! Constructs a RingBufferT with size = 0
 	RingBufferT() : mAllocatedSize( 0 ), mWriteIndex( 0 ), mReadIndex( 0 ) {}
-
-	//! Constructs a RingBufferT with \a size maximum elements.
-	RingBufferT( size_t size )
-	: mAllocatedSize( size + 1 ), mWriteIndex( 0 ), mReadIndex( 0 )
+	//! Constructs a RingBufferT with \a count maximum elements.
+	RingBufferT( size_t count ) : mAllocatedSize( 0 )
 	{
-		mData = (T *)calloc( mAllocatedSize, sizeof( T ) );
+		resize( count );
 	}
 
 	~RingBufferT()
 	{
-		free( mData );
+		if( mAllocatedSize )
+			free( mData );
 	}
 
-	//! Returns the number of elements. \note Actual allocation size is +1, the extra element being a marker to determine when the internal buffer is full.
+	//! Resizes the container to contain \a count maximum elements. \note Invalidates internal buffer and resets read / write indices to 0.
+	void resize( size_t count )
+	{
+		size_t allocatedSize = count + 1; // one bin is used to distinguish between the read and write indices when full.
+
+		if( mAllocatedSize )
+			mData = (T *)realloc( mData, allocatedSize * sizeof( T ) );
+		else
+			mData = (T *)calloc( allocatedSize, sizeof( T ) );
+
+		CI_ASSERT( mData );
+
+		mAllocatedSize = allocatedSize;
+		mWriteIndex = 0;
+		mReadIndex = 0;
+	}
+	//! Returns the maximum number of elements.
 	size_t getSize() const
 	{
 		return mAllocatedSize - 1;
 	}
-
 	//! Returns the number of elements available for wrtiing. \note Only safe to call from the write thread.
 	size_t getAvailableWrite() const
 	{
 		return getAvailableWrite( mWriteIndex, mReadIndex );
 	}
-
 	//! Returns the number of elements available for wrtiing. \note Only safe to call from the read thread.
 	size_t getAvailableRead() const
 	{
 		return getAvailableRead( mWriteIndex, mReadIndex );
 	}
-
 	//! Writes \a count elements into the internal buffer from \a array. Returns \c true if all elements were successfully written, or false otherwise.
 	//! \note only safe to call from the write thread.
 	// TODO: consider renaming this to writeAll / readAll, and having generic read / write that just does as much as it can
@@ -102,7 +114,6 @@ public:
 		mWriteIndex.store( writeIndexAfter, std::memory_order_release );
 		return true;
 	}
-
 	//! Reads \a count elements from the internal buffer into \a array.  Returns \c true if all elements were successfully read, or false otherwise.
 	//! \note only safe to call from the read thread.
 	bool read( T *array, size_t count )

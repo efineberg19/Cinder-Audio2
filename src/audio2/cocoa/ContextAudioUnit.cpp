@@ -185,7 +185,7 @@ OSStatus NodeLineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActi
 // ----------------------------------------------------------------------------------------------------
 
 NodeLineInAudioUnit::NodeLineInAudioUnit( DeviceRef device, const Format &format )
-: NodeLineIn( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 )
+: NodeLineIn( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 ), mRingBufferPaddingFactor( 2 )
 {
 #if defined( CINDER_COCOA_TOUCH )
 	auto manager = dynamic_cast<DeviceManagerAudioSession *>( Context::deviceManager() );
@@ -263,8 +263,7 @@ void NodeLineInAudioUnit::initialize()
 		if( mDevice->getSampleRate() != sampleRate || mDevice->getFramesPerBlock() != framesPerBlock )
 			mDevice->updateFormat( Device::Format().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
 
-		// TODO: add a padding factor (2x) to the ringbuffer, which should reduce overruns
-		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( framesPerBlock * getNumChannels() ) );
+		mRingBuffer.resize( framesPerBlock * getNumChannels() * mRingBufferPaddingFactor );
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
 
 		::AURenderCallbackStruct callbackStruct = { NodeLineInAudioUnit::inputCallback, &mRenderData };
@@ -353,7 +352,7 @@ void NodeLineInAudioUnit::process( Buffer *buffer )
 	}
 	else {
 		// copy from ringbuffer. If not possible, store the timestamp of the underrun
-		if( ! mRingBuffer->read( buffer->getData(), buffer->getSize() ) )
+		if( ! mRingBuffer.read( buffer->getData(), buffer->getSize() ) )
 		   mLastUnderrun = getContext()->getNumProcessedFrames();
 	}
 }
@@ -378,10 +377,10 @@ OSStatus NodeLineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderAction
 	if( status != noErr )
 		return status;
 
-	if( lineIn->mRingBuffer->getAvailableWrite() >= nodeBufferList->mNumberBuffers * numFrames ) {
+	if( lineIn->mRingBuffer.getAvailableWrite() >= nodeBufferList->mNumberBuffers * numFrames ) {
 		for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {
 			float *channel = static_cast<float *>( nodeBufferList->mBuffers[ch].mData );
-			lineIn->mRingBuffer->write( channel, numFrames );
+			lineIn->mRingBuffer.write( channel, numFrames );
 		}
 	}
 	else
