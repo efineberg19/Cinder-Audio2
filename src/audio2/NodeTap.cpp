@@ -39,7 +39,7 @@ namespace cinder { namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 NodeTap::NodeTap( const Format &format )
-: Node( format ), mWindowSize( format.getWindowSize() )
+: Node( format ), mWindowSize( format.getWindowSize() ), mRingBufferPaddingFactor( 2 )
 {
 	if( boost::indeterminate( format.getAutoEnable() ) )
 		setAutoEnabled();
@@ -51,60 +51,39 @@ NodeTap::~NodeTap()
 
 void NodeTap::initialize()
 {
-	mCopiedBuffer = Buffer( mWindowSize, getNumChannels() );
-	for( size_t ch = 0; ch < getNumChannels(); ch++ )
-		mRingBuffers.push_back( unique_ptr<RingBuffer>( new RingBuffer( mWindowSize ) ) );
+	if( ! mWindowSize )
+		mWindowSize = getContext()->getFramesPerBlock();
 
-	mInitialized = true;
+	mRingBuffer.resize( mWindowSize * mRingBufferPaddingFactor );
+	mCopiedBuffer = Buffer( mWindowSize, getNumChannels() );
 }
 
 void NodeTap::process( Buffer *buffer )
 {
-	for( size_t ch = 0; ch < getNumChannels(); ch++ ) {
-		size_t count = min( buffer->getNumFrames(), mRingBuffers[ch]->getAvailableWrite() );
-		if( count < buffer->getNumFrames() ) {
-			LOG_E << "overrun, size: " << buffer->getNumFrames() << ", avail: " << count << endl;
-		}
-
-		mRingBuffers[ch]->write( buffer->getChannel( ch ), buffer->getNumFrames() );
-	}
+	mRingBuffer.write( buffer->getData(), buffer->getSize() );
 }
 
-// TODO NEXT: address multi-channel buffering and underrruns
 const Buffer& NodeTap::getBuffer()
 {
-	for( size_t ch = 0; ch < getNumChannels(); ch++ ) {
-		size_t avail = mRingBuffers[ch]->getAvailableRead();
-		if( avail < mWindowSize ) {
-			LOG_E << "underrun, needed: " << mWindowSize << ", avail: " << avail << endl;
-			break;
-		}
-		mRingBuffers[ch]->read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() );
-
-	}
-
+	fillCopiedBuffer();
 	return mCopiedBuffer;
-}
-
-const float *NodeTap::getChannel( size_t channel )
-{
-	CI_ASSERT( channel < mCopiedBuffer.getNumChannels() );
-
-	float *buf = mCopiedBuffer.getChannel( channel );
-	mRingBuffers[channel]->read( buf, mCopiedBuffer.getNumFrames() );
-
-	return buf;
 }
 
 float NodeTap::getVolume()
 {
-	const Buffer& buffer = getBuffer();
-	return rms( buffer.getData(), buffer.getSize() );
+	fillCopiedBuffer();
+	return rms( mCopiedBuffer.getData(), mCopiedBuffer.getSize() );
 }
 
 float NodeTap::getVolume( size_t channel )
 {
-	return rms( getChannel( channel ), mCopiedBuffer.getNumFrames() );
+	fillCopiedBuffer();
+	return rms( mCopiedBuffer.getChannel( channel ), mCopiedBuffer.getNumFrames() );
+}
+
+void NodeTap::fillCopiedBuffer()
+{
+	mRingBuffer.read( mCopiedBuffer.getData(), mCopiedBuffer.getSize() );
 }
 
 // ----------------------------------------------------------------------------------------------------

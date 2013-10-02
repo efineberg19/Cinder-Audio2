@@ -43,9 +43,11 @@ typedef std::shared_ptr<class NodeTapSpectral> NodeTapSpectralRef;
 class NodeTap : public Node {
 public:
 	struct Format : public Node::Format {
-		Format() : mWindowSize( 1024 ) {}
+		Format() : mWindowSize( 0 ) {}
 
+		//! Sets the window size, the number of samples that are recorded for one 'window' into the audio signal. Default is the Context's frames-per-block.
 		Format& windowSize( size_t size )		{ mWindowSize = size; return *this; }
+		//! Returns the window size.
 		size_t getWindowSize() const			{ return mWindowSize; }
 
 	protected:
@@ -57,7 +59,6 @@ public:
 
 	std::string virtual getTag() override			{ return "NodeTap"; }
 
-	const float* getChannel( size_t ch = 0 );
 	const Buffer& getBuffer();
 
 	//! Compute the average (RMS) volume across all channels
@@ -69,9 +70,12 @@ public:
 	virtual void process( Buffer *buffer ) override;
 
 private:
-	std::vector<std::unique_ptr<RingBuffer> > mRingBuffers;
-	Buffer mCopiedBuffer;
-	size_t mWindowSize;
+	void fillCopiedBuffer();
+	
+	RingBuffer	mRingBuffer;
+	Buffer		mCopiedBuffer;
+	size_t		mWindowSize;
+	size_t		mRingBufferPaddingFactor;
 };
 
 // TODO: is there any good reason not to inherit from NodeTap?

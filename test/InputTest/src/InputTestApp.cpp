@@ -28,8 +28,7 @@ class InputTestApp : public AppNative {
 	void setupUI();
 	void processTap( Vec2i pos );
 
-	void setupDefaultDevices();
-	void setupDedicatedDevice();
+	void printDevices();
 
 	void setupPassThrough();
 	void setupInProcessOut();
@@ -52,27 +51,20 @@ void InputTestApp::setup()
 {
 	mContext = Context::create();
 
-	setupDefaultDevices();
-	//setupDedicatedDevice();
+	mLineIn = mContext->createLineIn();
+	mLineOut = mContext->createLineOut();
 
 	mLineIn->setAutoEnabled();
 
-	// TODO: add this as a test control
-	//mLineIn->getFormat().setNumChannels( 1 );
-
 	setupInTapOut();
-//	setupInTapProcessOut();
 
 	setupUI();
 
 	printGraph( mContext );
 }
 
-void InputTestApp::setupDefaultDevices()
+void InputTestApp::printDevices()
 {
-	mLineIn = mContext->createLineIn();
-	mLineOut = mContext->createLineOut();
-
 	LOG_V << "input device name: " << mLineIn->getDevice()->getName() << endl;
 	console() << "\t channels: " << mLineIn->getDevice()->getNumInputChannels() << endl;
 	console() << "\t samplerate: " << mLineIn->getDevice()->getSampleRate() << endl;
@@ -84,21 +76,6 @@ void InputTestApp::setupDefaultDevices()
 	console() << "\t block size: " << mLineOut->getDevice()->getFramesPerBlock() << endl;
 
 	LOG_V << "input == output: " << boolalpha << ( mLineIn->getDevice() == mLineOut->getDevice() ) << dec << endl;
-}
-
-void InputTestApp::setupDedicatedDevice()
-{
-	DeviceRef device = Device::findDeviceByName( "PreSonus FIREPOD (1431)" );
-	CI_ASSERT( device );
-
-	mLineIn = mContext->createLineIn( device );
-	auto output = mContext->createLineOut( device );
-	mContext->setTarget( output );
-
-	LOG_V << "shared device name: " << output->getDevice()->getName() << endl;
-	console() << "\t channels: " << output->getDevice()->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << output->getDevice()->getSampleRate() << endl;
-	console() << "\t block size: " << output->getDevice()->getFramesPerBlock() << endl;
 }
 
 void InputTestApp::setupPassThrough()
@@ -114,7 +91,7 @@ void InputTestApp::setupInProcessOut()
 
 void InputTestApp::setupInTapOut()
 {
-	mTap = mContext->makeNode( new NodeTap() );
+	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) );
 	mLineIn->connect( mTap )->connect( mContext->getTarget() );
 }
 
@@ -142,6 +119,8 @@ void InputTestApp::setupUI()
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
 	mTestSelector.mBounds = Rectf( getWindowCenter().x + 100, 0.0f, getWindowWidth(), 160.0f );
 #endif
+
+	mUnderrunFade = mOverrunFade = 0.0f;
 
 	Vec2i xrunSize( 80, 26 );
 	mUnderrunRect = Rectf( getWindowWidth() - xrunSize.x, getWindowHeight() - xrunSize.y, getWindowWidth(), getWindowHeight() );

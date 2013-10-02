@@ -15,6 +15,7 @@
 
 // TODO: finish testing on-the-fly device changes with fireface
 // TODO: check iOS 6+ interruption handlers via notification
+// TODO: add channels controls for i/o
 
 using namespace ci;
 using namespace ci::app;
@@ -74,11 +75,8 @@ void DeviceTestApp::setup()
 
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V << "LineOut params changed:" << endl; printDeviceDetails( mLineOut->getDevice() ); } );
 
-	// TODO: add this as a test control
-	//mLineIn->getFormat().setNumChannels( 1 );
-
 	mGain = mContext->makeNode( new NodeGain() );
-	mTap = mContext->makeNode( new NodeTap() );
+	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) );
 
 	mGain->setGain( 0.6f );
 	mGain->connect( mTap )->connect( mLineOut );
