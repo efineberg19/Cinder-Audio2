@@ -101,6 +101,54 @@ struct SineGen : public UGen {
 	float mPhase, mPhaseIncr;
 };
 
+struct PhaseGen : public UGen {
+	PhaseGen() : UGen(), mPhase( 0.0f ), mAmp( 1.0f ) {}
+
+	void setFreq( float freq )		{ mFreq = freq; }
+	void setAmp( float amp )		{ mAmp = amp; }
+
+	using UGen::process;
+	void process( float *channel, size_t count ) override
+	{
+		float phaseIncr = ( mFreq / (float)mSampleRate );
+		for( size_t i = 0; i < count; i++ ) {
+			float phase = fmodf( mPhase, 1.0f );
+			channel[i] = phase;
+			mPhase = phase + phaseIncr;
+		}
+	}
+
+	std::atomic<float> mFreq, mAmp;
+	float mPhase;
+};
+
+struct TriangleGen : public UGen {
+	TriangleGen() : UGen(), mPhase( 0.0f ), mAmp( 1.0f ), mUpSlope( 1.0f ), mDownSlope( 1.0f ) {}
+
+	void setFreq( float freq )		{ mFreq = freq; }
+	void setAmp( float amp )		{ mAmp = amp; }
+
+	//! a reinterpretation of pd's J05.triangle.pd example
+	void process( float *channel, size_t count ) override
+	{
+		float phaseIncr = ( mFreq / (float)mSampleRate );
+
+		for( size_t i = 0; i < count; i++ )	{
+
+			float phase = fmodf( mPhase, 1.0f );
+			mPhase = phase + phaseIncr;
+
+			float up = phase * mUpSlope;
+			float down = (-phase + 1 ) * mDownSlope;
+
+			channel[i] = std::min( up, down );
+		}
+	}
+
+	std::atomic<float> mFreq, mAmp, mUpSlope, mDownSlope;
+	float mPhase;
+};
+
 // TODO: decide on decibel convensions
 //		- these match pd but that may not be very general
 //! linear gain equal to -100db
