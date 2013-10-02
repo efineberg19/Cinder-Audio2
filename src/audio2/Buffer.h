@@ -204,15 +204,21 @@ inline void deinterleaveStereoBuffer( BufferInterleavedT<T> *interleaved, Buffer
 	}
 }
 
-
+//! Simple functor wrapping free(), suitable for unique_ptr's that allocate memory with malloc, calloc and realloc.
 template<typename T>
 struct FreeDeleter {
-	void operator()( T *x ) { free( x ); }
+	void operator()( T *x ) { std::free( x ); }
 };
 
+//! Returns an array of \a size elements of type \a T, aligned by \a alignment.
 template<typename T>
-std::unique_ptr<T, FreeDeleter<T> > makeAlignedArray( size_t size ) {
-	return std::unique_ptr<T, FreeDeleter<T> >( static_cast<float *>( calloc( size, sizeof( T ) ) ) );
+std::unique_ptr<T, FreeDeleter<T> > makeAlignedArray( size_t size, size_t alignment = 16 )
+{
+	void *ptr = std::calloc( size, sizeof( T ) );
+	ptr = std::align( 16, size, ptr, size );
+	CI_ASSERT( ptr );
+	
+	return std::unique_ptr<T, FreeDeleter<T> >( static_cast<T *>( ptr ) );
 }
 
 typedef std::unique_ptr<float, FreeDeleter<float>> AlignedArrayPtr;

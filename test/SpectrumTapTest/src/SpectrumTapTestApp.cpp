@@ -17,7 +17,7 @@
 //#define SOUND_FILE "Blank__Kytt_-_08_-_RSPN.mp3"
 #define SOUND_FILE "cash_satisfied_mind.mp3"
 
-// TODO: the goal is for all of these to be runtime configurable
+// TODO NEXT: the goal is for all of these to be runtime configurable
 #define FFT_SIZE 2048
 #define WINDOW_SIZE 1024
 #define WINDOW_TYPE WindowType::BLACKMAN
