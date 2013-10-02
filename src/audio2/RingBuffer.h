@@ -73,17 +73,16 @@ public:
 		return getAvailableRead( mWriteIndex, mReadIndex );
 	}
 
-	//! Writes \a count elements into the internal buffer from \a array.
+	//! Writes \a count elements into the internal buffer from \a array. Returns \c true if all elements were successfully written, or false otherwise.
 	//! \note only safe to call from the write thread.
-	// TODO: decide what is best to do when buffer fills;
-	// assert, fill as much as possible, or overwrite circular.
-	size_t write( const T *array, size_t count )
+	// TODO: consider renaming this to writeAll / readAll, and having generic read / write that just does as much as it can
+	bool write( const T *array, size_t count )
 	{
 		const size_t writeIndex = mWriteIndex.load( std::memory_order_relaxed );
 		const size_t readIndex = mReadIndex.load( std::memory_order_acquire );
 
 		if( count > getAvailableWrite( writeIndex, readIndex ) )
-			return 0;
+			return false;
 
 		size_t writeIndexAfter = writeIndex + count;
 
@@ -101,17 +100,18 @@ public:
 		}
 
 		mWriteIndex.store( writeIndexAfter, std::memory_order_release );
-		return count;
+		return true;
 	}
 
-	//! Reads \a count elements from the internal buffer into \a array. \note only safe to call from the read thread.
-	size_t read( T *array, size_t count )
+	//! Reads \a count elements from the internal buffer into \a array.  Returns \c true if all elements were successfully read, or false otherwise.
+	//! \note only safe to call from the read thread.
+	bool read( T *array, size_t count )
 	{
 		const size_t writeIndex = mWriteIndex.load( std::memory_order_acquire );
 		const size_t readIndex = mReadIndex.load( std::memory_order_relaxed );
 
 		if( count > getAvailableRead( writeIndex, readIndex ) )
-			return 0;
+			return false;
 
 		size_t readIndexAfter = readIndex + count;
 
@@ -131,7 +131,7 @@ public:
 		}
 
 		mReadIndex.store( readIndexAfter, std::memory_order_release );
-		return count;
+		return true;
 	}
 
 private:

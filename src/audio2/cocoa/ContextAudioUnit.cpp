@@ -263,7 +263,7 @@ void NodeLineInAudioUnit::initialize()
 		if( mDevice->getSampleRate() != sampleRate || mDevice->getFramesPerBlock() != framesPerBlock )
 			mDevice->updateFormat( Device::Format().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
 
-		// set params from Context, since mDevice may be updating async
+		// TODO: add a padding factor (2x) to the ringbuffer, which should reduce overruns
 		mRingBuffer = unique_ptr<RingBuffer>( new RingBuffer( framesPerBlock * getNumChannels() ) );
 		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
 
@@ -352,17 +352,9 @@ void NodeLineInAudioUnit::process( Buffer *buffer )
 		copyFromBufferList( buffer, mBufferList.get() );
 	}
 	else {
-		// copy from ringbuffer
-		size_t numFrames = buffer->getNumFrames();
-		for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
-
-			// TODO NEXT: multi-channeled buffering needs to be handled better. this'd work fine for mono, but not stereo.
-			if( mRingBuffer->getAvailableRead() < numFrames ) {
-				mLastOverrun = getContext()->getNumProcessedFrames();
-				return;
-			}
-			mRingBuffer->read( buffer->getChannel( ch ), numFrames );
-		}
+		// copy from ringbuffer. If not possible, store the timestamp of the underrun
+		if( ! mRingBuffer->read( buffer->getData(), buffer->getSize() ) )
+		   mLastUnderrun = getContext()->getNumProcessedFrames();
 	}
 }
 
@@ -386,11 +378,16 @@ OSStatus NodeLineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderAction
 	if( status != noErr )
 		return status;
 
-	for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {
-		float *channel = static_cast<float *>( nodeBufferList->mBuffers[ch].mData );
-		lineIn->mRingBuffer->write( channel, numFrames );
+	if( lineIn->mRingBuffer->getAvailableWrite() >= nodeBufferList->mNumberBuffers * numFrames ) {
+		for( size_t ch = 0; ch < nodeBufferList->mNumberBuffers; ch++ ) {
+			float *channel = static_cast<float *>( nodeBufferList->mBuffers[ch].mData );
+			lineIn->mRingBuffer->write( channel, numFrames );
+		}
 	}
-	return status;
+	else
+		lineIn->mLastOverrun = renderData->context->getNumProcessedFrames();
+
+	return noErr;
 }
 
 // ----------------------------------------------------------------------------------------------------
