@@ -25,9 +25,9 @@
 
 #include "audio2/Context.h"
 
-namespace cinder { namespace audio2 {
+#include <memory>
 
-typedef std::shared_ptr<class Converter> ConverterRef;
+namespace cinder { namespace audio2 {
 
 class Converter {
 public:
@@ -45,15 +45,15 @@ public:
 		size_t mSampleRate, mChannels, mFramesPerBlock;
 	};
 
-	// TODO: consider returning unique_ptr, converters are rarely shared
-	static ConverterRef create( const Format &sourceFormat, const Format &destFormat );
+	static std::unique_ptr<Converter> create( const Format &sourceFormat, const Format &destFormat );
 
-	Converter( const Format &sourceFormat, const Format &destFormat );
 	virtual ~Converter() {}
 
 	virtual void convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
 protected:
+	Converter( const Format &sourceFormat, const Format &destFormat );
+
 	Format mSourceFormat, mDestFormat;
 };
 

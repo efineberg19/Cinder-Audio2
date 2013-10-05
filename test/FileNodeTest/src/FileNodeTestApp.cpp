@@ -244,7 +244,7 @@ void FileNodeTestApp::testConverter()
 	audio2::Buffer sourceBuffer( sourceFormat.getFramesPerBlock(), sourceFormat.getChannels() );
 	audio2::Buffer destBuffer( destFramesPerBlock, sourceFormat.getChannels() );
 
-	ConverterRef converter = Converter::create( sourceFormat, destFormat );
+	auto converter = Converter::create( sourceFormat, destFormat );
 	size_t numFramesConverted = 0;
 
 	while( numFramesConverted < audioBuffer->getNumFrames() ) {

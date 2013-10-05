@@ -33,12 +33,12 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
-ConverterRef Converter::create( const Format &sourceFormat, const Format &destFormat )
+unique_ptr<Converter> Converter::create( const Format &sourceFormat, const Format &destFormat )
 {
 #if defined( CINDER_COCOA )
-	return make_shared<cocoa::ConverterImplCoreAudio>( sourceFormat, destFormat );
+	return unique_ptr<Converter>( new cocoa::ConverterImplCoreAudio( sourceFormat, destFormat ) );
 #endif
-	return ConverterRef();
+	return unique_ptr<Converter>();
 }
 
 Converter::Converter( const Format &sourceFormat, const Format &destFormat )
