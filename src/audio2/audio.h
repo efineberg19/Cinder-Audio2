@@ -30,29 +30,6 @@
 
 namespace cinder { namespace audio2 {
 
-class Converter {
-  public:
-	struct Format {
-		Format() : mSampleRate( 0 ), mChannels( 0 )	{}
-
-		Format& sampleRate( size_t sr )	{ mSampleRate = sr; return *this; }
-		Format& channels( size_t ch )	{ mChannels = ch; return *this; }
-
-		size_t getSampleRate() const	{ return mSampleRate; }
-		size_t getChannels() const		{ return mChannels; }
-	  private:
-		size_t mSampleRate, mChannels;
-	};
-
-	Converter( const Format &sourceFormat, const Format &destFormat ) : mSourceFormat( sourceFormat ), mDestFormat( destFormat ) {}
-	virtual ~Converter() {}
-
-	virtual void convert( Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
-
-protected:
-	Format mSourceFormat, mDestFormat;
-};
-
 void printGraph( ContextRef graph );
 void printDevices();
 

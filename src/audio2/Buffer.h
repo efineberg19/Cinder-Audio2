@@ -73,7 +73,7 @@ class BufferBaseT {
 	}
 
 	// FIXME: this breaks when sizes don't match
-	//	- should also use memcpy or std::copy when possible
+	//	- also use std::copy
 	template <typename OtherT>
 	void copy( const BufferBaseT<OtherT> &other )
 	{

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "audio2/audio.h"
+#include "audio2/Converter.h"
 
 #include <memory>
 #include <vector>
@@ -33,12 +34,12 @@ struct AudioStreamBasicDescription;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
-class ConverterCoreAudio : public Converter {
+class ConverterImplCoreAudio : public Converter {
 public:
-	ConverterCoreAudio( const Format &sourceFormat, const Format &destFormat );
-	virtual ~ConverterCoreAudio();
+	ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat );
+	virtual ~ConverterImplCoreAudio();
 
-	virtual void convert( Buffer *sourceBuffer, Buffer *destBuffer ) override;
+	virtual void convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
 private:
 	::AudioConverterRef mAudioConverter;

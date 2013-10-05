@@ -59,19 +59,21 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // MARK: - SourceFileCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileCoreAudio::SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t numChannels, size_t sampleRate )
-: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 )
+SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
+	: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 )
 {
 //	printExtensions();
 
-	::CFURLRef audioFileUrl = ci::cocoa::createCfUrl( Url( dataSource->getFilePath().string() ) );
+	CI_ASSERT_MSG( dataSource->isFilePath(), "at present only data source type supported is file" ); // TODO: decide whether to just load url here.
+
+	::CFURLRef sourceUrl = ci::cocoa::createCfUrl( Url( dataSource->getFilePath().string() ) );
 
 	::ExtAudioFileRef audioFile;
-	OSStatus status = ::ExtAudioFileOpenURL( audioFileUrl, &audioFile );
+	OSStatus status = ::ExtAudioFileOpenURL( sourceUrl, &audioFile );
 	if( status != noErr )
-		throw AudioFileExc( string( "could not open audio file: " ) + dataSource->getFilePath().string() );
+		throw AudioFileExc( string( "could not open audio source file: " ) + dataSource->getFilePath().string() );
 
-	::CFRelease( audioFileUrl );
+	::CFRelease( sourceUrl );
 	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
 
 	::AudioStreamBasicDescription fileFormat;
@@ -124,19 +126,18 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 	
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
-	size_t currReadPos = 0;
-	while( currReadPos < mNumFrames ) {
-		UInt32 frameCount = (UInt32)std::min( mNumFrames - currReadPos, mNumFramesPerRead );
+	while( mReadPos < mNumFrames ) {
+		UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, mNumFramesPerRead );
 
-        for( int i = 0; i < mNumChannels; i++ ) {
-            mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
-            mBufferList->mBuffers[i].mData = &result->getChannel( i )[currReadPos];
+        for( int ch = 0; ch < mNumChannels; ch++ ) {
+            mBufferList->mBuffers[ch].mDataByteSize = frameCount * sizeof( float );
+            mBufferList->mBuffers[ch].mData = &result->getChannel( ch )[mReadPos];
         }
 
 		OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 		CI_ASSERT( status == noErr );
 
-        currReadPos += frameCount;
+        mReadPos += frameCount;
 	}
 	return result;
 }
@@ -173,5 +174,56 @@ void SourceFileCoreAudio::updateOutputFormat()
 	// numFrames will be updated at read time
 	mBufferList = audio2::cocoa::createNonInterleavedBufferListShallow( mNumChannels );
 }
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - TargetFileCoreAudio
+// ----------------------------------------------------------------------------------------------------
+
+TargetFileCoreAudio::TargetFileCoreAudio( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
+	: TargetFile( dataTarget, sampleRate, numChannels )
+{
+	::CFURLRef targetUrl = ci::cocoa::createCfUrl( Url( dataTarget->getFilePath().string() ) );
+	::AudioFileTypeID fileType = getFileTypeIdFromExtension( extension );
+	::AudioStreamBasicDescription asbd = createFloatAsbd( mNumChannels, mSampleRate ); // TODO: add option for sample format
+
+	::ExtAudioFileRef audioFile;
+	OSStatus status = ::ExtAudioFileCreateWithURL( targetUrl, fileType, &asbd, nullptr, kAudioFileFlags_EraseFile, &audioFile );
+	if( status != noErr )
+		throw AudioFileExc( string( "could not open audio target file: " ) + dataTarget->getFilePath().string() );
+
+	::CFRelease( targetUrl );
+	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
+	mBufferList = audio2::cocoa::createNonInterleavedBufferListShallow( mNumChannels );
+}
+
+void TargetFileCoreAudio::write( const Buffer *buffer )
+{
+	UInt32 numFrames = (UInt32)buffer->getNumFrames();
+	for( int ch = 0; ch < mNumChannels; ch++ ) {
+		mBufferList->mBuffers[ch].mDataByteSize = numFrames * sizeof( float );
+		mBufferList->mBuffers[ch].mData = (void *)buffer->getChannel( ch );
+	}
+
+	OSStatus status = ::ExtAudioFileWrite( mExtAudioFile.get(), numFrames, mBufferList.get() );
+	CI_ASSERT( status == noErr );
+}
+
+// TODO: this doesn't map so well. Better to provide an enum of all known formats?
+::AudioFileTypeID TargetFileCoreAudio::getFileTypeIdFromExtension( const std::string &ext )
+{
+	if( ext == "aiff" )
+		return kAudioFileAIFFType;
+	else if( ext == "wav" )
+		return kAudioFileWAVEType;
+	else if( ext == "mp3" )
+		return kAudioFileMP3Type;
+	else if( ext == "m4a" )
+		return kAudioFileM4AType;
+	else if( ext == "aac" )
+		return kAudioFileAAC_ADTSType;
+
+	throw AudioFileExc( string( "unexpected extension: " ) + ext );
+}
+
 
 } } } // namespace cinder::audio2::cocoa

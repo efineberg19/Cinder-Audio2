@@ -33,12 +33,15 @@ namespace cinder { namespace audio2 { namespace cocoa {
 
 class SourceFileCoreAudio : public SourceFile {
   public:
-	SourceFileCoreAudio( ci::DataSourceRef dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
+	SourceFileCoreAudio( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate );
+	virtual ~SourceFileCoreAudio() {}
 
 	size_t		read( Buffer *buffer ) override;
 	BufferRef	loadBuffer() override;
 	void		seek( size_t readPosition ) override;
 
+	// TODO: why have these? if user needs to new samplerate / #channels, why not create new SourceFileCoreAudio?
+	// - I think it may have been due to the time at which default samplerate is known, which is probably no longer an issue
 	void	setSampleRate( size_t sampleRate ) override;
 	void	setNumChannels( size_t channels ) override;
 
@@ -48,6 +51,20 @@ class SourceFileCoreAudio : public SourceFile {
 	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
 	AudioBufferListShallowPtr mBufferList;
 	size_t mReadPos;
+};
+
+class TargetFileCoreAudio : public TargetFile {
+  public:
+	TargetFileCoreAudio( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension );
+	virtual ~TargetFileCoreAudio() {}
+
+	void write( const Buffer *buffer ) override;
+
+  private:
+	static ::AudioFileTypeID getFileTypeIdFromExtension( const std::string &ext );
+
+	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
+	AudioBufferListShallowPtr mBufferList;
 };
 
 } } } // namespace cinder::audio2::cocoa

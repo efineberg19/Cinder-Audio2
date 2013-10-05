@@ -137,6 +137,8 @@
 		1180FD8917AB7CB70070AC30 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
 		1180FD8A17AB7CB70070AC30 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderAssert.cpp; sourceTree = "<group>"; };
+		11AB735A17FD277700B29C5F /* Converter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Converter.cpp; sourceTree = "<group>"; };
+		11AB735B17FD277700B29C5F /* Converter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Converter.h; sourceTree = "<group>"; };
 		11B041AE179B89F80034BEE2 /* Plot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Plot.cpp; sourceTree = "<group>"; };
 		11B041AF179B89F80034BEE2 /* Plot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Plot.h; sourceTree = "<group>"; };
 		11B041B2179B8A0C0034BEE2 /* CinderAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderAssert.h; sourceTree = "<group>"; };
@@ -226,6 +228,8 @@
 				11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */,
 				1104F47417754A6E003EAA2B /* Context.cpp */,
 				1104F47517754A6E003EAA2B /* Context.h */,
+				11AB735A17FD277700B29C5F /* Converter.cpp */,
+				11AB735B17FD277700B29C5F /* Converter.h */,
 				1104F47617754A6E003EAA2B /* Debug.h */,
 				1104F47717754A6E003EAA2B /* Device.cpp */,
 				1104F47817754A6E003EAA2B /* Device.h */,
@@ -349,6 +353,7 @@
 				11B04214179B90450034BEE2 /* Plot.h in Headers */,
 				11B04215179B90450034BEE2 /* FileCoreAudio.h in Headers */,
 				11B04216179B90450034BEE2 /* Gui.h in Headers */,
+				11AB735F17FD277700B29C5F /* Converter.h in Headers */,
 				11B04217179B90450034BEE2 /* Atomic.h in Headers */,
 				11B04218179B90450034BEE2 /* Device.h in Headers */,
 			);
@@ -434,6 +439,7 @@
 				11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */,
 				11446DB617E64CCD00457AC6 /* NodeTap.cpp in Sources */,
 				1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */,
+				11AB735C17FD277700B29C5F /* Converter.cpp in Sources */,
 				11B0421E179B92D10034BEE2 /* DeviceManagerCoreAudio.cpp in Sources */,
 				1104F4AF17754A6E003EAA2B /* Fft.cpp in Sources */,
 				11446DBA17E64CCD00457AC6 /* NodeTarget.cpp in Sources */,
@@ -458,6 +464,7 @@
 				11B041FB179B90450034BEE2 /* ContextAudioUnit.cpp in Sources */,
 				11446DB717E64CCD00457AC6 /* NodeTap.cpp in Sources */,
 				1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */,
+				11AB735D17FD277700B29C5F /* Converter.cpp in Sources */,
 				11B041FC179B90450034BEE2 /* Plot.cpp in Sources */,
 				11B041FD179B90450034BEE2 /* Fft.cpp in Sources */,
 				11446DBB17E64CCD00457AC6 /* NodeTarget.cpp in Sources */,

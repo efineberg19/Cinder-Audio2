@@ -26,6 +26,9 @@
 #include "audio2/Buffer.h"
 
 #include "cinder/DataSource.h"
+#include "cinder/DataTarget.h"
+
+// TODO: switch channels and samplerate order for consistency with nodess
 
 namespace cinder { namespace audio2 {
 	
@@ -34,7 +37,8 @@ typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
 class SourceFile {
   public:
-	static SourceFileRef create( const ci::DataSourceRef &dataSource, size_t numChannels, size_t sampleRate ); 
+	static SourceFileRef create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate );
+	virtual ~SourceFile() {}
 
 	virtual size_t	getSampleRate() const				{ return mSampleRate; }
 	virtual void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
@@ -58,7 +62,7 @@ class SourceFile {
 
 
   protected:
-	SourceFile( const ci::DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
+	SourceFile( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 	: mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mNumChannels( numChannels ), mSampleRate( sampleRate ), mNumFramesPerRead( 4096 )
 	{}
 
@@ -66,7 +70,19 @@ class SourceFile {
 };
 
 class TargetFile {
+  public:
+	static TargetFileRef create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
+	static TargetFileRef create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
+	virtual ~TargetFile() {}
 
+	virtual void write( const Buffer *buffer ) = 0;
+
+  protected:
+	TargetFile( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels )
+	: mSampleRate( sampleRate ), mNumChannels( numChannels )
+	{}
+
+	size_t mSampleRate, mNumChannels;
 };
 
 //BufferRef loadAudio( SourceFileRef sourcefile );

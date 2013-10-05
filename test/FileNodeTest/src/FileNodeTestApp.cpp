@@ -3,6 +3,7 @@
 #include "Resources.h"
 
 #include "audio2/audio.h"
+#include "audio2/Converter.h"
 #include "audio2/NodeSource.h"
 #include "audio2/NodeTap.h"
 #include "Plot.h"
@@ -23,7 +24,8 @@ class FileNodeTestApp : public AppNative {
   public:
 	void prepareSettings( Settings *settings );
 	void setup();
-	void mouseDown( MouseEvent event );	
+	void mouseDown( MouseEvent event );
+	void keyDown( KeyEvent event );
 	void update();
 	void draw();
 
@@ -35,6 +37,9 @@ class FileNodeTestApp : public AppNative {
 	void processTap( Vec2i pos );
 
 	void seek( size_t xPos );
+
+	void testConverter();
+	void testWrite();
 
 	ContextRef mContext;
 	NodeSamplePlayerRef mSamplePlayer;
@@ -55,10 +60,10 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 	
-	//DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 	//DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 	//DataSourceRef dataSource = loadResource( RES_TONE440L220R_FLOAT_WAV );
-	DataSourceRef dataSource = loadResource( RES_TONE440_MP3);
+	//DataSourceRef dataSource = loadResource( RES_TONE440_MP3);
 	//DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
@@ -77,7 +82,7 @@ void FileNodeTestApp::setup()
 
 void FileNodeTestApp::setupBufferPlayer()
 {
-	auto audioBuffer = mSourceFile->loadBuffer();
+	BufferRef audioBuffer = mSourceFile->loadBuffer();
 
 	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
 
@@ -173,6 +178,15 @@ void FileNodeTestApp::mouseDown( MouseEvent event )
 //    console() << endl;
 }
 
+void FileNodeTestApp::keyDown( KeyEvent event )
+{
+	if( event.getCode() == KeyEvent::KEY_SPACE )
+		testConverter();
+	if( event.getCode() == KeyEvent::KEY_w )
+		testWrite();
+}
+
+
 void FileNodeTestApp::update()
 {
 }
@@ -211,6 +225,52 @@ void FileNodeTestApp::draw()
 
 
 	drawWidgets( mWidgets );
+}
+
+void FileNodeTestApp::testConverter()
+{
+	BufferRef audioBuffer = mSourceFile->loadBuffer();
+
+	auto sourceFormat = Converter::Format().sampleRate( mSourceFile->getSampleRate() ).channels( mSourceFile->getNumChannels() ).framesPerBlock( 1024 );
+	auto destFormat = Converter::Format().sampleRate( 48000 ).channels( mSourceFile->getNumChannels() );
+
+	size_t destFramesPerBlock = ceil( sourceFormat.getFramesPerBlock() * sourceFormat.getSampleRate() / destFormat.getSampleRate() );
+
+	LOG_V << "converting from:" << endl;
+	console() << "\tsamplerate: " << sourceFormat.getSampleRate() << ", channels: " << sourceFormat.getChannels() << ", frames per block: " << sourceFormat.getFramesPerBlock() << endl;
+	LOG_V << "to:" << endl;
+	console() << "\tsamplerate: " << destFormat.getSampleRate() << ", channels: " << destFormat.getChannels() << ", frames per destFormat: " << destFramesPerBlock << endl;
+
+	audio2::Buffer sourceBuffer( sourceFormat.getFramesPerBlock(), sourceFormat.getChannels() );
+	audio2::Buffer destBuffer( destFramesPerBlock, sourceFormat.getChannels() );
+
+	ConverterRef converter = Converter::create( sourceFormat, destFormat );
+	size_t numFramesConverted = 0;
+
+	while( numFramesConverted < audioBuffer->getNumFrames() ) {
+		for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
+			copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceFormat.getFramesPerBlock(), sourceBuffer.getChannel( ch ) );
+
+		converter->convert( &sourceBuffer, &destBuffer );
+		numFramesConverted += sourceFormat.getFramesPerBlock();
+	}
+}
+
+void FileNodeTestApp::testWrite()
+{
+	BufferRef audioBuffer = mSourceFile->loadBuffer();
+
+	TargetFileRef target = TargetFile::create( "out.wav", mSourceFile->getSampleRate(), mSourceFile->getNumChannels() );
+
+	LOG_V << "writing " << audioBuffer->getNumFrames() << " frames at samplerate: " << mSourceFile->getSampleRate() << ", num channels: " << mSourceFile->getNumChannels() << endl;
+	target->write( audioBuffer.get() );
+	LOG_V << "...complete." << endl;
+
+//	size_t writeCount = 0;
+//	while( numFramesConverted < audioBuffer->getNumFrames() ) {
+//		for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
+//			copy( audioBuffer->getChannel( ch ) + writeCount, audioBuffer->getChannel( ch ) + writeCount + sourceFormat.getFramesPerBlock(), sourceBuffer.getChannel( ch ) );
+//	}
 }
 
 CINDER_APP_NATIVE( FileNodeTestApp, RendererGl )

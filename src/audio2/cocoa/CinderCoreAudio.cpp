@@ -30,10 +30,10 @@ using namespace ci;
 namespace cinder { namespace audio2 { namespace cocoa {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - ConverterCoreAudio
+// MARK: - ConverterImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-ConverterCoreAudio::ConverterCoreAudio( const Format &sourceFormat, const Format &destFormat )
+ConverterImplCoreAudio::ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat )
 : Converter( sourceFormat, destFormat ), mAudioConverter( nullptr )
 {
 	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( sourceFormat.getChannels(), sourceFormat.getSampleRate() );
@@ -51,15 +51,15 @@ ConverterCoreAudio::ConverterCoreAudio( const Format &sourceFormat, const Format
 	LOG_V << "max packet size: " << maxPacketSize << endl;
 }
 
-ConverterCoreAudio::~ConverterCoreAudio()
+ConverterImplCoreAudio::~ConverterImplCoreAudio()
 {
 	if( mAudioConverter ) {
-		OSStatus status = AudioConverterDispose( mAudioConverter );
+		OSStatus status = ::AudioConverterDispose( mAudioConverter );
 		CI_ASSERT( status == noErr );
 	}
 }
 
-void ConverterCoreAudio::convert( Buffer *sourceBuffer, Buffer *destBuffer )
+void ConverterImplCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	if( mSourceFormat.getSampleRate() == mDestFormat.getSampleRate() ) {
 		UInt32 inputDataSize = (UInt32)sourceBuffer->getSize() * sizeof( Buffer::SampleType );

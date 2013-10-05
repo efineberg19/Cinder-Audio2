@@ -24,6 +24,7 @@
 #include "audio2/File.h"
 
 #include "cinder/Cinder.h"
+#include "cinder/Utilities.h"
 
 #if defined( CINDER_COCOA )
 #include "audio2/cocoa/FileCoreAudio.h"
@@ -33,9 +34,9 @@
 
 namespace cinder { namespace audio2 {
 
-// TODO: this should be replaced with a genericized registrar derived from the ImageIo stuff.
+// TODO: these should be replaced with a genericized registrar derived from the ImageIo stuff.
 
-SourceFileRef SourceFile::create( const ci::DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
+SourceFileRef SourceFile::create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 {
 #if defined( CINDER_COCOA )
 	return SourceFileRef( new cocoa::SourceFileCoreAudio( dataSource, numChannels, sampleRate ) );
@@ -43,6 +44,22 @@ SourceFileRef SourceFile::create( const ci::DataSourceRef &dataSource, size_t nu
 	return SourceFileRef( new msw::SourceFileMediaFoundation( dataSource, numChannels, sampleRate ) );
 #endif
 }
-	
+
+TargetFileRef TargetFile::create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
+{
+	std::string ext = ( ! extension.empty() ? extension : getPathExtension( dataTarget->getFilePathHint() ) );
+
+#if defined( CINDER_COCOA )
+	return TargetFileRef( new cocoa::TargetFileCoreAudio( dataTarget, sampleRate, numChannels, ext ) );
+#elif defined( CINDER_MSW )
+	return TargetFileRef(); // TODO
+//	return SourceFileRef( new msw::TargetFileMediaFoundation( dataTarget, numChannels, sampleRate, ext ) );
+#endif
+}
+
+TargetFileRef TargetFile::create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension )
+{
+	return create( (DataTargetRef)writeFile( path ), sampleRate, numChannels, extension );
+}
 
 } } // namespace cinder::audio2
