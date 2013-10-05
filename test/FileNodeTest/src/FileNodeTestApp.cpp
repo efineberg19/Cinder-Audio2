@@ -231,18 +231,20 @@ void FileNodeTestApp::testConverter()
 {
 	BufferRef audioBuffer = mSourceFile->loadBuffer();
 
-	auto sourceFormat = Converter::Format().sampleRate( mSourceFile->getSampleRate() ).channels( mSourceFile->getNumChannels() ).framesPerBlock( 1024 );
+	auto sourceFormat = Converter::Format().sampleRate( mSourceFile->getSampleRate() ).channels( mSourceFile->getNumChannels() ).framesPerBlock( 512 );
 	auto destFormat = Converter::Format().sampleRate( 48000 ).channels( mSourceFile->getNumChannels() );
 
-	size_t destFramesPerBlock = ceil( sourceFormat.getFramesPerBlock() * sourceFormat.getSampleRate() / destFormat.getSampleRate() );
+	size_t destFramesPerBlock = ceil( (float)sourceFormat.getFramesPerBlock() * (float)destFormat.getSampleRate() / (float)sourceFormat.getSampleRate() );
 
 	LOG_V << "converting from:" << endl;
 	console() << "\tsamplerate: " << sourceFormat.getSampleRate() << ", channels: " << sourceFormat.getChannels() << ", frames per block: " << sourceFormat.getFramesPerBlock() << endl;
 	LOG_V << "to:" << endl;
-	console() << "\tsamplerate: " << destFormat.getSampleRate() << ", channels: " << destFormat.getChannels() << ", frames per destFormat: " << destFramesPerBlock << endl;
+	console() << "\tsamplerate: " << destFormat.getSampleRate() << ", channels: " << destFormat.getChannels() << ", frames per block: " << destFramesPerBlock << endl;
 
 	audio2::Buffer sourceBuffer( sourceFormat.getFramesPerBlock(), sourceFormat.getChannels() );
 	audio2::Buffer destBuffer( destFramesPerBlock, sourceFormat.getChannels() );
+
+	TargetFileRef target = TargetFile::create( "resampled.wav", destFormat.getSampleRate(), destFormat.getChannels() );
 
 	auto converter = Converter::create( sourceFormat, destFormat );
 	size_t numFramesConverted = 0;
@@ -253,6 +255,9 @@ void FileNodeTestApp::testConverter()
 
 		converter->convert( &sourceBuffer, &destBuffer );
 		numFramesConverted += sourceFormat.getFramesPerBlock();
+
+		// FIXME NEXT: close, but resampled file is skipping.
+		target->write( &destBuffer );
 	}
 }
 

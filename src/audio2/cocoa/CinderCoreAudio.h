@@ -34,17 +34,6 @@ struct AudioStreamBasicDescription;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
-class ConverterImplCoreAudio : public Converter {
-public:
-	ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat );
-	virtual ~ConverterImplCoreAudio();
-
-	virtual void convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
-
-private:
-	::AudioConverterRef mAudioConverter;
-};
-
 //! convience function for pretty printing \a asbd
 void printASBD( const ::AudioStreamBasicDescription &asbd );
 
@@ -92,6 +81,28 @@ inline void zeroBufferList( const ::AudioBufferList *bufferList )
 	for( UInt32 i = 0; i < bufferList->mNumberBuffers; i++ )
 		memset( bufferList->mBuffers[i].mData, 0, bufferList->mBuffers[i].mDataByteSize );
 }
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - ConverterImplCoreAudio
+// ----------------------------------------------------------------------------------------------------
+
+class ConverterImplCoreAudio : public Converter {
+public:
+	ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat );
+	virtual ~ConverterImplCoreAudio();
+
+	virtual void convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
+
+private:
+	void convertImplSimple( const Buffer *sourceBuffer, Buffer *destBuffer );
+	void convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer );
+
+	static OSStatus converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData);
+
+	const Buffer *mSourceBuffer;
+	AudioBufferListShallowPtr mOutputBufferList;
+	::AudioConverterRef mAudioConverter;
+};
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Audio Unit Utils

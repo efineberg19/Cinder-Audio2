@@ -36,12 +36,11 @@ namespace cinder { namespace audio2 { namespace cocoa {
 ConverterImplCoreAudio::ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat )
 : Converter( sourceFormat, destFormat ), mAudioConverter( nullptr )
 {
-	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( sourceFormat.getChannels(), sourceFormat.getSampleRate() );
-	::AudioStreamBasicDescription destAsbd = createFloatAsbd( destFormat.getChannels(), destFormat.getSampleRate() );
+	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceFormat.getChannels(), mSourceFormat.getSampleRate() );
+	::AudioStreamBasicDescription destAsbd = createFloatAsbd( mDestFormat.getChannels(), mDestFormat.getSampleRate() );
 
 	OSStatus status = ::AudioConverterNew( &sourceAsbd, &destAsbd, &mAudioConverter );
 	CI_ASSERT( status == noErr );
-
 
 	UInt32 maxPacketSize;
 	UInt32 size = sizeof( maxPacketSize );
@@ -49,6 +48,8 @@ ConverterImplCoreAudio::ConverterImplCoreAudio( const Format &sourceFormat, cons
 	CI_ASSERT( status == noErr );
 
 	LOG_V << "max packet size: " << maxPacketSize << endl;
+
+	mOutputBufferList = createNonInterleavedBufferListShallow( mDestFormat.getChannels() );
 }
 
 ConverterImplCoreAudio::~ConverterImplCoreAudio()
@@ -61,16 +62,52 @@ ConverterImplCoreAudio::~ConverterImplCoreAudio()
 
 void ConverterImplCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	if( mSourceFormat.getSampleRate() == mDestFormat.getSampleRate() ) {
-		UInt32 inputDataSize = (UInt32)sourceBuffer->getSize() * sizeof( Buffer::SampleType );
-		UInt32 outputDataSize = (UInt32)destBuffer->getSize() * sizeof( Buffer::SampleType );
-		OSStatus status = ::AudioConverterConvertBuffer( mAudioConverter, inputDataSize, sourceBuffer->getData(), &outputDataSize, destBuffer->getData() );
-		CI_ASSERT( status == noErr );
-	} else {
-		CI_ASSERT( 0 && "not implemented" ); // TODO: samplerate / VBR conversion
-//		OSStatus status = ::AudioConverterFillComplexBuffer( mAudioConverter, converterCallback, &converterInfo, &ioOutputDataPackets, &bufferList, converterInfo.inputFilePacketDescriptions );
-//		CI_ASSERT( status == noErr );
+	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceFormat.getChannels() && destBuffer->getNumChannels() == mDestFormat.getChannels() );
+
+	if( mSourceFormat.getSampleRate() == mDestFormat.getSampleRate() )
+		convertImplSimple( sourceBuffer, destBuffer );
+	else
+		convertImplComplex( sourceBuffer, destBuffer );
+}
+
+void ConverterImplCoreAudio::convertImplSimple( const Buffer *sourceBuffer, Buffer *destBuffer )
+{
+	UInt32 inputDataSize = (UInt32)sourceBuffer->getSize() * sizeof( Buffer::SampleType );
+	UInt32 outputDataSize = (UInt32)destBuffer->getSize() * sizeof( Buffer::SampleType );
+
+	OSStatus status = ::AudioConverterConvertBuffer( mAudioConverter, inputDataSize, sourceBuffer->getData(), &outputDataSize, destBuffer->getData() );
+	CI_ASSERT( status == noErr );
+}
+
+void ConverterImplCoreAudio::convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer )
+{
+	mSourceBuffer = sourceBuffer;
+
+	for( int ch = 0; ch < mDestFormat.getChannels(); ch++ ) {
+		mOutputBufferList->mBuffers[ch].mDataByteSize = (UInt32)destBuffer->getSize() * sizeof( float );
+		mOutputBufferList->mBuffers[ch].mData = (void *)destBuffer->getChannel( ch );
 	}
+
+	UInt32 outputDataSize = (UInt32)destBuffer->getNumFrames();
+	OSStatus status = ::AudioConverterFillComplexBuffer( mAudioConverter, ConverterImplCoreAudio::converterCallback, this, &outputDataSize, mOutputBufferList.get(), NULL );
+	CI_ASSERT( status == noErr );
+
+}
+
+OSStatus ConverterImplCoreAudio::converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData )
+{
+	ConverterImplCoreAudio *converter = (ConverterImplCoreAudio *)inUserData;
+	const Buffer *sourceBuffer = converter->mSourceBuffer;
+
+	CI_ASSERT( ! outDataPacketDescription );
+	LOG_V << "requested input packets: " << *ioNumberDataPackets << endl;
+
+	for( int ch = 0; ch < ioData->mNumberBuffers; ch++ ) {
+		ioData->mBuffers[ch].mDataByteSize = *ioNumberDataPackets * sizeof( float );
+		ioData->mBuffers[ch].mData = (void *)sourceBuffer->getChannel( ch );
+	}
+
+	return noErr;
 }
 
 // ----------------------------------------------------------------------------------------------------

@@ -172,7 +172,7 @@ void SourceFileCoreAudio::updateOutputFormat()
 	CI_ASSERT( status == noErr );
 
 	// numFrames will be updated at read time
-	mBufferList = audio2::cocoa::createNonInterleavedBufferListShallow( mNumChannels );
+	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ TargetFileCoreAudio::TargetFileCoreAudio( const DataTargetRef &dataTarget, size_
 
 	::CFRelease( targetUrl );
 	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
-	mBufferList = audio2::cocoa::createNonInterleavedBufferListShallow( mNumChannels );
+	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
 void TargetFileCoreAudio::write( const Buffer *buffer )
