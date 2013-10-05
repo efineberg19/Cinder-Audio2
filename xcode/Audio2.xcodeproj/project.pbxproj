@@ -31,6 +31,8 @@
 		1104F4B417754A6E003EAA2B /* NodeSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F48117754A6E003EAA2B /* NodeSource.h */; };
 		1104F4C417754A6E003EAA2B /* RingBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49217754A6E003EAA2B /* RingBuffer.h */; };
 		1104F4C717754A6E003EAA2B /* Gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49517754A6E003EAA2B /* Gui.h */; };
+		113E630D17FFBDF4007FFCF7 /* Converter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11AB735A17FD277700B29C5F /* Converter.cpp */; };
+		113E630E17FFBDF5007FFCF7 /* Converter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11AB735A17FD277700B29C5F /* Converter.cpp */; };
 		11446DB417E64CCD00457AC6 /* NodeEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DAF17E64CCD00457AC6 /* NodeEffect.h */; };
 		11446DB517E64CCD00457AC6 /* NodeEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DAF17E64CCD00457AC6 /* NodeEffect.h */; };
 		11446DB617E64CCD00457AC6 /* NodeTap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11446DB017E64CCD00457AC6 /* NodeTap.cpp */; };
@@ -353,7 +355,6 @@
 				11B04214179B90450034BEE2 /* Plot.h in Headers */,
 				11B04215179B90450034BEE2 /* FileCoreAudio.h in Headers */,
 				11B04216179B90450034BEE2 /* Gui.h in Headers */,
-				11AB735F17FD277700B29C5F /* Converter.h in Headers */,
 				11B04217179B90450034BEE2 /* Atomic.h in Headers */,
 				11B04218179B90450034BEE2 /* Device.h in Headers */,
 			);
@@ -432,6 +433,7 @@
 				11C58DE9177943DA00DF99F8 /* CinderCoreAudio.cpp in Sources */,
 				1104F4AC17754A6E003EAA2B /* Dsp.cpp in Sources */,
 				11A669EE17E9623B003DF9B1 /* CinderAssert.cpp in Sources */,
+				113E630E17FFBDF5007FFCF7 /* Converter.cpp in Sources */,
 				11D6946017D0475000B0D2BB /* fftsg.cpp in Sources */,
 				1104F4AA17754A6E003EAA2B /* Device.cpp in Sources */,
 				1104F4A717754A6E003EAA2B /* Context.cpp in Sources */,
@@ -439,7 +441,6 @@
 				11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */,
 				11446DB617E64CCD00457AC6 /* NodeTap.cpp in Sources */,
 				1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */,
-				11AB735C17FD277700B29C5F /* Converter.cpp in Sources */,
 				11B0421E179B92D10034BEE2 /* DeviceManagerCoreAudio.cpp in Sources */,
 				1104F4AF17754A6E003EAA2B /* Fft.cpp in Sources */,
 				11446DBA17E64CCD00457AC6 /* NodeTarget.cpp in Sources */,
@@ -457,6 +458,7 @@
 				11B041F4179B90450034BEE2 /* NodeSource.cpp in Sources */,
 				11B041F6179B90450034BEE2 /* CinderCoreAudio.cpp in Sources */,
 				11A669EF17E9623B003DF9B1 /* CinderAssert.cpp in Sources */,
+				113E630D17FFBDF4007FFCF7 /* Converter.cpp in Sources */,
 				11D6946117D0475000B0D2BB /* fftsg.cpp in Sources */,
 				11B041F7179B90450034BEE2 /* Dsp.cpp in Sources */,
 				11B041F8179B90450034BEE2 /* Device.cpp in Sources */,
@@ -464,7 +466,6 @@
 				11B041FB179B90450034BEE2 /* ContextAudioUnit.cpp in Sources */,
 				11446DB717E64CCD00457AC6 /* NodeTap.cpp in Sources */,
 				1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */,
-				11AB735D17FD277700B29C5F /* Converter.cpp in Sources */,
 				11B041FC179B90450034BEE2 /* Plot.cpp in Sources */,
 				11B041FD179B90450034BEE2 /* Fft.cpp in Sources */,
 				11446DBB17E64CCD00457AC6 /* NodeTarget.cpp in Sources */,
