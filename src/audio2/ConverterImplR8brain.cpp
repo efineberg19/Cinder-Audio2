@@ -41,11 +41,8 @@ ConverterImplR8brain::ConverterImplR8brain( const Format &sourceFormat, const Fo
 
 ConverterImplR8brain::~ConverterImplR8brain()
 {
-
 }
 
-
-// FIXME: occasional malloc errors once we go out of scope.
 std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == destBuffer->getNumChannels() ); // TODO: channel conversion
@@ -59,7 +56,6 @@ std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuf
 	for( size_t ch = 0; ch < destBuffer->getNumChannels(); ch++ ) {
 		double *out = nullptr;
 		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
-		cout << outCount << ", ";
 		copy( out, out + outCount, destBuffer->getChannel( ch ) );
 	}
 

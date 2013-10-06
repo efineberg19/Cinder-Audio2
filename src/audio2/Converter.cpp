@@ -23,10 +23,12 @@
 
 #include "audio2/Converter.h"
 #include "audio2/CinderAssert.h"
+#include "audio2/ConverterImplR8brain.h"
 
 #if defined( CINDER_COCOA )
 	#include "audio2/cocoa/CinderCoreAudio.h"
 #endif
+
 
 using namespace std;
 using namespace ci;
@@ -37,8 +39,9 @@ unique_ptr<Converter> Converter::create( const Format &sourceFormat, const Forma
 {
 #if defined( CINDER_COCOA )
 	return unique_ptr<Converter>( new cocoa::ConverterImplCoreAudio( sourceFormat, destFormat ) );
+#else
+	return unique_ptr<Converter>( new ConverterImplR8brain( sourceFormat, destFormat ) );
 #endif
-	return unique_ptr<Converter>();
 }
 
 Converter::Converter( const Format &sourceFormat, const Format &destFormat )
