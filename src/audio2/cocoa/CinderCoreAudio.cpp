@@ -60,14 +60,16 @@ ConverterImplCoreAudio::~ConverterImplCoreAudio()
 	}
 }
 
-void ConverterImplCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceFormat.getChannels() && destBuffer->getNumChannels() == mDestFormat.getChannels() );
 
-	if( mSourceFormat.getSampleRate() == mDestFormat.getSampleRate() )
+	if( mSourceFormat.getSampleRate() == mDestFormat.getSampleRate() ) {
 		convertImplSimple( sourceBuffer, destBuffer );
+		return make_pair( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() );
+	}
 	else
-		convertImplComplex( sourceBuffer, destBuffer );
+		return convertImplComplex( sourceBuffer, destBuffer );
 }
 
 void ConverterImplCoreAudio::convertImplSimple( const Buffer *sourceBuffer, Buffer *destBuffer )
@@ -79,34 +81,51 @@ void ConverterImplCoreAudio::convertImplSimple( const Buffer *sourceBuffer, Buff
 	CI_ASSERT( status == noErr );
 }
 
-void ConverterImplCoreAudio::convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer )
+namespace {
+	const OSStatus kErrorNotEnoughEnoughSourceFrames = -2;
+}
+
+pair<size_t,size_t> ConverterImplCoreAudio::convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	mSourceBuffer = sourceBuffer;
+	mNumSourceBufferFramesUsed = 0;
 
 	for( int ch = 0; ch < mDestFormat.getChannels(); ch++ ) {
 		mOutputBufferList->mBuffers[ch].mDataByteSize = (UInt32)destBuffer->getSize() * sizeof( float );
 		mOutputBufferList->mBuffers[ch].mData = (void *)destBuffer->getChannel( ch );
 	}
 
-	UInt32 outputDataSize = (UInt32)destBuffer->getNumFrames();
-	OSStatus status = ::AudioConverterFillComplexBuffer( mAudioConverter, ConverterImplCoreAudio::converterCallback, this, &outputDataSize, mOutputBufferList.get(), NULL );
-	CI_ASSERT( status == noErr );
+	UInt32 numOutputFrames = (UInt32)destBuffer->getNumFrames();
+	OSStatus status = ::AudioConverterFillComplexBuffer( mAudioConverter, ConverterImplCoreAudio::converterCallback, this, &numOutputFrames, mOutputBufferList.get(), NULL );
+	CI_ASSERT( status == noErr || status == kErrorNotEnoughEnoughSourceFrames );
 
+	return make_pair( mNumSourceBufferFramesUsed, (size_t)numOutputFrames );
 }
 
 OSStatus ConverterImplCoreAudio::converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData )
 {
+	CI_ASSERT( ! outDataPacketDescription ); // VBR not handled
+
 	ConverterImplCoreAudio *converter = (ConverterImplCoreAudio *)inUserData;
 	const Buffer *sourceBuffer = converter->mSourceBuffer;
+	size_t sourceNumFrames = sourceBuffer->getNumFrames();
 
-	CI_ASSERT( ! outDataPacketDescription );
-	LOG_V << "requested input packets: " << *ioNumberDataPackets << endl;
-
-	for( int ch = 0; ch < ioData->mNumberBuffers; ch++ ) {
-		ioData->mBuffers[ch].mDataByteSize = *ioNumberDataPackets * sizeof( float );
-		ioData->mBuffers[ch].mData = (void *)sourceBuffer->getChannel( ch );
+	if( converter->mNumSourceBufferFramesUsed == sourceNumFrames ) {
+		// no more source samples left this time around, inform converter by returning custom error code
+		*ioNumberDataPackets = 0;
+		return kErrorNotEnoughEnoughSourceFrames;
 	}
 
+	UInt32 numPacketsToConvert = *ioNumberDataPackets;
+	numPacketsToConvert = std::min( numPacketsToConvert, (UInt32)( sourceBuffer->getNumFrames() - converter->mNumSourceBufferFramesUsed ) );
+
+	for( int ch = 0; ch < ioData->mNumberBuffers; ch++ ) {
+		ioData->mBuffers[ch].mDataByteSize = numPacketsToConvert * sizeof( float );
+		ioData->mBuffers[ch].mData = (void *)( sourceBuffer->getChannel( ch ) + converter->mNumSourceBufferFramesUsed );
+	}
+
+	*ioNumberDataPackets = numPacketsToConvert;
+	converter->mNumSourceBufferFramesUsed += numPacketsToConvert;
 	return noErr;
 }
 

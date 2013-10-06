@@ -49,7 +49,8 @@ public:
 
 	virtual ~Converter() {}
 
-	virtual void convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
+	//! Returns a \a std::pair<num source frames used, num dest frames written>
+	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
 protected:
 	Converter( const Format &sourceFormat, const Format &destFormat );

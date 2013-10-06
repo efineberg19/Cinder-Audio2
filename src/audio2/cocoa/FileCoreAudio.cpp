@@ -204,11 +204,11 @@ void TargetFileCoreAudio::write( const Buffer *buffer, size_t frameOffset, size_
 	CI_ASSERT( frameOffset + numFrames <= buffer->getNumFrames() );
 
 	for( int ch = 0; ch < mNumChannels; ch++ ) {
-		mBufferList->mBuffers[ch].mDataByteSize = numFrames * sizeof( float );
+		mBufferList->mBuffers[ch].mDataByteSize = (UInt32)numFrames * sizeof( float );
 		mBufferList->mBuffers[ch].mData = (void *)( buffer->getChannel( ch ) + frameOffset );
 	}
 
-	OSStatus status = ::ExtAudioFileWrite( mExtAudioFile.get(), numFrames, mBufferList.get() );
+	OSStatus status = ::ExtAudioFileWrite( mExtAudioFile.get(), (UInt32)numFrames, mBufferList.get() );
 	CI_ASSERT( status == noErr );
 }
 

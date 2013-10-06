@@ -59,6 +59,7 @@ typedef std::unique_ptr<::AudioBufferList, AudioBufferListShallowDeleter> AudioB
 AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t numFrames );
 AudioBufferListShallowPtr createNonInterleavedBufferListShallow( size_t numChannels );
 
+
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance );
 
@@ -91,15 +92,17 @@ public:
 	ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat );
 	virtual ~ConverterImplCoreAudio();
 
-	virtual void convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
+	virtual std::pair<size_t,size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
 private:
 	void convertImplSimple( const Buffer *sourceBuffer, Buffer *destBuffer );
-	void convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer );
+	std::pair<size_t,size_t> convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer );
 
 	static OSStatus converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData);
 
 	const Buffer *mSourceBuffer;
+	size_t mNumSourceBufferFramesUsed;
+
 	AudioBufferListShallowPtr mOutputBufferList;
 	::AudioConverterRef mAudioConverter;
 };

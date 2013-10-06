@@ -180,7 +180,7 @@ void FileNodeTestApp::mouseDown( MouseEvent event )
 
 void FileNodeTestApp::keyDown( KeyEvent event )
 {
-	if( event.getCode() == KeyEvent::KEY_SPACE )
+	if( event.getCode() == KeyEvent::KEY_c )
 		testConverter();
 	if( event.getCode() == KeyEvent::KEY_w )
 		testWrite();
@@ -253,11 +253,10 @@ void FileNodeTestApp::testConverter()
 		for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
 			copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceFormat.getFramesPerBlock(), sourceBuffer.getChannel( ch ) );
 
-		converter->convert( &sourceBuffer, &destBuffer );
-		numFramesConverted += sourceFormat.getFramesPerBlock();
+		pair<size_t, size_t> result = converter->convert( &sourceBuffer, &destBuffer );
+		numFramesConverted += result.first;
 
-		// FIXME NEXT: close, but resampled file is skipping.
-		target->write( &destBuffer );
+		target->write( &destBuffer, 0, result.second );
 	}
 }
 
