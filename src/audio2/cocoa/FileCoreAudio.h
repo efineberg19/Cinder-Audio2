@@ -58,7 +58,7 @@ class TargetFileCoreAudio : public TargetFile {
 	TargetFileCoreAudio( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension );
 	virtual ~TargetFileCoreAudio() {}
 
-	void write( const Buffer *buffer ) override;
+	void write( const Buffer *buffer, size_t frameOffset, size_t numFrames ) override;
 
   private:
 	static ::AudioFileTypeID getFileTypeIdFromExtension( const std::string &ext );

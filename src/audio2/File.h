@@ -75,7 +75,8 @@ class TargetFile {
 	static TargetFileRef create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
 	virtual ~TargetFile() {}
 
-	virtual void write( const Buffer *buffer ) = 0;
+	//! If default numFrames is used (0), will write all frames in \a buffer
+	virtual void write( const Buffer *buffer, size_t frameOffset = 0, size_t numFrames = 0 ) = 0;
 
   protected:
 	TargetFile( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels )
