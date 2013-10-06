@@ -45,6 +45,30 @@
 		1115502618026CF400D415BC /* FileOggVorbis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1115502318026CF400D415BC /* FileOggVorbis.cpp */; };
 		1115502718026CF400D415BC /* FileOggVorbis.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115502418026CF400D415BC /* FileOggVorbis.h */; };
 		1115502818026CF400D415BC /* FileOggVorbis.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115502418026CF400D415BC /* FileOggVorbis.h */; };
+		11154F951801342E00D415BC /* CDSPBlockConvolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F891801342E00D415BC /* CDSPBlockConvolver.h */; };
+		11154F961801342E00D415BC /* CDSPBlockConvolver.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F891801342E00D415BC /* CDSPBlockConvolver.h */; };
+		11154F971801342E00D415BC /* CDSPFIRFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8A1801342E00D415BC /* CDSPFIRFilter.h */; };
+		11154F981801342E00D415BC /* CDSPFIRFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8A1801342E00D415BC /* CDSPFIRFilter.h */; };
+		11154F991801342E00D415BC /* CDSPFracInterpolator.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8B1801342E00D415BC /* CDSPFracInterpolator.h */; };
+		11154F9A1801342E00D415BC /* CDSPFracInterpolator.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8B1801342E00D415BC /* CDSPFracInterpolator.h */; };
+		11154F9B1801342E00D415BC /* CDSPRealFFT.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8C1801342E00D415BC /* CDSPRealFFT.h */; };
+		11154F9C1801342E00D415BC /* CDSPRealFFT.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8C1801342E00D415BC /* CDSPRealFFT.h */; };
+		11154F9D1801342E00D415BC /* CDSPResampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8D1801342E00D415BC /* CDSPResampler.h */; };
+		11154F9E1801342E00D415BC /* CDSPResampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8D1801342E00D415BC /* CDSPResampler.h */; };
+		11154F9F1801342E00D415BC /* CDSPSincFilterGen.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8E1801342E00D415BC /* CDSPSincFilterGen.h */; };
+		11154FA01801342E00D415BC /* CDSPSincFilterGen.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F8E1801342E00D415BC /* CDSPSincFilterGen.h */; };
+		11154FA31801342E00D415BC /* fft4g.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F901801342E00D415BC /* fft4g.h */; };
+		11154FA41801342E00D415BC /* fft4g.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F901801342E00D415BC /* fft4g.h */; };
+		11154FA51801342E00D415BC /* r8bbase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11154F921801342E00D415BC /* r8bbase.cpp */; };
+		11154FA61801342E00D415BC /* r8bbase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11154F921801342E00D415BC /* r8bbase.cpp */; };
+		11154FA71801342E00D415BC /* r8bbase.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F931801342E00D415BC /* r8bbase.h */; };
+		11154FA81801342E00D415BC /* r8bbase.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F931801342E00D415BC /* r8bbase.h */; };
+		11154FA91801342E00D415BC /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F941801342E00D415BC /* r8bconf.h */; };
+		11154FAA1801342E00D415BC /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154F941801342E00D415BC /* r8bconf.h */; };
+		11154FAD1801344A00D415BC /* ConverterImplR8brain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11154FAB1801344A00D415BC /* ConverterImplR8brain.cpp */; };
+		11154FAE1801344A00D415BC /* ConverterImplR8brain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11154FAB1801344A00D415BC /* ConverterImplR8brain.cpp */; };
+		11154FAF1801344A00D415BC /* ConverterImplR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154FAC1801344A00D415BC /* ConverterImplR8brain.h */; };
+		11154FB01801344A00D415BC /* ConverterImplR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 11154FAC1801344A00D415BC /* ConverterImplR8brain.h */; };
 		113E630D17FFBDF4007FFCF7 /* Converter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11AB735A17FD277700B29C5F /* Converter.cpp */; };
 		113E630E17FFBDF5007FFCF7 /* Converter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11AB735A17FD277700B29C5F /* Converter.cpp */; };
 		11446DB417E64CCD00457AC6 /* NodeEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DAF17E64CCD00457AC6 /* NodeEffect.h */; };
@@ -284,6 +308,18 @@
 		1115501418026C9100D415BC /* vorbisfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vorbisfile.h; sourceTree = "<group>"; };
 		1115502318026CF400D415BC /* FileOggVorbis.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileOggVorbis.cpp; sourceTree = "<group>"; };
 		1115502418026CF400D415BC /* FileOggVorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOggVorbis.h; sourceTree = "<group>"; };
+		11154F891801342E00D415BC /* CDSPBlockConvolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDSPBlockConvolver.h; path = r8brain/CDSPBlockConvolver.h; sourceTree = "<group>"; };
+		11154F8A1801342E00D415BC /* CDSPFIRFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDSPFIRFilter.h; path = r8brain/CDSPFIRFilter.h; sourceTree = "<group>"; };
+		11154F8B1801342E00D415BC /* CDSPFracInterpolator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDSPFracInterpolator.h; path = r8brain/CDSPFracInterpolator.h; sourceTree = "<group>"; };
+		11154F8C1801342E00D415BC /* CDSPRealFFT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDSPRealFFT.h; path = r8brain/CDSPRealFFT.h; sourceTree = "<group>"; };
+		11154F8D1801342E00D415BC /* CDSPResampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDSPResampler.h; path = r8brain/CDSPResampler.h; sourceTree = "<group>"; };
+		11154F8E1801342E00D415BC /* CDSPSincFilterGen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDSPSincFilterGen.h; path = r8brain/CDSPSincFilterGen.h; sourceTree = "<group>"; };
+		11154F901801342E00D415BC /* fft4g.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fft4g.h; path = r8brain/fft4g.h; sourceTree = "<group>"; };
+		11154F921801342E00D415BC /* r8bbase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = r8bbase.cpp; path = r8brain/r8bbase.cpp; sourceTree = "<group>"; };
+		11154F931801342E00D415BC /* r8bbase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = r8bbase.h; path = r8brain/r8bbase.h; sourceTree = "<group>"; };
+		11154F941801342E00D415BC /* r8bconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = r8bconf.h; path = r8brain/r8bconf.h; sourceTree = "<group>"; };
+		11154FAB1801344A00D415BC /* ConverterImplR8brain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConverterImplR8brain.cpp; sourceTree = "<group>"; };
+		11154FAC1801344A00D415BC /* ConverterImplR8brain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConverterImplR8brain.h; sourceTree = "<group>"; };
 		11446DAF17E64CCD00457AC6 /* NodeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeEffect.h; sourceTree = "<group>"; };
 		11446DB017E64CCD00457AC6 /* NodeTap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeTap.cpp; sourceTree = "<group>"; };
 		11446DB117E64CCD00457AC6 /* NodeTap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeTap.h; sourceTree = "<group>"; };
@@ -429,6 +465,7 @@
 			children = (
 				1104F46117754A6E003EAA2B /* audio2 */,
 				114FE86818032BF000C5841B /* oggvorbis */,
+				11154F881801341500D415BC /* r8brain */,
 				1104F49517754A6E003EAA2B /* Gui.h */,
 				11B041AE179B89F80034BEE2 /* Plot.cpp */,
 				11B041AF179B89F80034BEE2 /* Plot.h */,
@@ -453,6 +490,8 @@
 				1104F47517754A6E003EAA2B /* Context.h */,
 				11AB735A17FD277700B29C5F /* Converter.cpp */,
 				11AB735B17FD277700B29C5F /* Converter.h */,
+				11154FAB1801344A00D415BC /* ConverterImplR8brain.cpp */,
+				11154FAC1801344A00D415BC /* ConverterImplR8brain.h */,
 				1104F47617754A6E003EAA2B /* Debug.h */,
 				1104F47717754A6E003EAA2B /* Device.cpp */,
 				1104F47817754A6E003EAA2B /* Device.h */,
@@ -677,6 +716,21 @@
 				114FE8A318032BF000C5841B /* setup_X.h */,
 			);
 			path = modes;
+		11154F881801341500D415BC /* r8brain */ = {
+			isa = PBXGroup;
+			children = (
+				11154F891801342E00D415BC /* CDSPBlockConvolver.h */,
+				11154F8A1801342E00D415BC /* CDSPFIRFilter.h */,
+				11154F8B1801342E00D415BC /* CDSPFracInterpolator.h */,
+				11154F8C1801342E00D415BC /* CDSPRealFFT.h */,
+				11154F8D1801342E00D415BC /* CDSPResampler.h */,
+				11154F8E1801342E00D415BC /* CDSPSincFilterGen.h */,
+				11154F901801342E00D415BC /* fft4g.h */,
+				11154F921801342E00D415BC /* r8bbase.cpp */,
+				11154F931801342E00D415BC /* r8bbase.h */,
+				11154F941801342E00D415BC /* r8bconf.h */,
+			);
+			name = r8brain;
 			sourceTree = "<group>";
 		};
 		11D6945D17D0436A00B0D2BB /* ooura */ = {
@@ -716,6 +770,11 @@
 				114FE93D18032BF100C5841B /* window.h in Headers */,
 				11C58DEA177943DA00DF99F8 /* CinderCoreAudio.h in Headers */,
 				114FE8E118032BF100C5841B /* lookup.h in Headers */,
+				11154FA71801342E00D415BC /* r8bbase.h in Headers */,
+				11154F9B1801342E00D415BC /* CDSPRealFFT.h in Headers */,
+				11154F991801342E00D415BC /* CDSPFracInterpolator.h in Headers */,
+				11154FAF1801344A00D415BC /* ConverterImplR8brain.h in Headers */,
+				11154F9F1801342E00D415BC /* CDSPSincFilterGen.h in Headers */,
 				11D6946217D0475000B0D2BB /* fftsg.h in Headers */,
 				114FE90718032BF100C5841B /* residue_44u.h in Headers */,
 				114FE90518032BF100C5841B /* residue_44p51.h in Headers */,
@@ -741,14 +800,19 @@
 				114FE90918032BF100C5841B /* residue_8.h in Headers */,
 				114FE91918032BF100C5841B /* setup_8.h in Headers */,
 				114FE8FB18032BF100C5841B /* psych_16.h in Headers */,
+				11154FA91801342E00D415BC /* r8bconf.h in Headers */,
+				11154F951801342E00D415BC /* CDSPBlockConvolver.h in Headers */,
 				1104F4B017754A6E003EAA2B /* Fft.h in Headers */,
+				11154FA31801342E00D415BC /* fft4g.h in Headers */,
 				11B041B3179B8A0C0034BEE2 /* CinderAssert.h in Headers */,
 				114FE8DB18032BF100C5841B /* highlevel.h in Headers */,
 				1115502718026CF400D415BC /* FileOggVorbis.h in Headers */,
 				114FE8CB18032BF100C5841B /* res_books_uncoupled.h in Headers */,
 				114FE8EB18032BF100C5841B /* lsp.h in Headers */,
+				11154F9D1801342E00D415BC /* CDSPResampler.h in Headers */,
 				1104F4C417754A6E003EAA2B /* RingBuffer.h in Headers */,
 				1180FD8D17AB7CB70070AC30 /* Node.h in Headers */,
+				11154F971801342E00D415BC /* CDSPFIRFilter.h in Headers */,
 				11446DB417E64CCD00457AC6 /* NodeEffect.h in Headers */,
 				114FE8D118032BF100C5841B /* codec_internal.h in Headers */,
 				11B041B1179B89F80034BEE2 /* Plot.h in Headers */,
@@ -794,6 +858,11 @@
 				114FE93E18032BF100C5841B /* window.h in Headers */,
 				11B04208179B90450034BEE2 /* CinderCoreAudio.h in Headers */,
 				114FE8E218032BF100C5841B /* lookup.h in Headers */,
+				11154FA81801342E00D415BC /* r8bbase.h in Headers */,
+				11154F9C1801342E00D415BC /* CDSPRealFFT.h in Headers */,
+				11154F9A1801342E00D415BC /* CDSPFracInterpolator.h in Headers */,
+				11154FB01801344A00D415BC /* ConverterImplR8brain.h in Headers */,
+				11154FA01801342E00D415BC /* CDSPSincFilterGen.h in Headers */,
 				11D6946317D0475000B0D2BB /* fftsg.h in Headers */,
 				114FE90818032BF100C5841B /* residue_44u.h in Headers */,
 				114FE90618032BF100C5841B /* residue_44p51.h in Headers */,
@@ -819,14 +888,19 @@
 				114FE90A18032BF100C5841B /* residue_8.h in Headers */,
 				114FE91A18032BF100C5841B /* setup_8.h in Headers */,
 				114FE8FC18032BF100C5841B /* psych_16.h in Headers */,
+				11154FAA1801342E00D415BC /* r8bconf.h in Headers */,
+				11154F961801342E00D415BC /* CDSPBlockConvolver.h in Headers */,
 				11B04210179B90450034BEE2 /* Fft.h in Headers */,
+				11154FA41801342E00D415BC /* fft4g.h in Headers */,
 				11B04212179B90450034BEE2 /* CinderAssert.h in Headers */,
 				114FE8DC18032BF100C5841B /* highlevel.h in Headers */,
 				1115502818026CF400D415BC /* FileOggVorbis.h in Headers */,
 				114FE8CC18032BF100C5841B /* res_books_uncoupled.h in Headers */,
 				114FE8EC18032BF100C5841B /* lsp.h in Headers */,
+				11154F9E1801342E00D415BC /* CDSPResampler.h in Headers */,
 				11B04213179B90450034BEE2 /* RingBuffer.h in Headers */,
 				1180FD8E17AB7CB70070AC30 /* Node.h in Headers */,
+				11154F981801342E00D415BC /* CDSPFIRFilter.h in Headers */,
 				11446DB517E64CCD00457AC6 /* NodeEffect.h in Headers */,
 				114FE8D218032BF100C5841B /* codec_internal.h in Headers */,
 				11B04214179B90450034BEE2 /* Plot.h in Headers */,
@@ -958,7 +1032,9 @@
 				11446DBA17E64CCD00457AC6 /* NodeTarget.cpp in Sources */,
 				1104F49817754A6E003EAA2B /* audio.cpp in Sources */,
 				1104F4A317754A6E003EAA2B /* FileCoreAudio.cpp in Sources */,
+				11154FAD1801344A00D415BC /* ConverterImplR8brain.cpp in Sources */,
 				1104F4B117754A6E003EAA2B /* File.cpp in Sources */,
+				11154FA51801342E00D415BC /* r8bbase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1008,7 +1084,9 @@
 				11446DBB17E64CCD00457AC6 /* NodeTarget.cpp in Sources */,
 				11B041FE179B90450034BEE2 /* audio.cpp in Sources */,
 				11B041FF179B90450034BEE2 /* FileCoreAudio.cpp in Sources */,
+				11154FAE1801344A00D415BC /* ConverterImplR8brain.cpp in Sources */,
 				11B04201179B90450034BEE2 /* File.cpp in Sources */,
+				11154FA61801342E00D415BC /* r8bbase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
