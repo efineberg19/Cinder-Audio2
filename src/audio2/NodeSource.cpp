@@ -64,6 +64,11 @@ NodeLineIn::NodeLineIn( const DeviceRef &device, const Format &format )
 NodeBufferPlayer::NodeBufferPlayer( const Format &format )
 : NodeSamplePlayer( format )
 {
+	// If user didn't set a specified channel count, set to one until further notice.
+	if( ! mChannelMode == ChannelMode::SPECIFIED ) {
+		mChannelMode = ChannelMode::SPECIFIED;
+		mNumChannels = mBuffer->getNumChannels();
+	}
 }
 
 NodeBufferPlayer::NodeBufferPlayer( const BufferRef &buffer, const Format &format )
@@ -71,11 +76,9 @@ NodeBufferPlayer::NodeBufferPlayer( const BufferRef &buffer, const Format &forma
 {
 	mNumFrames = mBuffer->getNumFrames();
 
-	// if channel mode is not already specified, set to match buffer, which may cause an up or down mix later on.
-	if( mChannelMode != ChannelMode::SPECIFIED ) {
-		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( buffer->getNumChannels() );
-	}
+	// force channel mode to match buffer
+	mChannelMode = ChannelMode::SPECIFIED;
+	setNumChannels( mBuffer->getNumChannels() );
 }
 
 void NodeBufferPlayer::start()
@@ -98,16 +101,18 @@ void NodeBufferPlayer::stop()
 	LOG_V << "stopped" << endl;
 }
 
-// TODO: decide how best to allow this NodeBufferPlayer to load audio files of a different format. options:
-//		- now that Node's can change their configuration during dsp-time, a configureConnects() can be reissued from here
-//			- if the channels have changed, related Node's may change as well.
-//		- ???: should we support a stereo buffer node as default, which upmixes mono to stereo?
-//			- would prevent node connect / buffer changes during dsp-time
 void NodeBufferPlayer::setBuffer( const BufferRef &buffer )
 {
+	lock_guard<mutex> lock( getContext()->getMutex() );
+
 	bool enabled = mEnabled;
 	if( mEnabled )
 		stop();
+
+	if( buffer->getNumChannels() != mBuffer->getNumChannels() ) {
+		setNumChannels( buffer->getNumChannels() );
+		configureConnections();
+	}
 
 	mBuffer = buffer;
 	mNumFrames = buffer->getNumFrames();

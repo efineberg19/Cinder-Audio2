@@ -96,9 +96,12 @@ protected:
 	std::atomic<bool>	mLoop;
 };
 
+//! Buffer-based sample player.
 class NodeBufferPlayer : public NodeSamplePlayer {
 public:
+	//! Constructs a NodeBufferPlayer without a buffer, with the assumption one will be set later. \note Format::channels() can still be used to allocate the expected channel count ahead of time.
 	NodeBufferPlayer( const Format &format = Format() );
+	//! Constructs a NodeBufferPlayer \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
 	NodeBufferPlayer( const BufferRef &buffer, const Format &format = Format() );
 	virtual ~NodeBufferPlayer() {}
 
@@ -115,7 +118,6 @@ protected:
 	BufferRef mBuffer;
 };
 
-// TODO: use a thread pool to keep the overrall number of read threads to a minimum.
 class NodeFilePlayer : public NodeSamplePlayer {
 public:
 	NodeFilePlayer( const Format &format = Format() );
@@ -154,7 +156,7 @@ public:
 	std::atomic<size_t> mFramesPerBlock;
 };
 
-// TODO: NodeGen's are starting to seem unnesecarry
+// TODO: NodeGen's are starting to seem unecessary
 // - just make a NodeSource for all of the basic waveforms
 // - also need to account for ramping params, which will not be possible with vector-based calculations
 template <typename GenT>
