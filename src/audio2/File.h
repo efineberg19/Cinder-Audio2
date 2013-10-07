@@ -69,6 +69,8 @@ class SourceFile {
 	size_t mSampleRate, mNumChannels, mNumFrames, mFileSampleRate, mFileNumChannels, mNumFramesPerRead;
 };
 
+// TODO: support sample formats other than float
+
 class TargetFile {
   public:
 	static TargetFileRef create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension = "" );

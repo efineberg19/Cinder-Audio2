@@ -184,15 +184,20 @@ TargetFileCoreAudio::TargetFileCoreAudio( const DataTargetRef &dataTarget, size_
 {
 	::CFURLRef targetUrl = ci::cocoa::createCfUrl( Url( dataTarget->getFilePath().string() ) );
 	::AudioFileTypeID fileType = getFileTypeIdFromExtension( extension );
-	::AudioStreamBasicDescription asbd = createFloatAsbd( mNumChannels, mSampleRate ); // TODO: add option for sample format
+	::AudioStreamBasicDescription fileAsbd = createFloatAsbd( mNumChannels, mSampleRate, true );
+	::AudioStreamBasicDescription clientAsbd = createFloatAsbd( mNumChannels, mSampleRate, false );
 
 	::ExtAudioFileRef audioFile;
-	OSStatus status = ::ExtAudioFileCreateWithURL( targetUrl, fileType, &asbd, nullptr, kAudioFileFlags_EraseFile, &audioFile );
+	OSStatus status = ::ExtAudioFileCreateWithURL( targetUrl, fileType, &fileAsbd, nullptr, kAudioFileFlags_EraseFile, &audioFile );
 	if( status != noErr )
 		throw AudioFileExc( string( "could not open audio target file: " ) + dataTarget->getFilePath().string() );
 
 	::CFRelease( targetUrl );
 	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
+
+	status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( clientAsbd ), &clientAsbd );
+	CI_ASSERT( status == noErr );
+
 	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
