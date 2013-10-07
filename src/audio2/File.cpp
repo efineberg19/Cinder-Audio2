@@ -32,12 +32,17 @@
 #include "audio2/msw/FileMediaFoundation.h"
 #endif
 
+#include "audio2/FileOggVorbis.h"
+
 namespace cinder { namespace audio2 {
 
 // TODO: these should be replaced with a genericized registrar derived from the ImageIo stuff.
 
 SourceFileRef SourceFile::create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 {
+	if( getPathExtension( dataSource->getFilePathHint() ) == "ogg" )
+		return SourceFileRef( new SourceFileImplOggVorbis( dataSource, numChannels, sampleRate ) );
+
 #if defined( CINDER_COCOA )
 	return SourceFileRef( new cocoa::SourceFileCoreAudio( dataSource, numChannels, sampleRate ) );
 #elif defined( CINDER_MSW )

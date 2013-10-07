@@ -60,11 +60,14 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 	
-	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 	//DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 	//DataSourceRef dataSource = loadResource( RES_TONE440L220R_FLOAT_WAV );
 	//DataSourceRef dataSource = loadResource( RES_TONE440_MP3);
 	//DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+
+//	DataSourceRef dataSource = loadResource( RES_TONE440_OGG );
+	DataSourceRef dataSource = loadResource( "Stevie Wonder  For Once In My Life.ogg" );
 
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
