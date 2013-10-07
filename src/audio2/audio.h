@@ -35,10 +35,12 @@ void printDevices();
 
 class AudioExc : public ci::Exception {
 public:
-	AudioExc( const std::string &description ) : mDescription( description )	{}
+	AudioExc( const std::string &description, int32_t errorCode = 0 ) : mDescription( description )	{}
 	virtual const char* what() const throw()	{ return mDescription.c_str(); }
+	int32_t getCode() const						{ return mErrorCode; }
 protected:
 	std::string mDescription;
+	int32_t mErrorCode;
 };
 
 class AudioDeviceExc : public AudioExc {
@@ -63,7 +65,7 @@ public:
 
 class AudioFileExc : public AudioExc {
 public:
-	AudioFileExc( const std::string &description ) : AudioExc( description )	{}
+	AudioFileExc( const std::string &description, int32_t errorCode = 0 ) : AudioExc( description )	{}
 };
 
 } } // namespace cinder::audio2

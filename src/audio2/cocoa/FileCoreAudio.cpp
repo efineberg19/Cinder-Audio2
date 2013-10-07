@@ -71,7 +71,7 @@ SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource, size_
 	::ExtAudioFileRef audioFile;
 	OSStatus status = ::ExtAudioFileOpenURL( sourceUrl, &audioFile );
 	if( status != noErr )
-		throw AudioFileExc( string( "could not open audio source file: " ) + dataSource->getFilePath().string() );
+		throw AudioFileExc( string( "could not open audio source file: " ) + dataSource->getFilePath().string(), (int32_t)status );
 
 	::CFRelease( sourceUrl );
 	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
@@ -190,7 +190,7 @@ TargetFileCoreAudio::TargetFileCoreAudio( const DataTargetRef &dataTarget, size_
 	::ExtAudioFileRef audioFile;
 	OSStatus status = ::ExtAudioFileCreateWithURL( targetUrl, fileType, &fileAsbd, nullptr, kAudioFileFlags_EraseFile, &audioFile );
 	if( status != noErr )
-		throw AudioFileExc( string( "could not open audio target file: " ) + dataTarget->getFilePath().string() );
+		throw AudioFileExc( string( "could not open audio target file: " ) + dataTarget->getFilePath().string(), (int32_t)status );
 
 	::CFRelease( targetUrl );
 	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );

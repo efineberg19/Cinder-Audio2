@@ -29,31 +29,15 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-namespace {
-
-const char *stringForOggOpen( int status )
-{
-	switch( status ) {
-		case OV_EREAD: return "OV_EREAD";
-		case OV_ENOTVORBIS: return "OV_ENOTVORBIS";
-		case OV_EVERSION: return "OV_EVERSION";
-		case OV_EBADHEADER: return "OV_EBADHEADER";
-		case OV_EFAULT: return "OV_EFAULT";
-		default: return "unknown";
-	}
-}
-
-} // anonymous namespace
-
 SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 	: SourceFile( dataSource, numChannels, sampleRate )
 {
 	int status = ov_fopen( dataSource->getFilePath().c_str(), &mOggVorbisFile );
 	if( status )
-		throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ) + stringForOggOpen( status ) );
+		throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
 
 
-	LOG_V << "open success." << endl;
+	LOG_V << "open success, ogg file info: " << endl;
 	// print comments plus a few lines about the bitstream we're decoding
 	char **ptr=ov_comment( &mOggVorbisFile, -1 )->user_comments;
 	while( *ptr )
@@ -63,13 +47,13 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
     mNumChannels = vi->channels;
     mSampleRate = vi->rate;
 
-	app::console() << "version: " << vi->version << endl;
-	app::console() << "Bitstream is " << mNumChannels << " channel, " << mSampleRate << "Hz" << endl;
-	app::console() << "Encoded by: " << ov_comment( &mOggVorbisFile, -1 )->vendor << endl;
+	app::console() << "\tversion: " << vi->version << endl;
+	app::console() << "\tBitstream is " << mNumChannels << " channel, " << mSampleRate << "Hz" << endl;
+	app::console() << "\tEncoded by: " << ov_comment( &mOggVorbisFile, -1 )->vendor << endl;
 
 	ogg_int64_t totalFrames = ov_pcm_total( &mOggVorbisFile, -1 );
     mNumFrames = static_cast<uint32_t>( totalFrames );
-	app::console() << "frames: " << mNumFrames << endl;
+	app::console() << "\tframes: " << mNumFrames << endl;
 }
 
 SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
