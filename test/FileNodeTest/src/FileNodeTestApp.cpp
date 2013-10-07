@@ -26,6 +26,7 @@ class FileNodeTestApp : public AppNative {
 	void setup();
 	void mouseDown( MouseEvent event );
 	void keyDown( KeyEvent event );
+	void fileDrop( FileDropEvent event );
 	void update();
 	void draw();
 
@@ -61,13 +62,9 @@ void FileNodeTestApp::setup()
 	mContext = Context::create();
 	
 //	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
-	//DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
-	//DataSourceRef dataSource = loadResource( RES_TONE440L220R_FLOAT_WAV );
-	//DataSourceRef dataSource = loadResource( RES_TONE440_MP3);
-	//DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+//	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
+	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
-//	DataSourceRef dataSource = loadResource( RES_TONE440_OGG );
-	DataSourceRef dataSource = loadResource( "Stevie Wonder  For Once In My Life.ogg" );
 
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
@@ -187,6 +184,27 @@ void FileNodeTestApp::keyDown( KeyEvent event )
 		testConverter();
 	if( event.getCode() == KeyEvent::KEY_w )
 		testWrite();
+}
+
+void FileNodeTestApp::fileDrop( FileDropEvent event )
+{
+	auto bufferPlayer = dynamic_pointer_cast<NodeBufferPlayer>( mSamplePlayer );
+	if( ! bufferPlayer ) {
+		LOG_E << "TODO: source file swapping with NodeFilePlayer" << endl;
+		return;
+	}
+
+	const fs::path &filePath = event.getFile( 0 );
+	LOG_V << "File dropped: " << filePath << endl;
+
+	DataSourceRef dataSource = loadFile( filePath );
+	mSourceFile = SourceFile::create( dataSource, mSourceFile->getNumChannels(), mContext->getSampleRate() );
+	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
+
+	bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
+	mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
+
+	LOG_V << "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() << endl;
 }
 
 
