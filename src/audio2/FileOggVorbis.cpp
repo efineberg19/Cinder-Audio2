@@ -68,15 +68,16 @@ size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 
 BufferRef SourceFileImplOggVorbis::loadBuffer()
 {
-	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
+	if( mReadPos != 0 )
+		seek( 0 );
 
-	int current_section;
-	size_t readPos = 0;
+	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
 	while( true ) {
         // clarification on ov_read_float params: returns framesRead. buffer is array of channels
         // http://lists.xiph.org/pipermail/vorbis-dev/2002-January/005500.html
         float **pcm;
+		int current_section;
         long numFramesRead = ov_read_float( &mOggVorbisFile, &pcm, (int)mNumFramesPerRead, &current_section );
 		//        console() << numFramesRead << ", ";
 		if ( ! numFramesRead ) {
@@ -88,20 +89,25 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 		}
         else {
             for( int i = 0; i < mNumChannels; i++ ) {
-                memcpy( &result->getChannel( i )[readPos], pcm[i], numFramesRead * sizeof(float) ); // TODO: use copy or something else abstracted
+                memcpy( &result->getChannel( i )[mReadPos], pcm[i], numFramesRead * sizeof(float) ); // TODO: use copy or something else abstracted
             }
-            readPos += numFramesRead;
+            mReadPos += numFramesRead;
 		}
 	}
 	//    console() << endl;
-
 
 	return result;
 }
 
 void SourceFileImplOggVorbis::seek( size_t readPosition )
 {
+	if( readPosition >= mNumFrames )
+		return;
 
+	int status = ov_pcm_seek( &mOggVorbisFile, (ogg_int64_t)readPosition );
+	CI_ASSERT( ! status );
+
+	mReadPos = readPosition;
 }
 
 } } // namespace cinder::audio2

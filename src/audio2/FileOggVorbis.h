@@ -49,7 +49,8 @@ class SourceFileImplOggVorbis : public SourceFile {
 	void	setNumChannels( size_t channels ) {}
 
   private:
-	::OggVorbis_File mOggVorbisFile;
+	::OggVorbis_File	mOggVorbisFile;
+	size_t				mReadPos;
 };
 
 //class TargetFileImplOggVorbis : public TargetFile {
