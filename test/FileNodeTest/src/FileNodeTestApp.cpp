@@ -9,6 +9,8 @@
 #include "Plot.h"
 #include "audio2/Debug.h"
 
+#include "cinder/Timer.h"
+
 #include "Gui.h"
 
 // FIXME: (mac) FilePlayerNode crash with heavy seeking, non-multithreaded
@@ -270,6 +272,8 @@ void FileNodeTestApp::testConverter()
 	auto converter = Converter::create( sourceFormat, destFormat );
 	size_t numFramesConverted = 0;
 
+	Timer timer( true );
+
 	while( numFramesConverted < audioBuffer->getNumFrames() ) {
 		for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
 			copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceFormat.getFramesPerBlock(), sourceBuffer.getChannel( ch ) );
@@ -279,6 +283,8 @@ void FileNodeTestApp::testConverter()
 
 		target->write( &destBuffer, 0, result.second );
 	}
+
+	LOG_V << "seconds: " << timer.getSeconds() << endl;
 }
 
 void FileNodeTestApp::testWrite()
