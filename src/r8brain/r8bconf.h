@@ -16,6 +16,8 @@
 #ifndef R8BCONF_INCLUDED
 #define R8BCONF_INCLUDED
 
+#include "audio2/CinderAssert.h"
+
 #if defined( _WIN32 ) || defined( _WIN64 )
 	#define R8B_WIN 1
 #elif defined( __APPLE__ )
@@ -69,7 +71,7 @@
 	 * @param e Expression to check.
 	 */
 
-	#define R8BASSERT( e )
+	#define R8BASSERT( e ) CI_ASSERT( e )
 #endif // !defined( R8BASSERT )
 
 #if !defined( R8B_BASECLASS )
