@@ -65,27 +65,62 @@ ConverterImplR8brain::~ConverterImplR8brain()
 {
 }
 
+// TODO: assert all params are possible
 std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	CI_ASSERT( sourceBuffer->getNumChannels() <= destBuffer->getNumChannels() ); // TODO: handle upmixing
+	if( mSourceFormat.getChannels() == mDestFormat.getChannels() )
+		convertImpl( sourceBuffer, destBuffer );
+	else if( mSourceFormat.getChannels() > mDestFormat.getChannels() )
+		return convertImplDownMixing( sourceBuffer, destBuffer );
 
-	// if downmixing, do it first so there is less resampling
-	if( mSourceFormat.getChannels() > mDestFormat.getChannels() ) {
-		submixBuffers( sourceBuffer, &mMixingBuffer );
-		mBufferd.copy( mMixingBuffer );
-	}
-	else
-		mBufferd.copy( *sourceBuffer );
+	return convertImplUpMixing( sourceBuffer, destBuffer );
+}
 
+std::pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
+{
+	mBufferd.copy( *sourceBuffer );
 
 	int readCount = (int)mBufferd.getNumFrames();
-
 	int outCount = 0;
 	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;
 		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
 		copy( out, out + outCount, destBuffer->getChannel( ch ) );
 	}
+
+	return make_pair( readCount, (size_t)outCount );
+}
+
+std::pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer )
+{
+	submixBuffers( sourceBuffer, &mMixingBuffer );
+	mBufferd.copy( mMixingBuffer );
+
+	int readCount = (int)mBufferd.getNumFrames();
+	int outCount = 0;
+	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
+		double *out = nullptr;
+		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
+		copy( out, out + outCount, destBuffer->getChannel( ch ) );
+	}
+
+	return make_pair( readCount, (size_t)outCount );
+}
+
+// FIXME: got the wobbles...
+std::pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer )
+{
+	mBufferd.copy( *sourceBuffer );
+
+	int readCount = (int)mBufferd.getNumFrames();
+	int outCount = 0;
+	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
+		double *out = nullptr;
+		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
+		copy( out, out + outCount, mMixingBuffer.getChannel( ch ) );
+	}
+
+	submixBuffers( &mMixingBuffer, destBuffer );
 
 	return make_pair( readCount, (size_t)outCount );
 }

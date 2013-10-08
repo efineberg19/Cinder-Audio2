@@ -63,9 +63,9 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 	
-//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
-	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+//	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
 
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
@@ -255,8 +255,10 @@ void FileNodeTestApp::testConverter()
 	BufferRef audioBuffer = mSourceFile->loadBuffer();
 
 	auto sourceFormat = Converter::Format().sampleRate( mSourceFile->getSampleRate() ).channels( mSourceFile->getNumChannels() ).framesPerBlock( 512 );
-	auto destFormat = Converter::Format().sampleRate( 48000 ).channels( mSourceFile->getNumChannels() );
+//	auto destFormat = Converter::Format().sampleRate( 48000 ).channels( mSourceFile->getNumChannels() );
+	auto destFormat = Converter::Format().sampleRate( 48000 ).channels( 2 );
 
+	// TODO: set this in converter? being used in r8brain constructor already
 	size_t destFramesPerBlock = ceil( (float)sourceFormat.getFramesPerBlock() * (float)destFormat.getSampleRate() / (float)sourceFormat.getSampleRate() );
 
 	LOG_V << "converting from:" << endl;
@@ -265,7 +267,7 @@ void FileNodeTestApp::testConverter()
 	console() << "\tsamplerate: " << destFormat.getSampleRate() << ", channels: " << destFormat.getChannels() << ", frames per block: " << destFramesPerBlock << endl;
 
 	audio2::Buffer sourceBuffer( sourceFormat.getFramesPerBlock(), sourceFormat.getChannels() );
-	audio2::Buffer destBuffer( destFramesPerBlock, sourceFormat.getChannels() );
+	audio2::Buffer destBuffer( destFramesPerBlock, destFormat.getChannels() );
 
 	TargetFileRef target = TargetFile::create( "resampled.wav", destFormat.getSampleRate(), destFormat.getChannels() );
 

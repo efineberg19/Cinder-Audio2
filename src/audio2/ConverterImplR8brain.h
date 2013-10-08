@@ -43,6 +43,10 @@ class ConverterImplR8brain : public Converter {
 	std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
   private:
+	std::pair<size_t, size_t> convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer );
+	std::pair<size_t, size_t> convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer );
+	std::pair<size_t, size_t> convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer );
+
 	std::vector<std::unique_ptr<r8b::CDSPResampler24> > mResamplers;
 	BufferT<double> mBufferd;
 	Buffer mMixingBuffer;
