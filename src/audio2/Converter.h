@@ -52,6 +52,8 @@ public:
 	//! Returns a \a std::pair<num source frames used, num dest frames written>
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
+	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
+
 protected:
 	Converter( const Format &sourceFormat, const Format &destFormat );
 
