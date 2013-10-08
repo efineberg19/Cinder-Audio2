@@ -42,11 +42,10 @@ class ConverterImplR8brain : public Converter {
 
 	std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
-	void test();
-
   private:
 	std::vector<std::unique_ptr<r8b::CDSPResampler24> > mResamplers;
 	BufferT<double> mBufferd;
+	Buffer mMixingBuffer;
 };
 
 } } // namespace cinder::audio2

@@ -38,9 +38,25 @@ namespace cinder { namespace audio2 {
 //	The basic formula for ReqAtten is something close to 6.02*BitDepth+40. The ReqTransBand selection depends on how "greedy" you are for the highest frequencies. It's set to 2% by default, but in practice you can use 4 or 5, that still leaves a lot of frequency content (flat up to 21kHz for 44.1k audio).
 
 ConverterImplR8brain::ConverterImplR8brain( const Format &sourceFormat, const Format &destFormat )
-	: Converter( sourceFormat, destFormat ), mBufferd( sourceFormat.getFramesPerBlock(), sourceFormat.getChannels() )
+	: Converter( sourceFormat, destFormat )
 {
-	size_t numResamplers = min( mSourceFormat.getChannels(), mDestFormat.getChannels() );
+	size_t numResamplers;
+	if( mSourceFormat.getChannels() > mDestFormat.getChannels() ) {
+		// downmixing, resample dest channels -> source channels
+		numResamplers = mDestFormat.getChannels();
+		mMixingBuffer = Buffer( sourceFormat.getFramesPerBlock(), destFormat.getChannels() );
+	}
+	else if( mSourceFormat.getChannels() < mDestFormat.getChannels() ) {
+		// upmixing, resample source channels
+		size_t destFramesPerBlock = ceil( (float)sourceFormat.getFramesPerBlock() * (float)destFormat.getSampleRate() / (float)sourceFormat.getSampleRate() );
+		numResamplers = mSourceFormat.getChannels();
+		mMixingBuffer = Buffer( destFramesPerBlock, sourceFormat.getChannels() );
+	}
+	else
+		numResamplers = mSourceFormat.getChannels();
+
+	mBufferd = BufferT<double>( sourceFormat.getFramesPerBlock(), numResamplers );
+
 	for( size_t ch = 0; ch < numResamplers; ch++ )
 		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceFormat.getSampleRate(), (const double)mDestFormat.getSampleRate(), (const int)mSourceFormat.getFramesPerBlock() ) ) );
 }
@@ -51,30 +67,27 @@ ConverterImplR8brain::~ConverterImplR8brain()
 
 std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	CI_ASSERT( sourceBuffer->getNumChannels() == destBuffer->getNumChannels() ); // TODO: channel conversion
-	CI_ASSERT( sourceBuffer->getSize() == mBufferd.getSize() );
+	CI_ASSERT( sourceBuffer->getNumChannels() <= destBuffer->getNumChannels() ); // TODO: handle upmixing
 
-	mBufferd.copy( *sourceBuffer );
+	// if downmixing, do it first so there is less resampling
+	if( mSourceFormat.getChannels() > mDestFormat.getChannels() ) {
+		submixBuffers( sourceBuffer, &mMixingBuffer );
+		mBufferd.copy( mMixingBuffer );
+	}
+	else
+		mBufferd.copy( *sourceBuffer );
 
-	int readCount = static_cast<int>( mBufferd.getNumFrames() );
+
+	int readCount = (int)mBufferd.getNumFrames();
 
 	int outCount = 0;
-	for( size_t ch = 0; ch < destBuffer->getNumChannels(); ch++ ) {
+	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;
 		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
 		copy( out, out + outCount, destBuffer->getChannel( ch ) );
 	}
 
 	return make_pair( readCount, (size_t)outCount );
-}
-
-// TODO: make a simple test here that doesn't use audio2::Buffer
-// - need to localize what is causing the malloc error
-void ConverterImplR8brain::test()
-{
-	vector<double> inSamples( 512 );
-	for( size_t i = 0; i < inSamples.size(); i++ )
-		inSamples[i] = i + 1;
 }
 
 } } // namespace cinder::audio2
