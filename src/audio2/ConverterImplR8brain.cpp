@@ -22,6 +22,8 @@
  */
 
 #include "audio2/ConverterImplR8brain.h"
+#include "audio2/Debug.h"
+
 #include "r8brain/CDSPResampler.h"
 
 #include <algorithm>
@@ -56,8 +58,11 @@ ConverterImplR8brain::ConverterImplR8brain( size_t sourceSampleRate, size_t dest
 
 	mBufferd = BufferT<double>( mSourceMaxFramesPerBlock, numResamplers );
 
-	for( size_t ch = 0; ch < numResamplers; ch++ )
+	for( size_t ch = 0; ch < numResamplers; ch++ ) {
 		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceSampleRate, (const double)mDestSampleRate, (const int)mSourceMaxFramesPerBlock ) ) );
+		LOG_V << "getInLenBeforeOutStart: " << mResamplers[ch]->getInLenBeforeOutStart() << endl;
+	}
+
 }
 
 ConverterImplR8brain::~ConverterImplR8brain()
@@ -71,7 +76,11 @@ std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuf
 
 	int readCount = (int)sourceBuffer->getNumFrames();
 
-	if( mSourceNumChannels == mDestNumChannels )
+	if( mSourceSampleRate == mDestSampleRate ) {
+		submixBuffers( sourceBuffer, destBuffer, readCount );
+		return make_pair( readCount, readCount );
+	}
+	else if( mSourceNumChannels == mDestNumChannels )
 		return convertImpl( sourceBuffer, destBuffer, readCount );
 	else if( mSourceNumChannels > mDestNumChannels )
 		return convertImplDownMixing( sourceBuffer, destBuffer, readCount );
@@ -120,7 +129,7 @@ std::pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffe
 		copy( out, out + outCount, mMixingBuffer.getChannel( ch ) );
 	}
 
-	submixBuffers( &mMixingBuffer, destBuffer );
+	submixBuffers( &mMixingBuffer, destBuffer, outCount );
 
 	return make_pair( readCount, (size_t)outCount );
 }
