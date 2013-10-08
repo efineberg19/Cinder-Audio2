@@ -41,7 +41,9 @@ public:
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
 	//! Sums \a sourceBuffer into \a destBuffer, applying channel up or down mixing as necessary. Unequal frame counts are permitted (the minimum size will be used).
-	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
+	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ submixBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
+	//! Sums \a numFrames frames of \a sourceBuffer into \a destBuffer, applying channel up or down mixing as necessary.
+	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
 
 	size_t getSourceSampleRate() const			{ return mSourceSampleRate; }
 	size_t getDestSampleRate() const			{ return mDestSampleRate; }

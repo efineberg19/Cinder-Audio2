@@ -57,11 +57,11 @@ Converter::Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sou
 	mDestMaxFramesPerBlock = std::ceil( (float)mSourceMaxFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
 }
 
-void Converter::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )
+void Converter::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
 {
 	size_t sourceChannels = sourceBuffer->getNumChannels();
 	size_t destChannels = destBuffer->getNumChannels();
-	size_t numFrames = min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() );
+
 	if( destChannels == sourceBuffer->getNumChannels() ) {
 		for( size_t c = 0; c < destChannels; c++ )
 			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( c ), destBuffer->getChannel( c ), numFrames );
