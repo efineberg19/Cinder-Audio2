@@ -31,6 +31,12 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
+// Notes on how to make r8brain run a little faster, if needed:
+// For a fair comparison you may also decrease ReqTransBand and increase ReqAtten if necessary - this won't make r8brain-free-src much slower.
+// http://www.kvraudio.com/forum/viewtopic.php?t=389711&postdays=0&postorder=asc&start=30
+//
+//	The basic formula for ReqAtten is something close to 6.02*BitDepth+40. The ReqTransBand selection depends on how "greedy" you are for the highest frequencies. It's set to 2% by default, but in practice you can use 4 or 5, that still leaves a lot of frequency content (flat up to 21kHz for 44.1k audio).
+
 ConverterImplR8brain::ConverterImplR8brain( const Format &sourceFormat, const Format &destFormat )
 	: Converter( sourceFormat, destFormat ), mBufferd( sourceFormat.getFramesPerBlock(), sourceFormat.getChannels() )
 {

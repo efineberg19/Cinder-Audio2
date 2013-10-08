@@ -340,11 +340,10 @@ public:
 
 	int process( const double* ip, double* const op0, int l )
 	{
-		double* op = op0;
-
 		R8BASSERT( l >= 0 );
 		R8BASSERT( ip != op || l == 0 );
 
+		double* op = op0;
 
 		while( l > 0 )
 		{

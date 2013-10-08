@@ -16,8 +16,6 @@
 #ifndef R8BCONF_INCLUDED
 #define R8BCONF_INCLUDED
 
-#include "audio2/CinderAssert.h"
-
 #if defined( _WIN32 ) || defined( _WIN64 )
 	#define R8B_WIN 1
 #elif defined( __APPLE__ )
