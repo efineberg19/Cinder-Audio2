@@ -119,7 +119,7 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 	//if( mReadPos != 0 )
 	//	seek( 0 );
 
-	DynamicBufferRef result( new DynamicBuffer( mNumFrames, mNumChannels ) );
+	BufferDynamicRef result( new BufferDynamic( mNumFrames, mNumChannels ) );
 
 	size_t numFramesRead = 0;
 	while( numFramesRead != mNumFrames ) {

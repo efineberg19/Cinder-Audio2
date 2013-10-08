@@ -297,7 +297,7 @@ void Node::configureConnections()
 	initializeImpl();
 }
 
-// TODO: reallocations could be made more efficient by using DynamicBuffer
+// TODO: reallocations could be made more efficient by using BufferDynamic
 void Node::setProcessWithSumming()
 {
 	CI_ASSERT( getContext() );

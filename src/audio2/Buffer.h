@@ -150,12 +150,12 @@ public:
 	using BufferBaseT<T>::zero;
 };
 
-//! DynamicBufferT is a resizable BufferT
+//! BufferDynamicT is a resizable BufferT
 // TODO: enable move operator to convert BufferT to this
 template <typename T>
-class DynamicBufferT : public BufferT<T> {
+class BufferDynamicT : public BufferT<T> {
   public:
-	  DynamicBufferT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferT<T>( numFrames, numChannels ) {}
+	  BufferDynamicT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferT<T>( numFrames, numChannels ) {}
 
 	void resize( size_t numFrames, size_t numChannels ) {
 		BufferT<T>::mNumFrames = numFrames;
@@ -227,11 +227,11 @@ typedef std::unique_ptr<float, FreeDeleter<float>> AlignedArrayPtr;
 typedef BufferT<float>				Buffer;
 typedef BufferInterleavedT<float>	BufferInterleaved;
 typedef BufferSpectralT<float>		BufferSpectral;
-typedef DynamicBufferT<float>		DynamicBuffer;
+typedef BufferDynamicT<float>		BufferDynamic;
 
 typedef std::shared_ptr<Buffer>				BufferRef;
 typedef std::shared_ptr<BufferInterleaved>	BufferInterleavedRef;
 typedef std::shared_ptr<BufferSpectral>		BufferSpectralRef;
-typedef std::shared_ptr<DynamicBuffer>		DynamicBufferRef;
+typedef std::shared_ptr<BufferDynamic>		BufferDynamicRef;
 
 } } // namespace cinder::audio2
