@@ -68,6 +68,8 @@ void FileNodeTestApp::setup()
 
 
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
+	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
+
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
 	setupBufferPlayer();
@@ -199,13 +201,14 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 	LOG_V << "File dropped: " << filePath << endl;
 
 	DataSourceRef dataSource = loadFile( filePath );
-	mSourceFile = SourceFile::create( dataSource, mSourceFile->getNumChannels(), mContext->getSampleRate() );
+	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
 	bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
 	mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
 
 	LOG_V << "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() << endl;
+	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 }
 
 
