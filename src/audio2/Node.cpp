@@ -130,7 +130,8 @@ void Node::setInput( const NodeRef &input, size_t bus )
 	// TODO: this disconnection kills nodes that are solely owned by the graph. but make sure not disconnecting works out.
 	//NodeRef& existingInput = mInputs[bus];
 	//if( existingInput )
-	//	existingInput->disconnect();
+	//	existingInput->disconnect();
+
 	{
 		lock_guard<mutex> lock( getContext()->getMutex() );
 
@@ -187,16 +188,16 @@ void Node::pullInputs( Buffer *outputBuffer )
 
 			input->pullInputs( &mInternalBuffer );
 			if( input->getProcessInPlace() )
-				submixBuffers( &mSummingBuffer, &mInternalBuffer );
+				submixBuffers( &mInternalBuffer, &mSummingBuffer );
 			else
-				submixBuffers( &mSummingBuffer, input->getInternalBuffer() );
+				submixBuffers( input->getInternalBuffer(), &mSummingBuffer );
 		}
 
 		if( mEnabled )
 			process( &mSummingBuffer );
 
 		outputBuffer->zero();
-		submixBuffers( outputBuffer, &mSummingBuffer );
+		submixBuffers( &mSummingBuffer, outputBuffer );
 	}
 }
 
@@ -310,13 +311,12 @@ void Node::setProcessWithSumming()
 	mInternalBuffer = Buffer( framesPerBlock, mNumChannels );
 }
 
-// TODO: I need 2 of these, one for summing and one for copying
-void Node::submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer )
+void Node::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	CI_ASSERT( destBuffer->getNumFrames() == sourceBuffer->getNumFrames() );
+	CI_ASSERT( sourceBuffer->getNumFrames() == destBuffer->getNumFrames() );
 
-	size_t destChannels = destBuffer->getNumChannels();
 	size_t sourceChannels = sourceBuffer->getNumChannels();
+	size_t destChannels = destBuffer->getNumChannels();
 	if( destChannels == sourceBuffer->getNumChannels() ) {
 		for( size_t c = 0; c < destChannels; c++ )
 			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( c ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );

@@ -130,7 +130,7 @@ class Node : public std::enable_shared_from_this<Node> {
   protected:
 
 	virtual void configureConnections();
-	virtual void submixBuffers( Buffer *destBuffer, const Buffer *sourceBuffer );
+	virtual void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 
 	void setProcessWithSumming();
 
