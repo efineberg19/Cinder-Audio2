@@ -33,7 +33,7 @@ class Converter {
 public:
 
 	//! If \a destSampleRate is 0, it is set to match \a sourceSampleRate. If \a destNumChannels is 0, it is set to match \a sourceNumChannels.
-	static std::unique_ptr<Converter> create( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock );
+	static std::unique_ptr<Converter> create( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
 
 	virtual ~Converter() {}
 
@@ -42,16 +42,17 @@ public:
 
 	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 
-	size_t getSourceSampleRate() const		{ return mSourceSampleRate; }
-	size_t getDestSampleRate() const		{ return mDestSampleRate; }
-	size_t getSourceNumChannels() const		{ return mSourceNumChannels; }
-	size_t getDestNumChannels() const		{ return mDestNumChannels; }
-	size_t getSourceFramesPerBlock() const	{ return mSourceFramesPerBlock; }
+	size_t getSourceSampleRate() const			{ return mSourceSampleRate; }
+	size_t getDestSampleRate() const			{ return mDestSampleRate; }
+	size_t getSourceNumChannels() const			{ return mSourceNumChannels; }
+	size_t getDestNumChannels() const			{ return mDestNumChannels; }
+	size_t getSourceMaxFramesPerBlock() const	{ return mSourceMaxFramesPerBlock; }
+	size_t getDestMaxFramesPerBlock() const	{ return mDestMaxFramesPerBlock; }
 
 protected:
-	Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock );
+	Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
 
-	size_t mSourceSampleRate, mDestSampleRate, mSourceNumChannels, mDestNumChannels, mSourceFramesPerBlock;
+	size_t mSourceSampleRate, mDestSampleRate, mSourceNumChannels, mDestNumChannels, mSourceMaxFramesPerBlock, mDestMaxFramesPerBlock;
 };
 
 } } // namespace cinder::audio2

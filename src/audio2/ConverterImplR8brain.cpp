@@ -37,50 +37,52 @@ namespace cinder { namespace audio2 {
 //
 //	The basic formula for ReqAtten is something close to 6.02*BitDepth+40. The ReqTransBand selection depends on how "greedy" you are for the highest frequencies. It's set to 2% by default, but in practice you can use 4 or 5, that still leaves a lot of frequency content (flat up to 21kHz for 44.1k audio).
 
-ConverterImplR8brain::ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock )
-	: Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceFramesPerBlock )
+ConverterImplR8brain::ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
+	: Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock )
 {
 	size_t numResamplers;
 	if( mSourceNumChannels > mDestNumChannels ) {
 		// downmixing, resample dest channels -> source channels
 		numResamplers = mDestNumChannels;
-		mMixingBuffer = Buffer( mSourceFramesPerBlock, mDestNumChannels );
+		mMixingBuffer = Buffer( mSourceMaxFramesPerBlock, mDestNumChannels );
 	}
 	else if( mSourceNumChannels < mDestNumChannels ) {
 		// upmixing, resample source channels
-		size_t destFramesPerBlock = ceil( (float)mSourceFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
 		numResamplers = mSourceNumChannels;
-		mMixingBuffer = Buffer( destFramesPerBlock, mSourceNumChannels );
+		mMixingBuffer = Buffer( mDestMaxFramesPerBlock, mSourceNumChannels );
 	}
 	else
 		numResamplers = mSourceNumChannels;
 
-	mBufferd = BufferT<double>( mSourceFramesPerBlock, numResamplers );
+	mBufferd = BufferT<double>( mSourceMaxFramesPerBlock, numResamplers );
 
 	for( size_t ch = 0; ch < numResamplers; ch++ )
-		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceSampleRate, (const double)mDestSampleRate, (const int)mSourceFramesPerBlock ) ) );
+		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceSampleRate, (const double)mDestSampleRate, (const int)mSourceMaxFramesPerBlock ) ) );
 }
 
 ConverterImplR8brain::~ConverterImplR8brain()
 {
 }
 
-// TODO: assert all params are possible
+// note that in the following methods, sourceBuffer may have less frames than mBufferd, which is common at EOF. Its okay, but make sure readCount reflects this
 std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	if( mSourceNumChannels == mDestNumChannels )
-		return convertImpl( sourceBuffer, destBuffer );
-	else if( mSourceNumChannels > mDestNumChannels )
-		return convertImplDownMixing( sourceBuffer, destBuffer );
+	CI_ASSERT( sourceBuffer->getNumFrames() <= mSourceMaxFramesPerBlock && destBuffer->getNumFrames() <= mDestMaxFramesPerBlock );
 
-	return convertImplUpMixing( sourceBuffer, destBuffer );
+	int readCount = (int)sourceBuffer->getNumFrames();
+
+	if( mSourceNumChannels == mDestNumChannels )
+		return convertImpl( sourceBuffer, destBuffer, readCount );
+	else if( mSourceNumChannels > mDestNumChannels )
+		return convertImplDownMixing( sourceBuffer, destBuffer, readCount );
+
+	return convertImplUpMixing( sourceBuffer, destBuffer, readCount );
 }
 
-std::pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
+std::pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mBufferd.copy( *sourceBuffer );
 
-	int readCount = (int)mBufferd.getNumFrames();
 	int outCount = 0;
 	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;
@@ -91,12 +93,11 @@ std::pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourc
 	return make_pair( readCount, (size_t)outCount );
 }
 
-std::pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer )
+std::pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	submixBuffers( sourceBuffer, &mMixingBuffer );
 	mBufferd.copy( mMixingBuffer );
 
-	int readCount = (int)mBufferd.getNumFrames();
 	int outCount = 0;
 	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;
@@ -108,11 +109,10 @@ std::pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buf
 }
 
 // FIXME: got the wobbles...
-std::pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer )
+std::pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mBufferd.copy( *sourceBuffer );
 
-	int readCount = (int)mBufferd.getNumFrames();
 	int outCount = 0;
 	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;

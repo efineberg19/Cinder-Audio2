@@ -37,15 +37,15 @@ namespace cinder { namespace audio2 {
 class ConverterImplR8brain : public Converter {
   public:
 
-	ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock );
+	ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
 	virtual ~ConverterImplR8brain();
 
 	std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
   private:
-	std::pair<size_t, size_t> convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer );
-	std::pair<size_t, size_t> convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer );
-	std::pair<size_t, size_t> convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer );
+	std::pair<size_t, size_t> convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount );
+	std::pair<size_t, size_t> convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount );
+	std::pair<size_t, size_t> convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount );
 
 	std::vector<std::unique_ptr<r8b::CDSPResampler24> > mResamplers;
 	BufferT<double> mBufferd;

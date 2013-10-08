@@ -255,18 +255,14 @@ void FileNodeTestApp::testConverter()
 
 	size_t destSampleRate = 48000;
 	size_t destChannels = 0;
-	size_t sourceFramesPerBlock = 2048;
-	auto converter = Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceFramesPerBlock );
+	size_t sourceMaxFramesPerBlock = 2048;
+	auto converter = Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceMaxFramesPerBlock );
 
+	LOG_V << "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceMaxFramesPerBlock() << endl;
+	LOG_V << "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << converter->getDestMaxFramesPerBlock() << endl;
 
-	// TODO: set this in converter? being used in r8brain constructor already
-	size_t destFramesPerBlock = ceil( (float)sourceFramesPerBlock * (float)destSampleRate / (float)mSourceFile->getSampleRate() );
-
-	LOG_V << "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceFramesPerBlock() << endl;
-	LOG_V << "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << destFramesPerBlock << endl;
-
-	audio2::Buffer sourceBuffer( converter->getSourceFramesPerBlock(), converter->getSourceNumChannels() );
-	audio2::Buffer destBuffer( destFramesPerBlock, converter->getDestNumChannels() );
+	audio2::BufferDynamic sourceBuffer( converter->getSourceMaxFramesPerBlock(), converter->getSourceNumChannels() );
+	audio2::Buffer destBuffer( converter->getDestMaxFramesPerBlock(), converter->getDestNumChannels() );
 
 	TargetFileRef target = TargetFile::create( "resampled.wav", converter->getDestSampleRate(), converter->getDestNumChannels() );
 
@@ -275,8 +271,19 @@ void FileNodeTestApp::testConverter()
 	Timer timer( true );
 
 	while( numFramesConverted < audioBuffer->getNumFrames() ) {
-		for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
-			copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceFramesPerBlock, sourceBuffer.getChannel( ch ) );
+
+		if( audioBuffer->getNumFrames() - numFramesConverted > sourceMaxFramesPerBlock ) {
+			for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
+				copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceMaxFramesPerBlock, sourceBuffer.getChannel( ch ) );
+		}
+		else {
+			// EOF, shrink sourceBuffer to match remaining
+			size_t framesRemaining = audioBuffer->getNumFrames() - numFramesConverted;
+			sourceBuffer.resize( framesRemaining, sourceBuffer.getNumChannels() );
+			for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
+				copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + audioBuffer->getNumFrames(), sourceBuffer.getChannel( ch ) );
+		}
+
 
 		pair<size_t, size_t> result = converter->convert( &sourceBuffer, &destBuffer );
 		numFramesConverted += result.first;

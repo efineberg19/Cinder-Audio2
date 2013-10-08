@@ -33,8 +33,8 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // MARK: - ConverterImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock )
-: Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceFramesPerBlock ), mAudioConverter( nullptr )
+ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
+: Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ), mAudioConverter( nullptr )
 {
 	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceNumChannels, mSourceSampleRate );
 	::AudioStreamBasicDescription destAsbd = createFloatAsbd( mDestNumChannels, mDestSampleRate );
