@@ -30,6 +30,11 @@
 #include <memory>
 #include <cstdlib>
 
+// TODO: It'd be nice to have a 'BufferView' or similar functionality
+// - would not own the internal buffer, but would point to another one, with offset + size
+// - alt. would be for BufferBaseT to take an alternate constructor
+//		- requires T* as data storage gain, which is also necessary to ensure 16byte alignment
+
 namespace cinder { namespace audio2 {
 
 //! Audio buffer that stores channels of type \a T in contiguous arrays.
