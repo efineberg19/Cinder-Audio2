@@ -37,28 +37,28 @@ namespace cinder { namespace audio2 {
 //
 //	The basic formula for ReqAtten is something close to 6.02*BitDepth+40. The ReqTransBand selection depends on how "greedy" you are for the highest frequencies. It's set to 2% by default, but in practice you can use 4 or 5, that still leaves a lot of frequency content (flat up to 21kHz for 44.1k audio).
 
-ConverterImplR8brain::ConverterImplR8brain( const Format &sourceFormat, const Format &destFormat )
-	: Converter( sourceFormat, destFormat )
+ConverterImplR8brain::ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock )
+	: Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceFramesPerBlock )
 {
 	size_t numResamplers;
-	if( mSourceFormat.getChannels() > mDestFormat.getChannels() ) {
+	if( mSourceNumChannels > mDestNumChannels ) {
 		// downmixing, resample dest channels -> source channels
-		numResamplers = mDestFormat.getChannels();
-		mMixingBuffer = Buffer( sourceFormat.getFramesPerBlock(), destFormat.getChannels() );
+		numResamplers = mDestNumChannels;
+		mMixingBuffer = Buffer( mSourceFramesPerBlock, mDestNumChannels );
 	}
-	else if( mSourceFormat.getChannels() < mDestFormat.getChannels() ) {
+	else if( mSourceNumChannels < mDestNumChannels ) {
 		// upmixing, resample source channels
-		size_t destFramesPerBlock = ceil( (float)sourceFormat.getFramesPerBlock() * (float)destFormat.getSampleRate() / (float)sourceFormat.getSampleRate() );
-		numResamplers = mSourceFormat.getChannels();
-		mMixingBuffer = Buffer( destFramesPerBlock, sourceFormat.getChannels() );
+		size_t destFramesPerBlock = ceil( (float)mSourceFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
+		numResamplers = mSourceNumChannels;
+		mMixingBuffer = Buffer( destFramesPerBlock, mSourceNumChannels );
 	}
 	else
-		numResamplers = mSourceFormat.getChannels();
+		numResamplers = mSourceNumChannels;
 
-	mBufferd = BufferT<double>( sourceFormat.getFramesPerBlock(), numResamplers );
+	mBufferd = BufferT<double>( mSourceFramesPerBlock, numResamplers );
 
 	for( size_t ch = 0; ch < numResamplers; ch++ )
-		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceFormat.getSampleRate(), (const double)mDestFormat.getSampleRate(), (const int)mSourceFormat.getFramesPerBlock() ) ) );
+		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceSampleRate, (const double)mDestSampleRate, (const int)mSourceFramesPerBlock ) ) );
 }
 
 ConverterImplR8brain::~ConverterImplR8brain()
@@ -68,9 +68,9 @@ ConverterImplR8brain::~ConverterImplR8brain()
 // TODO: assert all params are possible
 std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	if( mSourceFormat.getChannels() == mDestFormat.getChannels() )
-		convertImpl( sourceBuffer, destBuffer );
-	else if( mSourceFormat.getChannels() > mDestFormat.getChannels() )
+	if( mSourceNumChannels == mDestNumChannels )
+		return convertImpl( sourceBuffer, destBuffer );
+	else if( mSourceNumChannels > mDestNumChannels )
 		return convertImplDownMixing( sourceBuffer, destBuffer );
 
 	return convertImplUpMixing( sourceBuffer, destBuffer );

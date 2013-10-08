@@ -33,11 +33,11 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // MARK: - ConverterImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-ConverterImplCoreAudio::ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat )
-: Converter( sourceFormat, destFormat ), mAudioConverter( nullptr )
+ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock )
+: Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceFramesPerBlock ), mAudioConverter( nullptr )
 {
-	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceFormat.getChannels(), mSourceFormat.getSampleRate() );
-	::AudioStreamBasicDescription destAsbd = createFloatAsbd( mDestFormat.getChannels(), mDestFormat.getSampleRate() );
+	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceNumChannels, mSourceSampleRate );
+	::AudioStreamBasicDescription destAsbd = createFloatAsbd( mDestNumChannels, mDestSampleRate );
 
 	OSStatus status = ::AudioConverterNew( &sourceAsbd, &destAsbd, &mAudioConverter );
 	CI_ASSERT( status == noErr );
@@ -49,7 +49,7 @@ ConverterImplCoreAudio::ConverterImplCoreAudio( const Format &sourceFormat, cons
 
 	LOG_V << "max packet size: " << maxPacketSize << endl;
 
-	mOutputBufferList = createNonInterleavedBufferListShallow( mDestFormat.getChannels() );
+	mOutputBufferList = createNonInterleavedBufferListShallow( mDestNumChannels );
 }
 
 ConverterImplCoreAudio::~ConverterImplCoreAudio()
@@ -62,9 +62,9 @@ ConverterImplCoreAudio::~ConverterImplCoreAudio()
 
 pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceFormat.getChannels() && destBuffer->getNumChannels() == mDestFormat.getChannels() );
+	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
 
-	if( mSourceFormat.getSampleRate() == mDestFormat.getSampleRate() ) {
+	if( mSourceSampleRate == mDestSampleRate ) {
 		convertImplSimple( sourceBuffer, destBuffer );
 		return make_pair( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() );
 	}
@@ -90,7 +90,7 @@ pair<size_t,size_t> ConverterImplCoreAudio::convertImplComplex( const Buffer *so
 	mSourceBuffer = sourceBuffer;
 	mNumSourceBufferFramesUsed = 0;
 
-	for( int ch = 0; ch < mDestFormat.getChannels(); ch++ ) {
+	for( int ch = 0; ch < mDestNumChannels; ch++ ) {
 		mOutputBufferList->mBuffers[ch].mDataByteSize = (UInt32)destBuffer->getSize() * sizeof( float );
 		mOutputBufferList->mBuffers[ch].mData = (void *)destBuffer->getChannel( ch );
 	}

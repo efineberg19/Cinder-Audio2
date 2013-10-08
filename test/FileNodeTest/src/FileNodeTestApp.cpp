@@ -63,9 +63,8 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 	
-	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
-//	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
-//	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 
 
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
@@ -254,31 +253,30 @@ void FileNodeTestApp::testConverter()
 {
 	BufferRef audioBuffer = mSourceFile->loadBuffer();
 
-	auto sourceFormat = Converter::Format().sampleRate( mSourceFile->getSampleRate() ).channels( mSourceFile->getNumChannels() ).framesPerBlock( 512 );
-//	auto destFormat = Converter::Format().sampleRate( 48000 ).channels( mSourceFile->getNumChannels() );
-	auto destFormat = Converter::Format().sampleRate( 48000 ).channels( 2 );
+	size_t destSampleRate = 48000;
+	size_t destChannels = 0;
+	size_t sourceFramesPerBlock = 2048;
+	auto converter = Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceFramesPerBlock );
+
 
 	// TODO: set this in converter? being used in r8brain constructor already
-	size_t destFramesPerBlock = ceil( (float)sourceFormat.getFramesPerBlock() * (float)destFormat.getSampleRate() / (float)sourceFormat.getSampleRate() );
+	size_t destFramesPerBlock = ceil( (float)sourceFramesPerBlock * (float)destSampleRate / (float)mSourceFile->getSampleRate() );
 
-	LOG_V << "converting from:" << endl;
-	console() << "\tsamplerate: " << sourceFormat.getSampleRate() << ", channels: " << sourceFormat.getChannels() << ", frames per block: " << sourceFormat.getFramesPerBlock() << endl;
-	LOG_V << "to:" << endl;
-	console() << "\tsamplerate: " << destFormat.getSampleRate() << ", channels: " << destFormat.getChannels() << ", frames per block: " << destFramesPerBlock << endl;
+	LOG_V << "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceFramesPerBlock() << endl;
+	LOG_V << "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << destFramesPerBlock << endl;
 
-	audio2::Buffer sourceBuffer( sourceFormat.getFramesPerBlock(), sourceFormat.getChannels() );
-	audio2::Buffer destBuffer( destFramesPerBlock, destFormat.getChannels() );
+	audio2::Buffer sourceBuffer( converter->getSourceFramesPerBlock(), converter->getSourceNumChannels() );
+	audio2::Buffer destBuffer( destFramesPerBlock, converter->getDestNumChannels() );
 
-	TargetFileRef target = TargetFile::create( "resampled.wav", destFormat.getSampleRate(), destFormat.getChannels() );
+	TargetFileRef target = TargetFile::create( "resampled.wav", converter->getDestSampleRate(), converter->getDestNumChannels() );
 
-	auto converter = Converter::create( sourceFormat, destFormat );
 	size_t numFramesConverted = 0;
 
 	Timer timer( true );
 
 	while( numFramesConverted < audioBuffer->getNumFrames() ) {
 		for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
-			copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceFormat.getFramesPerBlock(), sourceBuffer.getChannel( ch ) );
+			copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceFramesPerBlock, sourceBuffer.getChannel( ch ) );
 
 		pair<size_t, size_t> result = converter->convert( &sourceBuffer, &destBuffer );
 		numFramesConverted += result.first;

@@ -89,7 +89,7 @@ inline void zeroBufferList( const ::AudioBufferList *bufferList )
 
 class ConverterImplCoreAudio : public Converter {
 public:
-	ConverterImplCoreAudio( const Format &sourceFormat, const Format &destFormat );
+	ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock );
 	virtual ~ConverterImplCoreAudio();
 
 	virtual std::pair<size_t,size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;

@@ -35,25 +35,24 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
-unique_ptr<Converter> Converter::create( const Format &sourceFormat, const Format &destFormat )
+unique_ptr<Converter> Converter::create( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock )
 {
 #if defined( CINDER_COCOA )
-	return unique_ptr<Converter>( new cocoa::ConverterImplCoreAudio( sourceFormat, destFormat ) );
+	return unique_ptr<Converter>( new cocoa::ConverterImplCoreAudio( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceFramesPerBlock ) );
 #else
-	return unique_ptr<Converter>( new ConverterImplR8brain( sourceFormat, destFormat ) );
+	return unique_ptr<Converter>( new ConverterImplR8brain( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceFramesPerBlock ) );
 #endif
 }
 
-Converter::Converter( const Format &sourceFormat, const Format &destFormat )
-	: mSourceFormat( sourceFormat ), mDestFormat( destFormat )
+Converter::Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock )
+	: mSourceSampleRate( sourceSampleRate ), mDestSampleRate( destSampleRate ), mSourceNumChannels( sourceNumChannels ), mDestNumChannels( destNumChannels ), mSourceFramesPerBlock( sourceFramesPerBlock )
 {
-	CI_ASSERT( mSourceFormat.getChannels() && mSourceFormat.getSampleRate() && mSourceFormat.getFramesPerBlock() );
+	CI_ASSERT( mSourceSampleRate && mSourceNumChannels && mSourceFramesPerBlock );
 
-	if( ! mDestFormat.getChannels() )
-		mDestFormat.channels( mSourceFormat.getChannels() );
-	if( ! mDestFormat.getSampleRate() )
-		mDestFormat.channels( mSourceFormat.getChannels() );
-
+	if( ! mDestSampleRate )
+		mDestSampleRate = mSourceSampleRate;
+	if( ! mDestNumChannels )
+		mDestNumChannels = mSourceNumChannels;
 }
 
 void Converter::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )

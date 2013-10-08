@@ -37,7 +37,7 @@ namespace cinder { namespace audio2 {
 class ConverterImplR8brain : public Converter {
   public:
 
-	ConverterImplR8brain( const Format &sourceFormat, const Format &destFormat );
+	ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock );
 	virtual ~ConverterImplR8brain();
 
 	std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;

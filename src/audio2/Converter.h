@@ -31,21 +31,9 @@ namespace cinder { namespace audio2 {
 
 class Converter {
 public:
-	struct Format {
-		Format() : mSampleRate( 0 ), mChannels( 0 ), mFramesPerBlock( 0 )	{}
 
-		Format& sampleRate( size_t sr )			{ mSampleRate = sr; return *this; }
-		Format& channels( size_t ch )			{ mChannels = ch; return *this; }
-		Format& framesPerBlock( size_t frames )	{ mFramesPerBlock = frames; return *this; }
-
-		size_t getSampleRate() const	{ return mSampleRate; }
-		size_t getChannels() const		{ return mChannels; }
-		size_t getFramesPerBlock() const	{ return mFramesPerBlock; }
-	private:
-		size_t mSampleRate, mChannels, mFramesPerBlock;
-	};
-
-	static std::unique_ptr<Converter> create( const Format &sourceFormat, const Format &destFormat );
+	//! If \a destSampleRate is 0, it is set to match \a sourceSampleRate. If \a destNumChannels is 0, it is set to match \a sourceNumChannels.
+	static std::unique_ptr<Converter> create( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock );
 
 	virtual ~Converter() {}
 
@@ -54,10 +42,16 @@ public:
 
 	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 
-protected:
-	Converter( const Format &sourceFormat, const Format &destFormat );
+	size_t getSourceSampleRate() const		{ return mSourceSampleRate; }
+	size_t getDestSampleRate() const		{ return mDestSampleRate; }
+	size_t getSourceNumChannels() const		{ return mSourceNumChannels; }
+	size_t getDestNumChannels() const		{ return mDestNumChannels; }
+	size_t getSourceFramesPerBlock() const	{ return mSourceFramesPerBlock; }
 
-	Format mSourceFormat, mDestFormat;
+protected:
+	Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceFramesPerBlock );
+
+	size_t mSourceSampleRate, mDestSampleRate, mSourceNumChannels, mDestNumChannels, mSourceFramesPerBlock;
 };
 
 } } // namespace cinder::audio2
