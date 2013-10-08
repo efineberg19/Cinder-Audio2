@@ -59,24 +59,23 @@ Converter::Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sou
 
 void Converter::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	CI_ASSERT( sourceBuffer->getNumFrames() == destBuffer->getNumFrames() );
-
 	size_t sourceChannels = sourceBuffer->getNumChannels();
 	size_t destChannels = destBuffer->getNumChannels();
+	size_t numFrames = min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() );
 	if( destChannels == sourceBuffer->getNumChannels() ) {
 		for( size_t c = 0; c < destChannels; c++ )
-			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( c ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
+			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( c ), destBuffer->getChannel( c ), numFrames );
 	}
 	else if( sourceChannels == 1 ) {
 		// up-mix mono sourceBuffer to destChannels
 		for( size_t c = 0; c < destChannels; c++ )
-			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( 0 ), destBuffer->getChannel( c ), destBuffer->getNumFrames() );
+			sum( destBuffer->getChannel( c ), sourceBuffer->getChannel( 0 ), destBuffer->getChannel( c ), numFrames );
 	}
 	else if( destChannels == 1 ) {
 		// down-mix mono destBuffer to sourceChannels
 		// TODO: try equal power fading all channels to center
 		for( size_t c = 0; c < sourceChannels; c++ )
-			sum( destBuffer->getChannel( 0 ), sourceBuffer->getChannel( c ), destBuffer->getChannel( 0 ), destBuffer->getNumFrames() );
+			sum( destBuffer->getChannel( 0 ), sourceBuffer->getChannel( c ), destBuffer->getChannel( 0 ), numFrames );
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );

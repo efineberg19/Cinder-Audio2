@@ -40,6 +40,7 @@ public:
 	//! Returns a \a std::pair<num source frames used, num dest frames written>
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
+	//! Sums \a sourceBuffer into \a destBuffer, applying channel up or down mixing as necessary. Unequal frame counts are permitted (the minimum size will be used).
 	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 
 	size_t getSourceSampleRate() const			{ return mSourceSampleRate; }
