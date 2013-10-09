@@ -162,7 +162,8 @@ class BufferDynamicT : public BufferT<T> {
   public:
 	  BufferDynamicT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferT<T>( numFrames, numChannels ) {}
 
-	void resize( size_t numFrames, size_t numChannels ) {
+	void resize( size_t numFrames, size_t numChannels )
+	{
 		BufferT<T>::mNumFrames = numFrames;
 		BufferT<T>::mNumChannels = numChannels;
 		BufferT<T>::mData.resize( BufferT<T>::mNumFrames * BufferT<T>::mNumChannels );
