@@ -49,23 +49,29 @@ PropT getAudioConverterProperty( ::AudioConverterRef audioConverter, ::AudioConv
 // MARK: - ConverterImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-// FIXME: if mixing down, need to set the channel map accordingly
-
 ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
 : Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ), mAudioConverter( nullptr )
 {
 	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceNumChannels, mSourceSampleRate );
 	::AudioStreamBasicDescription destAsbd = createFloatAsbd( mDestNumChannels, mDestSampleRate );
 
+	if( mSourceNumChannels == 1 && mDestNumChannels > 1 ) {
+		// map mono source to all dest channels
+		vector<UInt32> channelMap( mDestNumChannels, 0 );
+		UInt32 propSize =  (UInt32)mDestNumChannels * sizeof( UInt32 );
+		OSStatus status = ::AudioConverterSetProperty( mAudioConverter, kAudioConverterChannelMap, propSize, channelMap.data() );
+		CI_ASSERT( status == noErr );
+	}
+	else if( mSourceNumChannels > 1 && mDestNumChannels == 1 ) {
+		// setup for diy downmixing: sr conversion but no channel conversion (downmix is first)
+		sourceAsbd = createFloatAsbd( mDestNumChannels, mSourceSampleRate );
+		mMixingBuffer = Buffer( mSourceMaxFramesPerBlock, mDestNumChannels );
+	}
+
 	OSStatus status = ::AudioConverterNew( &sourceAsbd, &destAsbd, &mAudioConverter );
 	CI_ASSERT( status == noErr );
 
-//	UInt32 minInputBufferSize = getAudioConverterProperty<UInt32>( mAudioConverter, kAudioConverterPropertyMinimumInputBufferSize );
-//	UInt32 minOutputBufferSize = getAudioConverterProperty<UInt32>( mAudioConverter, kAudioConverterPropertyMinimumOutputBufferSize );
-//	LOG_V << "minInputBufferSize: " << minInputBufferSize << ", minOutputBufferSize: " << minOutputBufferSize << endl;
-
-//	setChannelMap();
-	mOutputBufferList = createNonInterleavedBufferListShallow( mDestNumChannels ); // TODO: this is only needed for samplerate conversion
+	mOutputBufferList = createNonInterleavedBufferListShallow( mDestNumChannels );
 }
 
 ConverterImplCoreAudio::~ConverterImplCoreAudio()
@@ -79,7 +85,19 @@ ConverterImplCoreAudio::~ConverterImplCoreAudio()
 pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
+	CI_ASSERT( sourceBuffer->getNumFrames() <= mSourceMaxFramesPerBlock && destBuffer->getNumFrames() <= mDestMaxFramesPerBlock );
 
+	if( mSourceNumChannels <= mDestNumChannels )
+		return convertComplexImpl( sourceBuffer, destBuffer );
+	else {
+		// Core Audio doesn't supply down-mixing out of the box, so down-mix first and then resample
+		submixBuffers( sourceBuffer, &mMixingBuffer );
+		return convertComplexImpl( &mMixingBuffer, destBuffer );
+	}
+}
+
+std::pair<size_t,size_t> ConverterImplCoreAudio::convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
+{
 	mSourceBuffer = sourceBuffer;
 	mNumSourceBufferFramesUsed = 0;
 
@@ -122,16 +140,6 @@ OSStatus ConverterImplCoreAudio::converterCallback( ::AudioConverterRef inAudioC
 	return noErr;
 }
 
-void ConverterImplCoreAudio::setChannelMap()
-{
-	if( mSourceNumChannels == 1 && mDestNumChannels == 2 ) {
-		// map mono source to stereo out
-		UInt32 channelMap[2] = { 0, 0 };
-		OSStatus status = ::AudioConverterSetProperty( mAudioConverter, kAudioConverterChannelMap, sizeof( channelMap ), &channelMap );
-		CI_ASSERT( status == noErr );
-	}
-}
-	
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Utility functions
 // ----------------------------------------------------------------------------------------------------

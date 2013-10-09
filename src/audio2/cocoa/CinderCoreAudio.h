@@ -95,10 +95,10 @@ public:
 	virtual std::pair<size_t,size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
 private:
-	void setChannelMap();
-
+	std::pair<size_t,size_t> convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer );
 	static OSStatus converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData);
 
+	Buffer mMixingBuffer;
 	const Buffer *mSourceBuffer;
 	size_t mNumSourceBufferFramesUsed;
 

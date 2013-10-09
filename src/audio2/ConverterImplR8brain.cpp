@@ -72,6 +72,7 @@ ConverterImplR8brain::~ConverterImplR8brain()
 // note that in the following methods, sourceBuffer may have less frames than mBufferd, which is common at EOF. Its okay, but make sure readCount reflects this
 std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
+	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
 	CI_ASSERT( sourceBuffer->getNumFrames() <= mSourceMaxFramesPerBlock && destBuffer->getNumFrames() <= mDestMaxFramesPerBlock );
 
 	int readCount = (int)sourceBuffer->getNumFrames();
