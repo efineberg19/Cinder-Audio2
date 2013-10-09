@@ -62,11 +62,9 @@ float sum( const float *array, size_t length )
 	return result;
 }
 
-// TODO: impl with vDSP
-void sum( const float *arrayA, const float *arrayB, float *result, size_t length )
+void add( const float *arrayA, const float *arrayB, float *result, size_t length )
 {
-	for( size_t i = 0; i < length; ++i )
-		result[i] = arrayA[i] + arrayB[i];
+	vDSP_vadd( arrayA, 1, arrayB, 1, result, 1, length );
 }
 
 float rms( const float *array, size_t length )
@@ -97,7 +95,7 @@ void generateBlackmanWindow( float *window, size_t length )
 	double a2 = 0.5 * alpha;
 	double oneOverN = 1.0 / static_cast<double>( length );
 
-	for( size_t i = 0; i < length; ++i ) {
+	for( size_t i = 0; i < length; i++ ) {
 		double x = static_cast<double>(i) * oneOverN;
 		window[i] = float( a0 - a1 * cos( 2.0 * M_PI * x ) + a2 * cos( 4.0 * M_PI * x ) );
 	}
@@ -127,9 +125,9 @@ float sum( const float *array, size_t length )
 	return result;
 }
 
-void sum( const float *arrayA, const float *arrayB, float *result, size_t length )
+void add( const float *arrayA, const float *arrayB, float *result, size_t length )
 {
-	for( size_t i = 0; i < length; ++i )
+	for( size_t i = 0; i < length; i++ )
 		result[i] = arrayA[i] + arrayB[i];
 }
 
@@ -152,7 +150,7 @@ void multiply( const float *array, float scalar, float *result, size_t length )
 
 void multiply( const float *arrayA, const float *arrayB, float *result, size_t length )
 {
-	for( size_t i = 0; i < length; ++i )
+	for( size_t i = 0; i < length; i++ )
 		result[i] = arrayA[i] * arrayB[i];
 }
 
