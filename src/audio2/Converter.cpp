@@ -72,10 +72,10 @@ void Converter::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, s
 			add( destBuffer->getChannel( c ), sourceBuffer->getChannel( 0 ), destBuffer->getChannel( c ), numFrames );
 	}
 	else if( destChannels == 1 ) {
-		// down-mix mono destBuffer to sourceChannels
-		// TODO: try equal power fading all channels to center
+		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
+		const float kDownMixNormalizer = 1.0f / sqrtf( 2.0f );
 		for( size_t c = 0; c < sourceChannels; c++ )
-			add( destBuffer->getChannel( 0 ), sourceBuffer->getChannel( c ), destBuffer->getChannel( 0 ), numFrames );
+			addMul( destBuffer->getChannel( 0 ), sourceBuffer->getChannel( c ), kDownMixNormalizer, destBuffer->getChannel( 0 ), numFrames );
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );

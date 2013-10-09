@@ -84,6 +84,11 @@ void multiply( const float *arrayA, const float *arrayB, float *result, size_t l
 	vDSP_vmul( arrayA, 1, arrayB, 1, result, 1, length );
 }
 
+void addMul( const float *arrayA, const float *arrayB, float scalar, float *result, size_t length )
+{
+	vDSP_vasm( const_cast<float *>( arrayA ), 1, const_cast<float *>( arrayB ), 1, &scalar, result, 1, length );
+}
+
 #else // ! defined( CINDER_AUDIO_VDSP )
 
 // from WebKit's applyWindow in RealtimeAnalyser.cpp
@@ -152,6 +157,12 @@ void multiply( const float *arrayA, const float *arrayB, float *result, size_t l
 {
 	for( size_t i = 0; i < length; i++ )
 		result[i] = arrayA[i] * arrayB[i];
+}
+
+void addMul( const float *arrayA, const float *arrayB, float scalar, float *result, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		result[i] = ( arrayA[i] + arrayB[i] ) * scalar;
 }
 
 #endif // ! defined( CINDER_AUDIO_VDSP )

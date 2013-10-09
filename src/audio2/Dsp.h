@@ -204,14 +204,16 @@ enum WindowType {
 void generateWindow( WindowType windowType, float *window, size_t length );
 //! fills \a array with value \a value
 void fill( float value, float *array, size_t length );
+//! add \a length elements of \a arrayA and \a arrayB (element-wise) into \a result.
+void add( const float *arrayA, const float *arrayB, float *result, size_t length );
 //! multiplies \a length elements of \a array by \a scalar and leaves the result at \a result.
 void multiply( const float *array, float scalar, float *result, size_t length );
 //! multiplies \a length elements of \a arrayA by \a arrayB and leaves the result at \a result.
 void multiply( const float *arrayA, const float *arrayB, float *result, size_t length );
+//! sums \a length elements of \a arrayA by \a arrayB (element-wise), then scales by \a scalar and leaves the result at \a result.
+void addMul( const float *arrayA, const float *arrayB, float scalar, float *result, size_t length );
 //! returns the sum of \a array
 float sum( const float *array, size_t length );
-//! add \a length elements of \a arrayA and \a arrayB, element-wise, into \a result.
-void add( const float *arrayA, const float *arrayB, float *result, size_t length );
 //! returns the Root-Mean-Squared value of \a array
 float rms( const float *array, size_t length );
 
