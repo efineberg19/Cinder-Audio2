@@ -29,9 +29,27 @@ using namespace ci;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
+namespace {
+
+const OSStatus kErrorNotEnoughEnoughSourceFrames = -2;
+
+template <typename PropT>
+PropT getAudioConverterProperty( ::AudioConverterRef audioConverter, ::AudioConverterPropertyID propertyId )
+{
+	PropT result;
+	UInt32 resultSize = sizeof( result );
+	OSStatus status = ::AudioConverterGetProperty( audioConverter, propertyId, &resultSize, &result );
+	CI_ASSERT( status == noErr );
+	return result;
+}
+
+} // anonymous namespace
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - ConverterImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
+
+// FIXME: if mixing down, need to set the channel map accordingly
 
 ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
 : Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ), mAudioConverter( nullptr )
@@ -42,14 +60,12 @@ ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t 
 	OSStatus status = ::AudioConverterNew( &sourceAsbd, &destAsbd, &mAudioConverter );
 	CI_ASSERT( status == noErr );
 
-	UInt32 maxPacketSize;
-	UInt32 size = sizeof( maxPacketSize );
-	status = ::AudioConverterGetProperty( mAudioConverter, kAudioConverterPropertyMaximumOutputPacketSize, &size, &maxPacketSize );
-	CI_ASSERT( status == noErr );
+//	UInt32 minInputBufferSize = getAudioConverterProperty<UInt32>( mAudioConverter, kAudioConverterPropertyMinimumInputBufferSize );
+//	UInt32 minOutputBufferSize = getAudioConverterProperty<UInt32>( mAudioConverter, kAudioConverterPropertyMinimumOutputBufferSize );
+//	LOG_V << "minInputBufferSize: " << minInputBufferSize << ", minOutputBufferSize: " << minOutputBufferSize << endl;
 
-	LOG_V << "max packet size: " << maxPacketSize << endl;
-
-	mOutputBufferList = createNonInterleavedBufferListShallow( mDestNumChannels );
+//	setChannelMap();
+	mOutputBufferList = createNonInterleavedBufferListShallow( mDestNumChannels ); // TODO: this is only needed for samplerate conversion
 }
 
 ConverterImplCoreAudio::~ConverterImplCoreAudio()
@@ -64,29 +80,6 @@ pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer,
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
 
-	if( mSourceSampleRate == mDestSampleRate ) {
-		convertImplSimple( sourceBuffer, destBuffer );
-		return make_pair( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() );
-	}
-	else
-		return convertImplComplex( sourceBuffer, destBuffer );
-}
-
-void ConverterImplCoreAudio::convertImplSimple( const Buffer *sourceBuffer, Buffer *destBuffer )
-{
-	UInt32 inputDataSize = (UInt32)sourceBuffer->getSize() * sizeof( Buffer::SampleType );
-	UInt32 outputDataSize = (UInt32)destBuffer->getSize() * sizeof( Buffer::SampleType );
-
-	OSStatus status = ::AudioConverterConvertBuffer( mAudioConverter, inputDataSize, sourceBuffer->getData(), &outputDataSize, destBuffer->getData() );
-	CI_ASSERT( status == noErr );
-}
-
-namespace {
-	const OSStatus kErrorNotEnoughEnoughSourceFrames = -2;
-}
-
-pair<size_t,size_t> ConverterImplCoreAudio::convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer )
-{
 	mSourceBuffer = sourceBuffer;
 	mNumSourceBufferFramesUsed = 0;
 
@@ -129,6 +122,16 @@ OSStatus ConverterImplCoreAudio::converterCallback( ::AudioConverterRef inAudioC
 	return noErr;
 }
 
+void ConverterImplCoreAudio::setChannelMap()
+{
+	if( mSourceNumChannels == 1 && mDestNumChannels == 2 ) {
+		// map mono source to stereo out
+		UInt32 channelMap[2] = { 0, 0 };
+		OSStatus status = ::AudioConverterSetProperty( mAudioConverter, kAudioConverterChannelMap, sizeof( channelMap ), &channelMap );
+		CI_ASSERT( status == noErr );
+	}
+}
+	
 // ----------------------------------------------------------------------------------------------------
 // MARK: - Utility functions
 // ----------------------------------------------------------------------------------------------------

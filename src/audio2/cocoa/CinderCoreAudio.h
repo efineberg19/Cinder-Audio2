@@ -95,8 +95,7 @@ public:
 	virtual std::pair<size_t,size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
 private:
-	void convertImplSimple( const Buffer *sourceBuffer, Buffer *destBuffer );
-	std::pair<size_t,size_t> convertImplComplex( const Buffer *sourceBuffer, Buffer *destBuffer );
+	void setChannelMap();
 
 	static OSStatus converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData);
 
@@ -114,6 +113,7 @@ private:
 ::AudioComponentDescription getOutputAudioUnitDesc();
 ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus );
 
+// TODO: remove inline on these, it isn't necessary
 template <typename PropT>
 inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus )
 {
