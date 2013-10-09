@@ -91,7 +91,7 @@ pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer,
 		return convertComplexImpl( sourceBuffer, destBuffer );
 	else {
 		// Core Audio doesn't supply down-mixing out of the box, so down-mix first and then resample
-		submixBuffers( sourceBuffer, &mMixingBuffer );
+		mixBuffers( sourceBuffer, &mMixingBuffer );
 		return convertComplexImpl( &mMixingBuffer, destBuffer );
 	}
 }

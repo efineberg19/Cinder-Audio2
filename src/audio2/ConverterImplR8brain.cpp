@@ -78,7 +78,7 @@ std::pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuf
 	int readCount = (int)sourceBuffer->getNumFrames();
 
 	if( mSourceSampleRate == mDestSampleRate ) {
-		submixBuffers( sourceBuffer, destBuffer, readCount );
+		mixBuffers( sourceBuffer, destBuffer, readCount );
 		return make_pair( readCount, readCount );
 	}
 	else if( mSourceNumChannels == mDestNumChannels )
@@ -105,7 +105,7 @@ std::pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourc
 
 std::pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
-	submixBuffers( sourceBuffer, &mMixingBuffer );
+	mixBuffers( sourceBuffer, &mMixingBuffer );
 	mBufferd.copy( mMixingBuffer );
 
 	int outCount = 0;
@@ -118,7 +118,6 @@ std::pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buf
 	return make_pair( readCount, (size_t)outCount );
 }
 
-// FIXME: got the wobbles...
 std::pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mBufferd.copy( *sourceBuffer );
@@ -130,7 +129,7 @@ std::pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffe
 		copy( out, out + outCount, mMixingBuffer.getChannel( ch ) );
 	}
 
-	submixBuffers( &mMixingBuffer, destBuffer, outCount );
+	mixBuffers( &mMixingBuffer, destBuffer, outCount );
 
 	return make_pair( readCount, (size_t)outCount );
 }

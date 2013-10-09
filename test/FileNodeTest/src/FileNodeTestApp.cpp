@@ -257,8 +257,8 @@ void FileNodeTestApp::testConverter()
 	BufferRef audioBuffer = mSourceFile->loadBuffer();
 
 	size_t destSampleRate = 48000;
-	size_t destChannels = 0;
-	size_t sourceMaxFramesPerBlock = 2048;
+	size_t destChannels = 1;
+	size_t sourceMaxFramesPerBlock = 512;
 	auto converter = Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceMaxFramesPerBlock );
 
 	LOG_V << "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceMaxFramesPerBlock() << endl;

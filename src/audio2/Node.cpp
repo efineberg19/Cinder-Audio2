@@ -189,16 +189,15 @@ void Node::pullInputs( Buffer *outputBuffer )
 
 			input->pullInputs( &mInternalBuffer );
 			if( input->getProcessInPlace() )
-				submixBuffers( &mInternalBuffer, &mSummingBuffer );
+				sumBuffers( &mInternalBuffer, &mSummingBuffer );
 			else
-				submixBuffers( input->getInternalBuffer(), &mSummingBuffer );
+				sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
 		}
 
 		if( mEnabled )
 			process( &mSummingBuffer );
 
-		outputBuffer->zero();
-		submixBuffers( &mSummingBuffer, outputBuffer );
+		mixBuffers( &mSummingBuffer, outputBuffer );
 	}
 }
 
@@ -312,9 +311,14 @@ void Node::setProcessWithSumming()
 	mInternalBuffer = Buffer( framesPerBlock, mNumChannels );
 }
 
-void Node::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )
+void Node::mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
-	Converter::submixBuffers( sourceBuffer, destBuffer );
+	Converter::mixBuffers( sourceBuffer, destBuffer );
+}
+
+void Node::sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )
+{
+	Converter::sumBuffers( sourceBuffer, destBuffer );
 }
 
 bool Node::checkInput( const NodeRef &input )

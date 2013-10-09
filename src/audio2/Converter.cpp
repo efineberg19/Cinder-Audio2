@@ -29,6 +29,7 @@
 	#include "audio2/cocoa/CinderCoreAudio.h"
 #endif
 
+#include <algorithm>
 
 using namespace std;
 using namespace ci;
@@ -57,7 +58,34 @@ Converter::Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sou
 	mDestMaxFramesPerBlock = std::ceil( (float)mSourceMaxFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
 }
 
-void Converter::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
+void Converter::mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
+{
+	size_t sourceChannels = sourceBuffer->getNumChannels();
+	size_t destChannels = destBuffer->getNumChannels();
+
+	if( destChannels == sourceBuffer->getNumChannels() ) {
+		for( size_t c = 0; c < destChannels; c++ )
+			copy( sourceBuffer->getChannel( c ), sourceBuffer->getChannel( c ) + numFrames, destBuffer->getChannel( c ) );
+	}
+	else if( sourceChannels == 1 ) {
+		// up-mix mono sourceBuffer to destChannels
+		const float *sourceChannel0 = sourceBuffer->getChannel( 0 );
+		for( size_t c = 0; c < destChannels; c++ )
+			copy( sourceChannel0, sourceChannel0 + numFrames, destBuffer->getChannel( c ) );
+	}
+	else if( destChannels == 1 ) {
+		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
+		const float kDownMixNormalizer = 1.0f / sqrtf( 2.0f );
+		float *destChannel0 = destBuffer->getChannel( 0 );
+		destBuffer->zero();
+		for( size_t c = 0; c < sourceChannels; c++ )
+			addMul( destChannel0, sourceBuffer->getChannel( c ), kDownMixNormalizer, destChannel0, numFrames );
+	}
+	else
+		CI_ASSERT( 0 && "unhandled" );
+}
+
+void Converter::sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
 {
 	size_t sourceChannels = sourceBuffer->getNumChannels();
 	size_t destChannels = destBuffer->getNumChannels();
@@ -68,14 +96,16 @@ void Converter::submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, s
 	}
 	else if( sourceChannels == 1 ) {
 		// up-mix mono sourceBuffer to destChannels
+		const float *sourceChannel0 = sourceBuffer->getChannel( 0 );
 		for( size_t c = 0; c < destChannels; c++ )
-			add( destBuffer->getChannel( c ), sourceBuffer->getChannel( 0 ), destBuffer->getChannel( c ), numFrames );
+			add( destBuffer->getChannel( c ), sourceChannel0, destBuffer->getChannel( c ), numFrames );
 	}
 	else if( destChannels == 1 ) {
 		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
 		const float kDownMixNormalizer = 1.0f / sqrtf( 2.0f );
+		float *destChannel0 = destBuffer->getChannel( 0 );
 		for( size_t c = 0; c < sourceChannels; c++ )
-			addMul( destBuffer->getChannel( 0 ), sourceBuffer->getChannel( c ), kDownMixNormalizer, destBuffer->getChannel( 0 ), numFrames );
+			addMul( destChannel0, sourceBuffer->getChannel( c ), kDownMixNormalizer, destChannel0, numFrames );
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );

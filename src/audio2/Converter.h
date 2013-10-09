@@ -40,17 +40,22 @@ public:
 	//! Returns a \a std::pair<num source frames used, num dest frames written>
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
-	//! Sums \a sourceBuffer into \a destBuffer, applying channel up or down mixing as necessary. Unequal frame counts are permitted (the minimum size will be used).
-	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ submixBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
-	//! Sums \a numFrames frames of \a sourceBuffer into \a destBuffer, applying channel up or down mixing as necessary.
-	static void submixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
+	//! Mixes \a sourceBuffer to \a destBuffer's layout, replacing its content. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
+	static void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ mixBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
+	//! Mixes \a numFrames frames of \a sourceBuffer to \a destBuffer's layout, replacing its content. Channel up or down mixing is applied if necessary.
+	static void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
+
+	//! Sums \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
+	static void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ sumBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
+	//! Sums \a numFrames frames of \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary.
+	static void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
 
 	size_t getSourceSampleRate() const			{ return mSourceSampleRate; }
 	size_t getDestSampleRate() const			{ return mDestSampleRate; }
 	size_t getSourceNumChannels() const			{ return mSourceNumChannels; }
 	size_t getDestNumChannels() const			{ return mDestNumChannels; }
 	size_t getSourceMaxFramesPerBlock() const	{ return mSourceMaxFramesPerBlock; }
-	size_t getDestMaxFramesPerBlock() const	{ return mDestMaxFramesPerBlock; }
+	size_t getDestMaxFramesPerBlock() const		{ return mDestMaxFramesPerBlock; }
 
 protected:
 	Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
