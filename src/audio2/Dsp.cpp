@@ -52,7 +52,7 @@ void generateHannWindow( float *window, size_t length )
 
 void fill( float value, float *array, size_t length )
 {
-	vDSP_vfill( array, array, value, length );
+	vDSP_vfill( &value, array, 1, length );
 }
 
 float sum( const float *array, size_t length )
