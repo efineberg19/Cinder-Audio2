@@ -43,11 +43,12 @@ void NodeGain::process( Buffer *buffer )
 	multiply( buffer->getData(), mGain, buffer->getData(), buffer->getSize() );
 }
 
-// TODO: this is the first case where it makes sense to have # input channels != # output channels - worth supporting?
-
 NodePan2d::NodePan2d( const Format &format )
 : NodeEffect( format ), mPos( 0.5f )
 {
+	// TODO: this is the first case where it makes sense to have # input channels != # output channels - worth supporting?
+	// - one possibility is to override the appropriate Node methods so process() gets a stereo buffer with only the first channel filled.
+	// - only other possibility is for process to receive two Buffer pointers, one for in and one for out... ugh.
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 2 );
 }
@@ -60,16 +61,39 @@ void NodePan2d::setPos( float pos )
 // equal power panning eq:
 // left = cos(p) * signal, right = sin(p) * signal, where p is in radians from 0 to PI/2
 // gives +3db when panned to center, which helps to remove the 'dead spot'
-//
-// FIXME: this isn't appropriate for stereo panning, its just silencing one channel and blasting the other
 void NodePan2d::process( Buffer *buffer )
 {
-	float posRadians = mPos * M_PI / 2.0f;
+	float pos = mPos;
 	float *leftChannel = buffer->getChannel( 0 );
 	float *rightChannel = buffer->getChannel( 1 );
 
-	multiply( leftChannel, std::cos( posRadians ), leftChannel, buffer->getNumFrames() );
-	multiply( rightChannel, std::sin( posRadians ), rightChannel, buffer->getNumFrames() );
+	float posRadians = pos * M_PI / 2.0f;
+	float leftGain = std::cos( posRadians );
+	float rightGain = std::sin( posRadians );
+
+#if 0
+	multiply( leftChannel, leftGain, leftChannel, buffer->getNumFrames() );
+	multiply( rightChannel, rightGain, rightChannel, buffer->getNumFrames() );
+#else
+
+	// suitable impl for stereo panning an alread-stereo sound file...
+	
+	static const float kCenterGain = std::cos( M_PI / 4.0f );
+
+	// TODO: vectorize and make optional by user setting
+	size_t n = buffer->getNumFrames();
+	if( pos < 0.5f ) {
+		for( size_t i = 0; i < n; i++ ) {
+			leftChannel[i] = leftChannel[i] * leftGain + rightChannel[i] * ( leftGain - kCenterGain );
+			rightChannel[i] *= rightGain;
+		}
+	} else {
+		for( size_t i = 0; i < n; i++ ) {
+			rightChannel[i] = rightChannel[i] * rightGain + leftChannel[i] * ( rightGain - kCenterGain );
+			leftChannel[i] *= leftGain;
+		}
+	}
+#endif
 }
 
 void RingMod::process( Buffer *buffer )

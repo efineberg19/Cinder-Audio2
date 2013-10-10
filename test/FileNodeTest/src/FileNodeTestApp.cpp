@@ -5,6 +5,7 @@
 #include "audio2/audio.h"
 #include "audio2/Converter.h"
 #include "audio2/NodeSource.h"
+#include "audio2/NodeEffect.h"
 #include "audio2/NodeTap.h"
 #include "Plot.h"
 #include "audio2/Debug.h"
@@ -49,9 +50,12 @@ class FileNodeTestApp : public AppNative {
 	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
 	NodeTapRef mTap;
+	NodeGainRef mGain;
+	NodePan2dRef mPan;
 
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
+	HSlider					mGainSlider, mPanSlider;
 };
 
 void FileNodeTestApp::prepareSettings( Settings *settings )
@@ -66,6 +70,9 @@ void FileNodeTestApp::setup()
 //	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 
+	mPan = mContext->makeNode( new NodePan2d() );
+	mGain = mContext->makeNode( new NodeGain() );
+	mGain->setGain( 0.6f );
 
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
@@ -92,7 +99,7 @@ void FileNodeTestApp::setupBufferPlayer()
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
 	mSamplePlayer = mContext->makeNode( new NodeBufferPlayer( audioBuffer ) );
-	mSamplePlayer->connect( mContext->getTarget() );
+	mSamplePlayer->connect( mPan )->connect( mGain )->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupFilePlayer()
@@ -130,6 +137,19 @@ void FileNodeTestApp::setupUI()
 	mLoopButton.mBounds = mStartPlaybackButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + 10.0f, 0.0f );
 	mWidgets.push_back( &mLoopButton );
 
+	Rectf sliderRect( getWindowWidth() - 200.0f, 10.0f, getWindowWidth(), 50.0f );
+	mGainSlider.mBounds = sliderRect;
+	mGainSlider.mTitle = "Gain";
+	mGainSlider.set( mGain->getGain() );
+	mWidgets.push_back( &mGainSlider );
+
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	mPanSlider.mBounds = sliderRect;
+	mPanSlider.mTitle = "Pan";
+	mPanSlider.set( mPan->getPos() );
+	mWidgets.push_back( &mPanSlider );
+
+
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
@@ -143,7 +163,12 @@ void FileNodeTestApp::setupUI()
 
 void FileNodeTestApp::processDrag( Vec2i pos )
 {
-	seek( pos.x );
+	if( mGainSlider.hitTest( pos ) )
+		mGain->setGain( mGainSlider.mValueScaled );
+	if( mPanSlider.hitTest( pos ) )
+		mPan->setPos( mPanSlider.mValueScaled );
+	else if( pos.y > getWindowCenter().y )
+		seek( pos.x );
 }
 
 void FileNodeTestApp::processTap( Vec2i pos )
@@ -154,7 +179,7 @@ void FileNodeTestApp::processTap( Vec2i pos )
 		mSamplePlayer->start();
 	else if( mLoopButton.hitTest( pos ) )
 		mSamplePlayer->setLoop( ! mSamplePlayer->getLoop() );
-	else
+	else if( pos.y > getWindowCenter().y )
 		seek( pos.x );
 }
 

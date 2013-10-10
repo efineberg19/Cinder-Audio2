@@ -60,7 +60,7 @@ class NodeGain : public NodeEffect {
 	std::atomic<float> mGain, mMin, mMax;
 };
 
-//! Simple stereo panning using an equal power cross-fade.
+//! Simple stereo panning using an equal power cross-fade. The panning position is specified by a single position between the left and right speakers.
 class NodePan2d : public NodeEffect {
   public:
 	NodePan2d( const Format &format = Format() );
