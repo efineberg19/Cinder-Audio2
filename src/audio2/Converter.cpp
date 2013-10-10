@@ -75,7 +75,7 @@ void Converter::mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size
 	}
 	else if( destChannels == 1 ) {
 		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
-		const float kDownMixNormalizer = 1.0f / sqrtf( 2.0f );
+		const float kDownMixNormalizer = 1.0f / std::sqrt( 2.0f );
 		float *destChannel0 = destBuffer->getChannel( 0 );
 		destBuffer->zero();
 		for( size_t c = 0; c < sourceChannels; c++ )
@@ -102,7 +102,7 @@ void Converter::sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size
 	}
 	else if( destChannels == 1 ) {
 		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
-		const float kDownMixNormalizer = 1.0f / sqrtf( 2.0f );
+		const float kDownMixNormalizer = 1.0f / std::sqrt( 2.0f );
 		float *destChannel0 = destBuffer->getChannel( 0 );
 		for( size_t c = 0; c < sourceChannels; c++ )
 			addMul( destChannel0, sourceBuffer->getChannel( c ), kDownMixNormalizer, destChannel0, numFrames );
