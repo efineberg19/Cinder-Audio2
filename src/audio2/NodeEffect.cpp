@@ -24,6 +24,8 @@
 #include "audio2/NodeEffect.h"
 #include "audio2/Debug.h"
 
+#include "cinder/CinderMath.h"
+
 using namespace ci;
 using namespace std;
 
@@ -39,6 +41,35 @@ NodeEffect::NodeEffect( const Format &format )
 void NodeGain::process( Buffer *buffer )
 {
 	multiply( buffer->getData(), mGain, buffer->getData(), buffer->getSize() );
+}
+
+// TODO: this is the first case where it makes sense to have # input channels != # output channels - worth supporting?
+
+NodePan2d::NodePan2d( const Format &format )
+: NodeEffect( format ), mPos( 0.5f )
+{
+	mChannelMode = ChannelMode::SPECIFIED;
+	setNumChannels( 2 );
+}
+
+void NodePan2d::setPos( float pos )
+{
+	mPos = math<float>::clamp( pos );
+}
+
+// equal power panning eq:
+// left = cos(p) * signal, right = sin(p) * signal, where p is in radians from 0 to PI/2
+// gives +3db when panned to center, which helps to remove the 'dead spot'
+//
+// FIXME: this isn't appropriate for stereo panning, its just silencing one channel and blasting the other
+void NodePan2d::process( Buffer *buffer )
+{
+	float posRadians = mPos * M_PI / 2.0f;
+	float *leftChannel = buffer->getChannel( 0 );
+	float *rightChannel = buffer->getChannel( 1 );
+
+	multiply( leftChannel, std::cos( posRadians ), leftChannel, buffer->getNumFrames() );
+	multiply( rightChannel, std::sin( posRadians ), rightChannel, buffer->getNumFrames() );
 }
 
 void RingMod::process( Buffer *buffer )

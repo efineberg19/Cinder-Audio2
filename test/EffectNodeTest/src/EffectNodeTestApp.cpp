@@ -27,15 +27,16 @@ class EffectNodeTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	ContextRef mContext;
-	NodeSourceRef mGen;
-	NodeGainRef mGain;
-	shared_ptr<RingMod> mRingMod;
+	ContextRef				mContext;
+	NodeSourceRef			mGen;
+	NodeGainRef				mGain;
+	NodePan2dRef			mPan;
+	shared_ptr<RingMod>		mRingMod;
 
-	vector<TestWidget *> mWidgets;
-	Button mPlayButton;
-	VSelector mTestSelector;
-	HSlider mGainSlider, mRingModFreqSlider;
+	vector<TestWidget *>	mWidgets;
+	Button					mPlayButton;
+	VSelector				mTestSelector;
+	HSlider					mGainSlider, mPanSlider, mRingModFreqSlider;
 };
 
 void EffectNodeTestApp::setup()
@@ -44,6 +45,8 @@ void EffectNodeTestApp::setup()
 
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
+
+	mPan = mContext->makeNode( new NodePan2d() );
 
 //	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
 //	noise->getGen().setAmp( 0.25f );
@@ -67,14 +70,14 @@ void EffectNodeTestApp::setupOne()
 {
 	mRingMod = mContext->makeNode( new RingMod() );
 	mRingMod->mSineGen.setFreq( 20.0f );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getTarget() );
+	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupForceStereo()
 {
 	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );
 	mRingMod->mSineGen.setFreq( 20.0f );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mContext->getTarget() );
+	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupDownMix()
@@ -83,7 +86,7 @@ void EffectNodeTestApp::setupDownMix()
 	mRingMod->mSineGen.setFreq( 20.0f );
 
 	auto monoPassThru = mContext->makeNode( new Node( Node::Format().channels( 1 ) ) );
-	mGen->connect( mRingMod )->connect( mGain )->connect( monoPassThru )->connect( mContext->getTarget() );
+	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( monoPassThru )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupUI()
@@ -102,9 +105,14 @@ void EffectNodeTestApp::setupUI()
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
-	mGainSlider.mMax = 1.0f;
 	mGainSlider.set( mGain->getGain() );
 	mWidgets.push_back( &mGainSlider );
+
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	mPanSlider.mBounds = sliderRect;
+	mPanSlider.mTitle = "Pan";
+	mPanSlider.set( mPan->getPos() );
+	mWidgets.push_back( &mPanSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
 	mRingModFreqSlider.mBounds = sliderRect;
@@ -112,7 +120,6 @@ void EffectNodeTestApp::setupUI()
 	mRingModFreqSlider.mMax = 500.0f;
 	mRingModFreqSlider.set( mRingMod->mSineGen.getFreq() );
 	mWidgets.push_back( &mRingModFreqSlider );
-
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -129,6 +136,8 @@ void EffectNodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
 		mGain->setGain( mGainSlider.mValueScaled );
+	if( mPanSlider.hitTest( pos ) )
+		mPan->setPos( mPanSlider.mValueScaled );
 	if( mRingModFreqSlider.hitTest( pos ) )
 		mRingMod->mSineGen.setFreq( mRingModFreqSlider.mValueScaled );
 }

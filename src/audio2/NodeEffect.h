@@ -31,6 +31,7 @@ namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeEffect>		NodeEffectRef;
 typedef std::shared_ptr<class NodeGain>			NodeGainRef;
+typedef std::shared_ptr<class NodePan2d>		NodePan2dRef;
 
 class NodeEffect : public Node {
   public:
@@ -40,10 +41,7 @@ class NodeEffect : public Node {
 
 class NodeGain : public NodeEffect {
   public:
-
-	NodeGain( const Format &format = Format() ) : NodeEffect( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f )
-	{
-	}
+	NodeGain( const Format &format = Format() ) : NodeEffect( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
 	virtual ~NodeGain() {}
 
 	std::string virtual getTag() override			{ return "NodeGain"; }
@@ -60,6 +58,25 @@ class NodeGain : public NodeEffect {
 
   private:
 	std::atomic<float> mGain, mMin, mMax;
+};
+
+//! Simple stereo panning using an equal power cross-fade.
+class NodePan2d : public NodeEffect {
+  public:
+	NodePan2d( const Format &format = Format() );
+	virtual ~NodePan2d() {}
+
+	std::string virtual getTag() override			{ return "NodePan2d"; }
+
+	void process( Buffer *buffer ) override;
+
+	//! Sets the panning position in range of [0:1]: 0 = left, 1 = right, and 0.5 = center.
+	void setPos( float pos );
+	//! Gets the current
+	float getPos() const	{ return mPos; }
+
+  private:
+	std::atomic<float> mPos;
 };
 
 class RingMod : public NodeEffect {
