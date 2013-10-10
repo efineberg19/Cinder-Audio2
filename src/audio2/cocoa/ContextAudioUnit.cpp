@@ -78,7 +78,7 @@ NodeLineOutAudioUnit::NodeLineOutAudioUnit( DeviceRef device, const Format &form
 void NodeLineOutAudioUnit::initialize()
 {
 	// LineOut always needs an internal buffer to deliver to the ouput AU, so force one to be made.
-	setProcessWithSumming();
+	setupProcessWithSumming();
 
 	mRenderData.node = this;
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );

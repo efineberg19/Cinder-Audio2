@@ -127,7 +127,7 @@ void NodeXAudioSourceVoice::initialize()
 	// - use case: LineIn connected to 4 microphones
 	CI_ASSERT( getNumChannels() <= 2 ); 
 
-	setProcessWithSumming();
+	setupProcessWithSumming();
 	size_t numSamples = mInternalBuffer.getSize();
 
 	memset( &mXAudioBuffer, 0, sizeof( mXAudioBuffer ) );

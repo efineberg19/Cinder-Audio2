@@ -273,7 +273,7 @@ void Node::configureConnections()
 			}
 			else {
 				mProcessInPlace = false;
-				input->setProcessWithSumming();
+				input->setupProcessWithSumming();
 			}
 		}
 
@@ -291,13 +291,13 @@ void Node::configureConnections()
 	}
 
 	if( ! mProcessInPlace )
-		setProcessWithSumming();
+		setupProcessWithSumming();
 
 	initializeImpl();
 }
 
 // TODO: reallocations could be made more efficient by using BufferDynamic
-void Node::setProcessWithSumming()
+void Node::setupProcessWithSumming()
 {
 	CI_ASSERT( getContext() );
 
