@@ -213,6 +213,8 @@
 		114FE99E1803722600C5841B /* ConverterImplR8brain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FE99B1803722600C5841B /* ConverterImplR8brain.cpp */; };
 		114FE99F1803722600C5841B /* ConverterImplR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE99C1803722600C5841B /* ConverterImplR8brain.h */; };
 		114FE9A01803722600C5841B /* ConverterImplR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE99C1803722600C5841B /* ConverterImplR8brain.h */; };
+		114FE9A21806576400C5841B /* NodeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FE9A11806576400C5841B /* NodeEffect.cpp */; };
+		114FE9A31806576400C5841B /* NodeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FE9A11806576400C5841B /* NodeEffect.cpp */; };
 		1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1180FD8917AB7CB70070AC30 /* Node.cpp */; };
 		1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1180FD8917AB7CB70070AC30 /* Node.cpp */; };
 		1180FD8D17AB7CB70070AC30 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = 1180FD8A17AB7CB70070AC30 /* Node.h */; };
@@ -391,6 +393,7 @@
 		114FE984180371F100C5841B /* r8bconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r8bconf.h; sourceTree = "<group>"; };
 		114FE99B1803722600C5841B /* ConverterImplR8brain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConverterImplR8brain.cpp; sourceTree = "<group>"; };
 		114FE99C1803722600C5841B /* ConverterImplR8brain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConverterImplR8brain.h; sourceTree = "<group>"; };
+		114FE9A11806576400C5841B /* NodeEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeEffect.cpp; sourceTree = "<group>"; };
 		1180FD8917AB7CB70070AC30 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
 		1180FD8A17AB7CB70070AC30 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderAssert.cpp; sourceTree = "<group>"; };
@@ -505,6 +508,7 @@
 				1115502418026CF400D415BC /* FileOggVorbis.h */,
 				1180FD8917AB7CB70070AC30 /* Node.cpp */,
 				1180FD8A17AB7CB70070AC30 /* Node.h */,
+				114FE9A11806576400C5841B /* NodeEffect.cpp */,
 				11446DAF17E64CCD00457AC6 /* NodeEffect.h */,
 				1104F48017754A6E003EAA2B /* NodeSource.cpp */,
 				1104F48117754A6E003EAA2B /* NodeSource.h */,
@@ -1036,6 +1040,7 @@
 				1104F49817754A6E003EAA2B /* audio.cpp in Sources */,
 				114FE99D1803722600C5841B /* ConverterImplR8brain.cpp in Sources */,
 				1104F4A317754A6E003EAA2B /* FileCoreAudio.cpp in Sources */,
+				114FE9A21806576400C5841B /* NodeEffect.cpp in Sources */,
 				1104F4B117754A6E003EAA2B /* File.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1088,6 +1093,7 @@
 				11B041FE179B90450034BEE2 /* audio.cpp in Sources */,
 				114FE99E1803722600C5841B /* ConverterImplR8brain.cpp in Sources */,
 				11B041FF179B90450034BEE2 /* FileCoreAudio.cpp in Sources */,
+				114FE9A31806576400C5841B /* NodeEffect.cpp in Sources */,
 				11B04201179B90450034BEE2 /* File.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
