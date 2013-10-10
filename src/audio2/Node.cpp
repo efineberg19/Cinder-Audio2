@@ -177,7 +177,6 @@ void Node::pullInputs( Buffer *outputBuffer )
 
 		if( mEnabled )
 			process( outputBuffer );
-
 	}
 	else {
 		mInternalBuffer.zero();
@@ -245,8 +244,23 @@ void Node::uninitializeImpl()
 
 void Node::setNumChannels( size_t numChannels )
 {
+	if( mNumChannels == numChannels )
+		return;
+
 	uninitializeImpl();
 	mNumChannels = numChannels;
+}
+
+size_t Node::getMaxNumInputChannels() const
+{
+	size_t result = 0;
+	for( auto &input : mInputs ) {
+		if( ! input )
+			continue;
+
+		result = max( result, input->getNumChannels() );
+	}
+	return result;
 }
 
 void Node::configureConnections()
@@ -262,11 +276,10 @@ void Node::configureConnections()
 		if( ! input )
 			continue;
 
-		if( input->getNumChannels() != mNumChannels ) {
-			if( mChannelMode == ChannelMode::MATCHES_INPUT ) {
-				// FIXME: use max channels of all inputs
-				setNumChannels( input->getNumChannels() );
-			}
+		size_t inputNumChannels = input->getNumChannels();
+		if( ! supportsInputNumChannels( inputNumChannels ) ) {
+			if( mChannelMode == ChannelMode::MATCHES_INPUT )
+				setNumChannels( getMaxNumInputChannels() );
 			else if( input->getChannelMode() == ChannelMode::MATCHES_OUTPUT ) {
 				input->setNumChannels( mNumChannels );
 				input->configureConnections();
@@ -281,7 +294,7 @@ void Node::configureConnections()
 	}
 
 	NodeRef output = getOutput();
-	if( output && output->getNumChannels() != mNumChannels ) {
+	if( output && ! supportsInputNumChannels( mNumChannels ) ) {
 		if( output->getChannelMode() == ChannelMode::MATCHES_INPUT ) {
 			output->setNumChannels( mNumChannels );
 			output->configureConnections();

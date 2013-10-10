@@ -337,7 +337,7 @@ uint64_t NodeLineOutXAudio::getLastClip()
 	return 0; // TODO: set clip frame from source nodes
 }
 
-bool NodeLineOutXAudio::supportsSourceNumChannels( size_t numChannels ) const
+bool NodeLineOutXAudio::supportsInputNumChannels( size_t numChannels )
 {
 	return true;
 }

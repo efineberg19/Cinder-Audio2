@@ -147,7 +147,6 @@ void NodeBufferPlayer::process( Buffer *buffer )
 // MARK: - NodeFilePlayer
 // ----------------------------------------------------------------------------------------------------
 
-
 NodeFilePlayer::NodeFilePlayer( const Format &format )
 : NodeSamplePlayer( format ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
 {

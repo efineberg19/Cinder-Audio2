@@ -98,7 +98,7 @@ class NodeLineOutXAudio : public NodeLineOut, public NodeXAudio {
 	uint64_t getNumProcessedFrames() override	{ return mProcessedFrames; }
 	uint64_t getLastClip() override;
 
-	bool supportsSourceNumChannels( size_t numChannels ) const override;
+	bool supportsInputNumChannels( size_t numChannels ) override;
 
 	::IXAudio2* getXAudio() const	{ return mXAudio; }
 

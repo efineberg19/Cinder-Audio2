@@ -63,10 +63,16 @@ class NodeGain : public NodeEffect {
 //! Simple stereo panning using an equal power cross-fade. The panning position is specified by a single position between the left and right speakers.
 class NodePan2d : public NodeEffect {
   public:
+	//! Constructs a NodePan2d. \note Format::channel() and Format::channelMode() are ignored and number of output channels is always 2.
 	NodePan2d( const Format &format = Format() );
 	virtual ~NodePan2d() {}
 
 	std::string virtual getTag() override			{ return "NodePan2d"; }
+
+	//! Overridden to handle mono input without upmixing
+	bool supportsInputNumChannels( size_t numChannels ) override;
+	//! Overridden to handle mono input without upmixing
+	void pullInputs( Buffer *outputBuffer ) override;
 
 	void process( Buffer *buffer ) override;
 
@@ -76,7 +82,8 @@ class NodePan2d : public NodeEffect {
 	float getPos() const	{ return mPos; }
 
   private:
-	std::atomic<float> mPos;
+	std::atomic<float>	mPos;
+	bool				mMonoInputMode;
 };
 
 class RingMod : public NodeEffect {

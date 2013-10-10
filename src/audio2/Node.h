@@ -96,13 +96,14 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	size_t	getNumChannels() const			{ return mNumChannels; }
 	ChannelMode getChannelMode() const		{ return mChannelMode; }
+	size_t		getMaxNumInputChannels() const;
 
 	//! controls whether the owning Context automatically enables / disables this Node
 	bool	isAutoEnabled() const				{ return mAutoEnabled; }
 	void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
 
 	//! Default implementation returns true if numChannels match our format
-	virtual bool supportsSourceNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
+	virtual bool supportsInputNumChannels( size_t numChannels )	{ return mNumChannels == numChannels; }
 	//! Override to perform custom processing on \t buffer
 	virtual void process( Buffer *buffer )	{}
 	//! Override to control how this Node manages input processing. The processed samples must eventually be in \t outputBuffer (can be used in-place if possible).
@@ -130,6 +131,8 @@ class Node : public std::enable_shared_from_this<Node> {
   protected:
 
 	virtual void configureConnections();
+
+	// TODO: do away with these and use Converter directly - subclass can still override pullInputs()
 	virtual void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 	virtual void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 

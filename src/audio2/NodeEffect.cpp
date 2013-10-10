@@ -31,6 +31,10 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - NodeEffect
+// ----------------------------------------------------------------------------------------------------
+
 NodeEffect::NodeEffect( const Format &format )
 	: Node( format )
 {
@@ -38,24 +42,84 @@ NodeEffect::NodeEffect( const Format &format )
 		setAutoEnabled();
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - NodeGain
+// ----------------------------------------------------------------------------------------------------
+
 void NodeGain::process( Buffer *buffer )
 {
 	multiply( buffer->getData(), mGain, buffer->getData(), buffer->getSize() );
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - NodePan2d
+// ----------------------------------------------------------------------------------------------------
+
 NodePan2d::NodePan2d( const Format &format )
-: NodeEffect( format ), mPos( 0.5f )
+: NodeEffect( format ), mPos( 0.5f ), mMonoInputMode( true )
 {
-	// TODO: this is the first case where it makes sense to have # input channels != # output channels - worth supporting?
-	// - one possibility is to override the appropriate Node methods so process() gets a stereo buffer with only the first channel filled.
-	// - only other possibility is for process to receive two Buffer pointers, one for in and one for out... ugh.
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 2 );
 }
 
-void NodePan2d::setPos( float pos )
+bool NodePan2d::supportsInputNumChannels( size_t numChannels )
 {
-	mPos = math<float>::clamp( pos );
+	if( numChannels == 1 ) {
+		mProcessInPlace = false;
+		size_t framesPerBlock = getContext()->getFramesPerBlock();
+
+		// internal buffer is mono (which will be passed to inputs), while summing buffer is stereo
+		if( mInternalBuffer.getNumChannels() != 1 || mInternalBuffer.getNumFrames() != framesPerBlock )
+			mInternalBuffer = Buffer( framesPerBlock, 1 );
+		if( mSummingBuffer.getNumChannels() != mNumChannels || mSummingBuffer.getNumFrames() != framesPerBlock )
+			mSummingBuffer = Buffer( framesPerBlock, mNumChannels );
+	}
+	else
+		mMonoInputMode = false;
+
+	LOG_V << "mono input mode: " << boolalpha << mMonoInputMode << dec << endl;
+
+	return ( numChannels <= 2 );
+}
+
+void NodePan2d::pullInputs( Buffer *outputBuffer )
+{
+	CI_ASSERT( getContext() );
+
+	if( mProcessInPlace ) {
+		for( NodeRef &input : mInputs ) {
+			if( ! input )
+				continue;
+
+			input->pullInputs( outputBuffer );
+		}
+
+		if( mEnabled )
+			process( outputBuffer );
+	}
+	else {
+		mInternalBuffer.zero();
+		mSummingBuffer.zero();
+
+		for( NodeRef &input : mInputs ) {
+			if( ! input )
+				continue;
+
+			input->pullInputs( &mInternalBuffer );
+			// TODO NEXT: sum to channel 0 only
+//			if( input->getProcessInPlace() )
+//				sumBuffers( &mInternalBuffer, &mSummingBuffer );
+//				add( mSummingBuffer.getChannel( c ), sourceChannel0, destBuffer->getChannel( c ), numFrames );
+//			else
+//				sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
+		}
+
+		if( mEnabled )
+			process( &mSummingBuffer );
+
+		mixBuffers( &mSummingBuffer, outputBuffer );
+	}
+	
 }
 
 // equal power panning eq:
@@ -71,30 +135,39 @@ void NodePan2d::process( Buffer *buffer )
 	float leftGain = std::cos( posRadians );
 	float rightGain = std::sin( posRadians );
 
-#if 0
-	multiply( leftChannel, leftGain, leftChannel, buffer->getNumFrames() );
-	multiply( rightChannel, rightGain, rightChannel, buffer->getNumFrames() );
-#else
+	if( mMonoInputMode ) {
+		multiply( leftChannel, leftGain, leftChannel, buffer->getNumFrames() );
+		multiply( rightChannel, rightGain, rightChannel, buffer->getNumFrames() );
+	}
+	else {
 
-	// suitable impl for stereo panning an alread-stereo sound file...
-	
-	static const float kCenterGain = std::cos( M_PI / 4.0f );
+		// suitable impl for stereo panning an alread-stereo sound file...
 
-	// TODO: vectorize and make optional by user setting
-	size_t n = buffer->getNumFrames();
-	if( pos < 0.5f ) {
-		for( size_t i = 0; i < n; i++ ) {
-			leftChannel[i] = leftChannel[i] * leftGain + rightChannel[i] * ( leftGain - kCenterGain );
-			rightChannel[i] *= rightGain;
-		}
-	} else {
-		for( size_t i = 0; i < n; i++ ) {
-			rightChannel[i] = rightChannel[i] * rightGain + leftChannel[i] * ( rightGain - kCenterGain );
-			leftChannel[i] *= leftGain;
+		static const float kCenterGain = std::cos( M_PI / 4.0f );
+
+		size_t n = buffer->getNumFrames();
+		if( pos < 0.5f ) {
+			for( size_t i = 0; i < n; i++ ) {
+				leftChannel[i] = leftChannel[i] * leftGain + rightChannel[i] * ( leftGain - kCenterGain );
+				rightChannel[i] *= rightGain;
+			}
+		} else {
+			for( size_t i = 0; i < n; i++ ) {
+				rightChannel[i] = rightChannel[i] * rightGain + leftChannel[i] * ( rightGain - kCenterGain );
+				leftChannel[i] *= leftGain;
+			}
 		}
 	}
-#endif
 }
+
+void NodePan2d::setPos( float pos )
+{
+	mPos = math<float>::clamp( pos );
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - RingMod
+// ----------------------------------------------------------------------------------------------------
 
 void RingMod::process( Buffer *buffer )
 {
