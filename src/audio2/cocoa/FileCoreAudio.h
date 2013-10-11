@@ -39,14 +39,7 @@ class SourceFileCoreAudio : public SourceFile {
 	BufferRef	loadBuffer() override;
 	void		seek( size_t readPosition ) override;
 
-	// TODO: why have these? if user needs to new samplerate / #channels, why not create new SourceFileCoreAudio?
-	// - I think it may have been due to the time at which default samplerate is known, which is probably no longer an issue
-	void	setSampleRate( size_t sampleRate ) override;
-	void	setNumChannels( size_t channels ) override;
-
-  private:
-	void updateOutputFormat();
-	
+  private:	
 	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
 	AudioBufferListShallowPtr mBufferList;
 	size_t mReadPos;

@@ -41,15 +41,14 @@ class SourceFile {
 	virtual ~SourceFile() {}
 
 	virtual size_t	getSampleRate() const				{ return mSampleRate; }
-	virtual void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
 	virtual size_t	getNumChannels() const				{ return mNumChannels; }
-	virtual void	setNumChannels( size_t channels )	{ mNumChannels = channels; }
-	virtual size_t	getNumFramesPerRead() const			{ return mNumFramesPerRead; }
-	virtual void	setNumFramesPerRead( size_t count )	{ mNumFramesPerRead = count; }
+	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
+	virtual size_t	getFileNumChannels() const				{ return mFileNumChannels; }
 
 	virtual size_t	getNumFrames() const					{ return mNumFrames; }
-	virtual size_t	getFileNumChannels() const				{ return mFileNumChannels; }
-	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
+
+	virtual void	setNumFramesPerRead( size_t count )	{ mNumFramesPerRead = count; }
+	virtual size_t	getNumFramesPerRead() const			{ return mNumFramesPerRead; }
 
 	//! \brief loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
 	virtual size_t read( Buffer *buffer ) = 0;

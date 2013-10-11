@@ -95,7 +95,12 @@ SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource, size_
 	if( ! mSampleRate )
 		mSampleRate = mFileSampleRate;
 
-	updateOutputFormat();
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mNumChannels, mSampleRate );
+	status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
+	CI_ASSERT( status == noErr );
+
+	// numFrames will be updated at read time
+	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
 size_t SourceFileCoreAudio::read( Buffer *buffer )
@@ -151,28 +156,6 @@ void SourceFileCoreAudio::seek( size_t readPosition )
 	CI_ASSERT( status == noErr );
 
 	mReadPos = readPosition;
-}
-
-void SourceFileCoreAudio::setSampleRate( size_t sampleRate )
-{
-	mSampleRate = sampleRate;
-	updateOutputFormat();
-}
-
-void SourceFileCoreAudio::setNumChannels( size_t numChannels )
-{
-	mNumChannels = numChannels;
-	updateOutputFormat();
-}
-
-void SourceFileCoreAudio::updateOutputFormat()
-{
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mNumChannels, mSampleRate );
-	OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
-	CI_ASSERT( status == noErr );
-
-	// numFrames will be updated at read time
-	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
 // ----------------------------------------------------------------------------------------------------
