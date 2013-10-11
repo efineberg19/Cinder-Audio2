@@ -127,6 +127,7 @@ public:
 	std::string virtual getTag() override			{ return "NodeFilePlayer"; }
 
 	void initialize() override;
+	void uninitialize() override;
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -140,20 +141,21 @@ public:
 
 	void readFromBackgroundThread();
 	void readFile();
-	bool moreFramesNeeded();
+//	bool moreFramesNeeded();
 
-	std::unique_ptr<std::thread> mReadThread;
-	std::unique_ptr<RingBuffer> mRingBuffer;
-	Buffer mReadBuffer;
-	size_t mNumFramesBuffered;
+	std::unique_ptr<std::thread>				mReadThread;
+	std::vector<RingBuffer>						mRingBuffers;	// used to transfer samples from io to audio thread, one ring buffer per channel
+	Buffer										mReadBuffer;	// used to read sounds from file on io thread
+	size_t										mNumFramesBuffered;
 
-	SourceFileRef mSourceFile;
-	size_t mBufferFramesThreshold;
-	size_t mSampleRate;
-	bool mMultiThreaded;
-	std::atomic<bool> mReadOnBackground;
-
-	std::atomic<size_t> mFramesPerBlock;
+	SourceFileRef								mSourceFile;
+	size_t										mBufferFramesThreshold;
+	size_t										mSampleRate;
+	bool										mMultiThreaded;
+	
+	std::atomic<bool>							mReadOnBackground, mNeedMoreFrames;
+	std::atomic<size_t>							mFramesPerBlock;
+	std::atomic<uint64_t>						mLastUnderrun, mLastOverrun;
 };
 
 // TODO: NodeGen's are starting to seem unecessary

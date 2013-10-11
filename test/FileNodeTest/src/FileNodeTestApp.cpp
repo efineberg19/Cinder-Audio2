@@ -67,8 +67,8 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 	
-//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
-	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
+	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+//	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 
 	mPan = mContext->makeNode( new NodePan2d() );
 //	mPan->enableMonoInputMode( false );
@@ -80,8 +80,8 @@ void FileNodeTestApp::setup()
 
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
-	setupBufferPlayer();
-	//setupFilePlayer();
+//	setupBufferPlayer();
+	setupFilePlayer();
 
 	setupUI();
 
