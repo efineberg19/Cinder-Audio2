@@ -99,7 +99,7 @@ void FileNodeTestApp::setupBufferPlayer()
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
 	mSamplePlayer = mContext->makeNode( new NodeBufferPlayer( audioBuffer ) );
-	mSamplePlayer->connect( mPan )->connect( mGain )->connect( mContext->getTarget() );
+	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupFilePlayer()
@@ -233,6 +233,8 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 	mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
 
 	LOG_V << "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() << endl;
+	printGraph( mContext );
+
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 }
 

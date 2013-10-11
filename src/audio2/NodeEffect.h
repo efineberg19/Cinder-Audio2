@@ -69,10 +69,10 @@ class NodePan2d : public NodeEffect {
 
 	std::string virtual getTag() override			{ return "NodePan2d"; }
 
-	//! Overridden to handle mono input without upmixing
-	bool supportsInputNumChannels( size_t numChannels ) override;
-	//! Overridden to handle mono input without upmixing
-	void pullInputs( Buffer *outputBuffer ) override;
+//	//! Overridden to handle mono input without upmixing
+//	bool supportsInputNumChannels( size_t numChannels ) override;
+//	//! Overridden to handle mono input without upmixing
+//	void pullInputs( Buffer *destBuffer ) override;
 
 	void process( Buffer *buffer ) override;
 
@@ -80,6 +80,9 @@ class NodePan2d : public NodeEffect {
 	void setPos( float pos );
 	//! Gets the current
 	float getPos() const	{ return mPos; }
+
+	void enableMonoInputMode( bool enable )	{ mMonoInputMode = enable; }
+	bool isMonoInputModeEnabled() const		{ return mMonoInputMode; }
 
   private:
 	std::atomic<float>	mPos;

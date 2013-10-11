@@ -106,8 +106,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual bool supportsInputNumChannels( size_t numChannels )	{ return mNumChannels == numChannels; }
 	//! Override to perform custom processing on \t buffer
 	virtual void process( Buffer *buffer )	{}
-	//! Override to control how this Node manages input processing. The processed samples must eventually be in \t outputBuffer (can be used in-place if possible).
-	virtual void pullInputs( Buffer *outputBuffer );
+	//! Called prior to process(), override to control how this Node manages input channel mixing, summing and / or processing. The processed samples must eventually be in \t destBuffer (will be used in-place if possible).
+	virtual void pullInputs( Buffer *destBuffer );
 
 	// TODO: it's probably a good idea to hide this structure
 	std::vector<NodeRef>& getInputs()			{ return mInputs; }
@@ -124,7 +124,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	size_t getNumInputs() const;
 
-	// TODO: make this protected if possible
+	// TODO: make this protected if possible (or better yet, not-accessible)
 //	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
 	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
 
@@ -132,11 +132,12 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual void configureConnections();
 
+	void setupProcessWithSumming();
+
+
 	// TODO: do away with these and use Converter directly - subclass can still override pullInputs()
 	virtual void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 	virtual void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
-
-	void setupProcessWithSumming();
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels );

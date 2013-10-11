@@ -145,25 +145,7 @@ void Node::setInput( const NodeRef &input, size_t bus )
 	getContext()->connectionsDidChange( shared_from_this() );
 }
 
-bool Node::isConnectedToInput( const NodeRef &input ) const
-{
-	return find( mInputs.begin(), mInputs.end(), input ) != mInputs.end();
-}
-
-bool Node::isConnectedToOutput( const NodeRef &output ) const
-{
-	return ( getOutput() == output );
-}
-
-void Node::setEnabled( bool enabled )
-{
-	if( enabled )
-		start();
-	else
-		stop();
-}
-
-void Node::pullInputs( Buffer *outputBuffer )
+void Node::pullInputs( Buffer *destBuffer )
 {
 	CI_ASSERT( getContext() );
 
@@ -172,11 +154,11 @@ void Node::pullInputs( Buffer *outputBuffer )
 			if( ! input )
 				continue;
 
-			input->pullInputs( outputBuffer );
+			input->pullInputs( destBuffer );
 		}
 
 		if( mEnabled )
-			process( outputBuffer );
+			process( destBuffer );
 	}
 	else {
 		mInternalBuffer.zero();
@@ -196,8 +178,26 @@ void Node::pullInputs( Buffer *outputBuffer )
 		if( mEnabled )
 			process( &mSummingBuffer );
 
-		mixBuffers( &mSummingBuffer, outputBuffer );
+		mixBuffers( &mSummingBuffer, destBuffer );
 	}
+}
+
+bool Node::isConnectedToInput( const NodeRef &input ) const
+{
+	return find( mInputs.begin(), mInputs.end(), input ) != mInputs.end();
+}
+
+bool Node::isConnectedToOutput( const NodeRef &output ) const
+{
+	return ( getOutput() == output );
+}
+
+void Node::setEnabled( bool enabled )
+{
+	if( enabled )
+		start();
+	else
+		stop();
 }
 
 size_t Node::getNumInputs() const
@@ -294,7 +294,7 @@ void Node::configureConnections()
 	}
 
 	NodeRef output = getOutput();
-	if( output && ! supportsInputNumChannels( mNumChannels ) ) {
+	if( output && ! output->supportsInputNumChannels( mNumChannels ) ) {
 		if( output->getChannelMode() == ChannelMode::MATCHES_INPUT ) {
 			output->setNumChannels( mNumChannels );
 			output->configureConnections();
@@ -317,11 +317,10 @@ void Node::setupProcessWithSumming()
 	mProcessInPlace = false;
 	size_t framesPerBlock = getContext()->getFramesPerBlock();
 
-	if( mSummingBuffer.getNumChannels() == mNumChannels && mSummingBuffer.getNumFrames() == framesPerBlock )
-		return;
-
-	mSummingBuffer = Buffer( framesPerBlock, mNumChannels );
-	mInternalBuffer = Buffer( framesPerBlock, mNumChannels );
+	if( mInternalBuffer.getNumChannels() != mNumChannels || mInternalBuffer.getNumFrames() != framesPerBlock )
+		mInternalBuffer = Buffer( framesPerBlock, mNumChannels );
+	if( mSummingBuffer.getNumChannels() != mNumChannels || mSummingBuffer.getNumFrames() != framesPerBlock )
+		mSummingBuffer = Buffer( framesPerBlock, mNumChannels );
 }
 
 void Node::mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )

@@ -62,9 +62,13 @@ NodePan2d::NodePan2d( const Format &format )
 	setNumChannels( 2 );
 }
 
+/*
+ * TODO: below is an attempt at an optimization for (possibly many) mono input -> stereo output
+ 8	- I didn't get it to mesh well enough with Node::configureConnections, during various edge cases, so it is on the back burner for now..
 bool NodePan2d::supportsInputNumChannels( size_t numChannels )
 {
 	if( numChannels == 1 ) {
+		mMonoInputMode = true;
 		mProcessInPlace = false;
 		size_t framesPerBlock = getContext()->getFramesPerBlock();
 
@@ -82,45 +86,42 @@ bool NodePan2d::supportsInputNumChannels( size_t numChannels )
 	return ( numChannels <= 2 );
 }
 
-void NodePan2d::pullInputs( Buffer *outputBuffer )
+void NodePan2d::pullInputs( Buffer *destBuffer )
 {
 	CI_ASSERT( getContext() );
 
-	if( mProcessInPlace ) {
-		for( NodeRef &input : mInputs ) {
-			if( ! input )
-				continue;
-
-			input->pullInputs( outputBuffer );
-		}
-
-		if( mEnabled )
-			process( outputBuffer );
-	}
+	if( ! mMonoInputMode )
+		Node::pullInputs( destBuffer );
 	else {
+		// inputs are summed to channel 0 only
 		mInternalBuffer.zero();
 		mSummingBuffer.zero();
 
+		size_t numFrames = mSummingBuffer.getNumFrames();
+		float *summingChannel0 = mSummingBuffer.getChannel( 0 );
 		for( NodeRef &input : mInputs ) {
 			if( ! input )
 				continue;
 
 			input->pullInputs( &mInternalBuffer );
-			// TODO NEXT: sum to channel 0 only
-//			if( input->getProcessInPlace() )
-//				sumBuffers( &mInternalBuffer, &mSummingBuffer );
-//				add( mSummingBuffer.getChannel( c ), sourceChannel0, destBuffer->getChannel( c ), numFrames );
-//			else
-//				sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
+			if( input->getProcessInPlace() )
+				add( summingChannel0, mInternalBuffer.getChannel( 0 ), summingChannel0, numFrames );
+			else
+				add( summingChannel0, input->getInternalBuffer()->getChannel( 0 ), summingChannel0, numFrames );
 		}
 
 		if( mEnabled )
 			process( &mSummingBuffer );
 
-		mixBuffers( &mSummingBuffer, outputBuffer );
+		// at this point, audio will be in both stereo channels
+
+		// TODO: if possible, just copy summing buffer to output buffer
+		// - this is on hold until further work towards avoiding both mInternalBuffer and mSummingBuffer
+		// - at that point, it may be possible to avoid this mix as well, in some cases
+		mixBuffers( &mSummingBuffer, destBuffer );
 	}
-	
 }
+*/
 
 // equal power panning eq:
 // left = cos(p) * signal, right = sin(p) * signal, where p is in radians from 0 to PI/2
@@ -128,33 +129,33 @@ void NodePan2d::pullInputs( Buffer *outputBuffer )
 void NodePan2d::process( Buffer *buffer )
 {
 	float pos = mPos;
-	float *leftChannel = buffer->getChannel( 0 );
-	float *rightChannel = buffer->getChannel( 1 );
+	float *channel0 = buffer->getChannel( 0 );
+	float *channel1 = buffer->getChannel( 1 );
 
 	float posRadians = pos * M_PI / 2.0f;
 	float leftGain = std::cos( posRadians );
 	float rightGain = std::sin( posRadians );
 
 	if( mMonoInputMode ) {
-		multiply( leftChannel, leftGain, leftChannel, buffer->getNumFrames() );
-		multiply( rightChannel, rightGain, rightChannel, buffer->getNumFrames() );
+		multiply( channel0, leftGain, channel0, buffer->getNumFrames() );
+		multiply( channel1, rightGain, channel1, buffer->getNumFrames() );
 	}
 	else {
 
-		// suitable impl for stereo panning an alread-stereo sound file...
+		// suitable impl for stereo panning an already-stereo input...
 
 		static const float kCenterGain = std::cos( M_PI / 4.0f );
 
 		size_t n = buffer->getNumFrames();
 		if( pos < 0.5f ) {
 			for( size_t i = 0; i < n; i++ ) {
-				leftChannel[i] = leftChannel[i] * leftGain + rightChannel[i] * ( leftGain - kCenterGain );
-				rightChannel[i] *= rightGain;
+				channel0[i] = channel0[i] * leftGain + channel1[i] * ( leftGain - kCenterGain );
+				channel1[i] *= rightGain;
 			}
 		} else {
 			for( size_t i = 0; i < n; i++ ) {
-				rightChannel[i] = rightChannel[i] * rightGain + leftChannel[i] * ( rightGain - kCenterGain );
-				leftChannel[i] *= leftGain;
+				channel1[i] = channel1[i] * rightGain + channel0[i] * ( rightGain - kCenterGain );
+				channel0[i] *= leftGain;
 			}
 		}
 	}
