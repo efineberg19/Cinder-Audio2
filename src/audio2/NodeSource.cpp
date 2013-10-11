@@ -190,16 +190,6 @@ void NodeFilePlayer::uninitialize()
 	}
 }
 
-void NodeFilePlayer::setReadPosition( size_t pos )
-{
-	CI_ASSERT( mSourceFile );
-
-	if( ! mMultiThreaded )
-		mSourceFile->seek( pos );
-	
-	mReadPos = pos;
-}
-
 void NodeFilePlayer::start()
 {
 	CI_ASSERT( mSourceFile );
@@ -215,6 +205,30 @@ void NodeFilePlayer::stop()
 	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
+}
+
+void NodeFilePlayer::setReadPosition( size_t pos )
+{
+	CI_ASSERT( mSourceFile );
+
+	if( ! mMultiThreaded )
+		mSourceFile->seek( pos );
+
+	mReadPos = pos;
+}
+
+uint64_t NodeFilePlayer::getLastUnderrun()
+{
+	uint64_t result = mLastUnderrun;
+	mLastUnderrun = 0;
+	return result;
+}
+
+uint64_t NodeFilePlayer::getLastOverrun()
+{
+	uint64_t result = mLastOverrun;
+	mLastOverrun = 0;
+	return result;
 }
 
 void NodeFilePlayer::process( Buffer *buffer )

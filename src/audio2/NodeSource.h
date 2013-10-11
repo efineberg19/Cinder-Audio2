@@ -137,6 +137,11 @@ public:
 
 	bool isMultiThreaded() const	{ return mMultiThreaded; }
 
+	//! Returns the frame of the last buffer underrun or 0 if none since the last time this method was called.
+	uint64_t getLastUnderrun();
+	//! Returns the frame of the last buffer overrun or 0 if none since the last time this method was called.
+	uint64_t getLastOverrun();
+
   protected:
 
 	void readFromBackgroundThread();

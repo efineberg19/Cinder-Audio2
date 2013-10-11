@@ -1,18 +1,19 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
-#include "Resources.h"
+#include "cinder/Timeline.h"
+#include "cinder/Timer.h"
 
 #include "audio2/audio.h"
 #include "audio2/Converter.h"
 #include "audio2/NodeSource.h"
 #include "audio2/NodeEffect.h"
 #include "audio2/NodeTap.h"
-#include "Plot.h"
 #include "audio2/Debug.h"
 
-#include "cinder/Timer.h"
+#include "Resources.h"
 
 #include "Gui.h"
+#include "Plot.h"
 
 // FIXME: (mac) FilePlayerNode crash with heavy seeking, non-multithreaded
 // - it's happening in SourceFileCoreAudio's read call - buffer ends might be overlapping
@@ -56,6 +57,9 @@ class FileNodeTestApp : public AppNative {
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
 	HSlider					mGainSlider, mPanSlider;
+
+	Anim<float> mUnderrunFade, mOverrunFade;
+	Rectf mUnderrunRect, mOverrunRect;
 };
 
 void FileNodeTestApp::prepareSettings( Settings *settings )
@@ -65,6 +69,8 @@ void FileNodeTestApp::prepareSettings( Settings *settings )
 
 void FileNodeTestApp::setup()
 {
+	mUnderrunFade = mOverrunFade = 0.0f;
+
 	mContext = Context::create();
 	
 //	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
@@ -121,36 +127,41 @@ void FileNodeTestApp::setupFilePlayer()
 
 void FileNodeTestApp::setupUI()
 {
+	const float kPadding = 10.0f;
+
 	mEnableGraphButton.mIsToggle = true;
 	mEnableGraphButton.mTitleNormal = "graph off";
 	mEnableGraphButton.mTitleEnabled = "graph on";
-	mEnableGraphButton.mBounds = Rectf( 0, 0, 200, 60 );
+	mEnableGraphButton.mBounds = Rectf( kPadding, kPadding, 200, 60 );
 	mWidgets.push_back( &mEnableGraphButton );
 
 	mStartPlaybackButton.mIsToggle = false;
 	mStartPlaybackButton.mTitleNormal = "sample playing";
 	mStartPlaybackButton.mTitleEnabled = "sample stopped";
-	mStartPlaybackButton.mBounds = mEnableGraphButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + 10.0f, 0.0f );
+	mStartPlaybackButton.mBounds = mEnableGraphButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + kPadding, 0.0f );
 	mWidgets.push_back( &mStartPlaybackButton );
 
 	mLoopButton.mIsToggle = true;
 	mLoopButton.mTitleNormal = "loop off";
 	mLoopButton.mTitleEnabled = "loop on";
-	mLoopButton.mBounds = mStartPlaybackButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + 10.0f, 0.0f );
+	mLoopButton.mBounds = mStartPlaybackButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + kPadding, 0.0f );
 	mWidgets.push_back( &mLoopButton );
 
-	Rectf sliderRect( getWindowWidth() - 200.0f, 10.0f, getWindowWidth(), 50.0f );
+	Rectf sliderRect( getWindowWidth() - 200.0f, kPadding, getWindowWidth(), 50.0f );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
 	mGainSlider.set( mGain->getGain() );
 	mWidgets.push_back( &mGainSlider );
 
-	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + kPadding );
 	mPanSlider.mBounds = sliderRect;
 	mPanSlider.mTitle = "Pan";
 	mPanSlider.set( mPan->getPos() );
 	mWidgets.push_back( &mPanSlider );
 
+	Vec2f xrunSize( 80.0f, 26.0f );
+	mUnderrunRect = Rectf( kPadding, getWindowHeight() - xrunSize.y - kPadding, xrunSize.x + kPadding, getWindowHeight() - kPadding );
+	mOverrunRect = mUnderrunRect + Vec2f( xrunSize.x + kPadding, 0.0f );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -243,6 +254,15 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 
 void FileNodeTestApp::update()
 {
+	const float xrunFadeTime = 1.3f;
+
+	auto filePlayer = dynamic_pointer_cast<NodeFilePlayer>( mSamplePlayer );
+	if( filePlayer ) {
+		if( filePlayer->getLastUnderrun() )
+			timeline().apply( &mUnderrunFade, 1.0f, 0.0f, xrunFadeTime );
+		if( filePlayer->getLastOverrun() )
+			timeline().apply( &mOverrunFade, 1.0f, 0.0f, xrunFadeTime );
+	}
 }
 
 void FileNodeTestApp::draw()
@@ -277,6 +297,16 @@ void FileNodeTestApp::draw()
 		}
 	}
 
+	if( mUnderrunFade > 0.0001 ) {
+		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
+		gl::drawSolidRect( mUnderrunRect );
+		gl::drawStringCentered( "underrun", mUnderrunRect.getCenter(), Color::black() );
+	}
+	if( mOverrunFade > 0.0001 ) {
+		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
+		gl::drawSolidRect( mOverrunRect );
+		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
+	}
 
 	drawWidgets( mWidgets );
 }
