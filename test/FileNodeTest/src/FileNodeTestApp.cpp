@@ -67,11 +67,12 @@ void FileNodeTestApp::setup()
 {
 	mContext = Context::create();
 	
-	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
+	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
 	mPan = mContext->makeNode( new NodePan2d() );
-//	mPan->enableMonoInputMode( false );
+	mPan->enableMonoInputMode( false );
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
 
@@ -113,9 +114,9 @@ void FileNodeTestApp::setupFilePlayer()
 //	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
 	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
-	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 512 ) ) ); // TODO: why is this hard-coded?
+	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) ); // TODO: why is this hard-coded?
 
-	mSamplePlayer->connect( mTap )->connect( mContext->getTarget() );
+	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mTap )->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupUI()

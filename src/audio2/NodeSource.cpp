@@ -151,25 +151,24 @@ NodeFilePlayer::NodeFilePlayer( const Format &format )
 {
 }
 
+NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
+: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+{
+	// force channel mode to match buffer
+	mChannelMode = ChannelMode::SPECIFIED;
+	setNumChannels( mSourceFile->getNumChannels() );
+
+	mNumFrames = mSourceFile->getNumFrames();
+	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
+}
+
 NodeFilePlayer::~NodeFilePlayer()
 {
 }
 
-NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
-: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
-{
-	mNumFrames = mSourceFile->getNumFrames();
-	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
-
-}
-
 void NodeFilePlayer::initialize()
 {
-	auto context = getContext();
-	mFramesPerBlock = context->getFramesPerBlock();
-	mSampleRate = context->getSampleRate();
-	mSourceFile->setNumChannels( getNumChannels() );
-	mSourceFile->setSampleRate( mSampleRate );
+	mSampleRate = getContext()->getSampleRate();
 
 	mReadBuffer = Buffer( mSourceFile->getNumFramesPerRead(), mNumChannels );
 
@@ -221,8 +220,9 @@ void NodeFilePlayer::stop()
 void NodeFilePlayer::process( Buffer *buffer )
 {
 	size_t numFrames = buffer->getNumFrames();
+	size_t readPos = mReadPos;
 
-	mNeedMoreFrames = ( mNumFramesBuffered < mBufferFramesThreshold && mReadPos < mNumFrames );
+	mNeedMoreFrames = ( mNumFramesBuffered < mBufferFramesThreshold && readPos < mNumFrames );
 	if( ! mMultiThreaded && mNeedMoreFrames.load( memory_order_relaxed ) )
 		readFile();
 
@@ -234,12 +234,12 @@ void NodeFilePlayer::process( Buffer *buffer )
 	}
 	mNumFramesBuffered -= readCount;
 
-	// check if end of file
-	// TODO: set this explicitly from the io thread
+	// zero any unused frames
 	if( readCount < numFrames ) {
 		buffer->zero( readCount, numFrames - readCount );
 
-		if( mReadPos >= mNumFrames ) {
+		// check if end of file
+		if( readPos + readCount >= mNumFrames ) {
 			if( mLoop ) {
 				setReadPosition( 0 );
 				return;

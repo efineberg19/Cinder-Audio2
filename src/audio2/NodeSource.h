@@ -154,7 +154,6 @@ public:
 	bool										mMultiThreaded;
 	
 	std::atomic<bool>							mReadOnBackground, mNeedMoreFrames;
-	std::atomic<size_t>							mFramesPerBlock;
 	std::atomic<uint64_t>						mLastUnderrun, mLastOverrun;
 };
 
