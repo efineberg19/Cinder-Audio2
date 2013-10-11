@@ -71,6 +71,7 @@ void FileNodeTestApp::setup()
 	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 
 	mPan = mContext->makeNode( new NodePan2d() );
+//	mPan->enableMonoInputMode( false );
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
 
