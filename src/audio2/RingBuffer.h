@@ -48,6 +48,11 @@ public:
 		resize( count );
 	}
 
+	RingBufferT( RingBufferT &&other )
+	: mData( other.mData ), mAllocatedSize( other.mAllocatedSize ), mWriteIndex( 0 ), mReadIndex( 0 )
+	{
+	}
+
 	~RingBufferT()
 	{
 		if( mAllocatedSize )
