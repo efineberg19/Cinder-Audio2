@@ -41,7 +41,7 @@ template <typename T>
 class RingBufferT {
 public:
 	//! Constructs a RingBufferT with size = 0
-	RingBufferT() : mAllocatedSize( 0 ), mWriteIndex( 0 ), mReadIndex( 0 ) {}
+	RingBufferT() : mData( nullptr ), mAllocatedSize( 0 ), mWriteIndex( 0 ), mReadIndex( 0 ) {}
 	//! Constructs a RingBufferT with \a count maximum elements.
 	RingBufferT( size_t count ) : mAllocatedSize( 0 )
 	{
@@ -51,11 +51,13 @@ public:
 	RingBufferT( RingBufferT &&other )
 	: mData( other.mData ), mAllocatedSize( other.mAllocatedSize ), mWriteIndex( 0 ), mReadIndex( 0 )
 	{
+		other.mData = nullptr;
+		other.mAllocatedSize = 0;
 	}
 
 	~RingBufferT()
 	{
-		if( mAllocatedSize )
+		if( mData )
 			free( mData );
 	}
 
