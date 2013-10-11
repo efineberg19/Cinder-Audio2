@@ -118,7 +118,7 @@ void NodePan2d::pullInputs( Buffer *destBuffer )
 		// TODO: if possible, just copy summing buffer to output buffer
 		// - this is on hold until further work towards avoiding both mInternalBuffer and mSummingBuffer
 		// - at that point, it may be possible to avoid this mix as well, in some cases
-		mixBuffers( &mSummingBuffer, destBuffer );
+		Converter::mixBuffers( &mSummingBuffer, destBuffer );
 	}
 }
 */

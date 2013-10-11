@@ -131,13 +131,7 @@ class Node : public std::enable_shared_from_this<Node> {
   protected:
 
 	virtual void configureConnections();
-
 	void setupProcessWithSumming();
-
-
-	// TODO: do away with these and use Converter directly - subclass can still override pullInputs()
-	virtual void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
-	virtual void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer );
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels );
