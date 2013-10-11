@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "audio2/Atomic.h"
 #include "audio2/CinderAssert.h"
 
 #include "cinder/Cinder.h"
@@ -33,8 +32,9 @@
 	#define CINDER_AUDIO_VDSP
 #endif
 
-#include <cmath>
+#include <atomic>
 #include <vector>
+#include <cmath>
 
 namespace cinder { namespace audio2 {
 

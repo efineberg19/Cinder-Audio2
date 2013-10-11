@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1104F49717754A6E003EAA2B /* Atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46317754A6E003EAA2B /* Atomic.h */; };
 		1104F49817754A6E003EAA2B /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46417754A6E003EAA2B /* audio.cpp */; };
 		1104F49917754A6E003EAA2B /* audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46517754A6E003EAA2B /* audio.h */; };
 		1104F49A17754A6E003EAA2B /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46617754A6E003EAA2B /* Buffer.h */; };
@@ -251,7 +250,6 @@
 		11B04214179B90450034BEE2 /* Plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041AF179B89F80034BEE2 /* Plot.h */; };
 		11B04215179B90450034BEE2 /* FileCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47117754A6E003EAA2B /* FileCoreAudio.h */; };
 		11B04216179B90450034BEE2 /* Gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49517754A6E003EAA2B /* Gui.h */; };
-		11B04217179B90450034BEE2 /* Atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F46317754A6E003EAA2B /* Atomic.h */; };
 		11B04218179B90450034BEE2 /* Device.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47817754A6E003EAA2B /* Device.h */; };
 		11B0421D179B92CB0034BEE2 /* DeviceManagerAudioSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46C17754A6E003EAA2B /* DeviceManagerAudioSession.cpp */; };
 		11B0421E179B92D10034BEE2 /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46E17754A6E003EAA2B /* DeviceManagerCoreAudio.cpp */; };
@@ -267,7 +265,6 @@
 		1104F3C917753F10003EAA2B /* libAudio2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAudio2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1104F3CC17753F10003EAA2B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		1104F3CF17753F10003EAA2B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		1104F46317754A6E003EAA2B /* Atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
 		1104F46417754A6E003EAA2B /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
 		1104F46517754A6E003EAA2B /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
 		1104F46617754A6E003EAA2B /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
@@ -483,7 +480,6 @@
 				1104F46717754A6E003EAA2B /* cocoa */,
 				1104F48217754A6E003EAA2B /* msw */,
 				11D6945D17D0436A00B0D2BB /* ooura */,
-				1104F46317754A6E003EAA2B /* Atomic.h */,
 				1104F46417754A6E003EAA2B /* audio.cpp */,
 				1104F46517754A6E003EAA2B /* audio.h */,
 				1104F46617754A6E003EAA2B /* Buffer.h */,
@@ -826,7 +822,6 @@
 				1104F4A417754A6E003EAA2B /* FileCoreAudio.h in Headers */,
 				114FE993180371F100C5841B /* fft4g.h in Headers */,
 				1104F4C717754A6E003EAA2B /* Gui.h in Headers */,
-				1104F49717754A6E003EAA2B /* Atomic.h in Headers */,
 				1104F4AB17754A6E003EAA2B /* Device.h in Headers */,
 				114FE91118032BF100C5841B /* setup_32.h in Headers */,
 				1115502118026C9100D415BC /* vorbisfile.h in Headers */,
@@ -914,7 +909,6 @@
 				11B04215179B90450034BEE2 /* FileCoreAudio.h in Headers */,
 				114FE994180371F100C5841B /* fft4g.h in Headers */,
 				11B04216179B90450034BEE2 /* Gui.h in Headers */,
-				11B04217179B90450034BEE2 /* Atomic.h in Headers */,
 				11B04218179B90450034BEE2 /* Device.h in Headers */,
 				114FE91218032BF100C5841B /* setup_32.h in Headers */,
 				1115502218026C9100D415BC /* vorbisfile.h in Headers */,

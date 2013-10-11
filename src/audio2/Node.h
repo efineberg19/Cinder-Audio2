@@ -25,11 +25,11 @@
 
 #include "audio2/Device.h"
 #include "audio2/Buffer.h"
-#include "audio2/Atomic.h"
 
 #include <boost/logic/tribool.hpp>
 
 #include <memory>
+#include <atomic>
 #include <vector>
 
 namespace cinder { namespace audio2 {
