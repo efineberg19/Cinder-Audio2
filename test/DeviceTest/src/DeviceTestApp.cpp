@@ -387,17 +387,17 @@ void DeviceTestApp::draw()
 
 	drawWidgets( mWidgets );
 
-	if( mUnderrunFade > 0.0001 ) {
+	if( mUnderrunFade > 0.0001f ) {
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
 		gl::drawSolidRect( mUnderrunRect );
 		gl::drawStringCentered( "underrun", mUnderrunRect.getCenter(), Color::black() );
 	}
-	if( mOverrunFade > 0.0001 ) {
+	if( mOverrunFade > 0.0001f ) {
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
 		gl::drawSolidRect( mOverrunRect );
 		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
 	}
-	if( mClipFade > 0.0001 ) {
+	if( mClipFade > 0.0001f ) {
 		gl::color( ColorA( 1.0f, 0.1f, 0.0f, mClipFade ) );
 		gl::drawSolidRect( mClipRect );
 		gl::drawStringCentered( "clip", mClipRect.getCenter(), Color::black() );

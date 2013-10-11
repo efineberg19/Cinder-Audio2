@@ -117,8 +117,8 @@ void FileNodeTestApp::setupFilePlayer()
 //	mSourceFile->setNumFramesPerRead( 4096 );
 	mSourceFile->setNumFramesPerRead( 8192 );
 
-//	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
-	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o
+	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
+//	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
 	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) ); // TODO: why is this hard-coded?
 
@@ -297,12 +297,12 @@ void FileNodeTestApp::draw()
 		}
 	}
 
-	if( mUnderrunFade > 0.0001 ) {
+	if( mUnderrunFade > 0.0001f ) {
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
 		gl::drawSolidRect( mUnderrunRect );
 		gl::drawStringCentered( "underrun", mUnderrunRect.getCenter(), Color::black() );
 	}
-	if( mOverrunFade > 0.0001 ) {
+	if( mOverrunFade > 0.0001f ) {
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
 		gl::drawSolidRect( mOverrunRect );
 		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
