@@ -36,33 +36,33 @@
 
 namespace cinder { namespace audio2 {
 
-// TODO: these should be replaced with a genericized registrar derived from the ImageIo stuff.
+// TODO: these should be replaced with a generic registrar derived from the ImageIo stuff.
 
-SourceFileRef SourceFile::create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
+std::unique_ptr<SourceFile> SourceFile::create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 {
 	if( getPathExtension( dataSource->getFilePathHint() ) == "ogg" )
-		return SourceFileRef( new SourceFileImplOggVorbis( dataSource, numChannels, sampleRate ) );
+		return std::unique_ptr<SourceFile>( new SourceFileImplOggVorbis( dataSource, numChannels, sampleRate ) );
 
 #if defined( CINDER_COCOA )
-	return SourceFileRef( new cocoa::SourceFileCoreAudio( dataSource, numChannels, sampleRate ) );
+	return std::unique_ptr<SourceFile>( new cocoa::SourceFileCoreAudio( dataSource, numChannels, sampleRate ) );
 #elif defined( CINDER_MSW )
-	return SourceFileRef( new msw::SourceFileMediaFoundation( dataSource, numChannels, sampleRate ) );
+	return std::unique_ptr<SourceFile>( new msw::SourceFileMediaFoundation( dataSource, numChannels, sampleRate ) );
 #endif
 }
 
-TargetFileRef TargetFile::create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
+std::unique_ptr<TargetFile> TargetFile::create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
 {
 	std::string ext = ( ! extension.empty() ? extension : getPathExtension( dataTarget->getFilePathHint() ) );
 
 #if defined( CINDER_COCOA )
-	return TargetFileRef( new cocoa::TargetFileCoreAudio( dataTarget, sampleRate, numChannels, ext ) );
+	return std::unique_ptr<TargetFile>( new cocoa::TargetFileCoreAudio( dataTarget, sampleRate, numChannels, ext ) );
 #elif defined( CINDER_MSW )
-	return TargetFileRef(); // TODO
-//	return SourceFileRef( new msw::TargetFileMediaFoundation( dataTarget, numChannels, sampleRate, ext ) );
+	return std::unique_ptr<TargetFile>(); // TODO
+//	return std::unique_ptr<TargetFile>( new msw::TargetFileMediaFoundation( dataTarget, numChannels, sampleRate, ext ) );
 #endif
 }
 
-TargetFileRef TargetFile::create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension )
+std::unique_ptr<TargetFile> TargetFile::create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension )
 {
 	return create( (DataTargetRef)writeFile( path ), sampleRate, numChannels, extension );
 }

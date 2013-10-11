@@ -37,7 +37,7 @@ typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
 class SourceFile {
   public:
-	static SourceFileRef create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate );
+	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate );
 	virtual ~SourceFile() {}
 
 	virtual size_t	getSampleRate() const				{ return mSampleRate; }
@@ -73,8 +73,8 @@ class SourceFile {
 
 class TargetFile {
   public:
-	static TargetFileRef create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
-	static TargetFileRef create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
+	static std::unique_ptr<TargetFile> create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
+	static std::unique_ptr<TargetFile> create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
 	virtual ~TargetFile() {}
 
 	//! If default numFrames is used (0), will write all frames in \a buffer
