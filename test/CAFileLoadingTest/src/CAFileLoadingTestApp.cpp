@@ -8,7 +8,7 @@
 #include "audio2/cocoa/CinderCoreAudio.h"
 #include "Plot.h"
 
-// Note: this was an attempt at using Core Audio's Audio File + Audio Converter Services api's. Currently SourceFileCoreAudio uses
+// Note: this was an attempt at using Core Audio's Audio File + Audio Converter Services api's. Currently SourceFileImplCoreAudio uses
 // Extended Audio File Services because it is easier to handle the many different types of audio files with confidence.
 // But, in the end we'll already need to use Audio Converter Services for ogg files and other various things..
 

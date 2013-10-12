@@ -56,10 +56,10 @@ namespace cinder { namespace audio2 { namespace cocoa {
 //}
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - SourceFileCoreAudio
+// MARK: - SourceFileImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
+SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
 	: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 )
 {
 //	printExtensions();
@@ -103,7 +103,7 @@ SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource, size_
 	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
-size_t SourceFileCoreAudio::read( Buffer *buffer )
+size_t SourceFileImplCoreAudio::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
 
@@ -124,7 +124,7 @@ size_t SourceFileCoreAudio::read( Buffer *buffer )
 	return frameCount;
 }
 
-BufferRef SourceFileCoreAudio::loadBuffer()
+BufferRef SourceFileImplCoreAudio::loadBuffer()
 {
 	if( mReadPos != 0 )
 		seek( 0 );
@@ -147,7 +147,7 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 	return result;
 }
 
-void SourceFileCoreAudio::seek( size_t readPositionFrames )
+void SourceFileImplCoreAudio::seek( size_t readPositionFrames )
 {
 	if( readPositionFrames >= mNumFrames )
 		return;
@@ -159,10 +159,10 @@ void SourceFileCoreAudio::seek( size_t readPositionFrames )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - TargetFileCoreAudio
+// MARK: - TargetFileImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-TargetFileCoreAudio::TargetFileCoreAudio( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
+TargetFileImplCoreAudio::TargetFileImplCoreAudio( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
 	: TargetFile( dataTarget, sampleRate, numChannels )
 {
 	::CFURLRef targetUrl = ci::cocoa::createCfUrl( Url( dataTarget->getFilePath().string() ) );
@@ -184,7 +184,7 @@ TargetFileCoreAudio::TargetFileCoreAudio( const DataTargetRef &dataTarget, size_
 	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
-void TargetFileCoreAudio::write( const Buffer *buffer, size_t frameOffset, size_t numFrames )
+void TargetFileImplCoreAudio::write( const Buffer *buffer, size_t frameOffset, size_t numFrames )
 {
 	if( ! numFrames )
 		numFrames = buffer->getNumFrames();
@@ -201,7 +201,7 @@ void TargetFileCoreAudio::write( const Buffer *buffer, size_t frameOffset, size_
 }
 
 // TODO: this doesn't map so well. Better to provide an enum of all known formats?
-::AudioFileTypeID TargetFileCoreAudio::getFileTypeIdFromExtension( const std::string &ext )
+::AudioFileTypeID TargetFileImplCoreAudio::getFileTypeIdFromExtension( const std::string &ext )
 {
 	if( ext == "aiff" )
 		return kAudioFileAIFFType;
