@@ -152,7 +152,7 @@ public:
 	BufferDynamic								mIoBuffer;		// used to read samples from the file on io thread, resizeable so the ringbuffer can be filled
 
 	SourceFileRef								mSourceFile;
-	size_t										mBufferFramesThreshold;
+	size_t										mBufferFramesThreshold, mRingBufferPaddingFactor;
 	bool										mMultiThreaded, mReadOnBackground;
 	
 	std::atomic<uint64_t>						mLastUnderrun, mLastOverrun;

@@ -112,8 +112,7 @@ void FileNodeTestApp::setupBufferPlayer()
 
 void FileNodeTestApp::setupFilePlayer()
 {
-//	mSourceFile->setMaxFramesPerRead( 4096 );
-	mSourceFile->setMaxFramesPerRead( 8192 );
+//	mSourceFile->setMaxFramesPerRead( 8192 );
 
 	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
 //	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o

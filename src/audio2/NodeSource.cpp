@@ -147,14 +147,14 @@ void NodeBufferPlayer::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 NodeFilePlayer::NodeFilePlayer( const Format &format )
-: NodeSamplePlayer( format )
+: NodeSamplePlayer( format ), mRingBufferPaddingFactor( 2 )
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
 }
 
 NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
-: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded )
+: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mRingBufferPaddingFactor( 2 )
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
@@ -170,9 +170,8 @@ void NodeFilePlayer::initialize()
 {
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
-	size_t paddingMultiplier = 2; // TODO: expose
 	for( size_t i = 0; i < mNumChannels; i++ )
-		mRingBuffers.emplace_back( mSourceFile->getMaxFramesPerRead() * paddingMultiplier  );
+		mRingBuffers.emplace_back( mSourceFile->getMaxFramesPerRead() * mRingBufferPaddingFactor );
 
 	mBufferFramesThreshold = mRingBuffers[0].getSize() / 2;
 
@@ -188,6 +187,7 @@ void NodeFilePlayer::uninitialize()
 {
 	if( mMultiThreaded && mReadThread ) {
 		mReadOnBackground = false;
+		mNeedMoreSamplesCond.notify_one();
 		mReadThread->join();
 	}
 }
@@ -274,10 +274,12 @@ void NodeFilePlayer::process( Buffer *buffer )
 void NodeFilePlayer::readFromBackgroundThread()
 {
 	size_t lastReadPos = mReadPos;
-	while( mReadOnBackground ) {
-
+	while( true ) {
 		unique_lock<mutex> lock( mIoMutex );
 		mNeedMoreSamplesCond.wait( lock );
+
+		if( ! mReadOnBackground )
+			return;
 
 		size_t readPos = mReadPos;
 		if( readPos != lastReadPos )
@@ -294,7 +296,7 @@ void NodeFilePlayer::readFile()
 	size_t numFramesToRead = min( availableWrite, mNumFrames - mReadPos );
 
 	if( ! numFramesToRead ) {
-		mLastOverrun = getContext()->getNumProcessedFrames(); // TODO: is this at all useful?
+		mLastOverrun = getContext()->getNumProcessedFrames();
 		return;
 	}
 
@@ -303,11 +305,10 @@ void NodeFilePlayer::readFile()
 	size_t numRead = mSourceFile->read( &mIoBuffer );
 	mReadPos += numRead;
 
-//	app::console() << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
-
-
 	for( size_t ch = 0; ch < mNumChannels; ch++ )
 		mRingBuffers[ch].write( mIoBuffer.getChannel( ch ), numRead );
+
+//	app::console() << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
 }
 
 } } // namespace cinder::audio2
