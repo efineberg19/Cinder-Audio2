@@ -39,15 +39,15 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
 
 	LOG_V << "open success, ogg file info: " << endl;
 	// print comments plus a few lines about the bitstream we're decoding
-	char **ptr=ov_comment( &mOggVorbisFile, -1 )->user_comments;
-	while( *ptr )
-		app::console() << *ptr++ << endl;
+	char **comment = ov_comment( &mOggVorbisFile, -1 )->user_comments;
+	while( *comment )
+		app::console() << *comment++ << endl;
 
-	vorbis_info *vi = ov_info( &mOggVorbisFile, -1 );
-    mNumChannels = vi->channels;
-    mSampleRate = vi->rate;
+	vorbis_info *info = ov_info( &mOggVorbisFile, -1 );
+    mNumChannels = info->channels;
+    mSampleRate = info->rate;
 
-	app::console() << "\tversion: " << vi->version << endl;
+	app::console() << "\tversion: " << info->version << endl;
 	app::console() << "\tBitstream is " << mNumChannels << " channel, " << mSampleRate << "Hz" << endl;
 	app::console() << "\tEncoded by: " << ov_comment( &mOggVorbisFile, -1 )->vendor << endl;
 
@@ -63,7 +63,29 @@ SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
 
 size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 {
-	return 0;
+	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
+
+	if( mReadPos >= mNumFrames )
+		return 0;
+
+	int frameCount = (int)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
+
+	float **outChannels;
+	int section;
+	long numFramesRead = ov_read_float( &mOggVorbisFile, &outChannels, frameCount, &section );
+
+	if( numFramesRead < 0 ) {
+		LOG_E << "stream error." << endl;
+		return 0;
+	}
+
+	for( int ch = 0; ch < mNumChannels; ch++ ) {
+		float *channel = outChannels[ch];
+		copy( channel, channel + numFramesRead, buffer->getChannel( ch ) );
+	}
+	mReadPos += numFramesRead;
+
+	return numFramesRead;
 }
 
 BufferRef SourceFileImplOggVorbis::loadBuffer()
@@ -74,11 +96,9 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
 	while( true ) {
-        // clarification on ov_read_float params: returns framesRead. buffer is array of channels
-        // http://lists.xiph.org/pipermail/vorbis-dev/2002-January/005500.html
-        float **pcm;
-		int current_section;
-        long numFramesRead = ov_read_float( &mOggVorbisFile, &pcm, (int)mMaxFramesPerRead, &current_section );
+        float **outChannels;
+		int section;
+        long numFramesRead = ov_read_float( &mOggVorbisFile, &outChannels, (int)mMaxFramesPerRead, &section );
 		//        console() << numFramesRead << ", ";
 		if ( ! numFramesRead ) {
             break; // EOF
@@ -88,8 +108,9 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
             return result;
 		}
         else {
-            for( int i = 0; i < mNumChannels; i++ ) {
-                memcpy( &result->getChannel( i )[mReadPos], pcm[i], numFramesRead * sizeof(float) ); // TODO: use copy or something else abstracted
+            for( int ch = 0; ch < mNumChannels; ch++ ) {
+				float *channel = outChannels[ch];
+				copy( channel, channel + numFramesRead, result->getChannel( ch ) + mReadPos );
             }
             mReadPos += numFramesRead;
 		}
