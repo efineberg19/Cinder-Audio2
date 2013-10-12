@@ -199,7 +199,7 @@ void NodeFilePlayer::initialize()
 		mReadThread = unique_ptr<thread>( new thread( bind( &NodeFilePlayer::readFromBackgroundThread, this ) ) );
 	}
 
-//	LOG_V << " multithreaded: " << boolalpha << mMultiThreaded << dec << ", ringbufer frames: " << mRingBuffers[0].getSize() << ", mBufferFramesThreshold: " << mBufferFramesThreshold << ", source file max frames per read: " << mSourceFile->getMaxFramesPerRead() << endl;
+	LOG_V << " multithreaded: " << boolalpha << mMultiThreaded << dec << ", ringbufer frames: " << mRingBuffers[0].getSize() << ", mBufferFramesThreshold: " << mBufferFramesThreshold << ", source file max frames per read: " << mSourceFile->getMaxFramesPerRead() << endl;
 }
 
 void NodeFilePlayer::uninitialize()

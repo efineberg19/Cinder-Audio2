@@ -68,22 +68,27 @@ size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 	if( mReadPos >= mNumFrames )
 		return 0;
 
-	int frameCount = (int)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
+	int numFramesToRead = (int)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
+	int numFramesRead = 0;
 
-	float **outChannels;
-	int section;
-	long numFramesRead = ov_read_float( &mOggVorbisFile, &outChannels, frameCount, &section );
+	while( numFramesRead < numFramesToRead ) {
+		float **outChannels;
+		int section;
+		long outNumFrames = ov_read_float( &mOggVorbisFile, &outChannels, numFramesToRead - numFramesRead, &section );
+        if( outNumFrames <= 0 ) {
+			if( outNumFrames < 0 )
+				LOG_E << "stream error." << endl;
+            break;
+		}
 
-	if( numFramesRead < 0 ) {
-		LOG_E << "stream error." << endl;
-		return 0;
+		for( int ch = 0; ch < mNumChannels; ch++ ) {
+			float *channel = outChannels[ch];
+			copy( channel, channel + outNumFrames, buffer->getChannel( ch ) + numFramesRead );
+		}
+
+		numFramesRead += outNumFrames;
+		mReadPos += outNumFrames;
 	}
-
-	for( int ch = 0; ch < mNumChannels; ch++ ) {
-		float *channel = outChannels[ch];
-		copy( channel, channel + numFramesRead, buffer->getChannel( ch ) );
-	}
-	mReadPos += numFramesRead;
 
 	return numFramesRead;
 }
@@ -98,24 +103,20 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 	while( true ) {
         float **outChannels;
 		int section;
-        long numFramesRead = ov_read_float( &mOggVorbisFile, &outChannels, (int)mMaxFramesPerRead, &section );
-		//        console() << numFramesRead << ", ";
-		if ( ! numFramesRead ) {
-            break; // EOF
-		}
-        else if( numFramesRead < 0 ) {
-            LOG_E << "stream error." << endl;
-            return result;
+        long outNumFrames = ov_read_float( &mOggVorbisFile, &outChannels, (int)mMaxFramesPerRead, &section );
+        if( outNumFrames <= 0 ) {
+			if( outNumFrames < 0 )
+				LOG_E << "stream error." << endl;
+            break;
 		}
         else {
             for( int ch = 0; ch < mNumChannels; ch++ ) {
 				float *channel = outChannels[ch];
-				copy( channel, channel + numFramesRead, result->getChannel( ch ) + mReadPos );
+				copy( channel, channel + outNumFrames, result->getChannel( ch ) + mReadPos );
             }
-            mReadPos += numFramesRead;
+            mReadPos += outNumFrames;
 		}
 	}
-	//    console() << endl;
 
 	return result;
 }
