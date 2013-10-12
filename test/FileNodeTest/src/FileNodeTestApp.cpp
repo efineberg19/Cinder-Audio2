@@ -227,12 +227,6 @@ void FileNodeTestApp::keyDown( KeyEvent event )
 
 void FileNodeTestApp::fileDrop( FileDropEvent event )
 {
-	auto bufferPlayer = dynamic_pointer_cast<NodeBufferPlayer>( mSamplePlayer );
-	if( ! bufferPlayer ) {
-		LOG_E << "TODO: source file swapping with NodeFilePlayer" << endl;
-		return;
-	}
-
 	const fs::path &filePath = event.getFile( 0 );
 	LOG_V << "File dropped: " << filePath << endl;
 
@@ -240,10 +234,19 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
-	bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
-	mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
+	auto bufferPlayer = dynamic_pointer_cast<NodeBufferPlayer>( mSamplePlayer );
+	if( bufferPlayer ) {
+		bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
+		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
+	}
+	else {
+		auto filePlayer = dynamic_pointer_cast<NodeFilePlayer>( mSamplePlayer );
+		CI_ASSERT_MSG( filePlayer, "expected sample player to be either NodeBufferPlayer or NodeFilePlayer" );
 
-	LOG_V << "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() << endl;
+		filePlayer->setSourceFile( mSourceFile );
+	}
+
+	LOG_V << "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() << endl;
 	printGraph( mContext );
 
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );

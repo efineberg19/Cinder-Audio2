@@ -127,7 +127,7 @@ void NodeBufferPlayer::setBuffer( const BufferRef &buffer )
 	if( mEnabled )
 		stop();
 
-	if( buffer->getNumChannels() != mBuffer->getNumChannels() ) {
+	if( mNumChannels != buffer->getNumChannels() ) {
 		setNumChannels( buffer->getNumChannels() );
 		configureConnections();
 	}
@@ -204,11 +204,7 @@ void NodeFilePlayer::initialize()
 
 void NodeFilePlayer::uninitialize()
 {
-	if( mMultiThreaded && mReadThread ) {
-		mReadOnBackground = false;
-		mNeedMoreSamplesCond.notify_one();
-		mReadThread->join();
-	}
+	destroyIoThread();
 }
 
 void NodeFilePlayer::start()
@@ -240,6 +236,26 @@ void NodeFilePlayer::seek( size_t readPositionFrames )
 
 	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
 	mSourceFile->seekToTime( mReadPos );
+}
+
+void NodeFilePlayer::setSourceFile( const SourceFileRef &sourceFile )
+{
+	lock_guard<mutex> lock( getContext()->getMutex() );
+
+	bool enabled = mEnabled;
+	if( mEnabled )
+		stop();
+
+	if( mNumChannels != sourceFile->getNumChannels() ) {
+		setNumChannels( sourceFile->getNumChannels() );
+		configureConnections();
+	}
+
+	mSourceFile = sourceFile;
+	mNumFrames = sourceFile->getNumFrames();
+
+	if( enabled )
+		start();
 }
 
 uint64_t NodeFilePlayer::getLastUnderrun()
@@ -332,6 +348,16 @@ void NodeFilePlayer::readFile()
 		mRingBuffers[ch].write( mIoBuffer.getChannel( ch ), numRead );
 
 //	LOG_V << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
+}
+
+void NodeFilePlayer::destroyIoThread()
+{
+	if( mMultiThreaded && mReadThread ) {
+		LOG_V << "destroying I/O thread" << endl;
+		mReadOnBackground = false;
+		mNeedMoreSamplesCond.notify_one();
+		mReadThread->join();
+	}
 }
 
 } } // namespace cinder::audio2

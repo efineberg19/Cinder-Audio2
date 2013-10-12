@@ -118,8 +118,8 @@ public:
 	virtual void seek( size_t readPositionFrames ) override;
 	virtual void process( Buffer *buffer ) override;
 
-	BufferRef getBuffer() const	{ return mBuffer; }
 	void setBuffer( const BufferRef &buffer );
+	const BufferRef& getBuffer() const	{ return mBuffer; }
 
 protected:
 	BufferRef mBuffer;
@@ -143,6 +143,9 @@ public:
 
 	bool isMultiThreaded() const	{ return mMultiThreaded; }
 
+	void setSourceFile( const SourceFileRef &sourceFile );
+	const SourceFileRef& getSourceFile() const	{ return mSourceFile; }
+
 	//! Returns the frame of the last buffer underrun or 0 if none since the last time this method was called.
 	uint64_t getLastUnderrun();
 	//! Returns the frame of the last buffer overrun or 0 if none since the last time this method was called.
@@ -152,6 +155,7 @@ public:
 
 	void readFromBackgroundThread();
 	void readFile();
+	void destroyIoThread();
 
 	std::unique_ptr<std::thread>				mReadThread;
 	std::vector<RingBuffer>						mRingBuffers;	// used to transfer samples from io to audio thread, one ring buffer per channel
