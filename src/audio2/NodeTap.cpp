@@ -64,8 +64,10 @@ void NodeTap::initialize()
 
 void NodeTap::process( Buffer *buffer )
 {
-	for( size_t ch = 0; ch < mNumChannels; ch++ )
-		mRingBuffers[ch].write( buffer->getChannel( ch ), buffer->getNumFrames() );
+	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+		if( ! mRingBuffers[ch].write( buffer->getChannel( ch ), buffer->getNumFrames() ) )
+			return;
+	}
 }
 
 const Buffer& NodeTap::getBuffer()
@@ -88,8 +90,10 @@ float NodeTap::getVolume( size_t channel )
 
 void NodeTap::fillCopiedBuffer()
 {
-	for( size_t ch = 0; ch < mNumChannels; ch++ )
-		mRingBuffers[ch].read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() );
+	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+		if( ! mRingBuffers[ch].read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() ) )
+			return;
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------

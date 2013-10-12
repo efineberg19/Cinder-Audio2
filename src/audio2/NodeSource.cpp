@@ -344,8 +344,12 @@ void NodeFilePlayer::readFile()
 	size_t numRead = mSourceFile->read( &mIoBuffer );
 	mReadPos += numRead;
 
-	for( size_t ch = 0; ch < mNumChannels; ch++ )
-		mRingBuffers[ch].write( mIoBuffer.getChannel( ch ), numRead );
+	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+		if( ! mRingBuffers[ch].write( mIoBuffer.getChannel( ch ), numRead ) ) {
+			mLastOverrun = getContext()->getNumProcessedFrames();
+			return;
+		}
+	}
 
 //	LOG_V << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
 }
