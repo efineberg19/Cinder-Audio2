@@ -234,6 +234,8 @@ void NodeFilePlayer::seek( size_t readPositionFrames )
 		return;
 	}
 
+	unique_lock<mutex> lock( mIoMutex );
+
 	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
 	mSourceFile->seekToTime( mReadPos );
 }

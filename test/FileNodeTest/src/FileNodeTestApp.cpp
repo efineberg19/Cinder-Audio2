@@ -15,9 +15,6 @@
 #include "Gui.h"
 #include "Plot.h"
 
-// FIXME: (mac) FilePlayerNode crash with heavy seeking, non-multithreaded
-// - it's happening in SourceFileImplCoreAudio's read call - buffer ends might be overlapping
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
