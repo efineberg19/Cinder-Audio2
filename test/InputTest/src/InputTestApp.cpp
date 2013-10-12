@@ -35,7 +35,7 @@ class InputTestApp : public AppNative {
 	void setupInTapOut();
 	void setupInTapProcessOut();
 
-	ContextRef mContext;
+	Context* mContext;
 	NodeLineInRef mLineIn;
 	NodeLineOutRef mLineOut;
 	NodeTapRef mTap;
@@ -49,7 +49,7 @@ class InputTestApp : public AppNative {
 
 void InputTestApp::setup()
 {
-	mContext = Context::create();
+	mContext = Context::hardwareInstance();
 
 	mLineIn = mContext->createLineIn();
 	mLineOut = mContext->createLineOut();

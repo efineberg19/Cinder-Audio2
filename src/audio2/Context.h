@@ -37,17 +37,16 @@ class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
-	//! Returns a platform-specific \a Context. If none is available, returns an empty \a ContextRef.
-	static ContextRef			create();
+	//! Returns the platform-specific \a Context that managed hardware I/O and real-time processing. If none is available, returns an empty null.
+	static Context*				hardwareInstance();
+	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
+	static DeviceManager*		deviceManager();
 
 	virtual NodeLineOutRef		createLineOut( const DeviceRef &device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
 	virtual NodeLineInRef		createLineIn( const DeviceRef &device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );
-
-	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
-	static DeviceManager* deviceManager();
 
 	virtual void setTarget( const NodeTargetRef &target );
 
@@ -91,7 +90,10 @@ class Context : public std::enable_shared_from_this<Context> {
 	std::mutex		mMutex;
 	bool			mEnabled;
 
-	static std::unique_ptr<DeviceManager> sDeviceManager;
+	// TODO: if this is singleton, why hold in shared_ptr?
+	// - it's still stored in Node classes as a weak_ptr, so it needs to (for now) be created as a shared_ptr
+	static std::shared_ptr<Context>			sHardwareContext;
+	static std::unique_ptr<DeviceManager>	sDeviceManager; // TODO: consider turning DeviceManager into a HardwareContext class
 };
 
 template<typename NodeT>

@@ -43,7 +43,7 @@ class DeviceTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void keyDown( KeyEvent event );
 
-	ContextRef mContext;
+	Context* mContext;
 	NodeLineInRef mLineIn;
 	NodeLineOutRef mLineOut;
 	NodeTapRef mTap;
@@ -68,7 +68,7 @@ void DeviceTestApp::prepareSettings( Settings *settings )
 
 void DeviceTestApp::setup()
 {
-	mContext = Context::create();
+	mContext = Context::hardwareInstance();
 
 	setOutputDevice( Device::getDefaultOutput() );
 	setInputDevice( Device::getDefaultInput() );

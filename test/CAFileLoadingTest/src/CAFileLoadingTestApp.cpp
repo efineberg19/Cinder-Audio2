@@ -35,7 +35,7 @@ public:
 
 	void printErrorCodes();
 
-	ContextRef mContext;
+	Context* mContext;
 
 	vector<float> mSamples;
 	size_t mNumChannels, mNumSamples;
@@ -60,7 +60,7 @@ struct ConverterInfo {
 
 void CAFileLoadingTestApp::setup()
 {
-	mContext = Context::create();
+	mContext = Context::hardwareInstance();
 
 	DataSourceRef dataSource = loadResource( FILE_NAME );
 

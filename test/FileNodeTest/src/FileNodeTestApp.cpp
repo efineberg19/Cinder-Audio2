@@ -43,7 +43,7 @@ class FileNodeTestApp : public AppNative {
 	void testConverter();
 	void testWrite();
 
-	ContextRef mContext;
+	Context* mContext;
 	NodeSamplePlayerRef mSamplePlayer;
 	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
@@ -68,7 +68,7 @@ void FileNodeTestApp::setup()
 {
 	mUnderrunFade = mOverrunFade = 0.0f;
 
-	mContext = Context::create();
+	mContext = Context::hardwareInstance();
 	
 //	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );

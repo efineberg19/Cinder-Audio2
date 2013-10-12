@@ -46,7 +46,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void processTap( Vec2i pos );
 	void initParams();
 
-	ContextRef mContext;
+	Context* mContext;
 	NodeSourceRef mSource;
 
 	shared_ptr<NodeEffectAudioUnit> mEffect, mEffect2;
@@ -58,7 +58,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 
 void EffectsAudioUnitTestApp::setup()
 {
-	mContext = Context::create();
+	mContext = Context::hardwareInstance();
 
 	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
 	noise->setAutoEnabled();

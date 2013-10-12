@@ -51,7 +51,7 @@ public:
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	ContextRef mContext;
+	Context* mContext;
 	MixerNodeRef mMixer;
 	NodeSourceRef mSine, mNoise;
 
@@ -69,7 +69,7 @@ void MixerTestApp::prepareSettings( Settings *settings )
 
 void MixerTestApp::setup()
 {
-	mContext = mContext::create();
+	mContext = mContext::hardwareInstance();
 
 	setupSine();
 	//setupInterleavedPassThru();

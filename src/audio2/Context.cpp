@@ -44,17 +44,20 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-ContextRef Context::create()
-{
-#if defined( CINDER_COCOA )
-	return ContextRef( new cocoa::ContextAudioUnit() );
-#elif defined( CINDER_MSW )
-	return ContextRef( new msw::ContextXAudio() );
-#endif
-	return ContextRef(); // no available context for this platform.
-}
-
+std::shared_ptr<Context>		Context::sHardwareContext;
 std::unique_ptr<DeviceManager>	Context::sDeviceManager;
+
+Context* Context::hardwareInstance()
+{
+	if( ! sHardwareContext ) {
+#if defined( CINDER_COCOA )
+		sHardwareContext.reset( new cocoa::ContextAudioUnit() );
+#elif defined( CINDER_MSW )
+		sHardwareContext.reset( new msw::ContextXAudio() );
+#endif
+	}
+	return sHardwareContext.get();
+}
 
 DeviceManager* Context::deviceManager()
 {
@@ -119,7 +122,7 @@ void Context::setTarget( const NodeTargetRef &target )
 const NodeTargetRef& Context::getTarget()
 {
 	if( ! mTarget )
-		setTarget( createLineOut() );
+		mTarget = createLineOut();
 	return mTarget;
 }
 

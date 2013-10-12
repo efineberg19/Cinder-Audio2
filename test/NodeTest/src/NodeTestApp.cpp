@@ -62,7 +62,7 @@ public:
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	ContextRef mContext;
+	Context* mContext;
 	NodeGainRef mGain;
 	NodeSourceRef mSine, mNoise;
 
@@ -84,7 +84,7 @@ void NodeTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t frames per block: " << device->getFramesPerBlock() << endl;
 
-	mContext = Context::create();
+	mContext = Context::hardwareInstance();
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
 

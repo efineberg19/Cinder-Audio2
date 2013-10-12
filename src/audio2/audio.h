@@ -30,7 +30,7 @@
 
 namespace cinder { namespace audio2 {
 
-void printGraph( ContextRef graph );
+void printGraph( Context *graph );
 void printDevices();
 
 class AudioExc : public ci::Exception {

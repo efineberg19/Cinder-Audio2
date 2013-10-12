@@ -32,7 +32,7 @@ using namespace ci;
 namespace cinder { namespace audio2 {
 
 namespace {
-	void printRecursive( NodeRef node, size_t depth )
+	void printRecursive( const NodeRef &node, size_t depth )
 	{
 		if( ! node )
 			return;
@@ -57,7 +57,7 @@ namespace {
 	};
 }
 
-void printGraph( ContextRef graph )
+void printGraph( Context *graph )
 {
 	app::console() << "-------------- Graph configuration: --------------" << endl;
 	printRecursive( graph->getTarget(), 0 );
