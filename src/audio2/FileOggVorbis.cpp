@@ -78,7 +78,7 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
         // http://lists.xiph.org/pipermail/vorbis-dev/2002-January/005500.html
         float **pcm;
 		int current_section;
-        long numFramesRead = ov_read_float( &mOggVorbisFile, &pcm, (int)mNumFramesPerRead, &current_section );
+        long numFramesRead = ov_read_float( &mOggVorbisFile, &pcm, (int)mMaxFramesPerRead, &current_section );
 		//        console() << numFramesRead << ", ";
 		if ( ! numFramesRead ) {
             break; // EOF

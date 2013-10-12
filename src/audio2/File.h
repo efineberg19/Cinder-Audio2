@@ -29,6 +29,7 @@
 #include "cinder/DataTarget.h"
 
 // TODO: switch channels and samplerate order for consistency with nodess
+// - alternatively, make optional Options struct, where file params are used by default
 
 namespace cinder { namespace audio2 {
 	
@@ -47,25 +48,27 @@ class SourceFile {
 
 	virtual size_t	getNumFrames() const					{ return mNumFrames; }
 
-	virtual void	setNumFramesPerRead( size_t count )	{ mNumFramesPerRead = count; }
-	virtual size_t	getNumFramesPerRead() const			{ return mNumFramesPerRead; }
+	virtual void	setMaxFramesPerRead( size_t count )	{ mMaxFramesPerRead = count; }
+	virtual size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
 
 	//! \brief loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
 	virtual size_t read( Buffer *buffer ) = 0;
 
 	virtual BufferRef loadBuffer() = 0;
 
-	// TODO: should be able to seek by both frames and milliseconds - find the best way to allow this
-	// - overloading would be easy to make mistakes, should use different method names
+	//! Seeks to \a readPosition, in frames
 	virtual void seek( size_t readPosition ) = 0;
+
+	// TODO: implement, make sure docs on both this and seek() are clear
+//	void seekToTime( double readPositionSeconds );
 
 
   protected:
 	SourceFile( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
-	: mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mNumChannels( numChannels ), mSampleRate( sampleRate ), mNumFramesPerRead( 4096 )
+	: mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mNumChannels( numChannels ), mSampleRate( sampleRate ), mMaxFramesPerRead( 4096 )
 	{}
 
-	size_t mSampleRate, mNumChannels, mNumFrames, mFileSampleRate, mFileNumChannels, mNumFramesPerRead;
+	size_t mSampleRate, mNumChannels, mNumFrames, mFileSampleRate, mFileNumChannels, mMaxFramesPerRead;
 };
 
 // TODO: support sample formats other than float

@@ -73,9 +73,9 @@ void FileNodeTestApp::setup()
 
 	mContext = Context::create();
 	
-//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
-	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+//	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
 	mPan = mContext->makeNode( new NodePan2d() );
 	mPan->enableMonoInputMode( false );
@@ -112,15 +112,13 @@ void FileNodeTestApp::setupBufferPlayer()
 
 void FileNodeTestApp::setupFilePlayer()
 {
-	// TODO: read count should currently always be a multiple of the current block size.
-	// - make sure this is enforced or make it unnecessary
-//	mSourceFile->setNumFramesPerRead( 4096 );
-	mSourceFile->setNumFramesPerRead( 8192 );
+//	mSourceFile->setMaxFramesPerRead( 4096 );
+	mSourceFile->setMaxFramesPerRead( 8192 );
 
 	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
 //	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
-	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) ); // TODO: why is this hard-coded?
+	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) );
 
 	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mTap )->connect( mContext->getTarget() );
 }
@@ -341,7 +339,7 @@ void FileNodeTestApp::testConverter()
 		else {
 			// EOF, shrink sourceBuffer to match remaining
 			size_t framesRemaining = audioBuffer->getNumFrames() - numFramesConverted;
-			sourceBuffer.resize( framesRemaining, sourceBuffer.getNumChannels() );
+			sourceBuffer.setNumFrames( framesRemaining );
 			for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
 				copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + audioBuffer->getNumFrames(), sourceBuffer.getChannel( ch ) );
 		}

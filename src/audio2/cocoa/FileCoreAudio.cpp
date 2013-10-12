@@ -106,12 +106,12 @@ SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource, size_
 size_t SourceFileCoreAudio::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
-	CI_ASSERT( buffer->getNumFrames() >= mNumFramesPerRead );
 
 	if( mReadPos >= mNumFrames )
 		return 0;
 
-	UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, mNumFramesPerRead );
+	UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
+
 	for( int i = 0; i < mNumChannels; i++ ) {
 		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
 		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
@@ -132,7 +132,7 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
 	while( mReadPos < mNumFrames ) {
-		UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, mNumFramesPerRead );
+		UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, mMaxFramesPerRead );
 
         for( int ch = 0; ch < mNumChannels; ch++ ) {
             mBufferList->mBuffers[ch].mDataByteSize = frameCount * sizeof( float );

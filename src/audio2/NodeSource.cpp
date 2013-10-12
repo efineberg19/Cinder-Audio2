@@ -159,7 +159,7 @@ NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThr
 	setNumChannels( mSourceFile->getNumChannels() );
 
 	mNumFrames = mSourceFile->getNumFrames();
-	mBufferFramesThreshold = mSourceFile->getNumFramesPerRead() / 2; // TODO: expose
+	mBufferFramesThreshold = mSourceFile->getMaxFramesPerRead() / 2; // TODO: expose
 }
 
 NodeFilePlayer::~NodeFilePlayer()
@@ -170,11 +170,11 @@ void NodeFilePlayer::initialize()
 {
 	mSampleRate = getContext()->getSampleRate();
 
-	mIoBuffer.setSize( mSourceFile->getNumFramesPerRead(), mNumChannels );
+	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
 	size_t paddingMultiplier = 2; // TODO: expose
 	for( size_t i = 0; i < mNumChannels; i++ )
-		mRingBuffers.emplace_back( mSourceFile->getNumFramesPerRead() * paddingMultiplier  );
+		mRingBuffers.emplace_back( mSourceFile->getMaxFramesPerRead() * paddingMultiplier  );
 
 	if( mMultiThreaded ) {
 		mReadOnBackground = true;
@@ -266,11 +266,11 @@ void NodeFilePlayer::process( Buffer *buffer )
 
 void NodeFilePlayer::readFromBackgroundThread()
 {
-	size_t readMilliseconds = ( 1000 * mSourceFile->getNumFramesPerRead() ) / mSampleRate;
+	size_t readMilliseconds = ( 1000 * mSourceFile->getMaxFramesPerRead() ) / mSampleRate;
 	size_t lastReadPos = mReadPos;
 	while( mReadOnBackground ) {
 		if( ! mNeedMoreFrames ) {
-			// FIXME: this is still causing underruns. need either:
+			// FIXME NEXT: this is still causing underruns. need either:
 			// a) a higher resolution timer
 			// b) condition + mutex
 			ci::sleep( readMilliseconds / 2 );
@@ -288,16 +288,22 @@ void NodeFilePlayer::readFromBackgroundThread()
 
 void NodeFilePlayer::readFile()
 {
-	if( mRingBuffers[0].getAvailableWrite() >= mReadBuffer.getNumFrames() ) {
-		size_t numRead = mSourceFile->read( &mReadBuffer );
-		mReadPos += numRead;
+	size_t availableWrite = mRingBuffers[0].getAvailableWrite();
+	size_t numFramesToRead = min( availableWrite, mNumFrames - mReadPos );
 
-		for( size_t ch = 0; ch < mNumChannels; ch++ )
-			mRingBuffers[ch].write( mReadBuffer.getChannel( ch ), numRead );
-		mNumFramesBuffered += numRead;
+	if( ! numFramesToRead ) {
+		mLastOverrun = getContext()->getNumProcessedFrames(); // TODO: is this at all useful?
+		return;
 	}
-	else
-		mLastOverrun = getContext()->getNumProcessedFrames();
+
+	mIoBuffer.setNumFrames( numFramesToRead );
+
+	size_t numRead = mSourceFile->read( &mIoBuffer );
+	mReadPos += numRead;
+
+	for( size_t ch = 0; ch < mNumChannels; ch++ )
+		mRingBuffers[ch].write( mIoBuffer.getChannel( ch ), numRead );
+	mNumFramesBuffered += numRead;
 }
 
 } } // namespace cinder::audio2
