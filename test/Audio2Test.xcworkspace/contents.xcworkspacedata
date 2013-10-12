@@ -8,9 +8,6 @@
       location = "container:"
       name = "osx">
       <FileRef
-         location = "group:CAFileLoadingTest/xcode/CAFileLoadingTest.xcodeproj">
-      </FileRef>
-      <FileRef
          location = "group:DeviceTest/xcode/DeviceTest.xcodeproj">
       </FileRef>
       <FileRef
@@ -38,9 +35,6 @@
    <Group
       location = "container:"
       name = "ios">
-      <FileRef
-         location = "group:CAFileLoadingTest/xcode_ios/CAFileLoadingTest.xcodeproj">
-      </FileRef>
       <FileRef
          location = "group:DeviceTest/xcode_ios/DeviceTest.xcodeproj">
       </FileRef>
