@@ -170,7 +170,7 @@ void NodeFilePlayer::initialize()
 {
 	mSampleRate = getContext()->getSampleRate();
 
-	mReadBuffer = Buffer( mSourceFile->getNumFramesPerRead(), mNumChannels );
+	mIoBuffer.setSize( mSourceFile->getNumFramesPerRead(), mNumChannels );
 
 	size_t paddingMultiplier = 2; // TODO: expose
 	for( size_t i = 0; i < mNumChannels; i++ )

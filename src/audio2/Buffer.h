@@ -44,9 +44,8 @@ class BufferBaseT {
 	typedef T SampleType;
 
 	BufferBaseT( size_t numFrames, size_t numChannels )
-	: mNumFrames( numFrames ), mNumChannels( numChannels ), mSilent( true )
+	: mNumFrames( numFrames ), mNumChannels( numChannels ), mData( numFrames * numChannels ), mSilent( true )
 	{
-		mData.resize( numChannels * numFrames );
 	}
 
 	void zero()
@@ -56,7 +55,7 @@ class BufferBaseT {
 	
 	size_t getNumFrames() const		{ return mNumFrames; }
 	size_t getNumChannels() const	{ return mNumChannels; }
-	size_t getSize() const			{ return mData.size(); }
+	size_t getSize() const			{ return mNumFrames * mNumChannels; }
 
 	// TODO: use these
 	//void setSilent( bool b = true )	{ mSilent = b; }
@@ -152,22 +151,57 @@ public:
 	T* getImag()				{ return &this->mData[this->mNumFrames]; }
 	const T* getImag() const	{ return &this->mData[this->mNumFrames]; }
 
-	using BufferBaseT<T>::zero;
 };
 
-//! BufferDynamicT is a resizable BufferT
-// TODO: enable move operator to convert BufferT to this
+//! BufferDynamicT is a resizable, reshapeable BufferT. It's internally alloceted buffer will grow as needed,
+//!  but will not shrink unless shrinkToFit() is called.
+//! TODO: enable move operator to convert BufferT to this
 template <typename T>
 class BufferDynamicT : public BufferT<T> {
   public:
-	  BufferDynamicT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferT<T>( numFrames, numChannels ) {}
+	BufferDynamicT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferT<T>( numFrames, numChannels ),
+		mAllocatedSize( numFrames * numChannels )
+	{}
 
-	void resize( size_t numFrames, size_t numChannels )
+	void setSize( size_t numFrames, size_t numChannels )
 	{
-		BufferT<T>::mNumFrames = numFrames;
-		BufferT<T>::mNumChannels = numChannels;
-		BufferT<T>::mData.resize( BufferT<T>::mNumFrames * BufferT<T>::mNumChannels );
+		this->mNumFrames = numFrames;
+		this->mNumChannels = numChannels;
+		resizeIfNecessary();
 	}
+
+	void setNumFrames( size_t numFrames )
+	{
+		this->mNumFrames = numFrames;
+		resizeIfNecessary();
+	}
+
+	void setNumChannels( size_t numChannels )
+	{
+		this->mNumChannels = numChannels;
+		resizeIfNecessary();
+	}
+
+	//! Shrinks the allocated size to match the specified size, freeing any extra memory.
+	void shrinkToFit()
+	{
+		mAllocatedSize = this->getSize();
+		this->mData.resize( mAllocatedSize );
+	}
+
+	size_t getAllocatedSize() const		{ return mAllocatedSize; }
+
+  private:
+	void resizeIfNecessary()
+	{
+		size_t size = this->getSize();
+		if( mAllocatedSize < size ) {
+			mAllocatedSize = size;
+			this->mData.resize( mAllocatedSize );
+		}
+	}
+
+	size_t mAllocatedSize;
 };
 
 // TODO: move these freestanding functions into classes

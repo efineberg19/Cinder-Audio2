@@ -131,7 +131,7 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 		if( numFramesRead + readCount > mNumFrames ) {
 			LOG_V << "warning, buffer resize from: " << mNumFrames << " to: " << numFramesRead + readCount << endl; // TODO: should resize buffer if necessary
 			mNumFrames = numFramesRead + readCount;
-			result->resize( mNumFrames, mNumChannels );
+			result->setNumFrames( mNumFrames );
 		}
 
 		for( size_t ch = 0; ch < mNumChannels; ch++ ) {

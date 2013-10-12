@@ -146,11 +146,10 @@ public:
 
 	void readFromBackgroundThread();
 	void readFile();
-//	bool moreFramesNeeded();
 
 	std::unique_ptr<std::thread>				mReadThread;
 	std::vector<RingBuffer>						mRingBuffers;	// used to transfer samples from io to audio thread, one ring buffer per channel
-	Buffer										mReadBuffer;	// used to read sounds from file on io thread
+	BufferDynamic								mIoBuffer;		// used to read samples from the file on io thread, resizeable so the ringbuffer can be filled
 	size_t										mNumFramesBuffered;
 
 	SourceFileRef								mSourceFile;
