@@ -40,10 +40,8 @@ class Fft;
 typedef std::shared_ptr<class NodeTap> NodeTapRef;
 typedef std::shared_ptr<class NodeTapSpectral> NodeTapSpectralRef;
 
-class NodeTapBase : public Node {
-
-};
-
+// TODO: consider renaming to Scope, since it is the more traditional name.
+// - another reason is that very soon, it can be a a 'leaf', so it isn't necessary 'tapping' into a stream, it is just not modifying it
 class NodeTap : public Node {
   public:
 	struct Format : public Node::Format {
@@ -77,10 +75,10 @@ class NodeTap : public Node {
 	//! Copies audio frames from the RingBuffer into mCopiedBuffer, which is suitable for operation on the main thread.
 	void fillCopiedBuffer();
 	
-	RingBuffer	mRingBuffer;
-	Buffer		mCopiedBuffer;
-	size_t		mWindowSize;
-	size_t		mRingBufferPaddingFactor;
+	std::vector<RingBuffer>		mRingBuffers;	// one per channel
+	Buffer						mCopiedBuffer;	// used to safely read audio frames on a non-audio thread
+	size_t						mWindowSize;
+	size_t						mRingBufferPaddingFactor;
 };
 
 class NodeTapSpectral : public NodeTap {

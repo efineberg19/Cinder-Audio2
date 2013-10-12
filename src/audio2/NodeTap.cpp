@@ -56,13 +56,16 @@ void NodeTap::initialize()
 	else if( ! isPowerOf2( mWindowSize ) )
 		mWindowSize = nextPowerOf2( static_cast<uint32_t>( mWindowSize ) );
 
-	mRingBuffer.resize( mWindowSize * mRingBufferPaddingFactor );
+	for( size_t ch = 0; ch < mNumChannels; ch++ )
+		mRingBuffers.emplace_back( mWindowSize * mRingBufferPaddingFactor );
+
 	mCopiedBuffer = Buffer( mWindowSize, getNumChannels() );
 }
 
 void NodeTap::process( Buffer *buffer )
 {
-	mRingBuffer.write( buffer->getData(), buffer->getSize() );
+	for( size_t ch = 0; ch < mNumChannels; ch++ )
+		mRingBuffers[ch].write( buffer->getChannel( ch ), buffer->getNumFrames() );
 }
 
 const Buffer& NodeTap::getBuffer()
@@ -85,7 +88,8 @@ float NodeTap::getVolume( size_t channel )
 
 void NodeTap::fillCopiedBuffer()
 {
-	mRingBuffer.read( mCopiedBuffer.getData(), mCopiedBuffer.getSize() );
+	for( size_t ch = 0; ch < mNumChannels; ch++ )
+		mRingBuffers[ch].read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() );
 }
 
 // ----------------------------------------------------------------------------------------------------
