@@ -56,18 +56,6 @@ Node::~Node()
 {
 }
 
-const NodeRef& Node::connect( const NodeRef &dest )
-{
-	dest->setInput( shared_from_this() );
-	return dest;
-}
-
-const NodeRef& Node::connect( const NodeRef &dest, size_t bus )
-{
-	dest->setInput( shared_from_this(), bus );
-	return dest;
-}
-
 void Node::disconnect( size_t bus )
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );

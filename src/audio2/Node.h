@@ -81,8 +81,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void start()		{ mEnabled = true; }
 	virtual void stop()			{ mEnabled = false; }
 
-	virtual const NodeRef& connect( const NodeRef &dest );
-	virtual const NodeRef& connect( const NodeRef &dest, size_t bus );
+	virtual const NodeRef& connect( const NodeRef &dest )					{ dest->setInput( shared_from_this() ); return dest; }
+	virtual const NodeRef& connect( const NodeRef &dest, size_t bus )		{ dest->setInput( shared_from_this(), bus ); return dest; }
 
 	virtual void disconnect( size_t bus = 0 );
 
@@ -98,9 +98,10 @@ class Node : public std::enable_shared_from_this<Node> {
 	ChannelMode getChannelMode() const		{ return mChannelMode; }
 	size_t		getMaxNumInputChannels() const;
 
-	//! controls whether the owning Context automatically enables / disables this Node
-	bool	isAutoEnabled() const				{ return mAutoEnabled; }
+	//! Sets whether the Node is automatically enabled / disabled when connected
 	void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
+	//! Returns whether the Node is automatically enabled / disabled when connected
+	bool	isAutoEnabled() const				{ return mAutoEnabled; }
 
 	//! Default implementation returns true if numChannels match our format
 	virtual bool supportsInputNumChannels( size_t numChannels )	{ return mNumChannels == numChannels; }

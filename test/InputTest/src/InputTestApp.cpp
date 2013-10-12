@@ -13,6 +13,7 @@
 
 // TODO: test multiple formats for input
 // - make sure inputs and outputs with different samplerates somehow works correctly (which was default for my win8 laptop)
+// - requires input on windows to use a Converter
 
 using namespace ci;
 using namespace ci::app;

@@ -70,7 +70,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	size_t		getFramesPerBlock()			{ return getTarget()->getFramesPerBlock(); }
 
 	uint64_t	getNumProcessedFrames()		{ return getTarget()->getNumProcessedFrames(); }
-	float		getNumProcessedSeconds()	{ return (float)getNumProcessedFrames() / (float)getSampleRate(); }
+	double		getNumProcessedSeconds()	{ return (double)getNumProcessedFrames() / (double)getSampleRate(); }
 
 	std::mutex& getMutex()					{ return mMutex; }
 
