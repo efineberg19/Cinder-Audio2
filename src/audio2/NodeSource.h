@@ -150,15 +150,15 @@ public:
 	std::unique_ptr<std::thread>				mReadThread;
 	std::vector<RingBuffer>						mRingBuffers;	// used to transfer samples from io to audio thread, one ring buffer per channel
 	BufferDynamic								mIoBuffer;		// used to read samples from the file on io thread, resizeable so the ringbuffer can be filled
-	size_t										mNumFramesBuffered;
 
 	SourceFileRef								mSourceFile;
 	size_t										mBufferFramesThreshold;
-	size_t										mSampleRate;
-	bool										mMultiThreaded;
+	bool										mMultiThreaded, mReadOnBackground;
 	
-	std::atomic<bool>							mReadOnBackground, mNeedMoreFrames;
 	std::atomic<uint64_t>						mLastUnderrun, mLastOverrun;
+
+	std::mutex				mIoMutex;
+	std::condition_variable	mNeedMoreSamplesCond;
 };
 
 // TODO: NodeGen's are starting to seem unecessary

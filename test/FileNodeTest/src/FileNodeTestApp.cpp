@@ -73,9 +73,9 @@ void FileNodeTestApp::setup()
 
 	mContext = Context::create();
 	
-	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
+//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
-//	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
 	mPan = mContext->makeNode( new NodePan2d() );
 	mPan->enableMonoInputMode( false );

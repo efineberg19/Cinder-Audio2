@@ -147,19 +147,19 @@ void NodeBufferPlayer::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 NodeFilePlayer::NodeFilePlayer( const Format &format )
-: NodeSamplePlayer( format ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+: NodeSamplePlayer( format )
 {
+	// force channel mode to match buffer
+	mChannelMode = ChannelMode::SPECIFIED;
 }
 
 NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
-: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mNumFramesBuffered( 0 ), mSampleRate( 0 )
+: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded )
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( mSourceFile->getNumChannels() );
-
 	mNumFrames = mSourceFile->getNumFrames();
-	mBufferFramesThreshold = mSourceFile->getMaxFramesPerRead() / 2; // TODO: expose
 }
 
 NodeFilePlayer::~NodeFilePlayer()
@@ -168,18 +168,20 @@ NodeFilePlayer::~NodeFilePlayer()
 
 void NodeFilePlayer::initialize()
 {
-	mSampleRate = getContext()->getSampleRate();
-
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
 	size_t paddingMultiplier = 2; // TODO: expose
 	for( size_t i = 0; i < mNumChannels; i++ )
 		mRingBuffers.emplace_back( mSourceFile->getMaxFramesPerRead() * paddingMultiplier  );
 
+	mBufferFramesThreshold = mRingBuffers[0].getSize() / 2;
+
 	if( mMultiThreaded ) {
 		mReadOnBackground = true;
 		mReadThread = unique_ptr<thread>( new thread( bind( &NodeFilePlayer::readFromBackgroundThread, this ) ) );
 	}
+
+//	LOG_V << " multithreaded: " << boolalpha << mMultiThreaded << dec << ", ringbufer frames: " << mRingBuffers[0].getSize() << ", mBufferFramesThreshold: " << mBufferFramesThreshold << ", source file max frames per read: " << mSourceFile->getMaxFramesPerRead() << endl;
 }
 
 void NodeFilePlayer::uninitialize()
@@ -235,18 +237,23 @@ void NodeFilePlayer::process( Buffer *buffer )
 {
 	size_t numFrames = buffer->getNumFrames();
 	size_t readPos = mReadPos;
+	size_t numReadAvail = mRingBuffers[0].getAvailableRead();
 
-	mNeedMoreFrames = ( mNumFramesBuffered < mBufferFramesThreshold && readPos < mNumFrames );
-	if( ! mMultiThreaded && mNeedMoreFrames.load( memory_order_relaxed ) )
-		readFile();
+	app::console() << "numReadAvail: " << numReadAvail << endl;
 
-	size_t readCount = std::min( mNumFramesBuffered, numFrames );
+	if( numReadAvail < mBufferFramesThreshold ) {
+		if( mMultiThreaded )
+			mNeedMoreSamplesCond.notify_one();
+		else
+			readFile();
+	}
+
+	size_t readCount = std::min( numReadAvail, numFrames );
 
 	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
 		if( ! mRingBuffers[ch].read( buffer->getChannel( ch ), readCount ) )
 			mLastUnderrun = getContext()->getNumProcessedFrames();
 	}
-	mNumFramesBuffered -= readCount;
 
 	// zero any unused frames
 	if( readCount < numFrames ) {
@@ -266,16 +273,11 @@ void NodeFilePlayer::process( Buffer *buffer )
 
 void NodeFilePlayer::readFromBackgroundThread()
 {
-	size_t readMilliseconds = ( 1000 * mSourceFile->getMaxFramesPerRead() ) / mSampleRate;
 	size_t lastReadPos = mReadPos;
 	while( mReadOnBackground ) {
-		if( ! mNeedMoreFrames ) {
-			// FIXME NEXT: this is still causing underruns. need either:
-			// a) a higher resolution timer
-			// b) condition + mutex
-			ci::sleep( readMilliseconds / 2 );
-			continue;
-		}
+
+		unique_lock<mutex> lock( mIoMutex );
+		mNeedMoreSamplesCond.wait( lock );
 
 		size_t readPos = mReadPos;
 		if( readPos != lastReadPos )
@@ -301,9 +303,11 @@ void NodeFilePlayer::readFile()
 	size_t numRead = mSourceFile->read( &mIoBuffer );
 	mReadPos += numRead;
 
+//	app::console() << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
+
+
 	for( size_t ch = 0; ch < mNumChannels; ch++ )
 		mRingBuffers[ch].write( mIoBuffer.getChannel( ch ), numRead );
-	mNumFramesBuffered += numRead;
 }
 
 } } // namespace cinder::audio2
