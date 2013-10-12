@@ -99,15 +99,15 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 	return result;
 }
 
-void SourceFileImplOggVorbis::seek( size_t readPosition )
+void SourceFileImplOggVorbis::seek( size_t readPositionFrames )
 {
-	if( readPosition >= mNumFrames )
+	if( readPositionFrames >= mNumFrames )
 		return;
 
-	int status = ov_pcm_seek( &mOggVorbisFile, (ogg_int64_t)readPosition );
+	int status = ov_pcm_seek( &mOggVorbisFile, (ogg_int64_t)readPositionFrames );
 	CI_ASSERT( ! status );
 
-	mReadPos = readPosition;
+	mReadPos = readPositionFrames;
 }
 
 } } // namespace cinder::audio2

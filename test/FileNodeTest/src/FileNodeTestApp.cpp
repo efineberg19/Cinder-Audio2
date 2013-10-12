@@ -195,8 +195,7 @@ void FileNodeTestApp::processTap( Vec2i pos )
 
 void FileNodeTestApp::seek( size_t xPos )
 {
-	size_t seek = mSamplePlayer->getNumFrames() * xPos / getWindowWidth();
-	mSamplePlayer->setReadPosition( seek );
+	mSamplePlayer->seek( mSamplePlayer->getNumFrames() * xPos / getWindowWidth() );
 }
 
 void FileNodeTestApp::mouseDown( MouseEvent event )
@@ -222,6 +221,8 @@ void FileNodeTestApp::keyDown( KeyEvent event )
 		testConverter();
 	if( event.getCode() == KeyEvent::KEY_w )
 		testWrite();
+	if( event.getCode() == KeyEvent::KEY_s )
+		mSamplePlayer->seekToTime( 1.0 );
 }
 
 void FileNodeTestApp::fileDrop( FileDropEvent event )

@@ -145,9 +145,9 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 	return result;
 }
 
-void SourceFileMediaFoundation::seek( size_t readPosition )
+void SourceFileMediaFoundation::seek( size_t readPositionFrames )
 {
-	//if( readPosition >= mNumFrames )
+	//if( readPositionFrames >= mNumFrames )
 	//	return;
 
 	//mReadPos = readPosition;
@@ -157,7 +157,7 @@ void SourceFileMediaFoundation::seek( size_t readPosition )
 		return;
 	}
 
-	float positionSeconds = (float)readPosition / (float)mSampleRate;
+	float positionSeconds = (float)readPositionFrames / (float)mSampleRate;
 	if( positionSeconds > mSeconds ) {
 		LOG_E << "cannot seek beyond end of file (" << positionSeconds << "s)." << endl;
 		return;

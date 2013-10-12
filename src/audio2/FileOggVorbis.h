@@ -41,7 +41,7 @@ class SourceFileImplOggVorbis : public SourceFile {
 
 	size_t		read( Buffer *buffer ) override;
 	BufferRef	loadBuffer() override;
-	void		seek( size_t readPosition ) override;
+	void		seek( size_t readPositionFrames ) override;
 
   private:
 	::OggVorbis_File	mOggVorbisFile;

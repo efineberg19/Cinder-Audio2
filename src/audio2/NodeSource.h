@@ -79,8 +79,14 @@ class NodeSamplePlayer : public NodeSource {
 public:
 	std::string virtual getTag() override			{ return "NodeSamplePlayer"; }
 
-	virtual void setReadPosition( size_t pos )	{ mReadPos = pos; }
-	virtual size_t getReadPosition() const	{ return mReadPos; }
+	//! Seek the read position to \a readPositionFrames
+	virtual void seek( size_t readPositionFrames ) = 0;
+	//! Seek to read position \a readPositionSeconds
+	void seekToTime( double readPositionSeconds );
+	//! Gets the current read position in frames
+	size_t getReadPosition() const	{ return mReadPos; }
+	//! Gets the current read position in seconds.
+	double getReadPositionTime() const;
 
 	virtual void setLoop( bool b = true )	{ mLoop = b; }
 	virtual bool getLoop() const			{ return mLoop; }
@@ -109,7 +115,8 @@ public:
 
 	virtual void start() override;
 	virtual void stop() override;
-	virtual void process( Buffer *buffer );
+	virtual void seek( size_t readPositionFrames ) override;
+	virtual void process( Buffer *buffer ) override;
 
 	BufferRef getBuffer() const	{ return mBuffer; }
 	void setBuffer( const BufferRef &buffer );
@@ -131,9 +138,8 @@ public:
 
 	virtual void start() override;
 	virtual void stop() override;
+	virtual void seek( size_t readPositionFrames ) override;
 	virtual void process( Buffer *buffer ) override;
-
-	virtual void setReadPosition( size_t pos ) override;
 
 	bool isMultiThreaded() const	{ return mMultiThreaded; }
 

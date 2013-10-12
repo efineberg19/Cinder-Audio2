@@ -147,15 +147,15 @@ BufferRef SourceFileCoreAudio::loadBuffer()
 	return result;
 }
 
-void SourceFileCoreAudio::seek( size_t readPosition )
+void SourceFileCoreAudio::seek( size_t readPositionFrames )
 {
-	if( readPosition >= mNumFrames )
+	if( readPositionFrames >= mNumFrames )
 		return;
 
-	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPosition );
+	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPositionFrames );
 	CI_ASSERT( status == noErr );
 
-	mReadPos = readPosition;
+	mReadPos = readPositionFrames;
 }
 
 // ----------------------------------------------------------------------------------------------------

@@ -57,6 +57,20 @@ NodeLineIn::NodeLineIn( const DeviceRef &device, const Format &format )
 }
 
 // ----------------------------------------------------------------------------------------------------
+// MARK: - NodeSamplePlayer
+// ----------------------------------------------------------------------------------------------------
+
+void NodeSamplePlayer::seekToTime( double readPositionSeconds )
+{
+	return seek( size_t( readPositionSeconds * (double)getContext()->getSampleRate() ) );
+}
+
+double NodeSamplePlayer::getReadPositionTime() const
+{
+	return (double)mReadPos / (double)getContext()->getSampleRate();
+}
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - NodeBufferPlayer
 // ----------------------------------------------------------------------------------------------------
 
@@ -98,6 +112,11 @@ void NodeBufferPlayer::stop()
 	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
+}
+
+void NodeBufferPlayer::seek( size_t readPositionFrames )
+{
+	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
 }
 
 void NodeBufferPlayer::setBuffer( const BufferRef &buffer )
@@ -194,9 +213,12 @@ void NodeFilePlayer::uninitialize()
 
 void NodeFilePlayer::start()
 {
-	CI_ASSERT( mSourceFile );
+	if( ! mSourceFile ) {
+		LOG_E << "no source file, returning." << endl;
+		return;
+	}
 
-	setReadPosition( 0 );
+	seek( 0 );
 	mEnabled = true;
 
 	LOG_V << "started" << endl;
@@ -209,14 +231,15 @@ void NodeFilePlayer::stop()
 	LOG_V << "stopped" << endl;
 }
 
-void NodeFilePlayer::setReadPosition( size_t pos )
+void NodeFilePlayer::seek( size_t readPositionFrames )
 {
-	CI_ASSERT( mSourceFile );
+	if( ! mSourceFile ) {
+		LOG_E << "no source file, returning." << endl;
+		return;
+	}
 
-	if( ! mMultiThreaded )
-		mSourceFile->seek( pos );
-
-	mReadPos = pos;
+	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
+	mSourceFile->seekToTime( mReadPos );
 }
 
 uint64_t NodeFilePlayer::getLastUnderrun()
@@ -239,7 +262,7 @@ void NodeFilePlayer::process( Buffer *buffer )
 	size_t readPos = mReadPos;
 	size_t numReadAvail = mRingBuffers[0].getAvailableRead();
 
-	app::console() << "numReadAvail: " << numReadAvail << endl;
+//	LOG_V << "numReadAvail: " << numReadAvail << endl;
 
 	if( numReadAvail < mBufferFramesThreshold ) {
 		if( mMultiThreaded )
@@ -262,7 +285,7 @@ void NodeFilePlayer::process( Buffer *buffer )
 		// check if end of file
 		if( readPos + readCount >= mNumFrames ) {
 			if( mLoop ) {
-				setReadPosition( 0 );
+				seek( 0 );
 				return;
 			}
 
@@ -308,7 +331,7 @@ void NodeFilePlayer::readFile()
 	for( size_t ch = 0; ch < mNumChannels; ch++ )
 		mRingBuffers[ch].write( mIoBuffer.getChannel( ch ), numRead );
 
-//	app::console() << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
+//	LOG_V << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
 }
 
 } } // namespace cinder::audio2

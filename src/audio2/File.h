@@ -56,12 +56,10 @@ class SourceFile {
 
 	virtual BufferRef loadBuffer() = 0;
 
-	//! Seeks to \a readPosition, in frames
-	virtual void seek( size_t readPosition ) = 0;
-
-	// TODO: implement, make sure docs on both this and seek() are clear
-//	void seekToTime( double readPositionSeconds );
-
+	//! Seek the read position to \a readPositionFrames
+	virtual void seek( size_t readPositionFrames ) = 0;
+	//! Seek to read position \a readPositionSeconds
+	void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getFileSampleRate() ) ); }
 
   protected:
 	SourceFile( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )

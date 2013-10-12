@@ -43,7 +43,7 @@ class SourceFileMediaFoundation : public SourceFile {
 
 	size_t		read( Buffer *buffer ) override;
 	BufferRef	loadBuffer() override;
-	void		seek( size_t readPosition ) override;
+	void		seek( size_t readPositionFrames ) override;
 
 	void	setSampleRate( size_t sampleRate ) override;
 	void	setNumChannels( size_t channels ) override;
