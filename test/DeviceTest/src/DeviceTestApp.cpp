@@ -91,7 +91,7 @@ void DeviceTestApp::setup()
 
 void DeviceTestApp::setOutputDevice( const DeviceRef &device )
 {
-	NodeSourceRef currentSource = findUpstreamStreamNode<NodeSource>( mGain );
+	NodeSourceRef currentSource = findFirstUpstreamNode<NodeSource>( mGain );
 	SaveNodeEnabledState enabled( currentSource );
 
 	mContext->uninitializeAllNodes();

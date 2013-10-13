@@ -30,7 +30,7 @@
 
 #include <memory>
 #include <atomic>
-#include <vector>
+#include <map>
 
 namespace cinder { namespace audio2 {
 
@@ -40,6 +40,9 @@ typedef std::shared_ptr<class NodeMixer>		NodeMixerRef;
 
 class Node : public std::enable_shared_from_this<Node> {
   public:
+	typedef std::map<size_t, std::shared_ptr<Node> >		InputsContainerT;		//! bus, strong reference to this
+	typedef std::multimap<size_t, std::weak_ptr<Node> >		OutputsContainerT;		//! output's bus for this node, weak reference to this
+
 	enum ChannelMode {
 		SPECIFIED,		//! Number of channels has been specified by user or is non-settable.
 		MATCHES_INPUT,	//! Node matches it's channels with it's input.
@@ -93,9 +96,6 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Sets \a input at \a bus, replacing any Node currently existing there.
 	virtual void setInput( const NodeRef &input, size_t bus = 0 );
 
-	bool isConnectedToInput( const NodeRef &input ) const;
-	bool isConnectedToOutput( const NodeRef &output ) const;
-
 	size_t		getNumChannels() const			{ return mNumChannels; }
 	ChannelMode getChannelMode() const			{ return mChannelMode; }
 	size_t		getMaxNumInputChannels() const;
@@ -112,11 +112,12 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Called prior to process(), override to control how this Node manages input channel mixing, summing and / or processing. The processed samples must eventually be in \t destBuffer (will be used in-place if possible).
 	virtual void pullInputs( Buffer *destBuffer );
 
-	// TODO: it's probably a good idea to hide this structure
-	std::vector<NodeRef>& getInputs()			{ return mInputs; }
+	// TODO: consider doing custom iterators and hiding these container types
+	InputsContainerT& getInputs()			{ return mInputs; }
+	OutputsContainerT& getOutputs()			{ return mOutputs; }
 
-	NodeRef getOutput()	const					{ return mOutput.lock(); }
-	void	setOutput( const NodeRef &output )	{ mOutput = output; }
+//	NodeRef getOutput( size_t bus = 0 )	const		{ return mOutputs[bus].lock(); }
+//	void	setOutput( const NodeRef &output )		{ mOutput = output; }
 
 	bool isInitialized() const					{ return mInitialized; }
 
@@ -139,13 +140,14 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels );
 	bool checkInput( const NodeRef &input );
+	size_t getFirstAvailableBus();
 
 	void initializeImpl();
 	void uninitializeImpl();
 
-	std::vector<NodeRef>	mInputs;
-	std::weak_ptr<Node>		mOutput;
 	std::atomic<bool>		mEnabled;
+	InputsContainerT		mInputs;
+	OutputsContainerT		mOutputs;
 
 	bool					mInitialized;
 	bool					mAutoEnabled;
@@ -183,10 +185,10 @@ class NodeAutoPullable : public Node {
 	bool mIsPulledByContext;
 };
 
-//! Note: currently abstract and unused
+//! TODO: move or remove
 class NodeMixer : public Node {
   public:
-	NodeMixer( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) { mInputs.resize( mMaxNumBusses ); }
+	NodeMixer( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) {}
 	virtual ~NodeMixer() {}
 
 	std::string virtual getTag()				{ return "MixerNode"; }
@@ -217,34 +219,76 @@ class NodeMixer : public Node {
 	size_t mMaxNumBusses;
 };
 
+////! Convenience routine for finding the first downstream \a Node of type \a NodeT (traverses outputs).
+//template <typename NodeT>
+//static std::shared_ptr<NodeT> findFirstDownstreamNode( NodeRef node )
+//{
+//	while( node ) {
+//		auto castedNode = std::dynamic_pointer_cast<NodeT>( node );
+//		if( castedNode )
+//			return castedNode;
+//		node = node->getOutput();
+//	}
+//	return std::shared_ptr<NodeT>();
+//}
+//
+////! Convenience routine for finding the first upstream \a Node of type \a NodeT (traverses inputs).
+//// FIXME: account for multiple inputs
+//// TODO: pass as const&, but requires switching to recursive traversal
+//template <typename NodeT>
+//static std::shared_ptr<NodeT> findFirstUpstreamNode( NodeRef node )
+//{
+//	while( node ) {
+//		auto castedNode =std::dynamic_pointer_cast<NodeT>( node );
+//		if( castedNode )
+//			return castedNode;
+//		else if( node->getInputs().empty() )
+//			break;
+//
+//		node = node->getInputs().front();
+//	}
+//	return std::shared_ptr<NodeT>();
+//}
+
 //! Convenience routine for finding the first downstream \a Node of type \a NodeT (traverses outputs).
 template <typename NodeT>
-static std::shared_ptr<NodeT> findDownstreamNode( NodeRef node )
+static std::shared_ptr<NodeT> findFirstDownstreamNode( NodeRef node )
 {
-	while( node ) {
-		auto castedNode = std::dynamic_pointer_cast<NodeT>( node );
+	if( ! node )
+		return;
+
+	for( auto &out : node->getOutputs() ) {
+		auto output = out.second.lock();
+		if( ! output )
+			continue;
+
+		auto castedNode = std::dynamic_pointer_cast<NodeT>( output );
 		if( castedNode )
 			return castedNode;
-		node = node->getOutput();
+
+		return findFirstDownstreamNode<NodeT>( output );
 	}
+
 	return std::shared_ptr<NodeT>();
 }
 
 //! Convenience routine for finding the first upstream \a Node of type \a NodeT (traverses inputs).
-// FIXME: account for multiple inputs
-// TODO: pass as const&, but requires switching to recursive traversal
+// TODO: pass as const&, for this and downstream
 template <typename NodeT>
-static std::shared_ptr<NodeT> findUpstreamStreamNode( NodeRef node )
+static std::shared_ptr<NodeT> findFirstUpstreamNode( NodeRef node )
 {
-	while( node ) {
-		auto castedNode =std::dynamic_pointer_cast<NodeT>( node );
+	if( ! node )
+		return;
+
+	for( auto &in : node->getInputs() ) {
+		auto& input = in.second;
+		auto castedNode = std::dynamic_pointer_cast<NodeT>( input );
 		if( castedNode )
 			return castedNode;
-		else if( node->getInputs().empty() )
-			break;
 
-		node = node->getInputs().front();
+		return findFirstUpstreamNode<NodeT>( input );
 	}
+
 	return std::shared_ptr<NodeT>();
 }
 

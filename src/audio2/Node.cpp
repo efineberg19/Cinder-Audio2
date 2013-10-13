@@ -41,7 +41,7 @@ namespace cinder { namespace audio2 {
 
 Node::Node( const Format &format )
 	: mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
-		mNumChannels( 1 ), mInputs( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
+		mNumChannels( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
 {
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
@@ -60,60 +60,55 @@ void Node::disconnect( size_t bus )
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
-	for( NodeRef &input : mInputs )
-		input.reset();
+	mInputs.clear();
 
-	auto output = getOutput();
-	if( output ) {
-		// note: the output must be reset before resetting the output's reference to this Node,
-		// since that may cause this Node to be deallocated.
-		mOutput.reset();
-		
-		auto& parentInputs = output->getInputs();
-		for( size_t i = 0; i < parentInputs.size(); i++ ) {
-			if( parentInputs[i] == shared_from_this() )
-				parentInputs[i].reset();
+//	auto output = getOutput();
+//	if( output ) {
+//		// note: the output must be reset before resetting the output's reference to this Node,
+//		// since that may cause this Node to be deallocated.
+//		mOutput.reset();
+//		
+//		auto& parentInputs = output->getInputs();
+//		for( size_t i = 0; i < parentInputs.size(); i++ ) {
+//			if( parentInputs[i] == shared_from_this() )
+//				parentInputs[i].reset();
+//		}
+//	}
+
+	if( ! mOutputs.empty() ) {
+
+		// hold on to a reference of ourself, since clearing outputs may deallocate us along the way.
+		NodeRef self = shared_from_this();
+
+
+		for( auto& outputWeak : getOutputs() ) {
+			auto output = outputWeak.lock();
+			if( output ) {
+				// note: the output must be reset before resetting the output's reference to this Node,
+				// since that may cause this Node to be deallocated.
+				mOutput.reset();
+
+				auto& parentInputs = output->getInputs();
+				for( size_t i = 0; i < parentInputs.size(); i++ ) {
+					if( parentInputs[i] == shared_from_this() )
+						parentInputs[i].reset();
+				}
+			}
 		}
+
+		mOutputs.clear();
 	}
 }
 
 void Node::addInput( const NodeRef &input )
 {
-	if( ! checkInput( input ) )
-		return;
-
-	{
-		lock_guard<mutex> lock( getContext()->getMutex() );
-
-		input->setOutput( shared_from_this() );
-
-		// find first available slot
-		bool didSlot = false;
-		for( size_t i = 0; i < mInputs.size(); i++ ) {
-			if( ! mInputs[i] ) {
-				mInputs[i] = input;
-				didSlot = true;
-				break;
-			}
-		}
-
-		if( ! didSlot )
-			mInputs.push_back( input );
-
-		configureConnections();
-	}
-
-	// must call once lock has been released
-	getContext()->connectionsDidChange( shared_from_this() );
+	setInput( input, getFirstAvailableBus() );
 }
 
 void Node::setInput( const NodeRef &input, size_t bus )
 {
 	if( ! checkInput( input ) )
 		return;
-
-	if( bus > mInputs.size() )
-		throw AudioExc( string( "bus " ) + ci::toString( bus ) + " is out of range (max: " + ci::toString( mInputs.size() ) + ")" );
 
 
 	// TODO: this disconnection kills nodes that are solely owned by the graph. but make sure not disconnecting works out.
@@ -125,7 +120,8 @@ void Node::setInput( const NodeRef &input, size_t bus )
 		lock_guard<mutex> lock( getContext()->getMutex() );
 
 		mInputs[bus] = input;
-		input->setOutput( shared_from_this() );
+		input->getOutputs().insert( make_pair( bus, shared_from_this() ) );
+
 		configureConnections();
 	}
 
@@ -138,12 +134,8 @@ void Node::pullInputs( Buffer *destBuffer )
 	CI_ASSERT( getContext() );
 
 	if( mProcessInPlace ) {
-		for( NodeRef &input : mInputs ) {
-			if( ! input )
-				continue;
-
-			input->pullInputs( destBuffer );
-		}
+		for( auto &in : mInputs )
+			in.second->pullInputs( destBuffer );
 
 		if( mEnabled )
 			process( destBuffer );
@@ -152,9 +144,8 @@ void Node::pullInputs( Buffer *destBuffer )
 		mInternalBuffer.zero();
 		mSummingBuffer.zero();
 
-		for( NodeRef &input : mInputs ) {
-			if( ! input )
-				continue;
+		for( auto &in : mInputs ) {
+			NodeRef &input = in.second;
 
 			input->pullInputs( &mInternalBuffer );
 			if( input->getProcessInPlace() )
@@ -170,16 +161,6 @@ void Node::pullInputs( Buffer *destBuffer )
 	}
 }
 
-bool Node::isConnectedToInput( const NodeRef &input ) const
-{
-	return find( mInputs.begin(), mInputs.end(), input ) != mInputs.end();
-}
-
-bool Node::isConnectedToOutput( const NodeRef &output ) const
-{
-	return ( getOutput() == output );
-}
-
 void Node::setEnabled( bool enabled )
 {
 	if( enabled )
@@ -190,13 +171,7 @@ void Node::setEnabled( bool enabled )
 
 size_t Node::getNumInputs() const
 {
-	size_t result = 0;
-	for( const auto &input : mInputs ) {
-		if( input )
-			result++;
-	}
-
-	return result;
+	mInputs.size();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -242,12 +217,9 @@ void Node::setNumChannels( size_t numChannels )
 size_t Node::getMaxNumInputChannels() const
 {
 	size_t result = 0;
-	for( auto &input : mInputs ) {
-		if( ! input )
-			continue;
+	for( auto &in : mInputs )
+		result = max( result, in.second->getNumChannels() );
 
-		result = max( result, input->getNumChannels() );
-	}
 	return result;
 }
 
@@ -260,9 +232,8 @@ void Node::configureConnections()
 	if( getNumInputs() > 1 )
 		mProcessInPlace = false;
 
-	for( auto &input : mInputs ) {
-		if( ! input )
-			continue;
+	for( auto &in : mInputs ) {
+		auto input = in.second;
 
 		size_t inputNumChannels = input->getNumChannels();
 		if( ! supportsInputNumChannels( inputNumChannels ) ) {
@@ -310,7 +281,27 @@ void Node::setupProcessWithSumming()
 
 bool Node::checkInput( const NodeRef &input )
 {
-	return ( input && ( input != shared_from_this() ) && ! isConnectedToInput( input ) );
+	if( ! input || input == shared_from_this() )
+		return false;
+
+	for( const auto& in : mInputs )
+		if( input == in.second )
+			return false;
+
+	return true;
+}
+
+size_t Node::getFirstAvailableBus()
+{
+	size_t result = 0;
+	for( const auto& input : mInputs ) {
+		if( input.first != result )
+			break;
+
+		result++;
+	}
+
+	return result;
 }
 
 // ----------------------------------------------------------------------------------------------------

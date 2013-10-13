@@ -152,8 +152,8 @@ void Context::disconnectRecursive( const NodeRef &node )
 {
 	if( ! node )
 		return;
-	for( auto& input : node->getInputs() )
-		disconnectRecursive( input );
+	for( auto &in : node->getInputs() )
+		disconnectRecursive( in.second );
 
 	node->disconnect();
 }
@@ -163,8 +163,8 @@ void Context::initRecursisve( const NodeRef &node )
 	if( ! node )
 		return;
 
-	for( const NodeRef &input : node->getInputs() )
-		initRecursisve( input );
+	for( auto &in : node->getInputs() )
+		initRecursisve( in.second );
 
 	node->configureConnections();
 }
@@ -174,8 +174,8 @@ void Context::uninitRecursisve( const NodeRef &node )
 	if( ! node )
 		return;
 
-	for( const NodeRef &input : node->getInputs() )
-		uninitRecursisve( input );
+	for( auto &in : node->getInputs() )
+		uninitRecursisve( in.second );
 
 	node->uninitializeImpl();
 }
