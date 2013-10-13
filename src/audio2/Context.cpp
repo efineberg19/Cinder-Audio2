@@ -180,4 +180,48 @@ void Context::uninitRecursisve( const NodeRef &node )
 	node->uninitializeImpl();
 }
 
+void Context::addAutoPulledNode( const NodeRef &node )
+{
+	mAutoPulledNodes.insert( node );
+	mAutoPullRequired = true;
+	mAutoPullCacheDirty = true;
+
+	// if not done already, allocate a buffer for auto-pulling that is large enough for stereo processing
+	size_t framesPerBlock = getFramesPerBlock();
+	if( mAutoPullBuffer.getNumFrames() < framesPerBlock )
+		mAutoPullBuffer.setSize( framesPerBlock, 2 );
+}
+
+void Context::removeAutoPulledNode( const NodeRef &node )
+{
+	size_t result = mAutoPulledNodes.erase( node );
+	CI_ASSERT( result );
+
+	mAutoPullCacheDirty = true;
+	if( mAutoPulledNodes.empty() )
+		mAutoPullRequired = false;
+}
+
+void Context::autoPullNodesIfNecessary()
+{
+	if( ! mAutoPullRequired )
+		return;
+
+	vector<Node *> autoPulledNodes = getAutoPulledNodes();
+	for( Node *node : autoPulledNodes ) {
+		mAutoPullBuffer.setNumChannels( node->getNumChannels() );
+		node->pullInputs( &mAutoPullBuffer );
+	}
+}
+
+const std::vector<Node *> Context::getAutoPulledNodes()
+{
+	if( mAutoPullCacheDirty ) {
+		mAutoPullCache.clear();
+		for( const NodeRef &node : mAutoPulledNodes )
+			mAutoPullCache.push_back( node.get() );
+	}
+	return mAutoPullCache;
+}
+
 } } // namespace cinder::audio2

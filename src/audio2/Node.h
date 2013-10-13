@@ -153,7 +153,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	size_t					mNumChannels;
 	ChannelMode				mChannelMode;
 
-	Buffer					mInternalBuffer, mSummingBuffer;
+	BufferDynamic			mInternalBuffer, mSummingBuffer;
 
   private:
 	// noncopyable
@@ -164,6 +164,23 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	std::weak_ptr<Context>	mContext;
 	friend class Context;
+};
+
+//! a Node that can be pulled without being connected to any outputs.
+class NodeAutoPullable : public Node {
+  public:
+	NodeAutoPullable( const Format &format );
+
+	virtual void	addInput( const NodeRef &input )						override;
+	virtual void	setInput( const NodeRef &input, size_t bus )			override;
+	virtual const	NodeRef& connect( const NodeRef &dest )					override;
+	virtual const	NodeRef& connect( const NodeRef &dest, size_t bus )		override;
+	virtual void	disconnect( size_t bus )								override;
+
+  protected:
+	void updatePullMethod();
+
+	bool mIsPulledByContext;
 };
 
 //! Note: currently abstract and unused

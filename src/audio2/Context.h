@@ -28,6 +28,7 @@
 #include "audio2/NodeTarget.h"
 
 #include <mutex>
+#include <set>
 
 namespace cinder { namespace audio2 {
 
@@ -38,6 +39,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual ~Context();
 
 	//! Returns the platform-specific \a Context that managed hardware I/O and real-time processing. If none is available, returns an empty null.
+	// TODO: rename to master()
 	static Context*				hardwareInstance();
 	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
 	static DeviceManager*		deviceManager();
@@ -61,8 +63,6 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns whether or not this \a Context is current enabled and processing audio.
 	bool isEnabled() const		{ return mEnabled; }
 
-	//! Disconnect all Node's related by this Context
-	virtual void disconnectAllNodes();
 	//! Called by \a node when it's connections have changed, default implementation is empty.
 	virtual void connectionsDidChange( const NodeRef &node ) {} 
 
@@ -74,11 +74,26 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	std::mutex& getMutex()					{ return mMutex; }
 
+	//! Initialize all Node's related by this Context
 	void initializeAllNodes()				{ initRecursisve( mTarget ); }
+	//! Uninitialize all Node's related by this Context
 	void uninitializeAllNodes()				{ uninitRecursisve( mTarget ); }
+	//! Disconnect all Node's related by this Context
+	virtual void disconnectAllNodes();
+
+	//! Add \a node to the list of auto-pulled nodes, who will have their Node::pullInputs() method called after a NodeLineOut implementation finishes pulling its inputs.
+	//! \note Callers on the non-audio thread must synchronize with getMutex().
+	void addAutoPulledNode( const NodeRef &node );
+	//! Remove \a node from the list of auto-pulled nodes.
+	//! \note Callers on the non-audio thread must synchronize with getMutex().
+	void removeAutoPulledNode( const NodeRef &node );
+
+	//! Calls Node::pullInputs() for any Node's that have registered with addAutoPulledNode()
+	//! \note Expected to be called on the audio thread by a NodeLineOut implementation at the end of its render loop.
+	void autoPullNodesIfNecessary();
 
   protected:
-	Context() : mEnabled( false ) {}
+	Context() : mEnabled( false ), mAutoPullRequired( false ), mAutoPullCacheDirty( false ) {}
 
 	//void startRecursive( const NodeRef &node );
 	//void stopRecursive( const NodeRef &node );
@@ -86,7 +101,16 @@ class Context : public std::enable_shared_from_this<Context> {
 	void initRecursisve( const NodeRef &node );
 	void uninitRecursisve( const NodeRef &node );
 
-	NodeTargetRef	mTarget;
+	const std::vector<Node *> getAutoPulledNodes(); // called if there are any nodes besides target that need to be pulled
+
+	NodeTargetRef			mTarget;				// the 'heart-beat'
+
+	// other nodes that don't have any outputs and need to be explictly pulled
+	std::set<NodeRef>		mAutoPulledNodes;
+	std::vector<Node *>		mAutoPullCache;
+	bool					mAutoPullRequired, mAutoPullCacheDirty;
+	BufferDynamic			mAutoPullBuffer;
+
 	std::mutex		mMutex;
 	bool			mEnabled;
 

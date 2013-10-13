@@ -176,6 +176,8 @@ OSStatus NodeLineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActi
 	else
 		copyToBufferList( bufferList, &lineOut->mInternalBuffer );
 
+	renderData->context->autoPullNodesIfNecessary();
+
 	lineOut->mProcessedFrames += lineOut->getFramesPerBlock();
 	return noErr;
 }

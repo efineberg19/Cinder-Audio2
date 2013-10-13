@@ -40,8 +40,8 @@ namespace cinder { namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 Node::Node( const Format &format )
-: mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
-mNumChannels( 1 ), mInputs( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
+	: mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
+		mNumChannels( 1 ), mInputs( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
 {
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
@@ -297,7 +297,6 @@ void Node::configureConnections()
 	initializeImpl();
 }
 
-// TODO: reallocations could be made more efficient by using BufferDynamic
 void Node::setupProcessWithSumming()
 {
 	CI_ASSERT( getContext() );
@@ -305,15 +304,84 @@ void Node::setupProcessWithSumming()
 	mProcessInPlace = false;
 	size_t framesPerBlock = getContext()->getFramesPerBlock();
 
-	if( mInternalBuffer.getNumChannels() != mNumChannels || mInternalBuffer.getNumFrames() != framesPerBlock )
-		mInternalBuffer = Buffer( framesPerBlock, mNumChannels );
-	if( mSummingBuffer.getNumChannels() != mNumChannels || mSummingBuffer.getNumFrames() != framesPerBlock )
-		mSummingBuffer = Buffer( framesPerBlock, mNumChannels );
+	mInternalBuffer.setSize( framesPerBlock, mNumChannels );
+	mSummingBuffer.setSize( framesPerBlock, mNumChannels );
 }
 
 bool Node::checkInput( const NodeRef &input )
 {
 	return ( input && ( input != shared_from_this() ) && ! isConnectedToInput( input ) );
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - NodeAutoPullable
+// ----------------------------------------------------------------------------------------------------
+
+NodeAutoPullable::NodeAutoPullable( const Format &format )
+	: Node( format ), mIsPulledByContext( false )
+{
+}
+
+const NodeRef& NodeAutoPullable::connect( const NodeRef &dest )
+{
+	if( mIsPulledByContext && dest ) {
+		mIsPulledByContext = false;
+		getContext()->removeAutoPulledNode( shared_from_this() );
+		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
+	}
+
+	return Node::connect( dest );
+}
+
+const NodeRef& NodeAutoPullable::connect( const NodeRef &dest, size_t bus )
+{
+	if( mIsPulledByContext && dest ) {
+		mIsPulledByContext = false;
+		getContext()->removeAutoPulledNode( shared_from_this() );
+		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
+	}
+
+	return Node::connect( dest, bus );
+}
+
+void NodeAutoPullable::addInput( const NodeRef &input )
+{
+	Node::addInput( input );
+
+	updatePullMethod();
+}
+
+void NodeAutoPullable::setInput( const NodeRef &input, size_t bus )
+{
+	Node::setInput( input, bus );
+	
+	updatePullMethod();
+}
+
+void NodeAutoPullable::disconnect( size_t bus )
+{
+	if( mIsPulledByContext ) {
+		mIsPulledByContext = false;
+		getContext()->removeAutoPulledNode( shared_from_this() );
+		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
+	}
+
+	Node::disconnect( bus );
+}
+
+void NodeAutoPullable::updatePullMethod()
+{
+	auto output = getOutput();
+	if( ! output && ! mIsPulledByContext ) {
+		mIsPulledByContext = true;
+		getContext()->addAutoPulledNode( shared_from_this() );
+		LOG_V << "added " << getTag() << " to auto-pull list" << endl;
+	}
+	else if( output && mIsPulledByContext ) {
+		mIsPulledByContext = false;
+		getContext()->removeAutoPulledNode( shared_from_this() );
+		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
+	}
 }
 
 } } // namespace cinder::audio2

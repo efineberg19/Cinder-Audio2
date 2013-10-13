@@ -37,6 +37,7 @@ class SpectrumScopeTestApp : public AppNative {
 	void draw();
 
 	void setupSine();
+	void setupSineNoOutput();
 	void setupSample();
 	void setupUI();
 	void processTap( Vec2i pos );
@@ -44,7 +45,7 @@ class SpectrumScopeTestApp : public AppNative {
 	void printBinFreq( size_t xPos );
 
 
-	ContextRef						mContext;
+	Context							*mContext;
 	NodeBufferPlayerRef				mPlayerNode;
 	shared_ptr<NodeGen<SineGen> >	mSine;
 	ScopeSpectralRef				mSpectrumScope;
@@ -110,6 +111,13 @@ void SpectrumScopeTestApp::setupSine()
 		mSine->start();
 }
 
+void SpectrumScopeTestApp::setupSineNoOutput()
+{
+	mSine->connect( mSpectrumScope );
+	if( mPlaybackButton.mEnabled )
+		mSine->start();
+}
+
 void SpectrumScopeTestApp::setupSample()
 {
 	mPlayerNode->connect( mSpectrumScope )->connect( mContext->getTarget() );
@@ -149,8 +157,9 @@ void SpectrumScopeTestApp::setupUI()
 	mWidgets.push_back( &mScaleDecibelsButton );
 
 	Vec2f sliderSize( 200.0f, 30.0f );
-	Rectf selectorRect( getWindowWidth() - sliderSize.x - mSpectroMargin, buttonRect.y2 + padding, getWindowWidth() - mSpectroMargin, buttonRect.y2 + padding + sliderSize.y * 2 );
+	Rectf selectorRect( getWindowWidth() - sliderSize.x - mSpectroMargin, buttonRect.y2 + padding, getWindowWidth() - mSpectroMargin, buttonRect.y2 + padding + sliderSize.y * 3 );
 	mTestSelector.mSegments.push_back( "sine" );
+	mTestSelector.mSegments.push_back( "sine (no output)" );
 	mTestSelector.mSegments.push_back( "sample" );
 	mTestSelector.mBounds = selectorRect;
 	mWidgets.push_back( &mTestSelector );
@@ -205,7 +214,7 @@ void SpectrumScopeTestApp::processTap( Vec2i pos )
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	else if( mPlaybackButton.hitTest( pos ) ) {
-		if( mTestSelector.currentSection() == "sine" )
+		if( mTestSelector.currentSection() == "sine" || mTestSelector.currentSection() == "sine (no output)" )
 			mSine->setEnabled( ! mSine->isEnabled() );
 		else
 			mPlayerNode->setEnabled( ! mPlayerNode->isEnabled() );
@@ -227,6 +236,8 @@ void SpectrumScopeTestApp::processTap( Vec2i pos )
 
 		if( currentTest == "sine" )
 			setupSine();
+		if( currentTest == "sine (no output)" )
+			setupSineNoOutput();
 		if( currentTest == "sample" )
 			setupSample();
 
