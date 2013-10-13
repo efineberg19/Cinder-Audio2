@@ -23,9 +23,6 @@
          location = "group:InputTest/xcode/InputTest.xcodeproj">
       </FileRef>
       <FileRef
-         location = "absolute:MixerTest/xcode/MixerTest.xcodeproj">
-      </FileRef>
-      <FileRef
          location = "group:NodeTest/xcode/NodeTest.xcodeproj">
       </FileRef>
       <FileRef
@@ -49,9 +46,6 @@
       </FileRef>
       <FileRef
          location = "group:InputTest/xcode_ios/InputTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:MixerTest/xcode_ios/MixerTest.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:NodeTest/xcode_ios/NodeTest.xcodeproj">
