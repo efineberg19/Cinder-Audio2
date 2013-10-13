@@ -207,14 +207,13 @@ void Context::autoPullNodesIfNecessary()
 	if( ! mAutoPullRequired )
 		return;
 
-	vector<Node *> autoPulledNodes = getAutoPulledNodes();
-	for( Node *node : autoPulledNodes ) {
+	for( Node *node : getAutoPulledNodes() ) {
 		mAutoPullBuffer.setNumChannels( node->getNumChannels() );
 		node->pullInputs( &mAutoPullBuffer );
 	}
 }
 
-const std::vector<Node *> Context::getAutoPulledNodes()
+const std::vector<Node *>& Context::getAutoPulledNodes()
 {
 	if( mAutoPullCacheDirty ) {
 		mAutoPullCache.clear();

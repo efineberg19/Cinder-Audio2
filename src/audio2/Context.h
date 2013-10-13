@@ -101,7 +101,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	void initRecursisve( const NodeRef &node );
 	void uninitRecursisve( const NodeRef &node );
 
-	const std::vector<Node *> getAutoPulledNodes(); // called if there are any nodes besides target that need to be pulled
+	const std::vector<Node *>& getAutoPulledNodes(); // called if there are any nodes besides target that need to be pulled
 
 	NodeTargetRef			mTarget;				// the 'heart-beat'
 
