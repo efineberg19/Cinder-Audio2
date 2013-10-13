@@ -5,7 +5,7 @@
 #include "audio2/Context.h"
 #include "audio2/audio.h"
 #include "audio2/NodeEffect.h"
-#include "audio2/NodeTap.h"
+#include "audio2/Scope.h"
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
@@ -39,7 +39,7 @@ class InputTestApp : public AppNative {
 	Context* mContext;
 	NodeLineInRef mLineIn;
 	NodeLineOutRef mLineOut;
-	NodeTapRef mTap;
+	ScopeRef mScope;
 
 	VSelector mTestSelector;
 	Button mPlayButton;
@@ -92,15 +92,15 @@ void InputTestApp::setupInProcessOut()
 
 void InputTestApp::setupInTapOut()
 {
-	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) );
-	mLineIn->connect( mTap )->connect( mContext->getTarget() );
+	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
+	mLineIn->connect( mScope )->connect( mContext->getTarget() );
 }
 
 void InputTestApp::setupInTapProcessOut()
 {
-	mTap = mContext->makeNode( new NodeTap() );
+	mScope = mContext->makeNode( new Scope() );
 	auto ringMod = mContext->makeNode( new RingMod() );
-	mLineIn->connect( mTap )->connect( ringMod )->connect( mContext->getTarget() );
+	mLineIn->connect( mScope )->connect( ringMod )->connect( mContext->getTarget() );
 }
 
 void InputTestApp::setupUI()
@@ -180,8 +180,8 @@ void InputTestApp::draw()
 	gl::clear();
 	gl::color( 0.0f, 0.9f, 0.0f );
 
-	if( mTap && mTap->isInitialized() ) {
-		const audio2::Buffer &buffer = mTap->getBuffer();
+	if( mScope && mScope->isInitialized() ) {
+		const audio2::Buffer &buffer = mScope->getBuffer();
 
 		float padding = 20.0f;
 		float waveHeight = ((float)getWindowHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();
@@ -201,7 +201,7 @@ void InputTestApp::draw()
 		}
 
 		float volumeMeterHeight = 20.0f;
-		float volume = mTap->getVolume();
+		float volume = mScope->getVolume();
 		Rectf volumeRect( padding, getWindowHeight() - padding - volumeMeterHeight, padding + volume * ( getWindowWidth() - padding ), getWindowHeight() - padding );
 		gl::drawSolidRect( volumeRect );
 	}

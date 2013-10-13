@@ -7,7 +7,7 @@
 #include "audio2/Converter.h"
 #include "audio2/NodeSource.h"
 #include "audio2/NodeEffect.h"
-#include "audio2/NodeTap.h"
+#include "audio2/Scope.h"
 #include "audio2/Debug.h"
 
 #include "Resources.h"
@@ -47,7 +47,7 @@ class FileNodeTestApp : public AppNative {
 	NodeSamplePlayerRef mSamplePlayer;
 	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
-	NodeTapRef mTap;
+	ScopeRef mScope;
 	NodeGainRef mGain;
 	NodePan2dRef mPan;
 
@@ -114,9 +114,9 @@ void FileNodeTestApp::setupFilePlayer()
 	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
 //	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
-	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) );
+	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
 
-	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mTap )->connect( mContext->getTarget() );
+	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( mContext->getTarget() );
 }
 
 void FileNodeTestApp::setupUI()
@@ -273,8 +273,8 @@ void FileNodeTestApp::draw()
 	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
 	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );
 
-	if( mTap && mTap->isInitialized() ) {
-		const audio2::Buffer &buffer = mTap->getBuffer();
+	if( mScope && mScope->isInitialized() ) {
+		const audio2::Buffer &buffer = mScope->getBuffer();
 
 		float padding = 20.0f;
 		float waveHeight = ((float)getWindowHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();

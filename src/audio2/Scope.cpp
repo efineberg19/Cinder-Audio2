@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "audio2/NodeTap.h"
+#include "audio2/Scope.h"
 #include "audio2/RingBuffer.h"
 #include "audio2/Fft.h"
 
@@ -35,21 +35,21 @@ using namespace ci;
 namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeTap
+// MARK: - Scope
 // ----------------------------------------------------------------------------------------------------
 
-NodeTap::NodeTap( const Format &format )
-: Node( format ), mWindowSize( format.getWindowSize() ), mRingBufferPaddingFactor( 2 )
+Scope::Scope( const Format &format )
+	: NodeAutoPullable( format ), mWindowSize( format.getWindowSize() ), mRingBufferPaddingFactor( 2 )
 {
 	if( boost::indeterminate( format.getAutoEnable() ) )
 		setAutoEnabled();
 }
 
-NodeTap::~NodeTap()
+Scope::~Scope()
 {
 }
 
-void NodeTap::initialize()
+void Scope::initialize()
 {
 	if( ! mWindowSize )
 		mWindowSize = getContext()->getFramesPerBlock();
@@ -62,7 +62,7 @@ void NodeTap::initialize()
 	mCopiedBuffer = Buffer( mWindowSize, getNumChannels() );
 }
 
-void NodeTap::process( Buffer *buffer )
+void Scope::process( Buffer *buffer )
 {
 	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
 		if( ! mRingBuffers[ch].write( buffer->getChannel( ch ), buffer->getNumFrames() ) )
@@ -70,25 +70,25 @@ void NodeTap::process( Buffer *buffer )
 	}
 }
 
-const Buffer& NodeTap::getBuffer()
+const Buffer& Scope::getBuffer()
 {
 	fillCopiedBuffer();
 	return mCopiedBuffer;
 }
 
-float NodeTap::getVolume()
+float Scope::getVolume()
 {
 	fillCopiedBuffer();
 	return rms( mCopiedBuffer.getData(), mCopiedBuffer.getSize() );
 }
 
-float NodeTap::getVolume( size_t channel )
+float Scope::getVolume( size_t channel )
 {
 	fillCopiedBuffer();
 	return rms( mCopiedBuffer.getChannel( channel ), mCopiedBuffer.getNumFrames() );
 }
 
-void NodeTap::fillCopiedBuffer()
+void Scope::fillCopiedBuffer()
 {
 	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
 		if( ! mRingBuffers[ch].read( mCopiedBuffer.getChannel( ch ), mCopiedBuffer.getNumFrames() ) )
@@ -97,21 +97,21 @@ void NodeTap::fillCopiedBuffer()
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeTapSpectral
+// MARK: - ScopeSpectral
 // ----------------------------------------------------------------------------------------------------
 
-NodeTapSpectral::NodeTapSpectral( const Format &format )
-	: NodeTap( format ), mFftSize( format.getFftSize() ), mWindowType( format.getWindowType() ), mSmoothingFactor( 0.5f )
+ScopeSpectral::ScopeSpectral( const Format &format )
+	: Scope( format ), mFftSize( format.getFftSize() ), mWindowType( format.getWindowType() ), mSmoothingFactor( 0.5f )
 {
 }
 
-NodeTapSpectral::~NodeTapSpectral()
+ScopeSpectral::~ScopeSpectral()
 {
 }
 
-void NodeTapSpectral::initialize()
+void ScopeSpectral::initialize()
 {
-	NodeTap::initialize();
+	Scope::initialize();
 
 	if( mFftSize < mWindowSize )
 		mFftSize = mWindowSize;
@@ -136,7 +136,7 @@ void NodeTapSpectral::initialize()
 
 // TODO: When mNumChannels > 1, use generic channel converter.
 // - alternatively, this tap can force mono output, which only works if it isn't a tap but is really a leaf node (no output).
-const std::vector<float>& NodeTapSpectral::getMagSpectrum()
+const std::vector<float>& ScopeSpectral::getMagSpectrum()
 {
 	fillCopiedBuffer();
 
@@ -174,7 +174,7 @@ const std::vector<float>& NodeTapSpectral::getMagSpectrum()
 	return mMagSpectrum;
 }
 
-void NodeTapSpectral::setSmoothingFactor( float factor )
+void ScopeSpectral::setSmoothingFactor( float factor )
 {
 	mSmoothingFactor = math<float>::clamp( factor );
 }

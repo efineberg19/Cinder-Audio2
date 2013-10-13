@@ -21,10 +21,6 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-// TODO: consider NodeTap as a base class
-//		- all subclasses auto-enabled
-//		- examples: WaveformTapNode, VolumeTapNode, NodeTapSpectral, OnsetTapNode, PitchTapNode
-
 #pragma once
 
 #include "audio2/Context.h"
@@ -37,12 +33,10 @@ namespace cinder { namespace audio2 {
 
 class Fft;
 
-typedef std::shared_ptr<class NodeTap> NodeTapRef;
-typedef std::shared_ptr<class NodeTapSpectral> NodeTapSpectralRef;
+typedef std::shared_ptr<class Scope> ScopeRef;
+typedef std::shared_ptr<class ScopeSpectral> ScopeSpectralRef;
 
-// TODO: consider renaming to Scope, since it is the more traditional name.
-// - another reason is that very soon, it can be a a 'leaf', so it isn't necessary 'tapping' into a stream, it is just not modifying it
-class NodeTap : public Node {
+class Scope : public NodeAutoPullable {
   public:
 	struct Format : public Node::Format {
 		Format() : mWindowSize( 0 ) {}
@@ -56,10 +50,10 @@ class NodeTap : public Node {
 		size_t mWindowSize;
 	};
 
-	NodeTap( const Format &format = Format() );
-	virtual ~NodeTap();
+	Scope( const Format &format = Format() );
+	virtual ~Scope();
 
-	std::string virtual getTag() override			{ return "NodeTap"; }
+	std::string virtual getTag() override			{ return "Scope"; }
 
 	const Buffer& getBuffer();
 
@@ -81,17 +75,17 @@ class NodeTap : public Node {
 	size_t						mRingBufferPaddingFactor;
 };
 
-class NodeTapSpectral : public NodeTap {
+class ScopeSpectral : public Scope {
   public:
-	struct Format : public NodeTap::Format {
-		Format() : NodeTap::Format(), mFftSize( 0 ), mWindowType( WindowType::BLACKMAN ) {}
+	struct Format : public Scope::Format {
+		Format() : Scope::Format(), mFftSize( 0 ), mWindowType( WindowType::BLACKMAN ) {}
 
 		//! Sets the FFT size, rounded up to the nearest power of 2 greated than \a windowSize. Setting this larger than \a windowSize causes the FFT transform to be 'zero-padded'. Default is the same as windowSize.
 		Format&		fftSize( size_t size )			{ mFftSize = size; return *this; }
 		//! defaults to WindowType::BLACKMAN
 		Format&		windowType( WindowType type )	{ mWindowType = type; return *this; }
-		//! \see NodeTap::windowSize()
-		Format&		windowSize( size_t size )		{ NodeTap::Format::windowSize( size ); return *this; }
+		//! \see Scope::windowSize()
+		Format&		windowSize( size_t size )		{ Scope::Format::windowSize( size ); return *this; }
 
 		size_t		getFftSize() const				{ return mFftSize; }
 		WindowType	getWindowType() const			{ return mWindowType; }
@@ -101,10 +95,10 @@ class NodeTapSpectral : public NodeTap {
 		WindowType	mWindowType;
 	};
 
-	NodeTapSpectral( const Format &format = Format() );
-	virtual ~NodeTapSpectral();
+	ScopeSpectral( const Format &format = Format() );
+	virtual ~ScopeSpectral();
 
-	std::string virtual getTag() override			{ return "NodeTapSpectral"; }
+	std::string virtual getTag() override			{ return "ScopeSpectral"; }
 
 	virtual void initialize() override;
 

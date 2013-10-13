@@ -3,7 +3,7 @@
 #include "cinder/Utilities.h"
 
 #include "audio2/audio.h"
-#include "audio2/NodeTap.h"
+#include "audio2/Scope.h"
 #include "audio2/NodeSource.h"
 #include "audio2/Debug.h"
 #include "audio2/Dsp.h"
@@ -28,7 +28,7 @@ using namespace std;
 
 using namespace ci::audio2;
 
-class SpectrumTapTestApp : public AppNative {
+class SpectrumScopeTestApp : public AppNative {
   public:
 	void prepareSettings( Settings *settings );
 	void fileDrop( FileDropEvent event );
@@ -47,7 +47,7 @@ class SpectrumTapTestApp : public AppNative {
 	ContextRef						mContext;
 	NodeBufferPlayerRef				mPlayerNode;
 	shared_ptr<NodeGen<SineGen> >	mSine;
-	NodeTapSpectralRef				mSpectrumTap;
+	ScopeSpectralRef				mSpectrumScope;
 	SourceFileRef					mSourceFile;
 
 	vector<TestWidget *>			mWidgets;
@@ -59,19 +59,19 @@ class SpectrumTapTestApp : public AppNative {
 };
 
 
-void SpectrumTapTestApp::prepareSettings( Settings *settings )
+void SpectrumScopeTestApp::prepareSettings( Settings *settings )
 {
     settings->setWindowSize( 1200, 500 );
 }
 
-void SpectrumTapTestApp::setup()
+void SpectrumScopeTestApp::setup()
 {
 	mSpectroMargin = 40.0f;
 
 	mContext = Context::hardwareInstance();
 
-	mSpectrumTap = mContext->makeNode( new NodeTapSpectral( NodeTapSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
-	mSpectrumTap->setAutoEnabled();
+	mSpectrumScope = mContext->makeNode( new ScopeSpectral( ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
+	mSpectrumScope->setAutoEnabled();
 
 	mSine = mContext->makeNode( new NodeGen<SineGen>() );
 	mSine->getGen().setAmp( 0.25f );
@@ -103,21 +103,21 @@ void SpectrumTapTestApp::setup()
 	printGraph( mContext );
 }
 
-void SpectrumTapTestApp::setupSine()
+void SpectrumScopeTestApp::setupSine()
 {
-	mSine->connect( mSpectrumTap )->connect( mContext->getTarget() );
+	mSine->connect( mSpectrumScope )->connect( mContext->getTarget() );
 	if( mPlaybackButton.mEnabled )
 		mSine->start();
 }
 
-void SpectrumTapTestApp::setupSample()
+void SpectrumScopeTestApp::setupSample()
 {
-	mPlayerNode->connect( mSpectrumTap )->connect( mContext->getTarget() );
+	mPlayerNode->connect( mSpectrumScope )->connect( mContext->getTarget() );
 	if( mPlaybackButton.mEnabled )
 		mPlayerNode->start();
 }
 
-void SpectrumTapTestApp::setupUI()
+void SpectrumScopeTestApp::setupUI()
 {
 	Rectf buttonRect( 0.0f, 0.0f, 200.0f, mSpectroMargin - 2.0f );
 	float padding = 10.0f;
@@ -160,7 +160,7 @@ void SpectrumTapTestApp::setupUI()
 	mSmoothingFactorSlider.mTitle = "Smoothing";
 	mSmoothingFactorSlider.mMin = 0.0f;
 	mSmoothingFactorSlider.mMax = 1.0f;
-	mSmoothingFactorSlider.set( mSpectrumTap->getSmoothingFactor() );
+	mSmoothingFactorSlider.set( mSpectrumScope->getSmoothingFactor() );
 	mWidgets.push_back( &mSmoothingFactorSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderSize.y + padding );
@@ -183,24 +183,24 @@ void SpectrumTapTestApp::setupUI()
 	gl::enableAlphaBlending();
 }
 
-void SpectrumTapTestApp::printBinFreq( size_t xPos )
+void SpectrumScopeTestApp::printBinFreq( size_t xPos )
 {
 	if( xPos < mSpectroMargin || xPos > getWindowWidth() - mSpectroMargin )
 		return;
 
 //	freq = bin * samplerate / sizeFft
 
-	size_t numBins = mSpectrumTap->getFftSize() / 2;
+	size_t numBins = mSpectrumScope->getFftSize() / 2;
 	size_t spectroWidth = getWindowWidth() - mSpectroMargin * 2;
 	size_t bin = ( numBins * ( xPos - mSpectroMargin ) ) / spectroWidth;
-	float freq = bin * mContext->getSampleRate() / float( mSpectrumTap->getFftSize() );
+	float freq = bin * mContext->getSampleRate() / float( mSpectrumScope->getFftSize() );
 
 	LOG_V << "bin: " << bin << ", freq: " << freq << endl;
 }
 
 // TODO: currently makes sense to enable processor + tap together - consider making these enabled together.
 // - possible solution: add a silent flag that is settable by client
-void SpectrumTapTestApp::processTap( Vec2i pos )
+void SpectrumScopeTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
@@ -235,15 +235,15 @@ void SpectrumTapTestApp::processTap( Vec2i pos )
 
 }
 
-void SpectrumTapTestApp::processDrag( Vec2i pos )
+void SpectrumScopeTestApp::processDrag( Vec2i pos )
 {
 	if( mSmoothingFactorSlider.hitTest( pos ) )
-		mSpectrumTap->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
+		mSpectrumScope->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
 	if( mFreqSlider.hitTest( pos ) )
 		mSine->getGen().setFreq( mFreqSlider.mValueScaled );
 }
 
-void SpectrumTapTestApp::fileDrop( FileDropEvent event )
+void SpectrumScopeTestApp::fileDrop( FileDropEvent event )
 {
 	const fs::path &filePath = event.getFile( 0 );
 	LOG_V << "File dropped: " << filePath << endl;
@@ -257,19 +257,19 @@ void SpectrumTapTestApp::fileDrop( FileDropEvent event )
 	LOG_V << "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() << endl;
 }
 
-void SpectrumTapTestApp::update()
+void SpectrumScopeTestApp::update()
 {
 	// update playback button, since the player node may stop itself at the end of a file.
 	if( mTestSelector.currentSection() == "sample" && ! mPlayerNode->isEnabled() )
 		mPlaybackButton.setEnabled( false );
 }
 
-void SpectrumTapTestApp::draw()
+void SpectrumScopeTestApp::draw()
 {
 	gl::clear();
 
 	// draw magnitude spectrum bins
-	auto &mag = mSpectrumTap->getMagSpectrum();
+	auto &mag = mSpectrumScope->getMagSpectrum();
 	mSpectrumPlot.setBounds( Rectf( mSpectroMargin, mSpectroMargin, getWindowWidth() - mSpectroMargin, getWindowHeight() - mSpectroMargin ) );
 	mSpectrumPlot.draw( mag );
 	
@@ -288,4 +288,4 @@ void SpectrumTapTestApp::draw()
 	drawWidgets( mWidgets );
 }
 
-CINDER_APP_NATIVE( SpectrumTapTestApp, RendererGl )
+CINDER_APP_NATIVE( SpectrumScopeTestApp, RendererGl )

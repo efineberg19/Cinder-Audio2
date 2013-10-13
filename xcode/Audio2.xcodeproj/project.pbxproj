@@ -48,10 +48,10 @@
 		113E630E17FFBDF5007FFCF7 /* Converter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11AB735A17FD277700B29C5F /* Converter.cpp */; };
 		11446DB417E64CCD00457AC6 /* NodeEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DAF17E64CCD00457AC6 /* NodeEffect.h */; };
 		11446DB517E64CCD00457AC6 /* NodeEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DAF17E64CCD00457AC6 /* NodeEffect.h */; };
-		11446DB617E64CCD00457AC6 /* NodeTap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11446DB017E64CCD00457AC6 /* NodeTap.cpp */; };
-		11446DB717E64CCD00457AC6 /* NodeTap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11446DB017E64CCD00457AC6 /* NodeTap.cpp */; };
-		11446DB817E64CCD00457AC6 /* NodeTap.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DB117E64CCD00457AC6 /* NodeTap.h */; };
-		11446DB917E64CCD00457AC6 /* NodeTap.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DB117E64CCD00457AC6 /* NodeTap.h */; };
+		11446DB617E64CCD00457AC6 /* Scope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11446DB017E64CCD00457AC6 /* Scope.cpp */; };
+		11446DB717E64CCD00457AC6 /* Scope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11446DB017E64CCD00457AC6 /* Scope.cpp */; };
+		11446DB817E64CCD00457AC6 /* Scope.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DB117E64CCD00457AC6 /* Scope.h */; };
+		11446DB917E64CCD00457AC6 /* Scope.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DB117E64CCD00457AC6 /* Scope.h */; };
 		11446DBA17E64CCD00457AC6 /* NodeTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11446DB217E64CCD00457AC6 /* NodeTarget.cpp */; };
 		11446DBB17E64CCD00457AC6 /* NodeTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11446DB217E64CCD00457AC6 /* NodeTarget.cpp */; };
 		11446DBC17E64CCD00457AC6 /* NodeTarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 11446DB317E64CCD00457AC6 /* NodeTarget.h */; };
@@ -308,8 +308,8 @@
 		1115502318026CF400D415BC /* FileOggVorbis.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileOggVorbis.cpp; sourceTree = "<group>"; };
 		1115502418026CF400D415BC /* FileOggVorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOggVorbis.h; sourceTree = "<group>"; };
 		11446DAF17E64CCD00457AC6 /* NodeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeEffect.h; sourceTree = "<group>"; };
-		11446DB017E64CCD00457AC6 /* NodeTap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeTap.cpp; sourceTree = "<group>"; };
-		11446DB117E64CCD00457AC6 /* NodeTap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeTap.h; sourceTree = "<group>"; };
+		11446DB017E64CCD00457AC6 /* Scope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scope.cpp; sourceTree = "<group>"; };
+		11446DB117E64CCD00457AC6 /* Scope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scope.h; sourceTree = "<group>"; };
 		11446DB217E64CCD00457AC6 /* NodeTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeTarget.cpp; sourceTree = "<group>"; };
 		11446DB317E64CCD00457AC6 /* NodeTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeTarget.h; sourceTree = "<group>"; };
 		114FE86A18032BF000C5841B /* bitwise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitwise.c; sourceTree = "<group>"; };
@@ -508,8 +508,8 @@
 				11446DAF17E64CCD00457AC6 /* NodeEffect.h */,
 				1104F48017754A6E003EAA2B /* NodeSource.cpp */,
 				1104F48117754A6E003EAA2B /* NodeSource.h */,
-				11446DB017E64CCD00457AC6 /* NodeTap.cpp */,
-				11446DB117E64CCD00457AC6 /* NodeTap.h */,
+				11446DB017E64CCD00457AC6 /* Scope.cpp */,
+				11446DB117E64CCD00457AC6 /* Scope.h */,
 				11446DB217E64CCD00457AC6 /* NodeTarget.cpp */,
 				11446DB317E64CCD00457AC6 /* NodeTarget.h */,
 				1104F49217754A6E003EAA2B /* RingBuffer.h */,
@@ -787,7 +787,7 @@
 				114FE8E318032BF100C5841B /* lookup_data.h in Headers */,
 				114FE90F18032BF100C5841B /* setup_22.h in Headers */,
 				1104F4B217754A6E003EAA2B /* File.h in Headers */,
-				11446DB817E64CCD00457AC6 /* NodeTap.h in Headers */,
+				11446DB817E64CCD00457AC6 /* Scope.h in Headers */,
 				1104F4A817754A6E003EAA2B /* Context.h in Headers */,
 				114FE8F718032BF100C5841B /* floor_all.h in Headers */,
 				114FE8FF18032BF100C5841B /* psych_8.h in Headers */,
@@ -874,7 +874,7 @@
 				114FE8E418032BF100C5841B /* lookup_data.h in Headers */,
 				114FE91018032BF100C5841B /* setup_22.h in Headers */,
 				11B0420A179B90450034BEE2 /* File.h in Headers */,
-				11446DB917E64CCD00457AC6 /* NodeTap.h in Headers */,
+				11446DB917E64CCD00457AC6 /* Scope.h in Headers */,
 				11B0420B179B90450034BEE2 /* Context.h in Headers */,
 				114FE8F818032BF100C5841B /* floor_all.h in Headers */,
 				114FE90018032BF100C5841B /* psych_8.h in Headers */,
@@ -1021,7 +1021,7 @@
 				114FE8D918032BF100C5841B /* floor1.c in Sources */,
 				114FE8E518032BF100C5841B /* lpc.c in Sources */,
 				11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */,
-				11446DB617E64CCD00457AC6 /* NodeTap.cpp in Sources */,
+				11446DB617E64CCD00457AC6 /* Scope.cpp in Sources */,
 				1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */,
 				114FE93B18032BF100C5841B /* window.c in Sources */,
 				114FE92D18032BF100C5841B /* sharedbook.c in Sources */,
@@ -1074,7 +1074,7 @@
 				114FE8DA18032BF100C5841B /* floor1.c in Sources */,
 				114FE8E618032BF100C5841B /* lpc.c in Sources */,
 				11B041FB179B90450034BEE2 /* ContextAudioUnit.cpp in Sources */,
-				11446DB717E64CCD00457AC6 /* NodeTap.cpp in Sources */,
+				11446DB717E64CCD00457AC6 /* Scope.cpp in Sources */,
 				1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */,
 				114FE93C18032BF100C5841B /* window.c in Sources */,
 				114FE92E18032BF100C5841B /* sharedbook.c in Sources */,

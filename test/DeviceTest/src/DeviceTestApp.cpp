@@ -5,7 +5,7 @@
 #include "audio2/audio.h"
 #include "audio2/Context.h"
 #include "audio2/NodeEffect.h"
-#include "audio2/NodeTap.h"
+#include "audio2/Scope.h"
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
@@ -46,7 +46,7 @@ class DeviceTestApp : public AppNative {
 	Context* mContext;
 	NodeLineInRef mLineIn;
 	NodeLineOutRef mLineOut;
-	NodeTapRef mTap;
+	ScopeRef mScope;
 	NodeGainRef mGain;
 	NodeSourceRef mSourceNode;
 
@@ -76,10 +76,10 @@ void DeviceTestApp::setup()
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V << "LineOut params changed:" << endl; printDeviceDetails( mLineOut->getDevice() ); } );
 
 	mGain = mContext->makeNode( new NodeGain() );
-	mTap = mContext->makeNode( new NodeTap( NodeTap::Format().windowSize( 1024 ) ) );
+	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
 
 	mGain->setGain( 0.6f );
-	mGain->connect( mTap )->connect( mLineOut );
+	mGain->connect( mScope )->connect( mLineOut );
 
 	setupSine();
 
@@ -97,7 +97,7 @@ void DeviceTestApp::setOutputDevice( const DeviceRef &device )
 	mContext->uninitializeAllNodes();
 
 	mLineOut = mContext->createLineOut( device );
-	mLineOut->setInput( mTap, 0 );
+	mLineOut->setInput( mScope, 0 );
 
 	mContext->setTarget( mLineOut );
 
@@ -359,8 +359,8 @@ void DeviceTestApp::draw()
 	gl::pushMatrices();
 	gl::translate( 0.0f, mViewYOffset );
 
-	if( mTap && mTap->isInitialized() ) {
-		const audio2::Buffer &buffer = mTap->getBuffer();
+	if( mScope && mScope->isInitialized() ) {
+		const audio2::Buffer &buffer = mScope->getBuffer();
 
 		float padding = 20.0f;
 		float waveHeight = ((float)getWindowHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();
@@ -380,7 +380,7 @@ void DeviceTestApp::draw()
 		}
 
 		float volumeMeterHeight = 20.0f;
-		float volume = mTap->getVolume();
+		float volume = mScope->getVolume();
 		Rectf volumeRect( padding, getWindowHeight() - padding - volumeMeterHeight, padding + volume * ( getWindowWidth() - padding ), getWindowHeight() - padding );
 		gl::drawSolidRect( volumeRect );
 	}
