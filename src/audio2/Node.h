@@ -81,26 +81,28 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void start()		{ mEnabled = true; }
 	virtual void stop()			{ mEnabled = false; }
 
-	virtual const NodeRef& connect( const NodeRef &dest )					{ dest->setInput( shared_from_this() ); return dest; }
+	// TODO: solve these ambiguities, it isn't clear that one version adds and one sets at call sight...
+	//	- may remove these in favor of operator>>
+	virtual const NodeRef& connect( const NodeRef &dest )					{ dest->addInput( shared_from_this() ); return dest; }
 	virtual const NodeRef& connect( const NodeRef &dest, size_t bus )		{ dest->setInput( shared_from_this(), bus ); return dest; }
 
 	virtual void disconnect( size_t bus = 0 );
 
-	//! insert in first available slot or append the node if called without a bus number.
-	// TODO: consider a more descriptive name, not really obvious this will append. addInput() ?
-	virtual void setInput( const NodeRef &input );
-	virtual void setInput( const NodeRef &input, size_t bus );
+	//! Insert \a input in first available bus, append if necessary.
+	virtual void addInput( const NodeRef &input );
+	//! Sets \a input at \a bus, replacing any Node currently existing there.
+	virtual void setInput( const NodeRef &input, size_t bus = 0 );
 
 	bool isConnectedToInput( const NodeRef &input ) const;
 	bool isConnectedToOutput( const NodeRef &output ) const;
 
-	size_t	getNumChannels() const			{ return mNumChannels; }
-	ChannelMode getChannelMode() const		{ return mChannelMode; }
+	size_t		getNumChannels() const			{ return mNumChannels; }
+	ChannelMode getChannelMode() const			{ return mChannelMode; }
 	size_t		getMaxNumInputChannels() const;
 
-	//! Sets whether the Node is automatically enabled / disabled when connected
+	//! Sets whether this Node is automatically enabled / disabled when connected
 	void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
-	//! Returns whether the Node is automatically enabled / disabled when connected
+	//! Returns whether this Node is automatically enabled / disabled when connected
 	bool	isAutoEnabled() const				{ return mAutoEnabled; }
 
 	//! Default implementation returns true if numChannels match our format
@@ -114,7 +116,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	std::vector<NodeRef>& getInputs()			{ return mInputs; }
 
 	NodeRef getOutput()	const					{ return mOutput.lock(); }
-	void setOutput( const NodeRef &output )		{ mOutput = output; }
+	void	setOutput( const NodeRef &output )	{ mOutput = output; }
 
 	bool isInitialized() const					{ return mInitialized; }
 

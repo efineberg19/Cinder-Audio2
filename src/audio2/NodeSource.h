@@ -48,7 +48,7 @@ class NodeSource : public Node {
 	NodeSource( const Format &format );
   private:
 	// NodeSource's cannot have any sources
-	void setInput( const NodeRef &input ) override {}
+	void addInput( const NodeRef &input ) override {}
 	void setInput( const NodeRef &input, size_t bus ) override {}
 };
 

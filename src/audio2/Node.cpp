@@ -77,7 +77,7 @@ void Node::disconnect( size_t bus )
 	}
 }
 
-void Node::setInput( const NodeRef &input )
+void Node::addInput( const NodeRef &input )
 {
 	if( ! checkInput( input ) )
 		return;
