@@ -61,7 +61,7 @@ void InputTestApp::setup()
 
 	setupUI();
 
-	printGraph( mContext );
+	mContext->printGraph();
 }
 
 void InputTestApp::printDevices()

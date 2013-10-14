@@ -92,6 +92,9 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! \note Expected to be called on the audio thread by a NodeLineOut implementation at the end of its render loop.
 	void autoPullNodesIfNecessary();
 
+	//! Prints the Node graph to console()
+	void printGraph();
+
   protected:
 	Context() : mEnabled( false ), mAutoPullRequired( false ), mAutoPullCacheDirty( false ) {}
 

@@ -63,7 +63,7 @@ void EffectNodeTestApp::setup()
 
 	setupUI();
 
-	printGraph( mContext );
+	mContext->printGraph();
 }
 
 void EffectNodeTestApp::setupOne()

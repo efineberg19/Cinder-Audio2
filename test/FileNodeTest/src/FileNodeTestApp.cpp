@@ -92,7 +92,7 @@ void FileNodeTestApp::setup()
 	mContext->start();
 	mEnableGraphButton.setEnabled( true );
 
-	printGraph( mContext );
+	mContext->printGraph();
 }
 
 void FileNodeTestApp::setupBufferPlayer()
@@ -244,7 +244,7 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 	}
 
 	LOG_V << "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() << endl;
-	printGraph( mContext );
+	mContext->printGraph();
 
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 }

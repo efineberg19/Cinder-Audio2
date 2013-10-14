@@ -30,9 +30,6 @@
 
 namespace cinder { namespace audio2 {
 
-void printGraph( Context *graph );
-void printDevices();
-
 class AudioExc : public ci::Exception {
 public:
 	AudioExc( const std::string &description, int32_t errorCode = 0 ) : mDescription( description )	{}

@@ -31,46 +31,5 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
-namespace {
-	void printRecursive( const NodeRef &node, size_t depth )
-	{
-		if( ! node )
-			return;
-		for( size_t i = 0; i < depth; i++ )
-			app::console() << "-- ";
-
-		string channelMode;
-		switch( node->getChannelMode() ) {
-			case Node::ChannelMode::SPECIFIED: channelMode = "specified"; break;
-			case Node::ChannelMode::MATCHES_INPUT: channelMode = "matches input"; break;
-			case Node::ChannelMode::MATCHES_OUTPUT: channelMode = "matches output"; break;
-		}
-
-		app::console() << node->getTag() << "\t[ " << ( node->isEnabled() ? "enabled" : "disabled" );
-		app::console() << ", ch: " << node->getNumChannels();
-		app::console() << ", ch mode: " << channelMode;
-		app::console() << ", " << ( node->getProcessInPlace() ? "in-place" : "sum" );
-		app::console() << " ]" << endl;
-
-		for( const auto &in : node->getInputs() )
-			printRecursive( in.second, depth + 1 );
-	};
-}
-
-void printGraph( Context *graph )
-{
-	app::console() << "-------------- Graph configuration: --------------" << endl;
-	printRecursive( graph->getTarget(), 0 );
-}
-
-void printDevices()
-{
-	for( auto &device : Device::getDevices() ) {
-		app::console() << "-- " << device->getName() << " --" << endl;
-		app::console() << "\t key: " << device->getKey() << endl;
-		app::console() << "\t inputs: " << device->getNumInputChannels() << ", outputs: " << device->getNumOutputChannels() << endl;
-		app::console() << "\t samplerate: " << device->getSampleRate() << ", frames per block: " << device->getFramesPerBlock() << endl;
-	}
-}
 
 } } // namespace cinder::audio2

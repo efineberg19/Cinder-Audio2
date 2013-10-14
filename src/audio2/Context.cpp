@@ -25,6 +25,7 @@
 #include "audio2/Context.h"
 #include "audio2/NodeSource.h"
 #include "audio2/audio.h"
+#include "audio2/Debug.h"
 
 #include "cinder/Cinder.h"
 
@@ -222,5 +223,40 @@ const std::vector<Node *>& Context::getAutoPulledNodes()
 	}
 	return mAutoPullCache;
 }
+
+namespace {
+
+void printRecursive( const NodeRef &node, size_t depth )
+{
+	if( ! node )
+		return;
+	for( size_t i = 0; i < depth; i++ )
+		app::console() << "-- ";
+
+	string channelMode;
+	switch( node->getChannelMode() ) {
+		case Node::ChannelMode::SPECIFIED: channelMode = "specified"; break;
+		case Node::ChannelMode::MATCHES_INPUT: channelMode = "matches input"; break;
+		case Node::ChannelMode::MATCHES_OUTPUT: channelMode = "matches output"; break;
+	}
+
+	app::console() << node->getTag() << "\t[ " << ( node->isEnabled() ? "enabled" : "disabled" );
+	app::console() << ", ch: " << node->getNumChannels();
+	app::console() << ", ch mode: " << channelMode;
+	app::console() << ", " << ( node->getProcessInPlace() ? "in-place" : "sum" );
+	app::console() << " ]" << endl;
+
+	for( const auto &in : node->getInputs() )
+		printRecursive( in.second, depth + 1 );
+};
+
+} // anonymous namespace
+
+void Context::printGraph()
+{
+	app::console() << "-------------- Graph configuration: --------------" << endl;
+	printRecursive( getTarget(), 0 );
+}
+
 
 } } // namespace cinder::audio2

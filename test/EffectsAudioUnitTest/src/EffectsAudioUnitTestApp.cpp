@@ -76,7 +76,7 @@ void EffectsAudioUnitTestApp::setup()
 	setupUI();
 	initParams();
 
-	printGraph( mContext );
+	mContext->printGraph();
 }
 
 void EffectsAudioUnitTestApp::setupOne()

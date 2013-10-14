@@ -99,7 +99,7 @@ void NodeTestApp::setup()
 
 	setupUI();
 
-	printGraph( mContext );
+	mContext->printGraph();
 }
 
 void NodeTestApp::setupSine()

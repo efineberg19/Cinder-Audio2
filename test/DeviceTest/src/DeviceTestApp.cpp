@@ -83,7 +83,7 @@ void DeviceTestApp::setup()
 
 	setupSine();
 
-	printGraph( mContext );
+	mContext->printGraph();
 	setupUI();
 
 	LOG_V << "Context samplerate: " << mContext->getSampleRate() << endl;
@@ -285,7 +285,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 		if( currentTest == "I/O (processed)" )
 			setupIOProcessed();
 
-		printGraph( mContext );
+		mContext->printGraph();
 		return;
 	}
 

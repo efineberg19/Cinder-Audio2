@@ -101,7 +101,7 @@ void SpectrumScopeTestApp::setup()
 
 	mScaleDecibelsButton.setEnabled( mSpectrumPlot.getScaleDecibels() );
 
-	printGraph( mContext );
+	mContext->printGraph();
 }
 
 void SpectrumScopeTestApp::setupSine()
