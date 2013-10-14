@@ -47,9 +47,8 @@ class NodeSource : public Node {
   protected:
 	NodeSource( const Format &format );
   private:
-	// NodeSource's cannot have any sources
-	void addInput( const NodeRef &input ) override {}
-	void setInput( const NodeRef &input, size_t bus ) override {}
+	// NodeSource's cannot have any sources, overridden to assert this method isn't called
+	void connectInput( const NodeRef &input, size_t bus ) override;
 };
 
 class NodeLineIn : public NodeSource {

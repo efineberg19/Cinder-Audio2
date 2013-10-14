@@ -44,9 +44,8 @@ class NodeTarget : public Node {
 	NodeTarget( const Format &format = Format() ) : Node( format ) {}
 
   private:
-	// NodeTarget does not have outputs
-	const NodeRef& connect( const NodeRef &dest ) override				{ return dest; }
-	const NodeRef& connect( const NodeRef &dest, size_t bus ) override	{ return dest; }
+	// NodeTarget does not have outputs, overridden to assert this method isn't called
+	const NodeRef& connect( const NodeRef &dest, size_t outputBus, size_t inputBus ) override;
 };
 
 class NodeLineOut : public NodeTarget {

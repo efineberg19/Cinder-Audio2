@@ -56,77 +56,58 @@ Node::~Node()
 {
 }
 
-void Node::disconnect( size_t bus )
+const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inputBus  )
+{
+	if( ! dest->checkInput( shared_from_this() ) ) {
+		LOG_E << "could not make connection." << endl;
+		return dest;
+	}
+
+	mOutputs[outputBus] = dest; // set output bus first, so that it is visible in configureConnections()
+	dest->connectInput( shared_from_this(), inputBus );
+
+	getContext()->connectionsDidChange( shared_from_this() );
+	return dest;
+}
+
+const NodeRef& Node::addConnection( const NodeRef &dest )
+{
+	return connect( dest, getFirstAvailableOutputBus(), getFirstAvailableInputBus() );
+}
+
+void Node::disconnect( size_t outputBus )
+{
+	auto outIt = mOutputs.find( outputBus );
+	if( outIt == mOutputs.end() )
+		return;
+
+	NodeRef output = outIt->second.lock();
+	CI_ASSERT( output );
+
+	output->disconnectInput( shared_from_this() );
+	mOutputs.erase( outIt );
+
+	getContext()->connectionsDidChange( shared_from_this() );
+}
+
+void Node::connectInput( const NodeRef &input, size_t bus )
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
-	mInputs.clear();
+	mInputs[bus] = input;
+	configureConnections();
+}
 
-//	auto output = getOutput();
-//	if( output ) {
-//		// note: the output must be reset before resetting the output's reference to this Node,
-//		// since that may cause this Node to be deallocated.
-//		mOutput.reset();
-//		
-//		auto& parentInputs = output->getInputs();
-//		for( size_t i = 0; i < parentInputs.size(); i++ ) {
-//			if( parentInputs[i] == shared_from_this() )
-//				parentInputs[i].reset();
-//		}
-//	}
+void Node::disconnectInput( const NodeRef &input )
+{
+	lock_guard<mutex> lock( getContext()->getMutex() );
 
-	if( ! mOutputs.empty() ) {
-
-		// hold on to a reference of ourself, since clearing outputs may deallocate us along the way.
-		NodeRef self = shared_from_this();
-
-
-		for( auto& outputWeak : getOutputs() ) {
-			auto output = outputWeak.lock();
-			if( output ) {
-				// note: the output must be reset before resetting the output's reference to this Node,
-				// since that may cause this Node to be deallocated.
-				mOutput.reset();
-
-				auto& parentInputs = output->getInputs();
-				for( size_t i = 0; i < parentInputs.size(); i++ ) {
-					if( parentInputs[i] == shared_from_this() )
-						parentInputs[i].reset();
-				}
-			}
+	for( auto inIt = mInputs.begin(); inIt != mInputs.end(); ++inIt ) {
+		if( inIt->second == input ) {
+			mInputs.erase( inIt );
+			break;
 		}
-
-		mOutputs.clear();
 	}
-}
-
-void Node::addInput( const NodeRef &input )
-{
-	setInput( input, getFirstAvailableBus() );
-}
-
-void Node::setInput( const NodeRef &input, size_t bus )
-{
-	if( ! checkInput( input ) )
-		return;
-
-
-	// TODO: this disconnection kills nodes that are solely owned by the graph. but make sure not disconnecting works out.
-	//NodeRef& existingInput = mInputs[bus];
-	//if( existingInput )
-	//	existingInput->disconnect();
-
-	{
-		lock_guard<mutex> lock( getContext()->getMutex() );
-
-		mInputs[bus] = input;
-		input->getOutputs().insert( make_pair( bus, shared_from_this() ) );
-
-		configureConnections();
-	}
-
-	// must call once lock has been released
-	getContext()->connectionsDidChange( shared_from_this() );
 }
 
 void Node::pullInputs( Buffer *destBuffer )
@@ -171,7 +152,12 @@ void Node::setEnabled( bool enabled )
 
 size_t Node::getNumInputs() const
 {
-	mInputs.size();
+	return mInputs.size();
+}
+
+size_t Node::getNumOutputs() const
+{
+	return mOutputs.size();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -233,7 +219,7 @@ void Node::configureConnections()
 		mProcessInPlace = false;
 
 	for( auto &in : mInputs ) {
-		auto input = in.second;
+		NodeRef input = in.second;
 
 		size_t inputNumChannels = input->getNumChannels();
 		if( ! supportsInputNumChannels( inputNumChannels ) ) {
@@ -252,14 +238,18 @@ void Node::configureConnections()
 		input->initializeImpl();
 	}
 
-	NodeRef output = getOutput();
-	if( output && ! output->supportsInputNumChannels( mNumChannels ) ) {
-		if( output->getChannelMode() == ChannelMode::MATCHES_INPUT ) {
-			output->setNumChannels( mNumChannels );
-			output->configureConnections();
+	for( auto &out : mOutputs ) {
+		NodeRef output = out.second.lock();
+		CI_ASSERT( output );
+
+		if( ! output->supportsInputNumChannels( mNumChannels ) ) {
+			if( output->getChannelMode() == ChannelMode::MATCHES_INPUT ) {
+				output->setNumChannels( mNumChannels );
+				output->configureConnections();
+			}
+			else
+				mProcessInPlace = false;
 		}
-		else
-			mProcessInPlace = false;
 	}
 
 	if( ! mProcessInPlace )
@@ -291,11 +281,24 @@ bool Node::checkInput( const NodeRef &input )
 	return true;
 }
 
-size_t Node::getFirstAvailableBus()
+size_t Node::getFirstAvailableOutputBus()
 {
 	size_t result = 0;
 	for( const auto& input : mInputs ) {
 		if( input.first != result )
+			break;
+
+		result++;
+	}
+
+	return result;
+}
+
+size_t Node::getFirstAvailableInputBus()
+{
+	size_t result = 0;
+	for( const auto& output : mOutputs ) {
+		if( output.first != result )
 			break;
 
 		result++;
@@ -313,62 +316,27 @@ NodeAutoPullable::NodeAutoPullable( const Format &format )
 {
 }
 
-const NodeRef& NodeAutoPullable::connect( const NodeRef &dest )
+void NodeAutoPullable::connectInput( const NodeRef &input, size_t bus )
 {
-	if( mIsPulledByContext && dest ) {
-		mIsPulledByContext = false;
-		getContext()->removeAutoPulledNode( shared_from_this() );
-		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
-	}
-
-	return Node::connect( dest );
-}
-
-const NodeRef& NodeAutoPullable::connect( const NodeRef &dest, size_t bus )
-{
-	if( mIsPulledByContext && dest ) {
-		mIsPulledByContext = false;
-		getContext()->removeAutoPulledNode( shared_from_this() );
-		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
-	}
-
-	return Node::connect( dest, bus );
-}
-
-void NodeAutoPullable::addInput( const NodeRef &input )
-{
-	Node::addInput( input );
-
+	Node::connectInput( input, bus );
 	updatePullMethod();
 }
 
-void NodeAutoPullable::setInput( const NodeRef &input, size_t bus )
+void NodeAutoPullable::disconnectInput( const NodeRef &input )
 {
-	Node::setInput( input, bus );
-	
+	Node::disconnectInput( input );
 	updatePullMethod();
-}
-
-void NodeAutoPullable::disconnect( size_t bus )
-{
-	if( mIsPulledByContext ) {
-		mIsPulledByContext = false;
-		getContext()->removeAutoPulledNode( shared_from_this() );
-		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
-	}
-
-	Node::disconnect( bus );
 }
 
 void NodeAutoPullable::updatePullMethod()
 {
-	auto output = getOutput();
-	if( ! output && ! mIsPulledByContext ) {
+	bool hasOutputs = ! mOutputs.empty();
+	if( ! hasOutputs && ! mIsPulledByContext ) {
 		mIsPulledByContext = true;
 		getContext()->addAutoPulledNode( shared_from_this() );
 		LOG_V << "added " << getTag() << " to auto-pull list" << endl;
 	}
-	else if( output && mIsPulledByContext ) {
+	else if( hasOutputs && mIsPulledByContext ) {
 		mIsPulledByContext = false;
 		getContext()->removeAutoPulledNode( shared_from_this() );
 		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;

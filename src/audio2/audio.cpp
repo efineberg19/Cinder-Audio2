@@ -52,8 +52,8 @@ namespace {
 		app::console() << ", " << ( node->getProcessInPlace() ? "in-place" : "sum" );
 		app::console() << " ]" << endl;
 
-		for( auto &input : node->getInputs() )
-			printRecursive( input, depth + 1 );
+		for( const auto &in : node->getInputs() )
+			printRecursive( in.second, depth + 1 );
 	};
 }
 

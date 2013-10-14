@@ -40,8 +40,8 @@ typedef std::shared_ptr<class NodeMixer>		NodeMixerRef;
 
 class Node : public std::enable_shared_from_this<Node> {
   public:
-	typedef std::map<size_t, std::shared_ptr<Node> >		InputsContainerT;		//! bus, strong reference to this
-	typedef std::multimap<size_t, std::weak_ptr<Node> >		OutputsContainerT;		//! output's bus for this node, weak reference to this
+	typedef std::map<size_t, std::shared_ptr<Node> >		InputsContainerT;		//! input bus, strong reference to this
+	typedef std::map<size_t, std::weak_ptr<Node> >			OutputsContainerT;		//! output bus for this node, weak reference to this
 
 	enum ChannelMode {
 		SPECIFIED,		//! Number of channels has been specified by user or is non-settable.
@@ -67,7 +67,6 @@ class Node : public std::enable_shared_from_this<Node> {
 		boost::tribool	mAutoEnable;
 	};
 
-	Node( const Format &format );
 	virtual ~Node();
 
 	std::string virtual getTag()				{ return "Node"; }
@@ -80,21 +79,21 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Returns the \a Context associated with this \a Node. \note Cannot be called from within a \a Node's constructor. Use initialize instead.
 	ContextRef getContext() const				{ return mContext.lock(); }
 
-
+	//! Enables this Node for processing. Same as setEnabled( true ).
 	virtual void start()		{ mEnabled = true; }
+	//! Disables this Node for processing. Same as setEnabled( false ).
 	virtual void stop()			{ mEnabled = false; }
+	//! Sets whether this Node is enabled for processing or not.
+	void setEnabled( bool b = true );
+	//! Returns whether this Node is enabled for processing or not.
+	bool isEnabled() const						{ return mEnabled; }
 
-	// TODO: solve these ambiguities, it isn't clear that one version adds and one sets at call sight...
-	//	- may remove these in favor of operator>>
-	virtual const NodeRef& connect( const NodeRef &dest )					{ dest->addInput( shared_from_this() ); return dest; }
-	virtual const NodeRef& connect( const NodeRef &dest, size_t bus )		{ dest->setInput( shared_from_this(), bus ); return dest; }
-
-	virtual void disconnect( size_t bus = 0 );
-
-	//! Insert \a input in first available bus, append if necessary.
-	virtual void addInput( const NodeRef &input );
-	//! Sets \a input at \a bus, replacing any Node currently existing there.
-	virtual void setInput( const NodeRef &input, size_t bus = 0 );
+	//! Connects this Node to \a dest on bus \a outputBus (default = 0). \a dest then references this Node as an input on \a inputBus (default = 0).
+	virtual const NodeRef& connect( const NodeRef &dest, size_t outputBus = 0, size_t inputBus = 0 );
+	//! Connects this Node to \a dest on the first available output bus. \a dest then references this Node as an input on the first available input bus.
+	virtual const NodeRef& addConnection( const NodeRef &dest );
+	//! Disconnects the Node referenced at ouput bus \a outputBus.
+	virtual void disconnect( size_t outputBus = 0 );
 
 	size_t		getNumChannels() const			{ return mNumChannels; }
 	ChannelMode getChannelMode() const			{ return mChannelMode; }
@@ -121,18 +120,22 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	bool isInitialized() const					{ return mInitialized; }
 
-	bool isEnabled() const						{ return mEnabled; }
-	void setEnabled( bool b = true );
-
 	bool getProcessInPlace() const				{ return mProcessInPlace; }
 
 	size_t getNumInputs() const;
+	size_t getNumOutputs() const;
 
 	// TODO: make this protected if possible (or better yet, not-accessible)
 //	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
 	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
 
   protected:
+	Node( const Format &format );
+
+	//! Stores \a input at bus \a inputBus, replacing any Node currently existing there. Stores this Node at input's output bus \a outputBus. Returns whether a new connection was made or not.
+	//! \note Should be called on a non-audio thread and synchronized with the Context's mutex.
+	virtual void connectInput( const NodeRef &input, size_t bus );
+	virtual void disconnectInput( const NodeRef &input );
 
 	virtual void configureConnections();
 	void setupProcessWithSumming();
@@ -140,7 +143,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels );
 	bool checkInput( const NodeRef &input );
-	size_t getFirstAvailableBus();
+	size_t getFirstAvailableOutputBus();
+	size_t getFirstAvailableInputBus();
 
 	void initializeImpl();
 	void uninitializeImpl();
@@ -171,15 +175,12 @@ class Node : public std::enable_shared_from_this<Node> {
 //! a Node that can be pulled without being connected to any outputs.
 class NodeAutoPullable : public Node {
   public:
-	NodeAutoPullable( const Format &format );
 
-	virtual void	addInput( const NodeRef &input )						override;
-	virtual void	setInput( const NodeRef &input, size_t bus )			override;
-	virtual const	NodeRef& connect( const NodeRef &dest )					override;
-	virtual const	NodeRef& connect( const NodeRef &dest, size_t bus )		override;
-	virtual void	disconnect( size_t bus )								override;
+	virtual void connectInput( const NodeRef &input, size_t bus )		override;
+	virtual void disconnectInput( const NodeRef &input )					override;
 
   protected:
+	NodeAutoPullable( const Format &format );
 	void updatePullMethod();
 
 	bool mIsPulledByContext;
@@ -188,7 +189,6 @@ class NodeAutoPullable : public Node {
 //! TODO: move or remove
 class NodeMixer : public Node {
   public:
-	NodeMixer( const Format &format = Format() ) : Node( format ), mMaxNumBusses( 10 ) {}
 	virtual ~NodeMixer() {}
 
 	std::string virtual getTag()				{ return "MixerNode"; }
@@ -196,59 +196,17 @@ class NodeMixer : public Node {
 	//! returns the number of connected busses.
 	virtual size_t getNumBusses() = 0;
 	virtual void setNumBusses( size_t count ) = 0;	// ???: does this make sense now? should above be getNumActiveBusses?
-	virtual size_t getMaxNumBusses()	{ return mMaxNumBusses; }
-	virtual void setMaxNumBusses( size_t count ) = 0;
 	virtual void setBusVolume( size_t bus, float volume ) = 0;
 	virtual float getBusVolume( size_t bus ) = 0;
 	virtual void setBusPan( size_t bus, float pan ) = 0;
 	virtual float getBusPan( size_t bus ) = 0;
 
-	// TODO: decide whether it is appropriate for MixerNode to enable / disable busses
-	// - Node's can be enabled / disabled now)
-	// - this should probably be internal - an impl such as MixerNodeAudioUnit will
-	//	 disable all busses that doesn't have a corresponding source Node hooked up to them
 	virtual bool isBusEnabled( size_t bus ) = 0;
 	virtual void setBusEnabled( size_t bus, bool enabled = true ) = 0;
 
   protected:
-	// TODO: Because busses can be expanded, the naming is off:
-	//		- mMaxNumBusses should be mNumBusses, there is no max
-	//			- so there is getNumBusses() / setNumBusses()
-	//		- there can be 'holes', slots in mInputs that are not used
-	//		- getNumActiveBusses() returns number of used slots
-	size_t mMaxNumBusses;
+	NodeMixer( const Format &format ) : Node( format ) {}
 };
-
-////! Convenience routine for finding the first downstream \a Node of type \a NodeT (traverses outputs).
-//template <typename NodeT>
-//static std::shared_ptr<NodeT> findFirstDownstreamNode( NodeRef node )
-//{
-//	while( node ) {
-//		auto castedNode = std::dynamic_pointer_cast<NodeT>( node );
-//		if( castedNode )
-//			return castedNode;
-//		node = node->getOutput();
-//	}
-//	return std::shared_ptr<NodeT>();
-//}
-//
-////! Convenience routine for finding the first upstream \a Node of type \a NodeT (traverses inputs).
-//// FIXME: account for multiple inputs
-//// TODO: pass as const&, but requires switching to recursive traversal
-//template <typename NodeT>
-//static std::shared_ptr<NodeT> findFirstUpstreamNode( NodeRef node )
-//{
-//	while( node ) {
-//		auto castedNode =std::dynamic_pointer_cast<NodeT>( node );
-//		if( castedNode )
-//			return castedNode;
-//		else if( node->getInputs().empty() )
-//			break;
-//
-//		node = node->getInputs().front();
-//	}
-//	return std::shared_ptr<NodeT>();
-//}
 
 //! Convenience routine for finding the first downstream \a Node of type \a NodeT (traverses outputs).
 template <typename NodeT>

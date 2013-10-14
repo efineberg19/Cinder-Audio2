@@ -15,12 +15,6 @@ using namespace std;
 
 using namespace ci::audio2;
 
-// TODO: consider whether its a good idea to control node auto-enabling during initialization
-//   - it better matches the dynamic connections and how they can effect multiple nodes in a graph
-//	 - it causes more work in the xaudio case, probably not others.
-//   - start() / stop() are getting called sync from the main thread, so they cannot explicitly begin processing audio.
-//			- Once again, was really only a weird xaudio issue, but I found a workaround.
-
 struct InterleavedPassThruNode : public Node {
 	InterleavedPassThruNode() : Node( Format() )
 	{
@@ -71,7 +65,7 @@ public:
 	VSelector mTestSelector;
 	HSlider mGainSlider;
 
-	enum Bus { NOISE, SINE };
+	enum GainInputBus { NOISE, SINE };
 };
 
 void NodeTestApp::setup()
@@ -106,12 +100,9 @@ void NodeTestApp::setup()
 
 void NodeTestApp::setupSine()
 {
-	mGain->disconnect();
+//	mGain->disconnect();
 
-	// TODO: on msw, the 0 index for gain -> target is needed when switching between different tests,
-	// but not cocoa (check). see if this can be avoided
-	mSine->connect( mGain, 0 )->connect( mContext->getTarget(), 0 );
-
+	mSine->connect( mGain )->connect( mContext->getTarget() );
 	mSine->start();
 
 	mEnableNoiseButton.setEnabled( false );
@@ -120,26 +111,28 @@ void NodeTestApp::setupSine()
 
 void NodeTestApp::setupNoiseReverse()
 {
-	mGain->disconnect();
+	// TODO: replace with 1 -> 2 test
+	LOG_E << "does nothing." << endl;
 
-	mContext->getTarget()->setInput( mGain, 0 );
-	mGain->setInput( mNoise, 0 );
-
-	mNoise->start();
-	mEnableSineButton.setEnabled( false );
-	mEnableNoiseButton.setEnabled( true );
+//	mGain->disconnect();
+//
+//	mContext->getTarget()->setInput( mGain, 0 );
+//	mGain->setInput( mNoise, 0 );
+//
+//	mNoise->start();
+//	mEnableSineButton.setEnabled( false );
+//	mEnableNoiseButton.setEnabled( true );
 }
 
 void NodeTestApp::setupSumming()
 {
 	// connect by appending
-	//mNoise->connect( mGain );
-	//mSine->connect( mGain )->connect( mContext->getTarget(), 0 );
+//	mNoise->connect( mGain );
+//	mSine->addConnection( mGain )->connect( mContext->getTarget(), 0 );
 
 	// connect by index
-	mGain->getInputs().resize( 2 );
-	mNoise->connect( mGain, Bus::NOISE );
-	mSine->connect( mGain, Bus::SINE )->connect( mContext->getTarget(), 0 );
+	mNoise->connect( mGain, 0, GainInputBus::NOISE );
+	mSine->connect( mGain, 0, GainInputBus::SINE )->connect( mContext->getTarget() );
 
 	mSine->start();
 	mNoise->start();
@@ -153,7 +146,7 @@ void NodeTestApp::setupInterleavedPassThru()
 	mGain->disconnect();
 
 	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
-	mSine->connect( interleaved )->connect( mGain, 0 )->connect( mContext->getTarget(), 0 );
+	mSine->connect( interleaved )->connect( mGain )->connect( mContext->getTarget() );
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );

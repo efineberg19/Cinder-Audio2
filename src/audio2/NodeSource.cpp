@@ -45,6 +45,11 @@ NodeSource::NodeSource( const Format &format ) : Node( format )
 		mChannelMode = ChannelMode::MATCHES_OUTPUT;
 }
 
+void NodeSource::connectInput( const NodeRef &input, size_t bus )
+{
+	CI_ASSERT_MSG( 0, "NodeSource does not support inputs" );
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - NodeLineIn
 // ----------------------------------------------------------------------------------------------------

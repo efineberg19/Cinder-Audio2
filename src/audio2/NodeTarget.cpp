@@ -29,6 +29,12 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
+const NodeRef& NodeTarget::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
+{
+	CI_ASSERT_MSG( 0, "NodeTarget does not support outputs" );
+	return dest;
+}
+
 NodeLineOut::NodeLineOut( const DeviceRef &device, const Format &format )
 	: NodeTarget( format ), mDevice( device ), mClipDetectionEnabled( true ), mClipThreshold( 2.0f )
 {
