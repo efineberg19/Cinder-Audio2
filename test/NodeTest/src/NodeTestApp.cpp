@@ -9,6 +9,7 @@
 #include "audio2/Debug.h"
 
 #include "Gui.h"
+#include "Plot.h"
 
 // TODO: implement cycle detection and add test for it that catches exception
 
@@ -233,6 +234,10 @@ void NodeTestApp::processTap( Vec2i pos )
 void NodeTestApp::draw()
 {
 	gl::clear();
+
+	if( mScope && mScope->getNumConnectedInputs() )
+		drawAudioBuffer( mScope->getBuffer(), getWindowBounds() );
+
 	drawWidgets( mWidgets );
 }
 

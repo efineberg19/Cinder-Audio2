@@ -31,6 +31,8 @@
 
 #include <vector>
 
+void drawAudioBuffer( const ci::audio2::Buffer &buffer, const ci::Rectf &bounds );
+
 class Waveform {
   public:
 	enum CalcMode { MIN_MAX, AVERAGE };

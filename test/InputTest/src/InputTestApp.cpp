@@ -181,24 +181,8 @@ void InputTestApp::draw()
 	gl::color( 0.0f, 0.9f, 0.0f );
 
 	if( mScope && mScope->isInitialized() ) {
-		const audio2::Buffer &buffer = mScope->getBuffer();
 
-		float padding = 20.0f;
-		float waveHeight = ((float)getWindowHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();
-
-		float yOffset = padding;
-		float xScale = (float)getWindowWidth() / (float)buffer.getNumFrames();
-		for( size_t ch = 0; ch < buffer.getNumChannels(); ch++ ) {
-			PolyLine2f waveform;
-			const float *channel = buffer.getChannel( ch );
-			for( size_t i = 0; i < buffer.getNumFrames(); i++ ) {
-				float x = i * xScale;
-				float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
-				waveform.push_back( Vec2f( x, y ) );
-			}
-			gl::draw( waveform );
-			yOffset += waveHeight + padding;
-		}
+		drawAudioBuffer( mScope->getBuffer(), getWindowBounds() );
 
 		float volumeMeterHeight = 20.0f;
 		float volume = mScope->getVolume();

@@ -273,27 +273,8 @@ void FileNodeTestApp::draw()
 	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
 	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );
 
-	if( mScope && mScope->isInitialized() ) {
-		const audio2::Buffer &buffer = mScope->getBuffer();
-
-		float padding = 20.0f;
-		float waveHeight = ((float)getWindowHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();
-
-		float yOffset = padding;
-		float xScale = (float)getWindowWidth() / (float)buffer.getNumFrames();
-		for( size_t ch = 0; ch < buffer.getNumChannels(); ch++ ) {
-			PolyLine2f waveform;
-			const float *channel = buffer.getChannel( ch );
-			for( size_t i = 0; i < buffer.getNumFrames(); i++ ) {
-				float x = i * xScale;
-				float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
-				waveform.push_back( Vec2f( x, y ) );
-			}
-			gl::color( 0.0f, 0.9f, 0.0f );
-			gl::draw( waveform );
-			yOffset += waveHeight + padding;
-		}
-	}
+	if( mScope && mScope->isInitialized() )
+		drawAudioBuffer( mScope->getBuffer(), getWindowBounds() );
 
 	if( mUnderrunFade > 0.0001f ) {
 		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
