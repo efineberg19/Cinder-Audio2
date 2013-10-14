@@ -66,7 +66,7 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inpu
 	mOutputs[outputBus] = dest; // set output bus first, so that it is visible in configureConnections()
 	dest->connectInput( shared_from_this(), inputBus );
 
-	getContext()->connectionsDidChange( shared_from_this() );
+	dest->notifyConnectionsDidChange();
 	return dest;
 }
 
@@ -84,10 +84,26 @@ void Node::disconnect( size_t outputBus )
 	NodeRef output = outIt->second.lock();
 	CI_ASSERT( output );
 
-	output->disconnectInput( shared_from_this() );
 	mOutputs.erase( outIt );
+	output->disconnectInput( shared_from_this() );
+	output->notifyConnectionsDidChange();
+}
 
-	getContext()->connectionsDidChange( shared_from_this() );
+void Node::disconnectAllOutputs()
+{
+	NodeRef thisRef = shared_from_this();
+	for( auto &out : mOutputs )
+		disconnect( out.first );
+}
+
+void Node::disconnectAllInputs()
+{
+	const NodeRef &thisRef = shared_from_this();
+	for( auto &in : mInputs )
+		in.second->disconnectOutput( thisRef );
+
+	mInputs.clear();
+	notifyConnectionsDidChange();
 }
 
 void Node::connectInput( const NodeRef &input, size_t bus )
@@ -105,6 +121,18 @@ void Node::disconnectInput( const NodeRef &input )
 	for( auto inIt = mInputs.begin(); inIt != mInputs.end(); ++inIt ) {
 		if( inIt->second == input ) {
 			mInputs.erase( inIt );
+			break;
+		}
+	}
+}
+
+void Node::disconnectOutput( const NodeRef &output )
+{
+	lock_guard<mutex> lock( getContext()->getMutex() );
+
+	for( auto outIt = mOutputs.begin(); outIt != mOutputs.end(); ++outIt ) {
+		if( outIt->second.lock() == output ) {
+			mOutputs.erase( outIt );
 			break;
 		}
 	}
@@ -150,19 +178,15 @@ void Node::setEnabled( bool enabled )
 		stop();
 }
 
-size_t Node::getNumInputs() const
+size_t Node::getNumConnectedInputs() const
 {
 	return mInputs.size();
 }
 
-size_t Node::getNumOutputs() const
+size_t Node::getNumConnectedOutputs() const
 {
 	return mOutputs.size();
 }
-
-// ----------------------------------------------------------------------------------------------------
-// MARK: - Protected
-// ----------------------------------------------------------------------------------------------------
 
 void Node::initializeImpl()
 {
@@ -215,7 +239,7 @@ void Node::configureConnections()
 
 	mProcessInPlace = true;
 
-	if( getNumInputs() > 1 )
+	if( getNumConnectedInputs() > 1 )
 		mProcessInPlace = false;
 
 	for( auto &in : mInputs ) {
@@ -267,6 +291,11 @@ void Node::setupProcessWithSumming()
 
 	mInternalBuffer.setSize( framesPerBlock, mNumChannels );
 	mSummingBuffer.setSize( framesPerBlock, mNumChannels );
+}
+
+void Node::notifyConnectionsDidChange()
+{
+	getContext()->connectionsDidChange( shared_from_this() );
 }
 
 bool Node::checkInput( const NodeRef &input )

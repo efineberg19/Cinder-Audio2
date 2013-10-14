@@ -9,6 +9,8 @@
 
 #include "Gui.h"
 
+// TODO: implement cycle detection and add test for it that catches exception
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -82,6 +84,8 @@ void NodeTestApp::setup()
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
 
+	mGain->connect( mContext->getTarget() );
+
 	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
 	noise->getGen().setAmp( 0.25f );
 	mNoise = noise;
@@ -100,9 +104,9 @@ void NodeTestApp::setup()
 
 void NodeTestApp::setupSine()
 {
-//	mGain->disconnect();
+	mGain->disconnectAllInputs();
 
-	mSine->connect( mGain )->connect( mContext->getTarget() );
+	mSine->connect( mGain );
 	mSine->start();
 
 	mEnableNoiseButton.setEnabled( false );
@@ -128,11 +132,11 @@ void NodeTestApp::setupSumming()
 {
 	// connect by appending
 //	mNoise->connect( mGain );
-//	mSine->addConnection( mGain )->connect( mContext->getTarget(), 0 );
+//	mSine->addConnection( mGain );
 
 	// connect by index
 	mNoise->connect( mGain, 0, GainInputBus::NOISE );
-	mSine->connect( mGain, 0, GainInputBus::SINE )->connect( mContext->getTarget() );
+	mSine->connect( mGain, 0, GainInputBus::SINE );
 
 	mSine->start();
 	mNoise->start();
@@ -143,10 +147,10 @@ void NodeTestApp::setupSumming()
 
 void NodeTestApp::setupInterleavedPassThru()
 {
-	mGain->disconnect();
+	mGain->disconnectAllInputs();
 
 	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
-	mSine->connect( interleaved )->connect( mGain )->connect( mContext->getTarget() );
+	mSine->connect( interleaved )->connect( mGain );
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );

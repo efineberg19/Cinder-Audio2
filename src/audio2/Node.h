@@ -92,8 +92,16 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual const NodeRef& connect( const NodeRef &dest, size_t outputBus = 0, size_t inputBus = 0 );
 	//! Connects this Node to \a dest on the first available output bus. \a dest then references this Node as an input on the first available input bus.
 	virtual const NodeRef& addConnection( const NodeRef &dest );
-	//! Disconnects the Node referenced at ouput bus \a outputBus.
+	//! Disconnects this Node from the output Node located at bus \a outputBus.
 	virtual void disconnect( size_t outputBus = 0 );
+	//! Disconnects this Node from all outputs.
+	virtual void disconnectAllOutputs();
+	//! Disconnects all of this Node's inputs.
+	virtual void disconnectAllInputs();
+	//! Returns the number of inputs connected to this Node.
+	size_t getNumConnectedInputs() const;
+	//! Returns the number of outputs this Node is connected to.
+	size_t getNumConnectedOutputs() const;
 
 	size_t		getNumChannels() const			{ return mNumChannels; }
 	ChannelMode getChannelMode() const			{ return mChannelMode; }
@@ -115,15 +123,10 @@ class Node : public std::enable_shared_from_this<Node> {
 	InputsContainerT& getInputs()			{ return mInputs; }
 	OutputsContainerT& getOutputs()			{ return mOutputs; }
 
-//	NodeRef getOutput( size_t bus = 0 )	const		{ return mOutputs[bus].lock(); }
-//	void	setOutput( const NodeRef &output )		{ mOutput = output; }
-
+	//! Returns whether this Node is in an initialized state and is capabale of processing audio.
 	bool isInitialized() const					{ return mInitialized; }
-
+	//! Returns whether this Node will process audio with an in-place Buffer.
 	bool getProcessInPlace() const				{ return mProcessInPlace; }
-
-	size_t getNumInputs() const;
-	size_t getNumOutputs() const;
 
 	// TODO: make this protected if possible (or better yet, not-accessible)
 //	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
@@ -136,9 +139,11 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! \note Should be called on a non-audio thread and synchronized with the Context's mutex.
 	virtual void connectInput( const NodeRef &input, size_t bus );
 	virtual void disconnectInput( const NodeRef &input );
+	virtual void disconnectOutput( const NodeRef &output );
 
 	virtual void configureConnections();
 	void setupProcessWithSumming();
+	void notifyConnectionsDidChange();
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels );
@@ -175,9 +180,8 @@ class Node : public std::enable_shared_from_this<Node> {
 //! a Node that can be pulled without being connected to any outputs.
 class NodeAutoPullable : public Node {
   public:
-
-	virtual void connectInput( const NodeRef &input, size_t bus )		override;
-	virtual void disconnectInput( const NodeRef &input )					override;
+	virtual void connectInput( const NodeRef &input, size_t bus )	override;
+	virtual void disconnectInput( const NodeRef &input )			override;
 
   protected:
 	NodeAutoPullable( const Format &format );
