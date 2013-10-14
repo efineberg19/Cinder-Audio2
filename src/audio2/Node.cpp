@@ -56,7 +56,7 @@ Node::~Node()
 {
 }
 
-const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inputBus  )
+const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
 {
 	if( ! dest->checkInput( shared_from_this() ) ) {
 		LOG_E << "could not make connection." << endl;

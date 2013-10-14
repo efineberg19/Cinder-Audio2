@@ -4,6 +4,7 @@
 #include "audio2/audio.h"
 #include "audio2/NodeSource.h"
 #include "audio2/NodeEffect.h"
+#include "audio2/Scope.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
@@ -50,17 +51,18 @@ public:
 	void draw();
 
 	void setupSine();
-	void setupNoiseReverse();
-	void setupSumming();
+	void setup2to1();
+	void setup1to2();
 	void setupInterleavedPassThru();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	Context* mContext;
-	NodeGainRef mGain;
-	NodeSourceRef mSine, mNoise;
+	Context*		mContext;
+	NodeGainRef		mGain;
+	ScopeRef		mScope;
+	NodeSourceRef	mSine, mNoise;
 
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton, mEnableNoiseButton, mEnableSineButton;
@@ -113,22 +115,8 @@ void NodeTestApp::setupSine()
 	mEnableSineButton.setEnabled( true );
 }
 
-void NodeTestApp::setupNoiseReverse()
-{
-	// TODO: replace with 1 -> 2 test
-	LOG_E << "does nothing." << endl;
 
-//	mGain->disconnect();
-//
-//	mContext->getTarget()->setInput( mGain, 0 );
-//	mGain->setInput( mNoise, 0 );
-//
-//	mNoise->start();
-//	mEnableSineButton.setEnabled( false );
-//	mEnableNoiseButton.setEnabled( true );
-}
-
-void NodeTestApp::setupSumming()
+void NodeTestApp::setup2to1()
 {
 	// connect by appending
 //	mNoise->connect( mGain );
@@ -143,6 +131,14 @@ void NodeTestApp::setupSumming()
 
 	mEnableSineButton.setEnabled( true );
 	mEnableNoiseButton.setEnabled( true );
+}
+
+void NodeTestApp::setup1to2()
+{
+	setupSine();
+
+	mScope = mContext->makeNode( new Scope() );
+	mSine->addConnection( mScope );
 }
 
 void NodeTestApp::setupInterleavedPassThru()
@@ -163,8 +159,8 @@ void NodeTestApp::setupUI()
 	mWidgets.push_back( &mPlayButton );
 
 	mTestSelector.mSegments.push_back( "sine" );
-	mTestSelector.mSegments.push_back( "noise (reverse)" );
-	mTestSelector.mSegments.push_back( "sine + noise" );
+	mTestSelector.mSegments.push_back( "2 to 1" );
+	mTestSelector.mSegments.push_back( "1 to 2" );
 	mTestSelector.mSegments.push_back( "interleave pass-thru" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0.0f, (float)getWindowWidth(), 160.0f );
 	mWidgets.push_back( &mTestSelector );
@@ -223,14 +219,14 @@ void NodeTestApp::processTap( Vec2i pos )
 
 		if( currentTest == "sine" )
 			setupSine();
-		if( currentTest == "noise (reverse)" )
-			setupNoiseReverse();
-		if( currentTest == "sine + noise" )
-			setupSumming();
+		if( currentTest == "2 to 1" )
+			setup2to1();
+		if( currentTest == "1 to 2" )
+			setup1to2();
 		if( currentTest == "interleave pass-thru" )
 			setupInterleavedPassThru();
 
-		printGraph( mContext );
+		mContext->printGraph();
 	}
 }
 
