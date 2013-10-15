@@ -34,7 +34,7 @@ typedef std::shared_ptr<class Voice> VoiceRef;
 
 class Voice {
   public:
-	virtual NodeRef getNode() = 0;
+	virtual NodeRef getNode() const = 0;
 
 	void setVolume( float volume );
 	void setPan( float pos );
@@ -46,6 +46,17 @@ class Voice {
 	size_t mBusId;
 	friend class Mixer;
 };
+
+class VoiceSamplePlayer : public Voice {
+public:
+	VoiceSamplePlayer( const DataSourceRef &dataSource );
+
+	NodeRef getNode() const override				{ return mSamplePlayer; }
+	NodeSamplePlayerRef getSamplePlayer() const		{ return mSamplePlayer; }
+private:
+	NodeSamplePlayerRef mSamplePlayer;
+};
+
 
 struct VoiceOptions {
 	VoiceOptions() : mVolumeEnabled( true ), mPanEnabled( false ) {}
@@ -59,7 +70,7 @@ private:
 	bool mVolumeEnabled, mPanEnabled;
 };
 
-VoiceRef load( const DataSourceRef &dataSource, const VoiceOptions &options = VoiceOptions() );
+VoiceRef makeVoice( const DataSourceRef &dataSource, const VoiceOptions &options = VoiceOptions() );
 
 void play( const VoiceRef &source );
 

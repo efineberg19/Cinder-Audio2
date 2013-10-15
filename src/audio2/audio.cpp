@@ -30,15 +30,6 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
-class VoiceImplSamplePlayer : public Voice {
-public:
-	VoiceImplSamplePlayer( const DataSourceRef &dataSource );
-
-	NodeRef getNode() override	{ return mSamplePlayer; }
-private:
-	NodeSamplePlayerRef mSamplePlayer;
-};
-
 class Mixer {
 public:
 
@@ -145,7 +136,7 @@ void Voice::setPan( float pan )
 	Mixer::get()->setBusPan( mBusId, pan );
 }
 
-VoiceImplSamplePlayer::VoiceImplSamplePlayer( const DataSourceRef &dataSource )
+VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 {
 	size_t sampleRate = Context::master()->getSampleRate();
 	SourceFileRef sourceFile = SourceFile::create( dataSource, 0, sampleRate );
@@ -159,9 +150,9 @@ VoiceImplSamplePlayer::VoiceImplSamplePlayer( const DataSourceRef &dataSource )
 		mSamplePlayer = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
 }
 
-VoiceRef load( const DataSourceRef &dataSource, const VoiceOptions &options )
+VoiceRef makeVoice( const DataSourceRef &dataSource, const VoiceOptions &options )
 {
-	auto result = VoiceRef( new VoiceImplSamplePlayer( dataSource ) );
+	auto result = VoiceRef( new VoiceSamplePlayer( dataSource ) );
 	Mixer::get()->addVoice( result, options );
 
 	return result;
