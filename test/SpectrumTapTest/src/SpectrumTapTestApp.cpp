@@ -69,7 +69,7 @@ void SpectrumScopeTestApp::setup()
 {
 	mSpectroMargin = 40.0f;
 
-	mContext = Context::hardwareInstance();
+	mContext = Context::master();
 
 	mSpectrumScope = mContext->makeNode( new ScopeSpectral( ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 	mSpectrumScope->setAutoEnabled();

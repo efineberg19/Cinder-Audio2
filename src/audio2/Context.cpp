@@ -48,7 +48,7 @@ namespace cinder { namespace audio2 {
 std::shared_ptr<Context>		Context::sHardwareContext;
 std::unique_ptr<DeviceManager>	Context::sDeviceManager;
 
-Context* Context::hardwareInstance()
+Context* Context::master()
 {
 	if( ! sHardwareContext ) {
 #if defined( CINDER_COCOA )

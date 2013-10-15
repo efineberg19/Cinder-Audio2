@@ -68,7 +68,7 @@ void FileNodeTestApp::setup()
 {
 	mUnderrunFade = mOverrunFade = 0.0f;
 
-	mContext = Context::hardwareInstance();
+	mContext = Context::master();
 	
 //	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );

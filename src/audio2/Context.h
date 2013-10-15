@@ -38,9 +38,8 @@ class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
-	//! Returns the platform-specific \a Context that managed hardware I/O and real-time processing. If none is available, returns an empty null.
-	// TODO: rename to master()
-	static Context*				hardwareInstance();
+	//! Returns the master, platform-specific \a Context that manages hardware I/O and real-time processing, or null if none is available.
+	static Context*				master();
 	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
 	static DeviceManager*		deviceManager();
 

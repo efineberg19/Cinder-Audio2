@@ -41,7 +41,7 @@ class EffectNodeTestApp : public AppNative {
 
 void EffectNodeTestApp::setup()
 {
-	mContext = Context::hardwareInstance();
+	mContext = Context::master();
 
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );

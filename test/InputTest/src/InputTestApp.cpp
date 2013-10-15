@@ -51,7 +51,7 @@ class InputTestApp : public AppNative {
 
 void InputTestApp::setup()
 {
-	mContext = Context::hardwareInstance();
+	mContext = Context::master();
 
 	mLineIn = mContext->createLineIn();
 	mLineOut = mContext->createLineOut();

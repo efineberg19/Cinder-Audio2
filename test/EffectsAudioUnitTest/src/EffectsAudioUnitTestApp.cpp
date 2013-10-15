@@ -58,7 +58,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 
 void EffectsAudioUnitTestApp::setup()
 {
-	mContext = Context::hardwareInstance();
+	mContext = Context::master();
 
 	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
 	noise->setAutoEnabled();

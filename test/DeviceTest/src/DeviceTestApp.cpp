@@ -68,7 +68,7 @@ void DeviceTestApp::prepareSettings( Settings *settings )
 
 void DeviceTestApp::setup()
 {
-	mContext = Context::hardwareInstance();
+	mContext = Context::master();
 
 	setOutputDevice( Device::getDefaultOutput() );
 	setInputDevice( Device::getDefaultInput() );

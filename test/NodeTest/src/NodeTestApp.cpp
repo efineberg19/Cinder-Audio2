@@ -83,7 +83,7 @@ void NodeTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t frames per block: " << device->getFramesPerBlock() << endl;
 
-	mContext = Context::hardwareInstance();
+	mContext = Context::master();
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
 
