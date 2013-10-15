@@ -116,7 +116,16 @@ void FileNodeTestApp::setupFilePlayer()
 
 	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
 
+	// connect scope in sequence
 	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( mContext->getTarget() );
+
+	// or connect in series (it is added to the 'auto pulled list'
+	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mPan->addConnection( mScope );
+
+	// this call blows the current pan -> target connection, so nothing gets to the speakers
+	// FIXME: what's going on here, static_assert failing in default constructor, at shut-down???
+//	mPan->connect( mScope );
 }
 
 void FileNodeTestApp::setupUI()

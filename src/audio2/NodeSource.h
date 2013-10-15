@@ -29,7 +29,8 @@
 #include "audio2/RingBuffer.h"
 
 #include "cinder/DataSource.h"
-#include "cinder/Thread.h"
+
+#include <thread>
 
 namespace cinder { namespace audio2 {
 
@@ -42,7 +43,7 @@ typedef std::shared_ptr<class NodeFilePlayer>		NodeFilePlayerRef;
 class NodeSource : public Node {
   public:
 	std::string virtual getTag() override			{ return "NodeSource"; }
-	virtual ~NodeSource() {}
+	virtual ~NodeSource();
 
   protected:
 	NodeSource( const Format &format );
@@ -53,7 +54,7 @@ class NodeSource : public Node {
 
 class NodeLineIn : public NodeSource {
 public:
-	virtual ~NodeLineIn() {}
+	virtual ~NodeLineIn();
 
 	std::string virtual getTag() override			{ return "NodeLineIn"; }
 

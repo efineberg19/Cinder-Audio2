@@ -27,7 +27,7 @@ class EffectNodeTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	ContextRef				mContext;
+	Context*				mContext;
 	NodeSourceRef			mGen;
 	NodeGainRef				mGain;
 	NodePan2dRef			mPan;
@@ -85,8 +85,8 @@ void EffectNodeTestApp::setupDownMix()
 	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );
 	mRingMod->mSineGen.setFreq( 20.0f );
 
-	auto monoPassThru = mContext->makeNode( new Node( Node::Format().channels( 1 ) ) );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( monoPassThru )->connect( mContext->getTarget() );
+	auto mono = mContext->makeNode( new NodeGain( Node::Format().channels( 1 ) ) );
+	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( mono )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupUI()
@@ -165,6 +165,7 @@ void EffectNodeTestApp::processTap( Vec2i pos )
 			setupDownMix();
 
 		mContext->setEnabled( enabled );
+		mContext->printGraph();
 	}
 }
 

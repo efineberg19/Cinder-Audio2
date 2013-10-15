@@ -181,6 +181,7 @@ class Node : public std::enable_shared_from_this<Node> {
 //! a Node that can be pulled without being connected to any outputs.
 class NodeAutoPullable : public Node {
   public:
+	virtual ~NodeAutoPullable();
 	virtual const NodeRef& connect( const NodeRef &dest, size_t outputBus, size_t inputBus ) override;
 	virtual void connectInput( const NodeRef &input, size_t bus )	override;
 	virtual void disconnectInput( const NodeRef &input )			override;
