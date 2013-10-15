@@ -156,7 +156,7 @@ void Context::disconnectRecursive( const NodeRef &node )
 	for( auto &in : node->getInputs() )
 		disconnectRecursive( in.second );
 
-	node->disconnect();
+	node->disconnectAllInputs();
 }
 
 void Context::initRecursisve( const NodeRef &node )
