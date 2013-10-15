@@ -30,18 +30,38 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class Source> SourceRef;
+typedef std::shared_ptr<class Voice> VoiceRef;
 
-class Source {
+class Voice {
   public:
-	virtual const NodeRef& getNode() = 0;
+	virtual NodeRef getNode() = 0;
+
+	void setVolume( float volume );
+	void setPan( float pos );
+
+  protected:
+	Voice() : mBusId( 0 ) {}
+
   private:
+	size_t mBusId;
+	friend class Mixer;
 };
 
+struct VoiceOptions {
+	VoiceOptions() : mVolumeEnabled( true ), mPanEnabled( false ) {}
 
-SourceRef load( const DataSourceRef &dataSource );
+	VoiceOptions& enablePan( bool enable = true )	{ mPanEnabled = enable; return *this; }
 
-void play( const SourceRef &source );
+	bool isVolumeEnabled() const	{ return mVolumeEnabled; }
+	bool isPanEnabled() const		{ return mPanEnabled; }
+
+private:
+	bool mVolumeEnabled, mPanEnabled;
+};
+
+VoiceRef load( const DataSourceRef &dataSource, const VoiceOptions &options = VoiceOptions() );
+
+void play( const VoiceRef &source );
 
 //void play( const std::function<Buffer *, other params> &callback );
 

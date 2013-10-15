@@ -30,11 +30,11 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
-class SourceImplSamplePlayer : public Source {
+class VoiceImplSamplePlayer : public Voice {
 public:
-	SourceImplSamplePlayer( const DataSourceRef &dataSource );
+	VoiceImplSamplePlayer( const DataSourceRef &dataSource );
 
-	const NodeRef& getNode() override	{ return mSamplePlayer; }
+	NodeRef getNode() override	{ return mSamplePlayer; }
 private:
 	NodeSamplePlayerRef mSamplePlayer;
 };
@@ -45,23 +45,20 @@ public:
 	static Mixer *get();
 
 	//! returns the number of connected busses.
-	size_t	getNumBusses();
-	void	setMaxNumActiveBusses( size_t count );
-	void	setBusVolume( size_t bus, float volume );
-	float	getBusVolume( size_t bus );
-	void	setBusPan( size_t bus, float pan );
-	float	getBusPan( size_t bus );
+	void	setBusVolume( size_t busId, float volume );
+	float	getBusVolume( size_t busId );
+	void	setBusPan( size_t busId, float pos );
+	float	getBusPan( size_t busId );
 
-	//! Returns the bus \a source was added to
-	size_t	addSource( const SourceRef &source );
+	void	addVoice( const VoiceRef &source, const VoiceOptions &options );
 
 private:
 	Mixer();
 
 	struct Bus {
-		SourceRef   mSource;
-		NodeGainRef mGain;
-		NodeGainRef mPan;
+		VoiceRef		mVoice;
+		NodeGainRef		mGain;
+		NodePan2dRef	mPan;
 	};
 
 	std::vector<Bus> mBusses;
@@ -89,19 +86,66 @@ Mixer::Mixer()
 	ctx->start();
 }
 
-size_t Mixer::addSource( const SourceRef &source )
+void Mixer::addVoice( const VoiceRef &source, const VoiceOptions &options )
 {
-	Mixer::Bus bus;
-	bus.mSource = source;
+	Context *ctx = Context::master();
 
-	size_t busId = mBusses.size();
-	mBusses.push_back( bus );
+	source->mBusId = mBusses.size();
+	mBusses.push_back( Mixer::Bus() );
+	Mixer::Bus &bus = mBusses.back();
 
-	source->getNode()->connect( mMasterGain );
-	return busId;
+	bus.mVoice = source;
+
+	NodeRef node = source->getNode();
+	if( options.isVolumeEnabled() ) {
+		bus.mGain = ctx->makeNode( new NodeGain() );
+		node = node->connect( bus.mGain );
+	}
+	if( options.isPanEnabled() ) {
+		bus.mPan = ctx->makeNode( new NodePan2d() );
+		node = node->connect( bus.mPan );
+	}
+
+	node->connect( mMasterGain );	
 }
 
-SourceImplSamplePlayer::SourceImplSamplePlayer( const DataSourceRef &dataSource )
+void Mixer::setBusVolume( size_t busId, float volume )
+{
+	mBusses[busId].mGain->setGain( volume );
+}
+
+float Mixer::getBusVolume( size_t busId )
+{
+	return mBusses[busId].mGain->getGain();
+}
+
+void Mixer::setBusPan( size_t busId, float pos )
+{
+	auto pan = mBusses[busId].mPan;
+	if( pan )
+		pan->setPos( pos );
+}
+
+float Mixer::getBusPan( size_t busId )
+{
+	auto pan = mBusses[busId].mPan;
+	if( pan )
+		return mBusses[busId].mPan->getPos();
+
+	return 0.0f;
+}
+
+void Voice::setVolume( float volume )
+{
+	Mixer::get()->setBusVolume( mBusId, volume );
+}
+
+void Voice::setPan( float pan )
+{
+	Mixer::get()->setBusPan( mBusId, pan );
+}
+
+VoiceImplSamplePlayer::VoiceImplSamplePlayer( const DataSourceRef &dataSource )
 {
 	size_t sampleRate = Context::master()->getSampleRate();
 	SourceFileRef sourceFile = SourceFile::create( dataSource, 0, sampleRate );
@@ -109,22 +153,21 @@ SourceImplSamplePlayer::SourceImplSamplePlayer( const DataSourceRef &dataSource 
 	// maximum samples for default buffer playback is 1 second stereo at 48k samplerate
 	const size_t kMaxFramesForBufferPlayback = 48000 * 2;
 
-
 	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback )
-		mSamplePlayer = Context::master()->makeNode( new NodeBufferPlayer( sourceFile->loadBuffer() ) );
+		mSamplePlayer = Context::master()->makeNode( new NodeBufferPlayer( sourceFile->loadBuffer() ) ); // TODO: cache buffer so other loads don't need to do this
 	else
 		mSamplePlayer = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
 }
 
-SourceRef load( const DataSourceRef &dataSource )
+VoiceRef load( const DataSourceRef &dataSource, const VoiceOptions &options )
 {
-	auto result = SourceRef( new SourceImplSamplePlayer( dataSource ) );
-	Mixer::get()->addSource( result );
+	auto result = VoiceRef( new VoiceImplSamplePlayer( dataSource ) );
+	Mixer::get()->addVoice( result, options );
 
 	return result;
 }
 
-void play( const SourceRef &source )
+void play( const VoiceRef &source )
 {
 	source->getNode()->start();
 }

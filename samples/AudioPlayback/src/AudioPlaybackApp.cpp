@@ -12,17 +12,23 @@ public:
 	void mouseDown( MouseEvent );
 	void draw();
 
-	audio2::SourceRef mAudioSource;
+	audio2::VoiceRef mVoice;
 };
 
 void AudioPlaybackApp::setup()
 {
-	mAudioSource = audio2::load( loadResource( RES_DRAIN_OGG ) );
+	mVoice = audio2::load( loadResource( RES_DRAIN_OGG ), audio2::VoiceOptions().enablePan() );
 }
 
 void AudioPlaybackApp::mouseDown( MouseEvent event )
 {
-	audio2::play( mAudioSource );
+	float volume = 1.0f - ( (float)event.getPos().y / (float)getWindowHeight() );
+	float pan = (float)event.getPos().x / (float)getWindowWidth();
+
+	mVoice->setVolume( volume );
+	mVoice->setPan( pan );
+
+	audio2::play( mVoice );
 }
 
 void AudioPlaybackApp::draw()
