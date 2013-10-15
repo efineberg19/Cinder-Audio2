@@ -69,6 +69,8 @@ class Context : public std::enable_shared_from_this<Context> {
 	size_t		getSampleRate()				{ return getTarget()->getSampleRate(); }
 	size_t		getFramesPerBlock()			{ return getTarget()->getFramesPerBlock(); }
 
+	// TODO: consider the base incrementor type to be ticks / blocks
+	// - this is always a multiple of getFramesPerBlock() and it would be one less call to that, which goes through 2 virtual methods and one shared_ptr.
 	uint64_t	getNumProcessedFrames()		{ return getTarget()->getNumProcessedFrames(); }
 	double		getNumProcessedSeconds()	{ return (double)getNumProcessedFrames() / (double)getSampleRate(); }
 

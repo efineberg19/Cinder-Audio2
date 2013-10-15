@@ -31,6 +31,8 @@
 
 #include "cinder/Utilities.h"
 
+#include <limits>
+
 using namespace std;
 
 namespace cinder { namespace audio2 {
@@ -41,7 +43,7 @@ namespace cinder { namespace audio2 {
 
 Node::Node( const Format &format )
 	: mInitialized( false ), mEnabled( false ),	mChannelMode( format.getChannelMode() ),
-		mNumChannels( 1 ), mAutoEnabled( false ), mProcessInPlace( true )
+		mNumChannels( 1 ), mAutoEnabled( false ), mProcessInPlace( true ), mLastProcessedFrame( numeric_limits<uint64_t>::max() )
 {
 	if( format.getChannels() ) {
 		mNumChannels = format.getChannels();
@@ -150,21 +152,26 @@ void Node::pullInputs( Buffer *destBuffer )
 			process( destBuffer );
 	}
 	else {
-		mInternalBuffer.zero();
-		mSummingBuffer.zero();
+		uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
+		if( mLastProcessedFrame != numProcessedFrames ) {
+			mLastProcessedFrame = numProcessedFrames;
 
-		for( auto &in : mInputs ) {
-			NodeRef &input = in.second;
+			mInternalBuffer.zero();
+			mSummingBuffer.zero();
 
-			input->pullInputs( &mInternalBuffer );
-			if( input->getProcessInPlace() )
-				Converter::sumBuffers( &mInternalBuffer, &mSummingBuffer );
-			else
-				Converter::sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
+			for( auto &in : mInputs ) {
+				NodeRef &input = in.second;
+
+				input->pullInputs( &mInternalBuffer );
+				if( input->getProcessInPlace() )
+					Converter::sumBuffers( &mInternalBuffer, &mSummingBuffer );
+				else
+					Converter::sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
+			}
+
+			if( mEnabled )
+				process( &mSummingBuffer );
 		}
-
-		if( mEnabled )
-			process( &mSummingBuffer );
 
 		Converter::mixBuffers( &mSummingBuffer, destBuffer );
 	}
@@ -239,7 +246,7 @@ void Node::configureConnections()
 
 	mProcessInPlace = true;
 
-	if( getNumConnectedInputs() > 1 )
+	if( getNumConnectedInputs() > 1 || getNumConnectedOutputs() > 1 )
 		mProcessInPlace = false;
 
 	for( auto &in : mInputs ) {
@@ -258,6 +265,10 @@ void Node::configureConnections()
 				input->setupProcessWithSumming();
 			}
 		}
+
+		// inputs with more than one output cannot process in-place, so for them to sum
+		if( input->getProcessInPlace() && input->getNumConnectedOutputs() > 1 )
+			input->setupProcessWithSumming();
 
 		input->initializeImpl();
 	}
@@ -313,8 +324,8 @@ bool Node::checkInput( const NodeRef &input )
 size_t Node::getFirstAvailableOutputBus()
 {
 	size_t result = 0;
-	for( const auto& input : mInputs ) {
-		if( input.first != result )
+	for( const auto& output : mOutputs ) {
+		if( output.first != result )
 			break;
 
 		result++;
@@ -326,8 +337,8 @@ size_t Node::getFirstAvailableOutputBus()
 size_t Node::getFirstAvailableInputBus()
 {
 	size_t result = 0;
-	for( const auto& output : mOutputs ) {
-		if( output.first != result )
+	for( const auto& input : mInputs ) {
+		if( input.first != result )
 			break;
 
 		result++;

@@ -258,6 +258,7 @@ void Context::printGraph()
 	printRecursive( getTarget(), 0 );
 	for( const auto& node : mAutoPulledNodes )
 		printRecursive( node, 0 );
+	app::console() << "--------------------------------------------------" << endl;
 }
 
 

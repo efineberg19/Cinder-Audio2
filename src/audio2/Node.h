@@ -163,6 +163,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	bool					mProcessInPlace;
 	size_t					mNumChannels;
 	ChannelMode				mChannelMode;
+	uint64_t				mLastProcessedFrame;
 
 	BufferDynamic			mInternalBuffer, mSummingBuffer;
 

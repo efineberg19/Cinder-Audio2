@@ -116,7 +116,6 @@ void NodeTestApp::setupSine()
 	mEnableSineButton.setEnabled( true );
 }
 
-
 void NodeTestApp::setup2to1()
 {
 	// connect by appending
@@ -134,12 +133,22 @@ void NodeTestApp::setup2to1()
 	mEnableNoiseButton.setEnabled( true );
 }
 
+// note: this enables the scope as a secondary output of mSine, and as no one ever disconnects that, it harmlessly remains when the test is switched.
 void NodeTestApp::setup1to2()
 {
-	setupSine();
+	// either of these should work, given there are only 2 NodeSource's in this test, but the latter is a tad less work.
+//	mGain->disconnectAllInputs();
+	mNoise->disconnect();
 
-	mScope = mContext->makeNode( new Scope() );
+	mSine->connect( mGain );
+	mSine->start();
+
+	if( ! mScope )
+		mScope = mContext->makeNode( new Scope() );
 	mSine->addConnection( mScope );
+
+	mEnableNoiseButton.setEnabled( false );
+	mEnableSineButton.setEnabled( true );
 }
 
 void NodeTestApp::setupInterleavedPassThru()
