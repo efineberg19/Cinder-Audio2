@@ -65,8 +65,16 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inpu
 		return dest;
 	}
 
+	// make a reference to ourselves so that we aren't deallocated in the case of the last owner
+	// disconnecting us, which we'll need later anyway
+	NodeRef thisRef = shared_from_this();
+
+	auto currentOutput = mOutputs.find( outputBus );
+	if( currentOutput != mOutputs.end() )
+		currentOutput->second.lock()->disconnectInput( thisRef );
+
 	mOutputs[outputBus] = dest; // set output bus first, so that it is visible in configureConnections()
-	dest->connectInput( shared_from_this(), inputBus );
+	dest->connectInput( thisRef, inputBus );
 
 	dest->notifyConnectionsDidChange();
 	return dest;
