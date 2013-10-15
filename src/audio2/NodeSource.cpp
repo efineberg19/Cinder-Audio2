@@ -22,7 +22,7 @@
 */
 
 #include "audio2/NodeSource.h"
-#include "audio2/audio.h"
+#include "audio2/Context.h"
 #include "audio2/Debug.h"
 
 #include "cinder/Utilities.h"
@@ -90,7 +90,7 @@ double NodeSamplePlayer::getReadPositionTime() const
 NodeBufferPlayer::NodeBufferPlayer( const Format &format )
 : NodeSamplePlayer( format )
 {
-	// If user didn't set a specified channel count, set to one until further notice.
+	// If the Format doesn't specify num channels, set to one until further notice.
 	if( ! mChannelMode == ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
 		mNumChannels = mBuffer->getNumChannels();
