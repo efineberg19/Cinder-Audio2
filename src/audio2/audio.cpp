@@ -22,14 +22,111 @@
 */
 
 #include "audio2/audio.h"
-#include "audio2/Device.h"
-
-#include "cinder/app/App.h"
+#include "audio2/Context.h"
+#include "audio2/NodeSource.h"
 
 using namespace std;
 using namespace ci;
 
 namespace cinder { namespace audio2 {
 
+class SourceImplSamplePlayer : public Source {
+public:
+	SourceImplSamplePlayer( const DataSourceRef &dataSource );
+
+	const NodeRef& getNode() override	{ return mSamplePlayer; }
+private:
+	NodeSamplePlayerRef mSamplePlayer;
+};
+
+class Mixer {
+public:
+
+	static Mixer *get();
+
+	//! returns the number of connected busses.
+	size_t	getNumBusses();
+	void	setMaxNumActiveBusses( size_t count );
+	void	setBusVolume( size_t bus, float volume );
+	float	getBusVolume( size_t bus );
+	void	setBusPan( size_t bus, float pan );
+	float	getBusPan( size_t bus );
+
+	//! Returns the bus \a source was added to
+	size_t	addSource( const SourceRef &source );
+
+private:
+	Mixer();
+
+	struct Bus {
+		SourceRef   mSource;
+		NodeGainRef mGain;
+		NodeGainRef mPan;
+	};
+
+	std::vector<Bus> mBusses;
+
+	NodeGainRef mMasterGain;
+};
+
+
+Mixer* Mixer::get()
+{
+	static unique_ptr<Mixer> sMixer;
+	if( ! sMixer )
+		sMixer.reset( new Mixer );
+
+	return sMixer.get();
+}
+
+Mixer::Mixer()
+{
+	Context *ctx = Context::master();
+	mMasterGain = ctx->makeNode( new NodeGain() );
+
+	mMasterGain->addConnection( ctx->getTarget() );
+
+	ctx->start();
+}
+
+size_t Mixer::addSource( const SourceRef &source )
+{
+	Mixer::Bus bus;
+	bus.mSource = source;
+
+	size_t busId = mBusses.size();
+	mBusses.push_back( bus );
+
+	source->getNode()->connect( mMasterGain );
+	return busId;
+}
+
+SourceImplSamplePlayer::SourceImplSamplePlayer( const DataSourceRef &dataSource )
+{
+	size_t sampleRate = Context::master()->getSampleRate();
+	SourceFileRef sourceFile = SourceFile::create( dataSource, 0, sampleRate );
+
+	// maximum samples for default buffer playback is 1 second stereo at 48k samplerate
+	const size_t kMaxFramesForBufferPlayback = 48000 * 2;
+
+
+	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback )
+		mSamplePlayer = Context::master()->makeNode( new NodeBufferPlayer( sourceFile->loadBuffer() ) );
+	else
+		mSamplePlayer = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
+}
+
+SourceRef load( const DataSourceRef &dataSource )
+{
+	auto result = SourceRef( new SourceImplSamplePlayer( dataSource ) );
+	Mixer::get()->addSource( result );
+
+	return result;
+}
+
+void play( const SourceRef &source )
+{
+	source->getNode()->start();
+}
 
 } } // namespace cinder::audio2

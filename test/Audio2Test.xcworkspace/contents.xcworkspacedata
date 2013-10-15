@@ -6,57 +6,68 @@
    </FileRef>
    <Group
       location = "container:"
-      name = "osx">
+      name = "samples">
       <FileRef
-         location = "group:DeviceTest/xcode/DeviceTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:EffectNodeTest/xcode/EffectNodeTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:EffectsAudioUnitTest/xcode/EffectsAudioUnitTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:FileNodeTest/xcode/FileNodeTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:InputTest/xcode/InputTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:NodeTest/xcode/NodeTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:BasicTest/xcode/../../SpectrumTapTest/xcode/SpectrumTapTest.xcodeproj">
+         location = "group:../samples/AudioPlayback/xcode/AudioPlayback.xcodeproj">
       </FileRef>
    </Group>
    <Group
       location = "container:"
-      name = "ios">
-      <FileRef
-         location = "group:DeviceTest/xcode_ios/DeviceTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:EffectNodeTest/xcode_ios/EffectNodeTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:EffectsAudioUnitTest/xcode_ios/EffectsAudioUnitTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:FileNodeTest/xcode_ios/FileNodeTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:InputTest/xcode_ios/InputTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:NodeTest/xcode_ios/NodeTest.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:SpectrumTapTest/xcode_ios/SpectrumTapTest.xcodeproj">
-      </FileRef>
+      name = "tests">
+      <Group
+         location = "container:"
+         name = "osx">
+         <FileRef
+            location = "group:DeviceTest/xcode/DeviceTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:EffectNodeTest/xcode/EffectNodeTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:EffectsAudioUnitTest/xcode/EffectsAudioUnitTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:FileNodeTest/xcode/FileNodeTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:InputTest/xcode/InputTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:NodeTest/xcode/NodeTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:BasicTest/xcode/../../SpectrumTapTest/xcode/SpectrumTapTest.xcodeproj">
+         </FileRef>
+      </Group>
+      <Group
+         location = "container:"
+         name = "ios">
+         <FileRef
+            location = "group:DeviceTest/xcode_ios/DeviceTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:EffectNodeTest/xcode_ios/EffectNodeTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:EffectsAudioUnitTest/xcode_ios/EffectsAudioUnitTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:FileNodeTest/xcode_ios/FileNodeTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:InputTest/xcode_ios/InputTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:NodeTest/xcode_ios/NodeTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:SpectrumTapTest/xcode_ios/SpectrumTapTest.xcodeproj">
+         </FileRef>
+      </Group>
    </Group>
    <Group
       location = "container:"
-      name = "unit">
+      name = "unit test">
       <FileRef
          location = "group:unit/xcode/Audio2Unit.xcodeproj">
       </FileRef>

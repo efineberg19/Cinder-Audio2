@@ -23,6 +23,26 @@
 
 #pragma once
 
+#include "cinder/DataSource.h"
+#include "audio2/NodeEffect.h"
+
+#include <memory>
+
 namespace cinder { namespace audio2 {
+
+typedef std::shared_ptr<class Source> SourceRef;
+
+class Source {
+  public:
+	virtual const NodeRef& getNode() = 0;
+  private:
+};
+
+
+SourceRef load( const DataSourceRef &dataSource );
+
+void play( const SourceRef &source );
+
+//void play( const std::function<Buffer *, other params> &callback );
 
 } } // namespace cinder::audio2

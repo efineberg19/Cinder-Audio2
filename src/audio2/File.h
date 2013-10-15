@@ -48,6 +48,9 @@ class SourceFile {
 
 	virtual size_t	getNumFrames() const					{ return mNumFrames; }
 
+	//! Returns the length in seconds when played back at the specified samplerate.
+	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
+
 	virtual void	setMaxFramesPerRead( size_t count )	{ mMaxFramesPerRead = count; }
 	virtual size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
 

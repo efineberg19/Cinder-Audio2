@@ -193,28 +193,6 @@ class NodeAutoPullable : public Node {
 	bool mIsPulledByContext;
 };
 
-//! TODO: move or remove
-class NodeMixer : public Node {
-  public:
-	virtual ~NodeMixer() {}
-
-	std::string virtual getTag()				{ return "MixerNode"; }
-
-	//! returns the number of connected busses.
-	virtual size_t getNumBusses() = 0;
-	virtual void setNumBusses( size_t count ) = 0;	// ???: does this make sense now? should above be getNumActiveBusses?
-	virtual void setBusVolume( size_t bus, float volume ) = 0;
-	virtual float getBusVolume( size_t bus ) = 0;
-	virtual void setBusPan( size_t bus, float pan ) = 0;
-	virtual float getBusPan( size_t bus ) = 0;
-
-	virtual bool isBusEnabled( size_t bus ) = 0;
-	virtual void setBusEnabled( size_t bus, bool enabled = true ) = 0;
-
-  protected:
-	NodeMixer( const Format &format ) : Node( format ) {}
-};
-
 //! Convenience routine for finding the first downstream \a Node of type \a NodeT (traverses outputs).
 template <typename NodeT>
 static std::shared_ptr<NodeT> findFirstDownstreamNode( NodeRef node )
