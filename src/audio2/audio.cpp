@@ -25,6 +25,8 @@
 #include "audio2/Context.h"
 #include "audio2/NodeSource.h"
 
+#include <map>
+
 using namespace std;
 using namespace ci;
 
@@ -43,6 +45,8 @@ public:
 
 	void	addVoice( const VoiceRef &source, const VoiceOptions &options );
 
+	BufferRef loadSourceFile( const SourceFileRef &sourceFile );
+
 private:
 	Mixer();
 
@@ -53,6 +57,7 @@ private:
 	};
 
 	std::vector<Bus> mBusses;
+	std::map<SourceFileRef, BufferRef> mBufferCache;
 
 	NodeGainRef mMasterGain;
 };
@@ -100,6 +105,18 @@ void Mixer::addVoice( const VoiceRef &source, const VoiceOptions &options )
 	node->connect( mMasterGain );	
 }
 
+BufferRef Mixer::loadSourceFile( const SourceFileRef &sourceFile )
+{
+	auto cached = mBufferCache.find( sourceFile );
+	if( cached != mBufferCache.end() )
+		return cached->second;
+	else {
+		BufferRef result = sourceFile->loadBuffer();
+		mBufferCache.insert( make_pair( sourceFile, result ) );
+		return result;
+	}
+}
+
 void Mixer::setBusVolume( size_t busId, float volume )
 {
 	mBusses[busId].mGain->setGain( volume );
@@ -144,9 +161,10 @@ VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 	// maximum samples for default buffer playback is 1 second stereo at 48k samplerate
 	const size_t kMaxFramesForBufferPlayback = 48000 * 2;
 
-	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback )
-		mSamplePlayer = Context::master()->makeNode( new NodeBufferPlayer( sourceFile->loadBuffer() ) ); // TODO: cache buffer so other loads don't need to do this
-	else
+	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback ) {
+		BufferRef buffer = Mixer::get()->loadSourceFile( sourceFile );
+		mSamplePlayer = Context::master()->makeNode( new NodeBufferPlayer( buffer ) );
+	} else
 		mSamplePlayer = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
 }
 

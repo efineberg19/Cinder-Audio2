@@ -17,7 +17,12 @@ public:
 
 void AudioPlaybackApp::setup()
 {
-	mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ), audio2::VoiceOptions().enablePan() );
+//	mVoice = audio2::Voice::create( audio2::load( loadResource( RES_DRAIN_OGG ) ), audio2::VoiceOptions().enablePan() );
+//
+//
+//	mVoice = audio2::Voice::create( [this] ( Buffer *buffer, Context *context ) {	/* do processing */ } );
+
+//	mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ), audio2::VoiceOptions().enablePan() );
 }
 
 void AudioPlaybackApp::mouseDown( MouseEvent event )
