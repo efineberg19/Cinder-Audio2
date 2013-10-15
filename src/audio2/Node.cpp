@@ -356,6 +356,13 @@ NodeAutoPullable::NodeAutoPullable( const Format &format )
 {
 }
 
+const NodeRef& NodeAutoPullable::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
+{
+	Node::connect( dest, outputBus, inputBus );
+	updatePullMethod();
+	return dest;
+}
+
 void NodeAutoPullable::connectInput( const NodeRef &input, size_t bus )
 {
 	Node::connectInput( input, bus );
