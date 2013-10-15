@@ -23,10 +23,9 @@
 
 #include "audio2/cocoa/FileCoreAudio.h"
 #include "audio2/cocoa/CinderCoreAudio.h"
-#include "audio2/audio.h"
-#include "audio2/Debug.h"
-
 #include "cinder/cocoa/CinderCocoa.h"
+#include "audio2/Exception.h"
+#include "audio2/Debug.h"
 
 #include <AudioToolbox/AudioFile.h>
 

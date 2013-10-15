@@ -23,7 +23,7 @@
 
 #include "audio2/Fft.h"
 #include "audio2/CinderAssert.h"
-#include "audio2/audio.h"
+#include "audio2/Exception.h"
 
 #if defined( CINDER_AUDIO_OOURA )
 	#include "audio2/ooura/fftsg.h"

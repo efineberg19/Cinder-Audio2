@@ -22,7 +22,8 @@
 */
 
 #include "audio2/NodeTarget.h"
-#include "audio2/audio.h"
+#include "audio2/Context.h"
+#include "audio2/Exception.h"
 #include "audio2/Debug.h"
 
 using namespace std;

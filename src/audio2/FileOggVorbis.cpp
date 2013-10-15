@@ -22,7 +22,7 @@
  */
 
 #include "audio2/FileOggVorbis.h"
-#include "audio2/audio.h"
+#include "audio2/Exception.h"
 #include "audio2/Debug.h"
 
 using namespace std;

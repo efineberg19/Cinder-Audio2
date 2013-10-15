@@ -23,46 +23,6 @@
 
 #pragma once
 
-#include "audio2/Context.h"
-
-#include "cinder/Cinder.h"
-#include "cinder/Exception.h"
-
 namespace cinder { namespace audio2 {
-
-class AudioExc : public ci::Exception {
-public:
-	AudioExc( const std::string &description, int32_t errorCode = 0 ) : mDescription( description )	{}
-	virtual const char* what() const throw()	{ return mDescription.c_str(); }
-	int32_t getCode() const						{ return mErrorCode; }
-protected:
-	std::string mDescription;
-	int32_t mErrorCode;
-};
-
-class AudioDeviceExc : public AudioExc {
-public:
-	AudioDeviceExc( const std::string &description ) : AudioExc( description )	{}
-};
-
-class AudioContextExc : public AudioExc {
-public:
-	AudioContextExc( const std::string &description ) : AudioExc( description )	{}
-};
-
-class AudioFormatExc : public AudioExc {
-public:
-	AudioFormatExc( const std::string &description ) : AudioExc( description )	{}
-};
-
-class AudioParamExc : public AudioExc {
-public:
-	AudioParamExc( const std::string &description ) : AudioExc( description )	{}
-};
-
-class AudioFileExc : public AudioExc {
-public:
-	AudioFileExc( const std::string &description, int32_t errorCode = 0 ) : AudioExc( description )	{}
-};
 
 } } // namespace cinder::audio2

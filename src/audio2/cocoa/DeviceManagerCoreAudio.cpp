@@ -22,11 +22,10 @@
 */
 
 #include "audio2/cocoa/DeviceManagerCoreAudio.h"
-#include "audio2/audio.h"
-
+#include "cinder/cocoa/CinderCocoa.h"
+#include "audio2/Exception.h"
 #include "audio2/Debug.h"
 
-#include "cinder/cocoa/CinderCocoa.h"
 
 using namespace std;
 using namespace ci;
