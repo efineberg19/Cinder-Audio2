@@ -56,10 +56,9 @@ void InputTestApp::setup()
 	mLineIn = mContext->createLineIn();
 	mLineOut = mContext->createLineOut();
 
-	mLineIn->setAutoEnabled();
+	mLineIn->start();
 
 	setupInTapOut();
-
 	setupUI();
 
 	mContext->printGraph();
@@ -163,6 +162,7 @@ void InputTestApp::processTap( Vec2i pos )
 		}
 
 		mContext->setEnabled( enabled );
+		mContext->printGraph();
 	}
 }
 
@@ -183,7 +183,8 @@ void InputTestApp::draw()
 
 	if( mScope && mScope->isInitialized() ) {
 
-		drawAudioBuffer( mScope->getBuffer(), getWindowBounds() );
+		float padding = 30.0f;
+		drawAudioBuffer( mScope->getBuffer(), getWindowBounds(), padding );
 
 		float volumeMeterHeight = 20.0f;
 		float volume = mScope->getVolume();

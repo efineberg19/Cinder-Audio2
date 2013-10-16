@@ -31,12 +31,11 @@ using namespace std;
 using namespace ci;
 using namespace ci::audio2;
 
-void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds )
+void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, float padding )
 {
-	const float kPadding = 20.0f;
-	float waveHeight = ((float)bounds.getHeight() - kPadding * 3.0f ) / (float)buffer.getNumChannels();
+	float waveHeight = ((float)bounds.getHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();
 
-	float yOffset = kPadding;
+	float yOffset = padding;
 	float xScale = (float)bounds.getWidth() / (float)buffer.getNumFrames();
 	for( size_t ch = 0; ch < buffer.getNumChannels(); ch++ ) {
 		PolyLine2f waveform;
@@ -48,7 +47,7 @@ void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds )
 		}
 		gl::color( 0.0f, 0.9f, 0.0f );
 		gl::draw( waveform );
-		yOffset += waveHeight + kPadding;
+		yOffset += waveHeight + padding;
 	}
 }
 
