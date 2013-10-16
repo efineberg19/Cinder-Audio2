@@ -77,8 +77,8 @@ struct MfInitializer {
 // MARK: - SourceFileMediaFoundation
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
-: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 ), mCanSeek( false ), mSeconds( 0.0f )
+SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
+: SourceFile( dataSource, sampleRate, numChannels ), mReadPos( 0 ), mCanSeek( false ), mSeconds( 0.0f )
 {
 	initMediaFoundation();
 	initReader( dataSource );

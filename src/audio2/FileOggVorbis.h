@@ -36,7 +36,7 @@ namespace cinder { namespace audio2 {
 
 class SourceFileImplOggVorbis : public SourceFile {
   public:
-	SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate );
+	SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels );
 	virtual ~SourceFileImplOggVorbis();
 
 	size_t		read( Buffer *buffer ) override;

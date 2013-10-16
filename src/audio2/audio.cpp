@@ -156,7 +156,7 @@ void Voice::setPan( float pan )
 VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 {
 	size_t sampleRate = Context::master()->getSampleRate();
-	SourceFileRef sourceFile = SourceFile::create( dataSource, 0, sampleRate );
+	SourceFileRef sourceFile = SourceFile::create( dataSource, sampleRate, 0 );
 
 	// maximum samples for default buffer playback is 1 second stereo at 48k samplerate
 	const size_t kMaxFramesForBufferPlayback = 48000 * 2;

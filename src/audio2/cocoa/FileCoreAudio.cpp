@@ -58,8 +58,8 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // MARK: - SourceFileImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
-	: SourceFile( dataSource, numChannels, sampleRate ), mReadPos( 0 )
+SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
+	: SourceFile( dataSource, sampleRate, numChannels ), mReadPos( 0 )
 {
 //	printExtensions();
 
@@ -94,7 +94,7 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
 	if( ! mSampleRate )
 		mSampleRate = mFileSampleRate;
 
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mNumChannels, mSampleRate );
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mSampleRate, mNumChannels );
 	status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
 	CI_ASSERT( status == noErr );
 
@@ -166,8 +166,8 @@ TargetFileImplCoreAudio::TargetFileImplCoreAudio( const DataTargetRef &dataTarge
 {
 	::CFURLRef targetUrl = ci::cocoa::createCfUrl( Url( dataTarget->getFilePath().string() ) );
 	::AudioFileTypeID fileType = getFileTypeIdFromExtension( extension );
-	::AudioStreamBasicDescription fileAsbd = createFloatAsbd( mNumChannels, mSampleRate, true );
-	::AudioStreamBasicDescription clientAsbd = createFloatAsbd( mNumChannels, mSampleRate, false );
+	::AudioStreamBasicDescription fileAsbd = createFloatAsbd( mSampleRate, mNumChannels, true );
+	::AudioStreamBasicDescription clientAsbd = createFloatAsbd( mSampleRate, mNumChannels, false );
 
 	::ExtAudioFileRef audioFile;
 	OSStatus status = ::ExtAudioFileCreateWithURL( targetUrl, fileType, &fileAsbd, nullptr, kAudioFileFlags_EraseFile, &audioFile );

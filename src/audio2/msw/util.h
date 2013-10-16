@@ -51,7 +51,7 @@ template<typename T>
 inline std::unique_ptr<T, VoiceDeleter> makeVoiceUnique( T *p )	{ return std::unique_ptr<T, VoiceDeleter>( p ); }
 
 //! return pointer type is actually a WAVEFORMATEXTENSIBLE, identifiable by the wFormat tag
-std::shared_ptr<::WAVEFORMATEX> interleavedFloatWaveFormat( size_t numChannels, size_t sampleRate );
+std::shared_ptr<::WAVEFORMATEX> interleavedFloatWaveFormat( size_t sampleRate, size_t numChannels );
 
 //! Wraps a cinder::IStream with a COM ::IStream
 class ComIStream : public ::IStream

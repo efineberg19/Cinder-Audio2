@@ -32,7 +32,7 @@ namespace cinder { namespace audio2 { namespace cocoa {
 
 class SourceFileImplCoreAudio : public SourceFile {
   public:
-	SourceFileImplCoreAudio( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate );
+	SourceFileImplCoreAudio( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels );
 	virtual ~SourceFileImplCoreAudio() {}
 
 	size_t		read( Buffer *buffer ) override;

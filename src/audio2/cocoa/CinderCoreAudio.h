@@ -63,7 +63,7 @@ AudioBufferListShallowPtr createNonInterleavedBufferListShallow( size_t numChann
 ::AudioComponent findAudioComponent( const ::AudioComponentDescription &componentDescription );
 void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDescription, ::AudioComponentInstance *componentInstance );
 
-::AudioStreamBasicDescription createFloatAsbd( size_t numChannels, size_t sampleRate, bool isInterleaved = false );
+::AudioStreamBasicDescription createFloatAsbd( size_t sampleRate, size_t numChannels, bool isInterleaved = false );
 
 inline void copyToBufferList( ::AudioBufferList *bufferList, const Buffer *buffer )
 {

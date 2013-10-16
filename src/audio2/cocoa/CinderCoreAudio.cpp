@@ -52,8 +52,8 @@ PropT getAudioConverterProperty( ::AudioConverterRef audioConverter, ::AudioConv
 ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
 : Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ), mAudioConverter( nullptr )
 {
-	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceNumChannels, mSourceSampleRate );
-	::AudioStreamBasicDescription destAsbd = createFloatAsbd( mDestNumChannels, mDestSampleRate );
+	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceSampleRate, mSourceNumChannels );
+	::AudioStreamBasicDescription destAsbd = createFloatAsbd( mDestSampleRate, mDestNumChannels );
 
 	if( mSourceNumChannels == 1 && mDestNumChannels > 1 ) {
 		// map mono source to all dest channels
@@ -64,7 +64,7 @@ ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t 
 	}
 	else if( mSourceNumChannels > 1 && mDestNumChannels == 1 ) {
 		// setup for diy downmixing: sr conversion but no channel conversion (downmix is first)
-		sourceAsbd = createFloatAsbd( mDestNumChannels, mSourceSampleRate );
+		sourceAsbd = createFloatAsbd( mSourceSampleRate, mDestNumChannels );
 		mMixingBuffer = Buffer( mSourceMaxFramesPerBlock, mDestNumChannels );
 	}
 
@@ -203,7 +203,7 @@ void findAndCreateAudioComponent( const ::AudioComponentDescription &componentDe
 	CI_ASSERT( status == noErr );
 }
 
-::AudioStreamBasicDescription createFloatAsbd( size_t numChannels, size_t sampleRate, bool isInterleaved )
+::AudioStreamBasicDescription createFloatAsbd( size_t sampleRate, size_t numChannels, bool isInterleaved )
 {
 	const UInt32 kBytesPerSample = sizeof( float );
 	::AudioStreamBasicDescription asbd{ 0 };

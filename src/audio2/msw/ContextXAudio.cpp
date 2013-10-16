@@ -164,7 +164,7 @@ void NodeXAudioSourceVoice::initSourceVoice()
 	if( ! target->isInitialized() )
 		target->initialize();
 
-	auto wfx = msw::interleavedFloatWaveFormat( getNumChannels(), context->getSampleRate() );
+	auto wfx = msw::interleavedFloatWaveFormat( context->getSampleRate(), getNumChannels() );
 
 	IXAudio2 *xaudio = context->getXAudio();
 	UINT32 flags = ( context->isFilterEffectsEnabled() ? XAUDIO2_VOICE_USEFILTER : 0 );

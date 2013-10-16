@@ -28,21 +28,28 @@
 #include "cinder/DataSource.h"
 #include "cinder/DataTarget.h"
 
-// TODO: switch channels and samplerate order for consistency with nodess
-// - alternatively, make optional Options struct, where file params are used by default
+// TODO: consider FileParams that describes input or output format, instead of passing in many size_t params
 
 namespace cinder { namespace audio2 {
 	
 typedef std::shared_ptr<class SourceFile> SourceFileRef;
 typedef std::shared_ptr<class TargetFile> TargetFileRef;
 
-class SourceFile {
+class Source {
   public:
-	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate );
-	virtual ~SourceFile() {}
-
 	virtual size_t	getSampleRate() const				{ return mSampleRate; }
 	virtual size_t	getNumChannels() const				{ return mNumChannels; }
+  protected:
+	Source( size_t sampleRate, size_t numChannels ) : mSampleRate( sampleRate ), mNumChannels( numChannels ) {}
+
+	size_t mSampleRate, mNumChannels;
+};
+
+class SourceFile : public Source {
+  public:
+	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels );
+	virtual ~SourceFile() {}
+
 	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
 	virtual size_t	getFileNumChannels() const				{ return mFileNumChannels; }
 
@@ -65,8 +72,8 @@ class SourceFile {
 	void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getFileSampleRate() ) ); }
 
   protected:
-	SourceFile( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
-	: mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mNumChannels( numChannels ), mSampleRate( sampleRate ), mMaxFramesPerRead( 4096 )
+	SourceFile( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
+	: Source( sampleRate, numChannels ), mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mMaxFramesPerRead( 4096 )
 	{}
 
 	size_t mSampleRate, mNumChannels, mNumFrames, mFileSampleRate, mFileNumChannels, mMaxFramesPerRead;

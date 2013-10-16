@@ -29,8 +29,8 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t numChannels, size_t sampleRate )
-	: SourceFile( dataSource, numChannels, sampleRate )
+SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
+	: SourceFile( dataSource, sampleRate, numChannels )
 {
 	int status = ov_fopen( dataSource->getFilePath().c_str(), &mOggVorbisFile );
 	if( status )
