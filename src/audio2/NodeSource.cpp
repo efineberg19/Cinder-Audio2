@@ -379,4 +379,14 @@ void NodeFilePlayer::destroyIoThread()
 	}
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - NodeCallbackProcessor
+// ----------------------------------------------------------------------------------------------------
+
+void NodeCallbackProcessor::process( Buffer *buffer )
+{
+	if( mCallbackFn )
+		mCallbackFn( buffer, getContext()->getSampleRate() );
+}
+
 } } // namespace cinder::audio2

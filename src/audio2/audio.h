@@ -24,7 +24,7 @@
 #pragma once
 
 #include "cinder/DataSource.h"
-#include "audio2/NodeEffect.h"
+#include "audio2/NodeSource.h"
 #include "audio2/File.h"
 
 #include <memory>
@@ -37,7 +37,10 @@ typedef std::shared_ptr<class VoiceSamplePlayer> VoiceSamplePlayerRef;
 class Voice {
   public:
 
+	//! Creates a Voice that manages sample playback of an audio file pointed at with \a dataSource.
 	static VoiceSamplePlayerRef create( const DataSourceRef &dataSource );
+	//! Creates a Voice that continously calls \a callbackFn to process a Buffer of samples.
+	static VoiceRef create( CallbackProcessorFn callbackFn );
 
 	virtual NodeRef getNode() const = 0;
 
@@ -53,20 +56,29 @@ class Voice {
 };
 
 class VoiceSamplePlayer : public Voice {
-public:
+  public:
 
-	NodeRef getNode() const override				{ return mSamplePlayer; }
-	NodeSamplePlayerRef getSamplePlayer() const		{ return mSamplePlayer; }
+	NodeRef getNode() const override				{ return mNode; }
+	NodeSamplePlayerRef getSamplePlayer() const		{ return mNode; }
 
-protected:
+  protected:
 	VoiceSamplePlayer( const DataSourceRef &dataSource );
-	NodeSamplePlayerRef mSamplePlayer;
+	NodeSamplePlayerRef mNode;
 
 	friend class Voice;
 };
 
-void play( const VoiceRef &source );
+class VoiceCallbackProcessor : public Voice {
+  public:
+	NodeRef getNode() const override				{ return mNode; }
 
-//void play( const std::function<Buffer *, other params> &callback );
+  protected:
+	VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn );
+
+	NodeCallbackProcessorRef mNode;
+	friend class Voice;
+};
+
+void play( const VoiceRef &voice );
 
 } } // namespace cinder::audio2

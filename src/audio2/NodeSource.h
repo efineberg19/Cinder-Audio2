@@ -34,11 +34,14 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeSource>			NodeSourceRef;
-typedef std::shared_ptr<class NodeLineIn>			NodeLineInRef;
-typedef std::shared_ptr<class NodeSamplePlayer>		NodeSamplePlayerRef;
-typedef std::shared_ptr<class NodeBufferPlayer>		NodeBufferPlayerRef;
-typedef std::shared_ptr<class NodeFilePlayer>		NodeFilePlayerRef;
+typedef std::shared_ptr<class NodeSource>					NodeSourceRef;
+typedef std::shared_ptr<class NodeLineIn>					NodeLineInRef;
+typedef std::shared_ptr<class NodeSamplePlayer>				NodeSamplePlayerRef;
+typedef std::shared_ptr<class NodeBufferPlayer>				NodeBufferPlayerRef;
+typedef std::shared_ptr<class NodeFilePlayer>				NodeFilePlayerRef;
+typedef std::shared_ptr<class NodeCallbackProcessor>		NodeCallbackProcessorRef;
+
+typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
 
 class NodeSource : public Node {
   public:
@@ -170,6 +173,20 @@ public:
 	std::mutex				mIoMutex;
 	std::condition_variable	mNeedMoreSamplesCond;
 };
+
+class NodeCallbackProcessor : public NodeSource {
+public:
+	NodeCallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeSource( format ), mCallbackFn( callbackFn ) {}
+	virtual ~NodeCallbackProcessor() {}
+
+	std::string virtual getTag() override			{ return "NodeCallbackProcessor"; }
+
+	void process( Buffer *buffer ) override;
+
+private:
+	CallbackProcessorFn mCallbackFn;
+};
+
 
 // TODO: NodeGen's are starting to seem unecessary
 // - just make a NodeSource for all of the basic waveforms

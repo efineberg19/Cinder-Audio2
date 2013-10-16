@@ -23,7 +23,7 @@
 
 #include "audio2/audio.h"
 #include "audio2/Context.h"
-#include "audio2/NodeSource.h"
+#include "audio2/NodeEffect.h"
 
 #include <map>
 
@@ -156,14 +156,29 @@ VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 
 	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback ) {
 		BufferRef buffer = Mixer::get()->loadSourceFile( sourceFile );
-		mSamplePlayer = Context::master()->makeNode( new NodeBufferPlayer( buffer ) );
+		mNode = Context::master()->makeNode( new NodeBufferPlayer( buffer ) );
 	} else
-		mSamplePlayer = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
+		mNode = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
+}
+
+// TODO: how best to specify channel count?
+VoiceCallbackProcessor::VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn )
+{
+	mNode = Context::master()->makeNode( new NodeCallbackProcessor( callbackFn ) );
+//	mNode = Context::master()->makeNode( new NodeCallbackProcessor( callbackFn, Node::Format().channels( 2 ) ) );
 }
 
 VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )
 {
 	VoiceSamplePlayerRef result( new VoiceSamplePlayer( dataSource ) );
+	Mixer::get()->addVoice( result );
+
+	return result;
+}
+
+VoiceRef Voice::create( CallbackProcessorFn callbackFn )
+{
+	VoiceRef result( new VoiceCallbackProcessor( callbackFn ) );
 	Mixer::get()->addVoice( result );
 
 	return result;

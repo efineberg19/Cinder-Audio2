@@ -14,8 +14,8 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		118EB8C5180D19FE00E056C5 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 118EB8C0180D19E800E056C5 /* libAudio2.a */; };
 		118EB8C7180D1C7C00E056C5 /* DrainMagic.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 118EB8C6180D1C7C00E056C5 /* DrainMagic.ogg */; };
-		118EB8E0180F06A000E056C5 /* AudioBasiceProcessingApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 118EB8DF180F06A000E056C5 /* AudioBasiceProcessingApp.cpp */; };
-		45E73D08F7D14B79939BB7DC /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 4C25C7997E6A487FA19C5DC0 /* CinderApp.icns */; };
+		118EB8E0180F06A000E056C5 /* AudioBasicProcessingApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 118EB8DF180F06A000E056C5 /* AudioBasicProcessingApp.cpp */; };
+		118EB8E2180F22FB00E056C5 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 118EB8E1180F22FB00E056C5 /* CinderApp.icns */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -54,11 +54,11 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		118EB8BA180D19E800E056C5 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
 		118EB8C6180D1C7C00E056C5 /* DrainMagic.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = DrainMagic.ogg; path = ../../../assets/DrainMagic.ogg; sourceTree = "<group>"; };
-		118EB8DF180F06A000E056C5 /* AudioBasiceProcessingApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AudioBasiceProcessingApp.cpp; path = ../src/AudioBasiceProcessingApp.cpp; sourceTree = "<group>"; };
+		118EB8DF180F06A000E056C5 /* AudioBasicProcessingApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AudioBasicProcessingApp.cpp; path = ../src/AudioBasicProcessingApp.cpp; sourceTree = "<group>"; };
+		118EB8E1180F22FB00E056C5 /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../../../resources/CinderApp.icns; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		3D080E4252C34004B9ED31F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		4C25C7997E6A487FA19C5DC0 /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../resources/CinderApp.icns; sourceTree = "<group>"; };
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		5323E6B50EAFCA7E003A9687 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
 		8D1107320486CEB800E47090 /* AudioBasicProcessing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AudioBasicProcessing.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -87,7 +87,7 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				118EB8DF180F06A000E056C5 /* AudioBasiceProcessingApp.cpp */,
+				118EB8DF180F06A000E056C5 /* AudioBasicProcessingApp.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -149,7 +149,7 @@
 			isa = PBXGroup;
 			children = (
 				118EB8C6180D1C7C00E056C5 /* DrainMagic.ogg */,
-				4C25C7997E6A487FA19C5DC0 /* CinderApp.icns */,
+				118EB8E1180F22FB00E056C5 /* CinderApp.icns */,
 				3D080E4252C34004B9ED31F4 /* Info.plist */,
 			);
 			name = Resources;
@@ -241,7 +241,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				118EB8C7180D1C7C00E056C5 /* DrainMagic.ogg in Resources */,
-				45E73D08F7D14B79939BB7DC /* CinderApp.icns in Resources */,
+				118EB8E2180F22FB00E056C5 /* CinderApp.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -252,7 +252,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				118EB8E0180F06A000E056C5 /* AudioBasiceProcessingApp.cpp in Sources */,
+				118EB8E0180F06A000E056C5 /* AudioBasicProcessingApp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
