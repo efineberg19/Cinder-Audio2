@@ -32,6 +32,8 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
+// TODO: replace this private Mixer, which composits a NodeGain + NodePan per voice, into a NodeMixer
+// that has a custom pullInputs and performs that gain / pan as a post-processing step
 class Mixer {
 public:
 
@@ -43,7 +45,7 @@ public:
 	void	setBusPan( size_t busId, float pos );
 	float	getBusPan( size_t busId );
 
-	void	addVoice( const VoiceRef &source, const VoiceOptions &options );
+	void	addVoice( const VoiceRef &source );
 
 	BufferRef loadSourceFile( const SourceFileRef &sourceFile );
 
@@ -61,7 +63,6 @@ private:
 
 	NodeGainRef mMasterGain;
 };
-
 
 Mixer* Mixer::get()
 {
@@ -82,7 +83,7 @@ Mixer::Mixer()
 	ctx->start();
 }
 
-void Mixer::addVoice( const VoiceRef &source, const VoiceOptions &options )
+void Mixer::addVoice( const VoiceRef &source )
 {
 	Context *ctx = Context::master();
 
@@ -91,18 +92,10 @@ void Mixer::addVoice( const VoiceRef &source, const VoiceOptions &options )
 	Mixer::Bus &bus = mBusses.back();
 
 	bus.mVoice = source;
+	bus.mGain = ctx->makeNode( new NodeGain() );
+	bus.mPan = ctx->makeNode( new NodePan2d() );
 
-	NodeRef node = source->getNode();
-	if( options.isVolumeEnabled() ) {
-		bus.mGain = ctx->makeNode( new NodeGain() );
-		node = node->connect( bus.mGain );
-	}
-	if( options.isPanEnabled() ) {
-		bus.mPan = ctx->makeNode( new NodePan2d() );
-		node = node->connect( bus.mPan );
-	}
-
-	node->connect( mMasterGain );	
+	source->getNode()->connect( bus.mGain )->connect( bus.mPan )->connect( mMasterGain );
 }
 
 BufferRef Mixer::loadSourceFile( const SourceFileRef &sourceFile )
@@ -168,10 +161,10 @@ VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 		mSamplePlayer = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
 }
 
-VoiceRef makeVoice( const DataSourceRef &dataSource, const VoiceOptions &options )
+VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )
 {
-	auto result = VoiceRef( new VoiceSamplePlayer( dataSource ) );
-	Mixer::get()->addVoice( result, options );
+	VoiceSamplePlayerRef result( new VoiceSamplePlayer( dataSource ) );
+	Mixer::get()->addVoice( result );
 
 	return result;
 }

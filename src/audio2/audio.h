@@ -25,15 +25,20 @@
 
 #include "cinder/DataSource.h"
 #include "audio2/NodeEffect.h"
+#include "audio2/File.h"
 
 #include <memory>
 
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Voice> VoiceRef;
+typedef std::shared_ptr<class VoiceSamplePlayer> VoiceSamplePlayerRef;
 
 class Voice {
   public:
+
+	static VoiceSamplePlayerRef create( const DataSourceRef &dataSource );
+
 	virtual NodeRef getNode() const = 0;
 
 	void setVolume( float volume );
@@ -49,28 +54,16 @@ class Voice {
 
 class VoiceSamplePlayer : public Voice {
 public:
-	VoiceSamplePlayer( const DataSourceRef &dataSource );
 
 	NodeRef getNode() const override				{ return mSamplePlayer; }
 	NodeSamplePlayerRef getSamplePlayer() const		{ return mSamplePlayer; }
-private:
+
+protected:
+	VoiceSamplePlayer( const DataSourceRef &dataSource );
 	NodeSamplePlayerRef mSamplePlayer;
+
+	friend class Voice;
 };
-
-
-struct VoiceOptions {
-	VoiceOptions() : mVolumeEnabled( true ), mPanEnabled( false ) {}
-
-	VoiceOptions& enablePan( bool enable = true )	{ mPanEnabled = enable; return *this; }
-
-	bool isVolumeEnabled() const	{ return mVolumeEnabled; }
-	bool isPanEnabled() const		{ return mPanEnabled; }
-
-private:
-	bool mVolumeEnabled, mPanEnabled;
-};
-
-VoiceRef makeVoice( const DataSourceRef &dataSource, const VoiceOptions &options = VoiceOptions() );
 
 void play( const VoiceRef &source );
 
