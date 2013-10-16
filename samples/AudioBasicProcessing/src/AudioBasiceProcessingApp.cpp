@@ -6,7 +6,7 @@
 using namespace ci;
 using namespace ci::app;
 
-class AudioPlaybackApp : public AppNative {
+class AudioBasicProcessingApp : public AppNative {
 public:
 	void setup();
 	void mouseDown( MouseEvent );
@@ -15,17 +15,17 @@ public:
 	audio2::VoiceRef mVoice;
 };
 
-void AudioPlaybackApp::setup()
+void AudioBasicProcessingApp::setup()
 {
-//	mVoice = audio2::Voice::create( audio2::load( loadResource( RES_DRAIN_OGG ) ), audio2::VoiceOptions().enablePan() );
-//
-//
+	mVoice = audio2::VoiceSamplePlayer::create( loadResource( RES_DRAIN_OGG ) );
+
+
 //	mVoice = audio2::Voice::create( [this] ( Buffer *buffer, Context *context ) {	/* do processing */ } );
 
 //	mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ), audio2::VoiceOptions().enablePan() );
 }
 
-void AudioPlaybackApp::mouseDown( MouseEvent event )
+void AudioBasicProcessingApp::mouseDown( MouseEvent event )
 {
 	float volume = 1.0f - ( (float)event.getPos().y / (float)getWindowHeight() );
 	float pan = (float)event.getPos().x / (float)getWindowWidth();
@@ -36,9 +36,9 @@ void AudioPlaybackApp::mouseDown( MouseEvent event )
 	audio2::play( mVoice );
 }
 
-void AudioPlaybackApp::draw()
+void AudioBasicProcessingApp::draw()
 {
 	gl::clear();
 }
 
-CINDER_APP_NATIVE( AudioPlaybackApp, RendererGl )
+CINDER_APP_NATIVE( AudioBasicProcessingApp, RendererGl )

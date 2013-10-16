@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\AudioPlaybackApp.cpp">
+    <ClCompile Include="..\src\AudioBasicPlaybackApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\AudioPlaybackApp.cpp">
+    <ClCompile Include="..\src\AudioBasicPlaybackApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

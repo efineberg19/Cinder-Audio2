@@ -8,7 +8,10 @@
       location = "container:"
       name = "samples">
       <FileRef
-         location = "group:../samples/AudioPlayback/xcode/AudioPlayback.xcodeproj">
+         location = "group:../samples/AudioBasicPlayback/xcode/AudioBasicPlayback.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../samples/AudioBasicProcessing/xcode/AudioBasicProcessing.xcodeproj">
       </FileRef>
    </Group>
    <Group
