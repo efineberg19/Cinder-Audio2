@@ -4,6 +4,7 @@
 #include "audio2/audio.h"
 #include "audio2/NodeSource.h"
 #include "audio2/NodeEffect.h"
+#include "audio2/NodeFilter.h"
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
@@ -31,12 +32,13 @@ class EffectNodeTestApp : public AppNative {
 	NodeSourceRef			mGen;
 	NodeGainRef				mGain;
 	NodePan2dRef			mPan;
-	shared_ptr<RingMod>		mRingMod;
+	NodeFilterLowPassRef	mLowPass;
+
 
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton;
 	VSelector				mTestSelector;
-	HSlider					mGainSlider, mPanSlider, mRingModFreqSlider;
+	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider;
 };
 
 void EffectNodeTestApp::setup()
@@ -52,10 +54,10 @@ void EffectNodeTestApp::setup()
 //	noise->getGen().setAmp( 0.25f );
 //	mGen = noise;
 
-	auto sine = mContext->makeNode( new NodeGen<SineGen>( Node::Format().autoEnable() ) );
-	sine->getGen().setAmp( 1.0f );
-	sine->getGen().setFreq( 440.0f );
-	mGen = sine;
+	auto noise = mContext->makeNode( new NodeGen<NoiseGen>( Node::Format().autoEnable() ) );
+	noise->getGen().setAmp( 1.0f );
+//	noise->getGen().setFreq( 440.0f );
+	mGen = noise;
 
 	setupOne();
 //	setupForceStereo();
@@ -68,25 +70,25 @@ void EffectNodeTestApp::setup()
 
 void EffectNodeTestApp::setupOne()
 {
-	mRingMod = mContext->makeNode( new RingMod() );
-	mRingMod->mSineGen.setFreq( 20.0f );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
+//	mLowPass->mSineGen.setFreq( 20.0f );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupForceStereo()
 {
-	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );
-	mRingMod->mSineGen.setFreq( 20.0f );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mLowPass = mContext->makeNode( new NodeFilterLowPass( Node::Format().channels( 2 ) ) );
+//	mLowPass->mSineGen.setFreq( 20.0f );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupDownMix()
 {
-	mRingMod = mContext->makeNode( new RingMod( Node::Format().channels( 2 ) ) );
-	mRingMod->mSineGen.setFreq( 20.0f );
+	mLowPass = mContext->makeNode( new NodeFilterLowPass( Node::Format().channels( 2 ) ) );
+//	mLowPass->mSineGen.setFreq( 20.0f );
 
 	auto mono = mContext->makeNode( new NodeGain( Node::Format().channels( 1 ) ) );
-	mGen->connect( mRingMod )->connect( mGain )->connect( mPan )->connect( mono )->connect( mContext->getTarget() );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mono )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupUI()
@@ -115,11 +117,11 @@ void EffectNodeTestApp::setupUI()
 	mWidgets.push_back( &mPanSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
-	mRingModFreqSlider.mBounds = sliderRect;
-	mRingModFreqSlider.mTitle = "RingMod Frequency";
-	mRingModFreqSlider.mMax = 500.0f;
-	mRingModFreqSlider.set( mRingMod->mSineGen.getFreq() );
-	mWidgets.push_back( &mRingModFreqSlider );
+	mLowPassFreqSlider.mBounds = sliderRect;
+	mLowPassFreqSlider.mTitle = "RingMod Frequency";
+	mLowPassFreqSlider.mMax = 500.0f;
+//	mLowPassFreqSlider.set( mLowPass->mSineGen.getFreq() );
+	mWidgets.push_back( &mLowPassFreqSlider );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -138,8 +140,8 @@ void EffectNodeTestApp::processDrag( Vec2i pos )
 		mGain->setGain( mGainSlider.mValueScaled );
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
-	if( mRingModFreqSlider.hitTest( pos ) )
-		mRingMod->mSineGen.setFreq( mRingModFreqSlider.mValueScaled );
+	if( mLowPassFreqSlider.hitTest( pos ) )
+		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );
 }
 
 void EffectNodeTestApp::processTap( Vec2i pos )

@@ -255,8 +255,8 @@ std::unique_ptr<T, FreeDeleter<T> > makeAlignedArray( size_t size, size_t alignm
 	return std::unique_ptr<T, FreeDeleter<T> >( static_cast<T *>( ptr ) );
 }
 
-typedef std::unique_ptr<float, FreeDeleter<float>> AlignedArrayPtr;
-	
+typedef std::unique_ptr<float, FreeDeleter<float> > AlignedArrayPtr;
+typedef std::unique_ptr<double, FreeDeleter<double> > AlignedArrayPtrd;
 
 typedef BufferT<float>				Buffer;
 typedef BufferInterleavedT<float>	BufferInterleaved;

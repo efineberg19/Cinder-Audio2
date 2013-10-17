@@ -220,6 +220,14 @@
 		1180FD8E17AB7CB70070AC30 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = 1180FD8A17AB7CB70070AC30 /* Node.h */; };
 		118EB899180CF7D500E056C5 /* Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 118EB898180CF7D500E056C5 /* Exception.h */; };
 		118EB89A180CF7D500E056C5 /* Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 118EB898180CF7D500E056C5 /* Exception.h */; };
+		118EB8E8180F871F00E056C5 /* Biquad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 118EB8E6180F871F00E056C5 /* Biquad.cpp */; };
+		118EB8E9180F871F00E056C5 /* Biquad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 118EB8E6180F871F00E056C5 /* Biquad.cpp */; };
+		118EB8EA180F871F00E056C5 /* Biquad.h in Headers */ = {isa = PBXBuildFile; fileRef = 118EB8E7180F871F00E056C5 /* Biquad.h */; };
+		118EB8EB180F871F00E056C5 /* Biquad.h in Headers */ = {isa = PBXBuildFile; fileRef = 118EB8E7180F871F00E056C5 /* Biquad.h */; };
+		118EB8EE180F984B00E056C5 /* NodeFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 118EB8EC180F984B00E056C5 /* NodeFilter.cpp */; };
+		118EB8EF180F984B00E056C5 /* NodeFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 118EB8EC180F984B00E056C5 /* NodeFilter.cpp */; };
+		118EB8F0180F984B00E056C5 /* NodeFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 118EB8ED180F984B00E056C5 /* NodeFilter.h */; };
+		118EB8F1180F984B00E056C5 /* NodeFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 118EB8ED180F984B00E056C5 /* NodeFilter.h */; };
 		11A669EE17E9623B003DF9B1 /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */; };
 		11A669EF17E9623B003DF9B1 /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */; };
 		11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B041AE179B89F80034BEE2 /* Plot.cpp */; };
@@ -396,6 +404,10 @@
 		1180FD8917AB7CB70070AC30 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
 		1180FD8A17AB7CB70070AC30 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		118EB898180CF7D500E056C5 /* Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Exception.h; sourceTree = "<group>"; };
+		118EB8E6180F871F00E056C5 /* Biquad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Biquad.cpp; sourceTree = "<group>"; };
+		118EB8E7180F871F00E056C5 /* Biquad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Biquad.h; sourceTree = "<group>"; };
+		118EB8EC180F984B00E056C5 /* NodeFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeFilter.cpp; sourceTree = "<group>"; };
+		118EB8ED180F984B00E056C5 /* NodeFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeFilter.h; sourceTree = "<group>"; };
 		11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderAssert.cpp; sourceTree = "<group>"; };
 		11AB735A17FD277700B29C5F /* Converter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Converter.cpp; sourceTree = "<group>"; };
 		11AB735B17FD277700B29C5F /* Converter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Converter.h; sourceTree = "<group>"; };
@@ -485,6 +497,8 @@
 				11D6945D17D0436A00B0D2BB /* ooura */,
 				1104F46417754A6E003EAA2B /* audio.cpp */,
 				1104F46517754A6E003EAA2B /* audio.h */,
+				118EB8E6180F871F00E056C5 /* Biquad.cpp */,
+				118EB8E7180F871F00E056C5 /* Biquad.h */,
 				1104F46617754A6E003EAA2B /* Buffer.h */,
 				11B041B2179B8A0C0034BEE2 /* CinderAssert.h */,
 				11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */,
@@ -510,6 +524,8 @@
 				1180FD8A17AB7CB70070AC30 /* Node.h */,
 				114FE9A11806576400C5841B /* NodeEffect.cpp */,
 				11446DAF17E64CCD00457AC6 /* NodeEffect.h */,
+				118EB8EC180F984B00E056C5 /* NodeFilter.cpp */,
+				118EB8ED180F984B00E056C5 /* NodeFilter.h */,
 				1104F48017754A6E003EAA2B /* NodeSource.cpp */,
 				1104F48117754A6E003EAA2B /* NodeSource.h */,
 				11446DB017E64CCD00457AC6 /* Scope.cpp */,
@@ -765,6 +781,7 @@
 				114FE997180371F100C5841B /* r8bbase.h in Headers */,
 				114FE8CF18032BF100C5841B /* codebook.h in Headers */,
 				114FE8EF18032BF100C5841B /* masking.h in Headers */,
+				118EB8EA180F871F00E056C5 /* Biquad.h in Headers */,
 				114FE987180371F100C5841B /* CDSPFIRFilter.h in Headers */,
 				114FE98F180371F100C5841B /* CDSPSincFilterGen.h in Headers */,
 				114FE92718032BF100C5841B /* registry.h in Headers */,
@@ -812,6 +829,7 @@
 				11B041B3179B8A0C0034BEE2 /* CinderAssert.h in Headers */,
 				114FE8DB18032BF100C5841B /* highlevel.h in Headers */,
 				1115502718026CF400D415BC /* FileOggVorbis.h in Headers */,
+				118EB8F0180F984B00E056C5 /* NodeFilter.h in Headers */,
 				114FE8CB18032BF100C5841B /* res_books_uncoupled.h in Headers */,
 				114FE99F1803722600C5841B /* ConverterImplR8brain.h in Headers */,
 				114FE8EB18032BF100C5841B /* lsp.h in Headers */,
@@ -853,6 +871,7 @@
 				114FE998180371F100C5841B /* r8bbase.h in Headers */,
 				114FE8D018032BF100C5841B /* codebook.h in Headers */,
 				114FE8F018032BF100C5841B /* masking.h in Headers */,
+				118EB8EB180F871F00E056C5 /* Biquad.h in Headers */,
 				114FE988180371F100C5841B /* CDSPFIRFilter.h in Headers */,
 				114FE990180371F100C5841B /* CDSPSincFilterGen.h in Headers */,
 				114FE92818032BF100C5841B /* registry.h in Headers */,
@@ -900,6 +919,7 @@
 				11B04212179B90450034BEE2 /* CinderAssert.h in Headers */,
 				114FE8DC18032BF100C5841B /* highlevel.h in Headers */,
 				1115502818026CF400D415BC /* FileOggVorbis.h in Headers */,
+				118EB8F1180F984B00E056C5 /* NodeFilter.h in Headers */,
 				114FE8CC18032BF100C5841B /* res_books_uncoupled.h in Headers */,
 				114FE9A01803722600C5841B /* ConverterImplR8brain.h in Headers */,
 				114FE8EC18032BF100C5841B /* lsp.h in Headers */,
@@ -1007,6 +1027,7 @@
 				114FE8B518032BF100C5841B /* bitwise.c in Sources */,
 				1104F4B317754A6E003EAA2B /* NodeSource.cpp in Sources */,
 				11C58DE9177943DA00DF99F8 /* CinderCoreAudio.cpp in Sources */,
+				118EB8EE180F984B00E056C5 /* NodeFilter.cpp in Sources */,
 				114FE93318032BF100C5841B /* synthesis.c in Sources */,
 				114FE8DD18032BF100C5841B /* info.c in Sources */,
 				1104F4AC17754A6E003EAA2B /* Dsp.cpp in Sources */,
@@ -1016,6 +1037,7 @@
 				114FE8B718032BF100C5841B /* framing.c in Sources */,
 				11A669EE17E9623B003DF9B1 /* CinderAssert.cpp in Sources */,
 				113E630E17FFBDF5007FFCF7 /* Converter.cpp in Sources */,
+				118EB8E8180F871F00E056C5 /* Biquad.cpp in Sources */,
 				11D6946017D0475000B0D2BB /* fftsg.cpp in Sources */,
 				114FE8F118032BF100C5841B /* mdct.c in Sources */,
 				1104F4AA17754A6E003EAA2B /* Device.cpp in Sources */,
@@ -1060,6 +1082,7 @@
 				114FE8B618032BF100C5841B /* bitwise.c in Sources */,
 				11B0421D179B92CB0034BEE2 /* DeviceManagerAudioSession.cpp in Sources */,
 				11B041F4179B90450034BEE2 /* NodeSource.cpp in Sources */,
+				118EB8EF180F984B00E056C5 /* NodeFilter.cpp in Sources */,
 				114FE93418032BF100C5841B /* synthesis.c in Sources */,
 				114FE8DE18032BF100C5841B /* info.c in Sources */,
 				11B041F6179B90450034BEE2 /* CinderCoreAudio.cpp in Sources */,
@@ -1069,6 +1092,7 @@
 				114FE8B818032BF100C5841B /* framing.c in Sources */,
 				11A669EF17E9623B003DF9B1 /* CinderAssert.cpp in Sources */,
 				113E630D17FFBDF4007FFCF7 /* Converter.cpp in Sources */,
+				118EB8E9180F871F00E056C5 /* Biquad.cpp in Sources */,
 				11D6946117D0475000B0D2BB /* fftsg.cpp in Sources */,
 				114FE8F218032BF100C5841B /* mdct.c in Sources */,
 				11B041F7179B90450034BEE2 /* Dsp.cpp in Sources */,
