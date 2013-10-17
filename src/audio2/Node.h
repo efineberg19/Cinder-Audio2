@@ -24,6 +24,7 @@
 #pragma once
 
 #include "audio2/Device.h"
+#include "audio2/Exception.h"
 #include "audio2/Buffer.h"
 
 #include <boost/logic/tribool.hpp>
@@ -182,7 +183,7 @@ class Node : public std::enable_shared_from_this<Node> {
 class NodeAutoPullable : public Node {
   public:
 	virtual ~NodeAutoPullable();
-	virtual const NodeRef& connect( const NodeRef &dest, size_t outputBus, size_t inputBus ) override;
+	virtual const NodeRef& connect( const NodeRef &dest, size_t outputBus = 0, size_t inputBus = 0 ) override;
 	virtual void connectInput( const NodeRef &input, size_t bus )	override;
 	virtual void disconnectInput( const NodeRef &input )			override;
 
@@ -220,8 +221,7 @@ static std::shared_ptr<NodeT> findFirstDownstreamNode( NodeRef node )
 template <typename NodeT>
 static std::shared_ptr<NodeT> findFirstUpstreamNode( NodeRef node )
 {
-	if( ! node )
-		return;
+	CI_ASSERT( node );
 
 	for( auto &in : node->getInputs() ) {
 		auto& input = in.second;

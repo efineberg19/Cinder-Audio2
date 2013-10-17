@@ -37,6 +37,7 @@ class DeviceTestApp : public AppNative {
 	void setupIOClean();
 	void setupNoise();
 	void setupIOProcessed();
+	void setupTest( const string &test );
 
 	void setupUI();
 	void processTap( Vec2i pos );
@@ -70,15 +71,16 @@ void DeviceTestApp::setup()
 {
 	mContext = Context::master();
 
+	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
+	mGain = mContext->makeNode( new NodeGain() );
+	mGain->setGain( 0.6f );
+
 	setOutputDevice( Device::getDefaultOutput() );
 	setInputDevice( Device::getDefaultInput() );
 
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V << "LineOut params changed:" << endl; printDeviceDetails( mLineOut->getDevice() ); } );
 
-	mGain = mContext->makeNode( new NodeGain() );
-	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
 
-	mGain->setGain( 0.6f );
 	mGain->connect( mScope )->connect( mLineOut );
 
 	setupSine();
@@ -97,7 +99,8 @@ void DeviceTestApp::setOutputDevice( const DeviceRef &device )
 	mContext->uninitializeAllNodes();
 
 	mLineOut = mContext->createLineOut( device );
-	mLineOut->setInput( mScope, 0 );
+//	mLineOut->setInput( mScope, 0 );
+	mScope->connect( mLineOut );
 
 	mContext->setTarget( mLineOut );
 
@@ -109,13 +112,14 @@ void DeviceTestApp::setOutputDevice( const DeviceRef &device )
 
 void DeviceTestApp::setInputDevice( const DeviceRef &device )
 {
-	NodeRef currentLineInOutput = ( mLineIn ? mLineIn->getOutput() : NodeRef() );
 	SaveNodeEnabledState enabled( mLineIn );
+
+	if( mLineIn )
+		mLineIn->disconnectAllOutputs();
 
 	mLineIn = mContext->createLineIn( device );
 
-	if( currentLineInOutput )
-		currentLineInOutput->setInput( mLineIn, 0 ); // TODO: this assumes line in was connected at bus 0. support detecting if it was connected on a different bus.
+	setupTest( mTestSelector.currentSection() );
 
 	LOG_V << "LineIn device properties: " << endl;
 	printDeviceDetails( device );
@@ -276,16 +280,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		if( currentTest == "sinewave" )
-			setupSine();
-		if( currentTest == "noise" )
-			setupNoise();
-		if( currentTest == "I/O (clean)" )
-			setupIOClean();
-		if( currentTest == "I/O (processed)" )
-			setupIOProcessed();
-
-		mContext->printGraph();
+		setupTest( currentTest );
 		return;
 	}
 
@@ -296,6 +291,22 @@ void DeviceTestApp::processTap( Vec2i pos )
 
 		setOutputDevice( dev );
 	}
+}
+
+void DeviceTestApp::setupTest( const string &test )
+{
+	if( test == "sinewave" )
+		setupSine();
+	else if( test == "noise" )
+		setupNoise();
+	else if( test == "I/O (clean)" )
+		setupIOClean();
+	else if( test == "I/O (processed)" )
+		setupIOProcessed();
+	else
+		setupSine();
+
+	mContext->printGraph();
 }
 
 void DeviceTestApp::keyDown( KeyEvent event )

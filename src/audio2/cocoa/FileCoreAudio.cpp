@@ -63,7 +63,9 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
 {
 //	printExtensions();
 
-	CI_ASSERT_MSG( dataSource->isFilePath(), "at present only data source type supported is file" ); // TODO: decide whether to just load url here.
+	// TODO: If a url is passed here, can still succeed by calling dataSource->getBuffer.
+	// - wouldn't stream, but would at least load the file as expected
+	CI_ASSERT_MSG( dataSource->isFilePath(), "at present only data source type supported is file" );
 
 	::CFURLRef sourceUrl = ci::cocoa::createCfUrl( Url( dataSource->getFilePath().string() ) );
 

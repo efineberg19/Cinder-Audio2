@@ -113,7 +113,6 @@ private:
 ::AudioComponentDescription getOutputAudioUnitDesc();
 ::AudioStreamBasicDescription getAudioUnitASBD( ::AudioUnit audioUnit, ::AudioUnitScope scope, ::AudioUnitElement bus );
 
-// TODO: remove inline on these, it isn't necessary
 template <typename PropT>
 inline void setAudioUnitProperty( ::AudioUnit audioUnit, ::AudioUnitPropertyID propertyId, const PropT &property, ::AudioUnitScope scope, ::AudioUnitElement bus )
 {
