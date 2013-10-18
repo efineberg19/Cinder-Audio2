@@ -67,5 +67,15 @@ void NodeFilterLowPass::updateBiquadParams()
 	}
 }
 
+void NodeFilterHighPass::updateBiquadParams()
+{
+	mCoeffsDirty = false;
+
+	double normalizedFrequency = mCutoffFreq / mNiquist;
+	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+		mBiquads[ch].setHighpassParams( normalizedFrequency, mResonance );
+	}
+}
+
 
 } } // namespace cinder::audio2

@@ -33,6 +33,7 @@ class EffectNodeTestApp : public AppNative {
 	NodeGainRef				mGain;
 	NodePan2dRef			mPan;
 	NodeFilterLowPassRef	mLowPass;
+//	shared_ptr<NodeFilterHighPass>	mLowPass;
 
 
 	vector<TestWidget *>	mWidgets;
@@ -59,6 +60,9 @@ void EffectNodeTestApp::setup()
 //	noise->getGen().setFreq( 440.0f );
 	mGen = noise;
 
+	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
+//	mLowPass = mContext->makeNode( new NodeFilterHighPass() );
+
 	setupOne();
 //	setupForceStereo();
 //	setupDownMix();
@@ -70,23 +74,16 @@ void EffectNodeTestApp::setup()
 
 void EffectNodeTestApp::setupOne()
 {
-	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
-//	mLowPass->mSineGen.setFreq( 20.0f );
 	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupForceStereo()
 {
-	mLowPass = mContext->makeNode( new NodeFilterLowPass( Node::Format().channels( 2 ) ) );
-//	mLowPass->mSineGen.setFreq( 20.0f );
 	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
 void EffectNodeTestApp::setupDownMix()
 {
-	mLowPass = mContext->makeNode( new NodeFilterLowPass( Node::Format().channels( 2 ) ) );
-//	mLowPass->mSineGen.setFreq( 20.0f );
-
 	auto mono = mContext->makeNode( new NodeGain( Node::Format().channels( 1 ) ) );
 	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mono )->connect( mContext->getTarget() );
 }
@@ -120,12 +117,13 @@ void EffectNodeTestApp::setupUI()
 	mLowPassFreqSlider.mBounds = sliderRect;
 	mLowPassFreqSlider.mTitle = "LowPass Freq";
 	mLowPassFreqSlider.mMax = 1000.0f;
+//	mLowPassFreqSlider.mMax = 10000.0f;
 	mLowPassFreqSlider.set( mLowPass->getCutoffFreq() );
 	mWidgets.push_back( &mLowPassFreqSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
 	mFilterParam2Slider.mBounds = sliderRect;
-	mFilterParam2Slider.mTitle = "filter param 2";
+	mFilterParam2Slider.mTitle = "filter resonance";
 	mFilterParam2Slider.mMax = 50.0f;
 	mFilterParam2Slider.set( mLowPass->getResonance() );
 	mWidgets.push_back( &mFilterParam2Slider );

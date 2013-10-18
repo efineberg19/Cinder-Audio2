@@ -37,14 +37,12 @@ public:
     // Q is a unitless quality factor.
     void setLowpassParams( double cutoffFreq, double resonance );
     void setHighpassParams( double frequency, double resonance );
-
-	// TODO: impl other biquad filter types
-//    void setBandpassParams( double frequency, double Q );
-//    void setLowShelfParams(double frequency, double dbGain);
-//    void setHighShelfParams(double frequency, double dbGain);
-//    void setPeakingParams(double frequency, double Q, double dbGain);
-//    void setAllpassParams(double frequency, double Q);
-//    void setNotchParams(double frequency, double Q);
+    void setBandpassParams( double frequency, double Q );
+    void setLowShelfParams(double frequency, double dbGain);
+    void setHighShelfParams(double frequency, double dbGain);
+    void setPeakingParams(double frequency, double Q, double dbGain);
+    void setAllpassParams(double frequency, double Q);
+    void setNotchParams(double frequency, double Q);
 
 	
 	void process( const float *source, float *dest, size_t framesToProcess );

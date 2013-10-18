@@ -28,6 +28,11 @@
 
 #include <vector>
 
+// TODO NEXT: decide whether to use a common interface + 'mode' enum (like webaudio),
+// or keep making subclasses, or both
+
+// TODO: add api for setting biquad with arbitrary set of coefficients, ala pd's [biquad~]
+
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeFilterLowPass> NodeFilterLowPassRef;
@@ -68,8 +73,21 @@ class NodeFilterLowPass : public NodeFilterBiquad {
 	float mCutoffFreq, mResonance;
 };
 
-class NodeFilterHighPass {
+class NodeFilterHighPass : public NodeFilterBiquad {
+public:
+	NodeFilterHighPass( const Format &format = Format() ) : NodeFilterBiquad( format ), mCutoffFreq( 200.0f ), mResonance( 1.0f ) {}
+	virtual ~NodeFilterHighPass() {}
 
+	void setCutoffFreq( float freq )			{ mCutoffFreq = freq; mCoeffsDirty = true; }
+	void setResonance( float resonance )		{ mResonance = resonance; mCoeffsDirty = true; }
+
+	float getCutoffFreq() const	{ return mCutoffFreq; }
+	float getResonance() const	{ return mResonance; }
+
+private:
+	void updateBiquadParams() override;
+
+	float mCutoffFreq, mResonance;
 };
 
 } } // namespace cinder::audio2
