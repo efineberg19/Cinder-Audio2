@@ -28,7 +28,7 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 NodeFilterLowPass::NodeFilterLowPass( const Format &format )
-	: NodeEffect( format ), mCutoffFreq( 200.0f ), mQ( 3.0f )
+	: NodeEffect( format ), mCoeffsDirty( true ), mCutoffFreq( 200.0f ), mResonance( 3.0f )
 {
 }
 
@@ -37,9 +37,11 @@ void NodeFilterLowPass::initialize()
 	// Convert from Hertz to normalized frequency 0 -> 1.
 	mNiquist = getContext()->getSampleRate() / 2;
 
-	updateBiquadParams();
-
 	mBufferd = BufferT<double>( getContext()->getFramesPerBlock(), mNumChannels );
+	mBiquads.resize( mNumChannels );
+
+	if( mCoeffsDirty )
+		updateBiquadParams();
 }
 
 void NodeFilterLowPass::uninitialize()
@@ -49,6 +51,9 @@ void NodeFilterLowPass::uninitialize()
 
 void NodeFilterLowPass::process( Buffer *buffer )
 {
+	if( mCoeffsDirty )
+		updateBiquadParams();
+
 	size_t numFrames = buffer->getNumFrames();
 
 	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
@@ -60,14 +65,11 @@ void NodeFilterLowPass::process( Buffer *buffer )
 
 void NodeFilterLowPass::updateBiquadParams()
 {
-	
-//	lock_guard<mutex> lock( getContext()->getMutex() );
+	mCoeffsDirty = false;
 
 	double normalizedFrequency = mCutoffFreq / mNiquist;
-
-	mBiquads.resize( mNumChannels );
 	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-		mBiquads[ch].setLowpassParams( normalizedFrequency, mQ );
+		mBiquads[ch].setLowpassParams( normalizedFrequency, mResonance );
 	}
 }
 

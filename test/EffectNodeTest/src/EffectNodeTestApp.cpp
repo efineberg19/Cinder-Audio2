@@ -118,9 +118,8 @@ void EffectNodeTestApp::setupUI()
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
 	mLowPassFreqSlider.mBounds = sliderRect;
-	mLowPassFreqSlider.mTitle = "RingMod Frequency";
-	mLowPassFreqSlider.mMax = 500.0f;
-//	mLowPassFreqSlider.set( mLowPass->mSineGen.getFreq() );
+	mLowPassFreqSlider.mTitle = "LowPass Freq";
+	mLowPassFreqSlider.mMax = 1000.0f;
 	mWidgets.push_back( &mLowPassFreqSlider );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );

@@ -41,8 +41,8 @@ class NodeFilterLowPass : public NodeEffect {
 
 	void process( Buffer *buffer ) override;
 
-	void setCutoffFreq( float freq )	{ mCutoffFreq = freq; updateBiquadParams(); }
-	void setQ( float q )				{ mQ = q; updateBiquadParams(); }
+	void setCutoffFreq( float freq )			{ mCutoffFreq = freq; mCoeffsDirty = true; }
+	void setResonance( float resonance )		{ mResonance = resonance; mCoeffsDirty = true; }
 
   private:
 	void updateBiquadParams();
@@ -52,7 +52,8 @@ class NodeFilterLowPass : public NodeEffect {
 	BufferT<double> mBufferd;
 	size_t mNiquist;
 
-	float mCutoffFreq, mQ;
+	std::atomic<bool> mCoeffsDirty;
+	float mCutoffFreq, mResonance;
 };
 
 } } // namespace cinder::audio2
