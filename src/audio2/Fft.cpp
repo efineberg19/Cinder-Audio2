@@ -25,7 +25,7 @@
 #include "audio2/CinderAssert.h"
 #include "audio2/Exception.h"
 
-#if defined( CINDER_AUDIO_OOURA )
+#if defined( CINDER_AUDIO_FFT_OOURA )
 	#include "audio2/ooura/fftsg.h"
 #endif
 
@@ -91,7 +91,7 @@ void Fft::inverse( const BufferSpectral *spectral, Buffer *waveform )
 	vDSP_vsmul( data, 1, &scale, data, 1, mSize );
 }
 
-#elif defined( CINDER_AUDIO_OOURA )
+#elif defined( CINDER_AUDIO_FFT_OOURA )
 
 void Fft::init()
 {
@@ -151,6 +151,6 @@ void Fft::inverse( const BufferSpectral *spectral, Buffer *waveform )
 	multiply( a, 2.0f / (float)mSize, a, mSize );
 }
 
-#endif // defined( CINDER_AUDIO_OOURA )
+#endif // defined( CINDER_AUDIO_FFT_OOURA )
 
 } } // namespace cinder::audio2

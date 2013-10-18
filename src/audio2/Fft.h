@@ -33,7 +33,7 @@
 #if defined( CINDER_AUDIO_VDSP )
 	#include <Accelerate/Accelerate.h>
 #else
-	#define CINDER_AUDIO_OOURA
+	#define CINDER_AUDIO_FFT_OOURA
 #endif
 
 namespace cinder { namespace audio2 {
@@ -60,7 +60,7 @@ protected:
 	size_t				mLog2FftSize;
 	::FFTSetup			mFftSetup;
 	::DSPSplitComplex	mSplitComplexSignal, mSplitComplexResult;
-#elif defined( CINDER_AUDIO_OOURA )
+#elif defined( CINDER_AUDIO_FFT_OOURA )
 	Buffer				mBufferCopy;
 	int					*mOouraIp;
 	float				*mOouraW;
