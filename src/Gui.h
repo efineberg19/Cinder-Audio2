@@ -213,7 +213,7 @@ struct VSelector : public TestWidget {
 		return b;
 	}
 
-	const std::string& currentSection() const
+	std::string currentSection() const
 	{
 		if( mSegments.empty() )
 			return "";

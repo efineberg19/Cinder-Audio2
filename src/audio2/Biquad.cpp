@@ -154,6 +154,42 @@ void Biquad::setLowpassParams( double cutoffFreq, double resonance )
 	}
 }
 
+void Biquad::setHighpassParams( double cutoff, double resonance )
+{
+	// Limit cutoff to 0 to 1.
+	cutoff = std::max(0.0, std::min(cutoff, 1.0));
+
+	if (cutoff == 1) {
+		// The z-transform is 0.
+		setNormalizedCoefficients(0, 0, 0, 1, 0, 0);
+	} else if (cutoff > 0) {
+		// Compute biquad coefficients for highpass filter
+		resonance = std::max(0.0, resonance); // can't go negative
+		double g = pow(10.0, 0.05 * resonance);
+		double d = sqrt((4 - sqrt(16 - 16 / (g * g))) / 2);
+
+		double theta = M_PI * cutoff;
+		double sn = 0.5 * d * sin(theta);
+		double beta = 0.5 * (1 - sn) / (1 + sn);
+		double gamma = (0.5 + beta) * cos(theta);
+		double alpha = 0.25 * (0.5 + beta + gamma);
+
+		double b0 = 2 * alpha;
+		double b1 = 2 * -2 * alpha;
+		double b2 = 2 * alpha;
+		double a1 = 2 * -gamma;
+		double a2 = 2 * beta;
+
+		setNormalizedCoefficients(b0, b1, b2, 1, a1, a2);
+	} else {
+		// When cutoff is zero, we need to be careful because the above
+		// gives a quadratic divided by the same quadratic, with poles
+		// and zeros on the unit circle in the same place. When cutoff
+		// is zero, the z-transform is 1.
+		setNormalizedCoefficients(1, 0, 0, 1, 0, 0);
+	}
+}
+
 void Biquad::reset()
 {
 #if defined( CINDER_AUDIO_VDSP )
@@ -203,10 +239,10 @@ void Biquad::processVDsp( const float *source, float *dest, size_t framesToProce
 
 	// Break up processing into smaller slices (kBufferSize) if necessary.
 
-	int n = framesToProcess;
+	size_t n = framesToProcess;
 
 	while (n > 0) {
-		int framesThisTime = n < kBufferSize ? n : kBufferSize;
+		size_t framesThisTime = n < kBufferSize ? n : kBufferSize;
 
 		// Copy input to input buffer
 		for (int i = 0; i < framesThisTime; ++i)

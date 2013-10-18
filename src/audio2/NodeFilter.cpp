@@ -27,12 +27,7 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-NodeFilterLowPass::NodeFilterLowPass( const Format &format )
-	: NodeEffect( format ), mCoeffsDirty( true ), mCutoffFreq( 200.0f ), mResonance( 3.0f )
-{
-}
-
-void NodeFilterLowPass::initialize()
+void NodeFilterBiquad::initialize()
 {
 	// Convert from Hertz to normalized frequency 0 -> 1.
 	mNiquist = getContext()->getSampleRate() / 2;
@@ -44,12 +39,12 @@ void NodeFilterLowPass::initialize()
 		updateBiquadParams();
 }
 
-void NodeFilterLowPass::uninitialize()
+void NodeFilterBiquad::uninitialize()
 {
 	mBiquads.clear();
 }
 
-void NodeFilterLowPass::process( Buffer *buffer )
+void NodeFilterBiquad::process( Buffer *buffer )
 {
 	if( mCoeffsDirty )
 		updateBiquadParams();
@@ -60,7 +55,6 @@ void NodeFilterLowPass::process( Buffer *buffer )
 		float *channel = buffer->getChannel( ch );
 		mBiquads[ch].process( channel, channel, numFrames );
 	}
-
 }
 
 void NodeFilterLowPass::updateBiquadParams()

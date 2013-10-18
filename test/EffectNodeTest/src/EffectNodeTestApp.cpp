@@ -38,7 +38,7 @@ class EffectNodeTestApp : public AppNative {
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton;
 	VSelector				mTestSelector;
-	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider;
+	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mFilterParam2Slider;
 };
 
 void EffectNodeTestApp::setup()
@@ -120,7 +120,15 @@ void EffectNodeTestApp::setupUI()
 	mLowPassFreqSlider.mBounds = sliderRect;
 	mLowPassFreqSlider.mTitle = "LowPass Freq";
 	mLowPassFreqSlider.mMax = 1000.0f;
+	mLowPassFreqSlider.set( mLowPass->getCutoffFreq() );
 	mWidgets.push_back( &mLowPassFreqSlider );
+
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	mFilterParam2Slider.mBounds = sliderRect;
+	mFilterParam2Slider.mTitle = "filter param 2";
+	mFilterParam2Slider.mMax = 50.0f;
+	mFilterParam2Slider.set( mLowPass->getResonance() );
+	mWidgets.push_back( &mFilterParam2Slider );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -141,6 +149,8 @@ void EffectNodeTestApp::processDrag( Vec2i pos )
 		mPan->setPos( mPanSlider.mValueScaled );
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );
+	if( mFilterParam2Slider.hitTest( pos ) )
+		mLowPass->setResonance( mFilterParam2Slider.mValueScaled );
 }
 
 void EffectNodeTestApp::processTap( Vec2i pos )

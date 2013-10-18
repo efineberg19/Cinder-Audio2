@@ -36,8 +36,10 @@ public:
 	// frequency is 0 - 1 normalized, resonance and dbGain are in decibels.
     // Q is a unitless quality factor.
     void setLowpassParams( double cutoffFreq, double resonance );
-//    void setHighpassParams(double frequency, double resonance);
-//    void setBandpassParams(double frequency, double Q);
+    void setHighpassParams( double frequency, double resonance );
+
+	// TODO: impl other biquad filter types
+//    void setBandpassParams( double frequency, double Q );
 //    void setLowShelfParams(double frequency, double dbGain);
 //    void setHighShelfParams(double frequency, double dbGain);
 //    void setPeakingParams(double frequency, double Q, double dbGain);

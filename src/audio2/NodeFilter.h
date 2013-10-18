@@ -32,28 +32,44 @@ namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeFilterLowPass> NodeFilterLowPassRef;
 
-class NodeFilterLowPass : public NodeEffect {
+//! Base class for filter nodes based on the biquad filter
+class NodeFilterBiquad : public NodeEffect {
   public:
-	NodeFilterLowPass( const Format &format = Format() );
+	NodeFilterBiquad( const Format &format = Format() ) : NodeEffect( format ), mCoeffsDirty( true ) {}
+	virtual ~NodeFilterBiquad() {}
 
 	void initialize() override;
 	void uninitialize() override;
-
 	void process( Buffer *buffer ) override;
+
+  protected:
+	virtual void updateBiquadParams() = 0;
+
+	std::vector<Biquad> mBiquads;
+	std::atomic<bool> mCoeffsDirty;
+	BufferT<double> mBufferd;
+	size_t mNiquist;
+};
+
+class NodeFilterLowPass : public NodeFilterBiquad {
+  public:
+	NodeFilterLowPass( const Format &format = Format() ) : NodeFilterBiquad( format ), mCutoffFreq( 200.0f ), mResonance( 1.0f ) {}
+	virtual ~NodeFilterLowPass() {}
 
 	void setCutoffFreq( float freq )			{ mCutoffFreq = freq; mCoeffsDirty = true; }
 	void setResonance( float resonance )		{ mResonance = resonance; mCoeffsDirty = true; }
 
+	float getCutoffFreq() const	{ return mCutoffFreq; }
+	float getResonance() const	{ return mResonance; }
+
   private:
-	void updateBiquadParams();
-	
-	std::vector<Biquad> mBiquads;
+	void updateBiquadParams() override;
 
-	BufferT<double> mBufferd;
-	size_t mNiquist;
-
-	std::atomic<bool> mCoeffsDirty;
 	float mCutoffFreq, mResonance;
+};
+
+class NodeFilterHighPass {
+
 };
 
 } } // namespace cinder::audio2
