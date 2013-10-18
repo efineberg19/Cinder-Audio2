@@ -54,7 +54,7 @@ public:
     void reset();
 
   private:
-    void setNormalizedCoefficients(double b0, double b1, double b2, double a0, double a1, double a2);
+    void setNormalizedCoefficients( double b0, double b1, double b2, double a0, double a1, double a2 );
 
 	// Filter coefficients. The filter is defined as
     //
@@ -72,9 +72,15 @@ public:
     double m_y1; // output delayed by 1 sample
     double m_y2; // output delayed by 2 samples
 
+#if defined( CINDER_AUDIO_VDSP )
+	void processVDsp( const float *source, float *dest, size_t framesToProcess );
+    void processSliceVDsp( double *source, double *dest, double *coefficientsP, size_t framesToProcess );
+
 	// used with vDSP only
 //	AlignedArrayPtrd mInputBuffer, mOutputBuffer;
 	std::vector<double> mInputBuffer, mOutputBuffer;
+#endif
+
 };
 
 } } // namespace cinder::audio2

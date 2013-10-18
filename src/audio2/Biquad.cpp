@@ -29,7 +29,7 @@
 #if defined( CINDER_AUDIO_VDSP )
 	#include <Accelerate/Accelerate.h>
 #endif
-//
+
 namespace cinder { namespace audio2 {
 
 namespace {
@@ -54,6 +54,8 @@ Biquad::Biquad()
 #if defined( CINDER_AUDIO_VDSP )
 //	mInputBuffer = makeAlignedArray<double>( kBufferSize + 2 );
 //	mOutputBuffer = makeAlignedArray<double>( kBufferSize + 2 );
+	mInputBuffer.resize( kBufferSize + 2 );
+	mOutputBuffer.resize( kBufferSize + 2 );
 #endif // defined( CINDER_AUDIO_VDSP )
 
 	// Initialize as pass-thru (straight-wire, no filter effect)
@@ -66,8 +68,11 @@ Biquad::~Biquad()
 {
 }
 
-void Biquad::process( const float* source, float* dest, size_t framesToProcess )
+void Biquad::process( const float *source, float *dest, size_t framesToProcess )
 {
+#if defined( CINDER_AUDIO_VDSP )
+	processVDsp( source, dest, framesToProcess );
+#else
     size_t n = framesToProcess;
 
     // Create local copies of member variables
@@ -107,11 +112,12 @@ void Biquad::process( const float* source, float* dest, size_t framesToProcess )
     m_b2 = b2;
     m_a1 = a1;
     m_a2 = a2;
+#endif
 }
 
+// TODO: impl z transform
 void Biquad::getFrequencyResponse( int nFrequencies, const float *frequency, float *magResponse, float *phaseResponse )
 {
-
 }
 
 void Biquad::setLowpassParams( double cutoffFreq, double resonance )
@@ -150,19 +156,18 @@ void Biquad::setLowpassParams( double cutoffFreq, double resonance )
 
 void Biquad::reset()
 {
-//#if defined( CINDER_AUDIO_VDSP )
-//	// Two extra samples for filter history
-//	double *in = mInputBuffer.data();
-//	in[0] = 0;
-//	in[1] = 0;
-//
-//	double *out = mOutputBuffer.data();
-//	out[0] = 0;
-//	out[1] = 0;
-//
-//#else
+#if defined( CINDER_AUDIO_VDSP )
+	// Two extra samples for filter history
+	double *in = mInputBuffer.data();
+	in[0] = 0;
+	in[1] = 0;
+
+	double *out = mOutputBuffer.data();
+	out[0] = 0;
+	out[1] = 0;
+#else
 	m_x1 = m_x2 = m_y1 = m_y2 = 0;
-//#endif
+#endif // defined( CINDER_AUDIO_VDSP )
 }
 
 
@@ -178,5 +183,59 @@ void Biquad::setNormalizedCoefficients( double b0, double b1, double b2, double 
 	m_a2 = a2 * a0Inverse;
 }
 
+
+#if defined( CINDER_AUDIO_VDSP )
+
+void Biquad::processVDsp( const float *source, float *dest, size_t framesToProcess )
+{
+	double filterCoefficients[5];
+	filterCoefficients[0] = m_b0;
+	filterCoefficients[1] = m_b1;
+	filterCoefficients[2] = m_b2;
+	filterCoefficients[3] = m_a1;
+	filterCoefficients[4] = m_a2;
+
+	double* inputP = mInputBuffer.data();
+	double* outputP = mOutputBuffer.data();
+
+	double* input2P = inputP + 2;
+	double* output2P = outputP + 2;
+
+	// Break up processing into smaller slices (kBufferSize) if necessary.
+
+	int n = framesToProcess;
+
+	while (n > 0) {
+		int framesThisTime = n < kBufferSize ? n : kBufferSize;
+
+		// Copy input to input buffer
+		for (int i = 0; i < framesThisTime; ++i)
+			input2P[i] = *source++;
+
+		processSliceVDsp( inputP, outputP, filterCoefficients, framesThisTime );
+
+		// Copy output buffer to output (converts float -> double).
+		for (int i = 0; i < framesThisTime; ++i)
+			*dest++ = static_cast<float>(output2P[i]);
+
+		n -= framesThisTime;
+	}
+}
+
+void Biquad::processSliceVDsp( double *source, double *dest, double *coefficientsP, size_t framesToProcess )
+{
+	// Use double-precision for filter stability
+	vDSP_deq22D( source, 1, coefficientsP, dest, 1, framesToProcess );
+
+	// Save history.  Note that sourceP and destP reference m_inputBuffer and m_outputBuffer respectively.
+	// These buffers are allocated (in the constructor) with space for two extra samples so it's OK to access
+	// array values two beyond framesToProcess.
+	source[0] = source[framesToProcess - 2 + 2];
+	source[1] = source[framesToProcess - 1 + 2];
+	dest[0] = dest[framesToProcess - 2 + 2];
+	dest[1] = dest[framesToProcess - 1 + 2];
+}
+
+#endif // defined( CINDER_AUDIO_VDSP )
 
 } } // namespace cinder::audio2
