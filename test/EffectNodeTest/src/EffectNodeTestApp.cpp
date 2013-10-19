@@ -50,15 +50,7 @@ void EffectNodeTestApp::setup()
 	mGain->setGain( 0.6f );
 
 	mPan = mContext->makeNode( new NodePan2d() );
-
-//	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
-//	noise->getGen().setAmp( 0.25f );
-//	mGen = noise;
-
-	auto noise = mContext->makeNode( new NodeGen<NoiseGen>( Node::Format().autoEnable() ) );
-	noise->getGen().setAmp( 1.0f );
-//	noise->getGen().setFreq( 440.0f );
-	mGen = noise;
+	mGen = mContext->makeNode( new NodeGenNoise( Node::Format().autoEnable() ) );
 
 	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
 //	mLowPass = mContext->makeNode( new NodeFilterHighPass() );

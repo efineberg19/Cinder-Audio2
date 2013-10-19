@@ -89,13 +89,10 @@ void NodeTestApp::setup()
 
 	mGain->connect( mContext->getTarget() );
 
-	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
-	noise->getGen().setAmp( 0.25f );
-	mNoise = noise;
+	mNoise = mContext->makeNode( new NodeGenNoise() );
 
-	auto sine = mContext->makeNode( new NodeGen<SineGen>() );
-	sine->getGen().setAmp( 0.25f );
-	sine->getGen().setFreq( 440.0f );
+	auto sine = mContext->makeNode( new NodeGenTriangle() );
+	sine->setFreq( 440.0f );
 	mSine = sine;
 
 	setupSine();

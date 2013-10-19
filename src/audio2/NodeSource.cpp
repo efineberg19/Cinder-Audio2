@@ -389,4 +389,75 @@ void NodeCallbackProcessor::process( Buffer *buffer )
 		mCallbackFn( buffer, getContext()->getSampleRate() );
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - NodeGen's
+// ----------------------------------------------------------------------------------------------------
+
+NodeGen::NodeGen( const Format &format )
+	: NodeSource( format )
+{
+	mChannelMode = ChannelMode::SPECIFIED;
+	setNumChannels( 1 );
+}
+
+void NodeGen::initialize()
+{
+	mSampleRate = (float)getContext()->getSampleRate();
+}
+
+void NodeGenNoise::process( Buffer *buffer )
+{
+	float *data = buffer->getData();
+	size_t count = buffer->getSize();
+
+	for( size_t i = 0; i < count; i++ )
+		data[i] = ci::randFloat( -1.0f, 1.0f );
+}
+
+void NodeGenSine::process( Buffer *buffer )
+{
+	float *data = buffer->getData();
+	size_t count = buffer->getSize();
+
+	float phaseIncr = ( mFreq / mSampleRate ) * 2.0f * (float)M_PI;
+
+	for( size_t i = 0; i < count; i++ ) {
+		data[i] = std::sin( mPhase );
+		mPhase += phaseIncr;
+		if( mPhase > M_PI * 2.0 ) {
+			mPhase -= (float)(M_PI * 2.0);
+		}
+	}
+}
+
+void NodeGenPhasor::process( Buffer *buffer )
+{
+	float phaseIncr = mFreq / mSampleRate;
+	float *data = buffer->getData();
+	size_t count = buffer->getSize();
+	for( size_t i = 0; i < count; i++ ) {
+		float phase = fmodf( mPhase, 1.0f );
+		data[i] = phase;
+		mPhase = phase + phaseIncr;
+	}
+}
+
+void NodeGenTriangle::process( Buffer *buffer )
+{
+	float phaseIncr = mFreq / mSampleRate;
+	float *data = buffer->getData();
+	size_t count = buffer->getSize();
+
+	for( size_t i = 0; i < count; i++ )	{
+
+		float phase = fmodf( mPhase, 1.0f );
+		mPhase = phase + phaseIncr;
+
+		float up = phase * mUpSlope;
+		float down = (-phase + 1 ) * mDownSlope;
+
+		data[i] = std::min( up, down );
+	}
+}
+
 } } // namespace cinder::audio2

@@ -47,7 +47,7 @@ class SpectrumScopeTestApp : public AppNative {
 
 	Context							*mContext;
 	NodeBufferPlayerRef				mPlayerNode;
-	shared_ptr<NodeGen<SineGen> >	mSine;
+	shared_ptr<NodeGenSine>			mSine;
 	ScopeSpectralRef				mSpectrumScope;
 	SourceFileRef					mSourceFile;
 
@@ -74,8 +74,7 @@ void SpectrumScopeTestApp::setup()
 	mSpectrumScope = mContext->makeNode( new ScopeSpectral( ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 	mSpectrumScope->setAutoEnabled();
 
-	mSine = mContext->makeNode( new NodeGen<SineGen>() );
-	mSine->getGen().setAmp( 0.25f );
+	mSine = mContext->makeNode( new NodeGenSine() );
 	mSine->getGen().setFreq( 440.0f );
 
 #if ! defined( CINDER_MSW )

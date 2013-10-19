@@ -140,9 +140,8 @@ void DeviceTestApp::printDeviceDetails( const DeviceRef &device )
 
 void DeviceTestApp::setupSine()
 {
-	auto sineGen = mContext->makeNode( new NodeGen<SineGen>() );
+	auto sineGen = mContext->makeNode( new NodeGenSine() );
 	sineGen->getGen().setFreq( 440.0f );
-	sineGen->getGen().setAmp( 0.5f );
 	mSourceNode = sineGen;
 
 	mSourceNode->connect( mGain, 0 );
@@ -151,8 +150,7 @@ void DeviceTestApp::setupSine()
 
 void DeviceTestApp::setupNoise()
 {
-	auto noiseGen = mContext->makeNode( new NodeGen<NoiseGen>() );
-	noiseGen->getGen().setAmp( 0.5f );
+	auto noiseGen = mContext->makeNode( new NodeGenNoise() );
 	mSourceNode = noiseGen;
 
 	mSourceNode->connect( mGain, 0 );

@@ -175,7 +175,7 @@ public:
 };
 
 class NodeCallbackProcessor : public NodeSource {
-public:
+  public:
 	NodeCallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeSource( format ), mCallbackFn( callbackFn ) {}
 	virtual ~NodeCallbackProcessor() {}
 
@@ -183,40 +183,68 @@ public:
 
 	void process( Buffer *buffer ) override;
 
-private:
+  private:
 	CallbackProcessorFn mCallbackFn;
 };
 
+class NodeGen : public NodeSource {
+  public:
+	NodeGen( const Format &format = Format() );
 
-// TODO: NodeGen's are starting to seem unecessary
-// - just make a NodeSource for all of the basic waveforms
-// - also need to account for ramping params, which will not be possible with vector-based calculations
-template <typename GenT>
-struct NodeGen : public NodeSource {
-	NodeGen( const Format &format = Format() ) : NodeSource( format )
-	{
-		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( 1 );
-	}
+	void initialize() override;
 
 	std::string virtual getTag() override			{ return "NodeGen"; }
 
-	virtual void initialize() override
-	{
-		mGen.setSampleRate( getContext()->getSampleRate() );
-	}
+  protected:
+	float mSampleRate;
+};
 
-	virtual void process( Buffer *buffer ) override
-	{
-		size_t count = buffer->getNumFrames();
-		mGen.process( buffer->getChannel( 0 ), count );
-	}
+class NodeGenNoise : public NodeGen {
+  public:
+	NodeGenNoise( const Format &format = Format() ) : NodeGen( format ) {}
 
-	GenT& getGen()				{ return mGen; }
-	const GenT& getGen() const	{ return mGen; }
+	void process( Buffer *buffer ) override;
+};
 
-protected:
-	GenT mGen;
+class NodeGenSine : public NodeGen {
+  public:
+	NodeGenSine( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ) {}
+
+	void setFreq( float freq )		{ mFreq = freq; }
+
+	void process( Buffer *buffer ) override;
+
+  private:
+	std::atomic<float> mFreq;
+	float mPhase;
+};
+
+class NodeGenPhasor : public NodeGen {
+  public:
+	NodeGenPhasor( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ) {}
+
+	void setFreq( float freq )		{ mFreq = freq; }
+
+	void process( Buffer *buffer ) override;
+
+  private:
+	std::atomic<float> mFreq;
+	float mPhase;
+};
+
+class NodeGenTriangle : public NodeGen {
+  public:
+	NodeGenTriangle( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ), mUpSlope( 1.0f ), mDownSlope( 1.0f ) {}
+
+	void setFreq( float freq )			{ mFreq = freq; }
+	void setUpSlope( float up )			{ mUpSlope = up; }
+	void setDownSlope( float down )		{ mFreq = down; }
+
+	void process( Buffer *buffer ) override;
+
+  private:
+	std::atomic<float> mFreq, mUpSlope, mDownSlope;
+	float mPhase;
 };
 
 } } // namespace cinder::audio2

@@ -17,20 +17,6 @@ using namespace std;
 using namespace ci::audio2;
 using namespace audio2::cocoa;
 
-struct TestConstGen : public UGen {
-	TestConstGen( float val = 0.5f ) : UGen(), mVal( val )	{}
-
-	using UGen::process;
-	void process( float *channel, size_t count ) override {
-		float val = mVal;
-		for( size_t i = 0; i < count; i++ )
-			channel[i] = val;
-	}
-
-private:
-	float mVal;
-};
-
 class EffectsAudioUnitTestApp : public AppNative {
   public:
 	void setup();
@@ -60,16 +46,11 @@ void EffectsAudioUnitTestApp::setup()
 {
 	mContext = Context::master();
 
-	auto noise = mContext->makeNode( new NodeGen<NoiseGen>() );
+	auto noise = mContext->makeNode( new NodeGenNoise() );
 	noise->setAutoEnabled();
 	noise->getGen().setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
-
-//	auto test = mContext->makeNode( new NodeGen<TestConstGen>() );
-//	test->setAutoEnabled();
-//	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
-//	mSource = test;
 
 	setupOne();
 
