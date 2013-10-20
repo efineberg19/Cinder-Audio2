@@ -79,7 +79,7 @@ void FileNodeTestApp::setup()
 	mGain = mContext->makeNode( new NodeGain() );
 	mGain->setGain( 0.6f );
 
-	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
+	mSourceFile = SourceFile::create( dataSource, mContext->getSampleRate(), 0 );
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
