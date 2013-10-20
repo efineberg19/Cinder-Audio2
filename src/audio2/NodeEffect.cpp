@@ -166,22 +166,4 @@ void NodePan2d::setPos( float pos )
 	mPos = math<float>::clamp( pos );
 }
 
-// ----------------------------------------------------------------------------------------------------
-// MARK: - RingMod
-// ----------------------------------------------------------------------------------------------------
-
-void RingMod::process( Buffer *buffer )
-{
-	size_t numFrames = buffer->getNumFrames();
-	if( mSineBuffer.size() < numFrames )
-		mSineBuffer.resize( numFrames );
-	mSineGen.process( &mSineBuffer );
-
-	for ( size_t c = 0; c < buffer->getNumChannels(); c++ ) {
-		float *channel = buffer->getChannel( c );
-		for( size_t i = 0; i < numFrames; i++ )
-			channel[i] *= mSineBuffer[i];
-	}
-}
-
 } } // namespace cinder::audio2

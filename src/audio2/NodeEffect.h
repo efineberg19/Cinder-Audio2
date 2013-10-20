@@ -89,21 +89,4 @@ class NodePan2d : public NodeEffect {
 	bool				mMonoInputMode;
 };
 
-class RingMod : public NodeEffect {
-  public:
-	RingMod( const Format &format = Format() ) : NodeEffect( format ), mSineGen( 440.0f, 1.0f )	{}
-	virtual ~RingMod() {}
-
-	std::string virtual getTag() override			{ return "RingMod"; }
-
-	virtual void initialize() override {
-		mSineGen.setSampleRate( getContext()->getSampleRate() );
-	}
-
-	virtual void process( Buffer *buffer );
-
-	SineGen mSineGen;
-	std::vector<float> mSineBuffer;
-};
-
 } } // namespace cinder::audio2
