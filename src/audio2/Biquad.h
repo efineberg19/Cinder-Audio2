@@ -60,19 +60,18 @@ public:
 
 	// Filter coefficients. The filter is defined as
     //
-    // y[n] + m_a1*y[n-1] + m_a2*y[n-2] = m_b0*x[n] + m_b1*x[n-1] + m_b2*x[n-2].
-    double m_b0;
-    double m_b1;
-    double m_b2;
-    double m_a1;
-    double m_a2;
-
+    // y[n] + mA1 * y[n-1] + mA2 * y[n-2] = mB0 * x[n] + mB1 * x[n-1] + mB2 * x[n-2].
+    double mB0;
+    double mB1;
+    double mB2;
+    double mA1;
+    double mA2;
 
 	// Filter memory
-    double m_x1; // input delayed by 1 sample
-    double m_x2; // input delayed by 2 samples
-    double m_y1; // output delayed by 1 sample
-    double m_y2; // output delayed by 2 samples
+    double mX1; // input delayed by 1 sample
+    double mX2; // input delayed by 2 samples
+    double mY1; // output delayed by 1 sample
+    double mY2; // output delayed by 2 samples
 
 #if defined( CINDER_AUDIO_VDSP )
 	void processVDsp( const float *source, float *dest, size_t framesToProcess );

@@ -78,16 +78,16 @@ void Biquad::process( const float *source, float *dest, size_t framesToProcess )
     size_t n = framesToProcess;
 
     // Create local copies of member variables
-    double x1 = m_x1;
-    double x2 = m_x2;
-    double y1 = m_y1;
-    double y2 = m_y2;
+    double x1 = mX1;
+    double x2 = mX2;
+    double y1 = mY1;
+    double y2 = mY2;
 
-    double b0 = m_b0;
-    double b1 = m_b1;
-    double b2 = m_b2;
-    double a1 = m_a1;
-    double a2 = m_a2;
+    double b0 = mB0;
+    double b1 = mB1;
+    double b2 = mB2;
+    double a1 = mA1;
+    double a2 = mA2;
 
     while (n--) {
         // FIXME: this can be optimized by pipelining the multiply adds...
@@ -104,16 +104,16 @@ void Biquad::process( const float *source, float *dest, size_t framesToProcess )
     }
 
     // Local variables back to member. Flush denormals here so we don't slow down the inner loop above.
-    m_x1 = flushDenormalFloatToZero( x1 );
-    m_x2 = flushDenormalFloatToZero( x2 );
-    m_y1 = flushDenormalFloatToZero( y1 );
-    m_y2 = flushDenormalFloatToZero( y2 );
+    mX1 = flushDenormalFloatToZero( x1 );
+    mX2 = flushDenormalFloatToZero( x2 );
+    mY1 = flushDenormalFloatToZero( y1 );
+    mY2 = flushDenormalFloatToZero( y2 );
 
-    m_b0 = b0;
-    m_b1 = b1;
-    m_b2 = b2;
-    m_a1 = a1;
-    m_a2 = a2;
+    mB0 = b0;
+    mB1 = b1;
+    mB2 = b2;
+    mA1 = a1;
+    mA2 = a2;
 #endif
 }
 
@@ -136,11 +136,11 @@ void Biquad::getFrequencyResponse( int nFrequencies, const float *frequency, flo
     // with z1 = 1/z and z = exp(j*pi*frequency). Hence z1 = exp(-j*pi*frequency)
 
     // Make local copies of the coefficients as a micro-optimization.
-    double b0 = m_b0;
-    double b1 = m_b1;
-    double b2 = m_b2;
-    double a1 = m_a1;
-    double a2 = m_a2;
+    double b0 = mB0;
+    double b1 = mB1;
+    double b2 = mB2;
+    double a1 = mA1;
+    double a2 = mA2;
 
     for (int k = 0; k < nFrequencies; ++k) {
         double omega = -M_PI * frequency[k];
@@ -443,7 +443,7 @@ void Biquad::reset()
 	out[0] = 0;
 	out[1] = 0;
 #else
-	m_x1 = m_x2 = m_y1 = m_y2 = 0;
+	mX1 = mX2 = mY1 = mY2 = 0;
 #endif // defined( CINDER_AUDIO_VDSP )
 }
 
@@ -453,11 +453,11 @@ void Biquad::setNormalizedCoefficients( double b0, double b1, double b2, double 
 {
 	double a0Inverse = 1 / a0;
 
-	m_b0 = b0 * a0Inverse;
-	m_b1 = b1 * a0Inverse;
-	m_b2 = b2 * a0Inverse;
-	m_a1 = a1 * a0Inverse;
-	m_a2 = a2 * a0Inverse;
+	mB0 = b0 * a0Inverse;
+	mB1 = b1 * a0Inverse;
+	mB2 = b2 * a0Inverse;
+	mA1 = a1 * a0Inverse;
+	mA2 = a2 * a0Inverse;
 }
 
 
@@ -466,11 +466,11 @@ void Biquad::setNormalizedCoefficients( double b0, double b1, double b2, double 
 void Biquad::processVDsp( const float *source, float *dest, size_t framesToProcess )
 {
 	double filterCoefficients[5];
-	filterCoefficients[0] = m_b0;
-	filterCoefficients[1] = m_b1;
-	filterCoefficients[2] = m_b2;
-	filterCoefficients[3] = m_a1;
-	filterCoefficients[4] = m_a2;
+	filterCoefficients[0] = mB0;
+	filterCoefficients[1] = mB1;
+	filterCoefficients[2] = mB2;
+	filterCoefficients[3] = mA1;
+	filterCoefficients[4] = mA2;
 
 	double* inputP = mInputBuffer.data();
 	double* outputP = mOutputBuffer.data();
