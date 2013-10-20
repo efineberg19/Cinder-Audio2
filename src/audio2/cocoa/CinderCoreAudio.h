@@ -56,7 +56,7 @@ struct AudioBufferListShallowDeleter {
 typedef std::unique_ptr<::AudioBufferList, AudioBufferListDeleter> AudioBufferListPtr;
 typedef std::unique_ptr<::AudioBufferList, AudioBufferListShallowDeleter> AudioBufferListShallowPtr;
 
-AudioBufferListPtr createNonInterleavedBufferList( size_t numChannels, size_t numFrames );
+AudioBufferListPtr createNonInterleavedBufferList( size_t numFrames, size_t numChannels );
 AudioBufferListShallowPtr createNonInterleavedBufferListShallow( size_t numChannels );
 
 

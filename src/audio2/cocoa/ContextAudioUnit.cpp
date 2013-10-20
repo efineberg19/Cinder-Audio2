@@ -247,7 +247,7 @@ void NodeLineInAudioUnit::initialize()
 			lineOutAu->uninitialize();
 		}
 
-		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
+		mBufferList = createNonInterleavedBufferList( framesPerBlock, getNumChannels() );
 
 		::AURenderCallbackStruct callbackStruct { NodeLineInAudioUnit::renderCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::INPUT );
@@ -266,7 +266,7 @@ void NodeLineInAudioUnit::initialize()
 			mDevice->updateFormat( Device::Format().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
 
 		mRingBuffer.resize( framesPerBlock * getNumChannels() * mRingBufferPaddingFactor );
-		mBufferList = createNonInterleavedBufferList( getNumChannels(), framesPerBlock );
+		mBufferList = createNonInterleavedBufferList( framesPerBlock, getNumChannels() );
 
 		::AURenderCallbackStruct callbackStruct = { NodeLineInAudioUnit::inputCallback, &mRenderData };
 		setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_SetInputCallback, callbackStruct, kAudioUnitScope_Global, DeviceBus::INPUT );
@@ -415,7 +415,7 @@ void NodeEffectAudioUnit::initialize()
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 	findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	mBufferList = createNonInterleavedBufferList( getNumChannels(), getContext()->getFramesPerBlock() );
+	mBufferList = createNonInterleavedBufferList( getContext()->getFramesPerBlock(), getNumChannels() );
 
 	::AudioStreamBasicDescription asbd = createFloatAsbd( getContext()->getSampleRate(), getNumChannels() );
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Input, 0 );
