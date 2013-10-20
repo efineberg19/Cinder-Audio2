@@ -21,6 +21,8 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+// TODO: append web audio's license
+
 #pragma once
 
 #include "audio2/Dsp.h"
@@ -38,11 +40,11 @@ public:
     void setLowpassParams( double cutoffFreq, double resonance );
     void setHighpassParams( double frequency, double resonance );
     void setBandpassParams( double frequency, double Q );
-    void setLowShelfParams(double frequency, double dbGain);
-    void setHighShelfParams(double frequency, double dbGain);
-    void setPeakingParams(double frequency, double Q, double dbGain);
-    void setAllpassParams(double frequency, double Q);
-    void setNotchParams(double frequency, double Q);
+    void setLowShelfParams( double frequency, double dbGain );
+    void setHighShelfParams( double frequency, double dbGain );
+    void setPeakingParams( double frequency, double Q, double dbGain );
+    void setAllpassParams( double frequency, double Q );
+    void setNotchParams( double frequency, double Q );
 
 	
 	void process( const float *source, float *dest, size_t framesToProcess );

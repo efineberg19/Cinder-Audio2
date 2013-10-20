@@ -76,7 +76,7 @@ class SourceFile : public Source {
 	: Source( sampleRate, numChannels ), mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mMaxFramesPerRead( 4096 )
 	{}
 
-	size_t mSampleRate, mNumChannels, mNumFrames, mFileSampleRate, mFileNumChannels, mMaxFramesPerRead;
+	size_t mNumFrames, mFileSampleRate, mFileNumChannels, mMaxFramesPerRead;
 };
 
 // TODO: support sample formats other than float

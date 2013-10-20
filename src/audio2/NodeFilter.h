@@ -28,66 +28,85 @@
 
 #include <vector>
 
-// TODO NEXT: decide whether to use a common interface + 'mode' enum (like webaudio),
-// or keep making subclasses, or both
-
 // TODO: add api for setting biquad with arbitrary set of coefficients, ala pd's [biquad~]
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeFilterLowPass> NodeFilterLowPassRef;
+typedef std::shared_ptr<class NodeFilterLowPass>		NodeFilterLowPassRef;
+typedef std::shared_ptr<class NodeFilterHighPass>		NodeFilterHighPassRef;
+typedef std::shared_ptr<class NodeFilterBandPass>		NodeFilterBandPassRef;
 
-//! Base class for filter nodes based on the biquad filter
+//! Base class for filter nodes that use Biquad
 class NodeFilterBiquad : public NodeEffect {
   public:
-	NodeFilterBiquad( const Format &format = Format() ) : NodeEffect( format ), mCoeffsDirty( true ) {}
+	enum Mode { LOWPASS, HIGHPASS, BANDPASS, LOWSHELF, HIGHSHELF, PEAKING, ALLPASS, NOTCH, CUSTOM };
+
+	NodeFilterBiquad( Mode mode = LOWPASS, const Format &format = Format() ) : NodeEffect( format ), mMode( mode ), mCoeffsDirty( true ), mFreq( 200.0f ), mQ( 1.0f ), mGain( 0.0f ) {}
 	virtual ~NodeFilterBiquad() {}
 
 	void initialize() override;
 	void uninitialize() override;
 	void process( Buffer *buffer ) override;
 
+	void setMode( Mode mode )	{ mMode = mode; mCoeffsDirty = true; }
+	Mode getMode() const		{ return mMode; }
+
+	void setFreq( float freq )	{ mFreq = freq; mCoeffsDirty = true; }
+	float getFreq() const		{ return mFreq; }
+
+	void setQ( float q )		{ mQ = q; mCoeffsDirty = true; }
+	float getQ() const			{ return mQ; }
+
+	void setGain( float gain )	{ mGain = gain; mCoeffsDirty = true; }
+	float getGain() const		{ return mGain; }
+
   protected:
-	virtual void updateBiquadParams() = 0;
+	void updateBiquadParams();
 
 	std::vector<Biquad> mBiquads;
 	std::atomic<bool> mCoeffsDirty;
 	BufferT<double> mBufferd;
 	size_t mNiquist;
+
+	Mode mMode;
+	float mFreq, mQ, mGain;
 };
 
 class NodeFilterLowPass : public NodeFilterBiquad {
   public:
-	NodeFilterLowPass( const Format &format = Format() ) : NodeFilterBiquad( format ), mCutoffFreq( 200.0f ), mResonance( 1.0f ) {}
+	NodeFilterLowPass( const Format &format = Format() ) : NodeFilterBiquad( LOWPASS, format ) {}
 	virtual ~NodeFilterLowPass() {}
 
-	void setCutoffFreq( float freq )			{ mCutoffFreq = freq; mCoeffsDirty = true; }
-	void setResonance( float resonance )		{ mResonance = resonance; mCoeffsDirty = true; }
+	void setCutoffFreq( float freq )			{ setFreq( freq ); }
+	void setResonance( float resonance )		{ setQ( resonance ); }
 
-	float getCutoffFreq() const	{ return mCutoffFreq; }
-	float getResonance() const	{ return mResonance; }
-
-  private:
-	void updateBiquadParams() override;
-
-	float mCutoffFreq, mResonance;
+	float getCutoffFreq() const	{ return mFreq; }
+	float getResonance() const	{ return mQ; }
 };
 
 class NodeFilterHighPass : public NodeFilterBiquad {
 public:
-	NodeFilterHighPass( const Format &format = Format() ) : NodeFilterBiquad( format ), mCutoffFreq( 200.0f ), mResonance( 1.0f ) {}
+	NodeFilterHighPass( const Format &format = Format() ) : NodeFilterBiquad( HIGHPASS, format ) {}
 	virtual ~NodeFilterHighPass() {}
 
-	void setCutoffFreq( float freq )			{ mCutoffFreq = freq; mCoeffsDirty = true; }
-	void setResonance( float resonance )		{ mResonance = resonance; mCoeffsDirty = true; }
+	void setCutoffFreq( float freq )			{ setFreq( freq ); }
+	void setResonance( float resonance )		{ setQ( resonance ); }
 
-	float getCutoffFreq() const	{ return mCutoffFreq; }
-	float getResonance() const	{ return mResonance; }
-
-private:
-	void updateBiquadParams() override;
-
-	float mCutoffFreq, mResonance;
+	float getCutoffFreq() const	{ return mFreq; }
+	float getResonance() const	{ return mQ; }
 };
+
+class NodeFilterBandPass : public NodeFilterBiquad {
+public:
+	NodeFilterBandPass( const Format &format = Format() ) : NodeFilterBiquad( BANDPASS, format ) {}
+	virtual ~NodeFilterBandPass() {}
+
+	void setCutoffFreq( float freq )	{ setFreq( freq ); }
+	void setWidth( float width )		{ setQ( width ); }
+
+	float getCutoffFreq() const		{ return mFreq; }
+	float getWidth() const			{ return mQ; }
+};
+
 
 } } // namespace cinder::audio2

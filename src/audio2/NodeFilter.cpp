@@ -57,23 +57,46 @@ void NodeFilterBiquad::process( Buffer *buffer )
 	}
 }
 
-void NodeFilterLowPass::updateBiquadParams()
+void NodeFilterBiquad::updateBiquadParams()
 {
 	mCoeffsDirty = false;
+	double normalizedFrequency = mFreq / mNiquist;
 
-	double normalizedFrequency = mCutoffFreq / mNiquist;
-	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-		mBiquads[ch].setLowpassParams( normalizedFrequency, mResonance );
-	}
-}
-
-void NodeFilterHighPass::updateBiquadParams()
-{
-	mCoeffsDirty = false;
-
-	double normalizedFrequency = mCutoffFreq / mNiquist;
-	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-		mBiquads[ch].setHighpassParams( normalizedFrequency, mResonance );
+	switch( mMode ) {
+		case Mode::LOWPASS:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setLowpassParams( normalizedFrequency, mQ );
+			break;
+		case Mode::HIGHPASS:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setHighpassParams( normalizedFrequency, mQ );
+			break;
+		case Mode::BANDPASS:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setBandpassParams( normalizedFrequency, mQ );
+			break;
+		case Mode::LOWSHELF:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setLowShelfParams( mFreq, mGain );;
+			break;
+		case Mode::HIGHSHELF:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setHighShelfParams( mFreq, mGain );;
+			break;
+		case Mode::PEAKING:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setPeakingParams( normalizedFrequency, mQ, mGain );
+			break;
+		case Mode::ALLPASS:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setBandpassParams( normalizedFrequency, mQ );
+			break;
+		case Mode::NOTCH:
+			for( size_t ch = 0; ch < mNumChannels; ch++ )
+				mBiquads[ch].setNotchParams( normalizedFrequency, mQ );
+			break;
+		default:
+			break;
 	}
 }
 
