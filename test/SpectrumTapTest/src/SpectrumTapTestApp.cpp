@@ -75,7 +75,7 @@ void SpectrumScopeTestApp::setup()
 	mSpectrumScope->setAutoEnabled();
 
 	mSine = mContext->makeNode( new NodeGenSine() );
-	mSine->getGen().setFreq( 440.0f );
+	mSine->setFreq( 440.0f );
 
 #if ! defined( CINDER_MSW )
 	// FIXME: audio decoding on msw not ready
@@ -175,8 +175,9 @@ void SpectrumScopeTestApp::setupUI()
 	mFreqSlider.mBounds = sliderRect;
 	mFreqSlider.mTitle = "Sine Freq";
 	mFreqSlider.mMin = 0.0f;
-	mFreqSlider.mMax = mContext->getSampleRate() / 2.0f;
-	mFreqSlider.set( mSine->getGen().getFreq() );
+//	mFreqSlider.mMax = mContext->getSampleRate() / 2.0f;
+	mFreqSlider.mMax = 800;
+	mFreqSlider.set( mSine->getFreq() );
 	mWidgets.push_back( &mFreqSlider );
 
 
@@ -250,7 +251,7 @@ void SpectrumScopeTestApp::processDrag( Vec2i pos )
 	if( mSmoothingFactorSlider.hitTest( pos ) )
 		mSpectrumScope->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
 	if( mFreqSlider.hitTest( pos ) )
-		mSine->getGen().setFreq( mFreqSlider.mValueScaled );
+		mSine->setFreq( mFreqSlider.mValueScaled );
 }
 
 void SpectrumScopeTestApp::fileDrop( FileDropEvent event )

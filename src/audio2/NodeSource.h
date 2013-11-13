@@ -211,6 +211,7 @@ class NodeGenSine : public NodeGen {
 	NodeGenSine( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ) {}
 
 	void setFreq( float freq )		{ mFreq = freq; }
+	float getFreq() const			{ return mFreq; }
 
 	void process( Buffer *buffer ) override;
 
@@ -224,6 +225,7 @@ class NodeGenPhasor : public NodeGen {
 	NodeGenPhasor( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ) {}
 
 	void setFreq( float freq )		{ mFreq = freq; }
+	float getFreq() const			{ return mFreq; }
 
 	void process( Buffer *buffer ) override;
 
@@ -239,6 +241,10 @@ class NodeGenTriangle : public NodeGen {
 	void setFreq( float freq )			{ mFreq = freq; }
 	void setUpSlope( float up )			{ mUpSlope = up; }
 	void setDownSlope( float down )		{ mFreq = down; }
+
+	float getFreq() const			{ return mFreq; }
+	float getUpSlope() const		{ return mUpSlope; }
+	float getDownSlope() const		{ return mDownSlope; }
 
 	void process( Buffer *buffer ) override;
 
