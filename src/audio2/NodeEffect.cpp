@@ -48,7 +48,7 @@ NodeEffect::NodeEffect( const Format &format )
 
 void NodeGain::process( Buffer *buffer )
 {
-	multiply( buffer->getData(), mGain, buffer->getData(), buffer->getSize() );
+	multiply( buffer->getData(), mGain.value(), buffer->getData(), buffer->getSize() );
 }
 
 // ----------------------------------------------------------------------------------------------------

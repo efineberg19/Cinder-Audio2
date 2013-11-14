@@ -214,6 +214,10 @@
 		114FE9A01803722600C5841B /* ConverterImplR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE99C1803722600C5841B /* ConverterImplR8brain.h */; };
 		114FE9A21806576400C5841B /* NodeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FE9A11806576400C5841B /* NodeEffect.cpp */; };
 		114FE9A31806576400C5841B /* NodeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114FE9A11806576400C5841B /* NodeEffect.cpp */; };
+		116607641834300C00CF96F0 /* Param.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 116607621834300C00CF96F0 /* Param.cpp */; };
+		116607651834300C00CF96F0 /* Param.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 116607621834300C00CF96F0 /* Param.cpp */; };
+		116607661834300C00CF96F0 /* Param.h in Headers */ = {isa = PBXBuildFile; fileRef = 116607631834300C00CF96F0 /* Param.h */; };
+		116607671834300C00CF96F0 /* Param.h in Headers */ = {isa = PBXBuildFile; fileRef = 116607631834300C00CF96F0 /* Param.h */; };
 		1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1180FD8917AB7CB70070AC30 /* Node.cpp */; };
 		1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1180FD8917AB7CB70070AC30 /* Node.cpp */; };
 		1180FD8D17AB7CB70070AC30 /* Node.h in Headers */ = {isa = PBXBuildFile; fileRef = 1180FD8A17AB7CB70070AC30 /* Node.h */; };
@@ -401,6 +405,8 @@
 		114FE99B1803722600C5841B /* ConverterImplR8brain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConverterImplR8brain.cpp; sourceTree = "<group>"; };
 		114FE99C1803722600C5841B /* ConverterImplR8brain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConverterImplR8brain.h; sourceTree = "<group>"; };
 		114FE9A11806576400C5841B /* NodeEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeEffect.cpp; sourceTree = "<group>"; };
+		116607621834300C00CF96F0 /* Param.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Param.cpp; sourceTree = "<group>"; };
+		116607631834300C00CF96F0 /* Param.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Param.h; sourceTree = "<group>"; };
 		1180FD8917AB7CB70070AC30 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
 		1180FD8A17AB7CB70070AC30 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		118EB898180CF7D500E056C5 /* Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Exception.h; sourceTree = "<group>"; };
@@ -528,6 +534,8 @@
 				118EB8ED180F984B00E056C5 /* NodeFilter.h */,
 				1104F48017754A6E003EAA2B /* NodeSource.cpp */,
 				1104F48117754A6E003EAA2B /* NodeSource.h */,
+				116607621834300C00CF96F0 /* Param.cpp */,
+				116607631834300C00CF96F0 /* Param.h */,
 				11446DB017E64CCD00457AC6 /* Scope.cpp */,
 				11446DB117E64CCD00457AC6 /* Scope.h */,
 				11446DB217E64CCD00457AC6 /* NodeTarget.cpp */,
@@ -849,6 +857,7 @@
 				114FE91118032BF100C5841B /* setup_32.h in Headers */,
 				1115502118026C9100D415BC /* vorbisfile.h in Headers */,
 				114FE8C118032BF100C5841B /* bitrate.h in Headers */,
+				116607661834300C00CF96F0 /* Param.h in Headers */,
 				114FE92B18032BF100C5841B /* scales.h in Headers */,
 				114FE8BB18032BF100C5841B /* backends.h in Headers */,
 				114FE8C918032BF100C5841B /* floor_books.h in Headers */,
@@ -939,6 +948,7 @@
 				114FE91218032BF100C5841B /* setup_32.h in Headers */,
 				1115502218026C9100D415BC /* vorbisfile.h in Headers */,
 				114FE8C218032BF100C5841B /* bitrate.h in Headers */,
+				116607671834300C00CF96F0 /* Param.h in Headers */,
 				114FE92C18032BF100C5841B /* scales.h in Headers */,
 				114FE8BC18032BF100C5841B /* backends.h in Headers */,
 				114FE8CA18032BF100C5841B /* floor_books.h in Headers */,
@@ -1018,6 +1028,7 @@
 			files = (
 				114FE92F18032BF100C5841B /* smallft.c in Sources */,
 				114FE92918032BF100C5841B /* res0.c in Sources */,
+				116607641834300C00CF96F0 /* Param.cpp in Sources */,
 				114FE8E918032BF100C5841B /* lsp.c in Sources */,
 				114FE93918032BF100C5841B /* vorbisfile.c in Sources */,
 				114FE92518032BF100C5841B /* registry.c in Sources */,
@@ -1073,6 +1084,7 @@
 			files = (
 				114FE93018032BF100C5841B /* smallft.c in Sources */,
 				114FE92A18032BF100C5841B /* res0.c in Sources */,
+				116607651834300C00CF96F0 /* Param.cpp in Sources */,
 				114FE8EA18032BF100C5841B /* lsp.c in Sources */,
 				114FE93A18032BF100C5841B /* vorbisfile.c in Sources */,
 				114FE92618032BF100C5841B /* registry.c in Sources */,

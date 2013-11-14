@@ -25,6 +25,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "audio2/Context.h"
 #include "audio2/Dsp.h"
+#include "audio2/Param.h"
 #include "cinder/CinderMath.h"
 
 namespace cinder { namespace audio2 {
@@ -49,7 +50,7 @@ class NodeGain : public NodeEffect {
 	void process( Buffer *buffer ) override;
 
 	void setGain( float linear )	{ mGain = ci::math<float>::clamp( linear, mMin, mMax ); }
-	float getGain() const			{ return mGain; }
+	float getGain() const			{ return mGain.value(); }
 
 	void setMin( float min )		{ mMin = min; }
 	float getMin() const			{ return mMin; }
@@ -57,7 +58,8 @@ class NodeGain : public NodeEffect {
 	float getMax() const			{ return mMax; }
 
   private:
-	std::atomic<float> mGain, mMin, mMax;
+	Param				mGain;
+	std::atomic<float>	mMin, mMax;
 };
 
 //! Simple stereo panning using an equal power cross-fade. The panning position is specified by a single position between the left and right speakers.
