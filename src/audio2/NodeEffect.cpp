@@ -46,9 +46,17 @@ NodeEffect::NodeEffect( const Format &format )
 // MARK: - NodeGain
 // ----------------------------------------------------------------------------------------------------
 
+void NodeGain::initialize()
+{
+
+}
+
 void NodeGain::process( Buffer *buffer )
 {
-	multiply( buffer->getData(), mGain.value(), buffer->getData(), buffer->getSize() );
+	if( mGain.isVaryingNextEval() )
+		multiply( buffer->getData(), mGain.getValueArray(), buffer->getData(), buffer->getSize() );
+	else
+		multiply( buffer->getData(), mGain.getValue(), buffer->getData(), buffer->getSize() );
 }
 
 // ----------------------------------------------------------------------------------------------------

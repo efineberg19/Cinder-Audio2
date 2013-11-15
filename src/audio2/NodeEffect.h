@@ -45,12 +45,14 @@ class NodeGain : public NodeEffect {
 	NodeGain( const Format &format = Format() ) : NodeEffect( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
 	virtual ~NodeGain() {}
 
+	void initialize() override;
+
 	std::string virtual getTag() override			{ return "NodeGain"; }
 
 	void process( Buffer *buffer ) override;
 
 	void setGain( float linear )	{ mGain = ci::math<float>::clamp( linear, mMin, mMax ); }
-	float getGain() const			{ return mGain.value(); }
+	float getGain() const			{ return mGain.getValue(); }
 
 	void setMin( float min )		{ mMin = min; }
 	float getMin() const			{ return mMin; }

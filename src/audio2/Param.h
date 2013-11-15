@@ -23,20 +23,45 @@
 
 #pragma once
 
+#include "audio2/Context.h"
+
+#include <vector>
+
 namespace cinder { namespace audio2 {
+
 
 class Param {
   public:
-	Param( float initialValue = 0.0f ) : mValue( initialValue ), mRampSeconds( 0.005 ) {}
+	Param( float initialValue = 0.0f ) : mValue( initialValue ), mDefaultRampSeconds( 0.005 ), mInternalBufferInitialized( false ) {}
 
-	bool canEvaluateAtAudioRate() const;
-	float value() const	{ return mValue; }
+	void initialize( const ContextRef &context );
 
-	void setRampSeconds( double seconds )	{ mRampSeconds = seconds; }
+	float	getValue() const	{ return mValue; }
+	void	setValue( float value );
+
+	void rampTo( float value );
+
+	void setDefaultRampSeconds( double seconds )	{ mDefaultRampSeconds = seconds; }
+
+	bool	isVaryingNextEval() const;
+
+	float *getValueArray();
+	void eval( double startTime, double stopTime, float *array, size_t arraySize, size_t sampleRate );
 
   private:
-	float	mValue;
-	double	mRampSeconds;
+	struct Event {
+		double mStartTime, mStopTime;
+		float mFinalValue;
+	};
+
+	std::vector<Event>	mEvents;
+
+	ContextRef	mContext;
+	float		mValue;
+	double		mDefaultRampSeconds;
+
+	bool				mInternalBufferInitialized;
+	std::vector<float>	mInternalBuffer;
 };
 
 } } // namespace cinder::audio2

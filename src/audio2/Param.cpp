@@ -25,7 +25,41 @@
 
 namespace cinder { namespace audio2 {
 
-bool Param::canEvaluateAtAudioRate() const
+void Param::initialize( const ContextRef &context )
+{
+	mContext = context;
+}
+
+void Param::setValue( float value )
+{
+	mValue = value;
+}
+
+void Param::rampTo( float value )
+{
+	if( ! mInternalBufferInitialized )
+		mInternalBuffer.resize( mContext->getFramesPerBlock() );
+
+	double startTime = mContext->getNumProcessedSeconds();
+	double endTime = startTime + mDefaultRampSeconds / (double)mContext->getSampleRate();
+
+	Event event = { startTime, endTime, value };
+
+	// TODO NEXT: prepare eval to evaluate this event.
+}
+
+bool Param::isVaryingNextEval() const
+{
+	return false;
+}
+
+float* Param::getValueArray()
+{
+
+	return mInternalBuffer.data();
+}
+
+void Param::eval( double startTime, double stopTime, float *array, size_t arraySize, size_t sampleRate )
 {
 
 }
