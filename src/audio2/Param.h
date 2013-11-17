@@ -31,7 +31,7 @@ namespace cinder { namespace audio2 {
 
 class Param {
   public:
-	Param( float initialValue = 0.0f ) : mValue( initialValue ), mDefaultRampSeconds( 0.005 ), mInternalBufferInitialized( false ) {}
+	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ), mDefaultRampSeconds( 0.005 ), mInternalBufferInitialized( false ) {}
 
 	void initialize( const ContextRef &context );
 
