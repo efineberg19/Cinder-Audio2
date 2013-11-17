@@ -22,6 +22,7 @@
  */
 
 #include "audio2/Param.h"
+#include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
 using namespace std;
@@ -61,6 +62,7 @@ void Param::rampTo( float value, double rampSeconds )
 
 	float deltaValue = value - mValue;
 	event.mIncr = deltaValue / float( endFrame - beginFrame );
+	event.mFramesProcessed = 0;
 
 	LOG_V << "scheduling event with begin frame: " << event.mBeginFrame << ", endFrame: " << event.mEndFrame << ", rampFrames: " << rampFrames << ", incr: " << event.mIncr << endl;
 
@@ -91,42 +93,44 @@ float* Param::getValueArray()
 	CI_ASSERT( mContext );
 
 	uint64_t beginFrame = mContext->getNumProcessedFrames();
-	uint64_t endFrame = beginFrame + mContext->getFramesPerBlock();
-	eval( beginFrame, endFrame, mInternalBuffer.data(), mInternalBuffer.size(), mContext->getSampleRate() );
+	eval( beginFrame, mInternalBuffer.data(), mInternalBuffer.size(), mContext->getSampleRate() );
 
 	return mInternalBuffer.data();
 }
 
-// FIXME: hearing a pop right before completion
-void Param::eval( uint64_t beginFrame, uint64_t endFrame, float *array, size_t arrayLength, size_t sampleRate )
+void Param::eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t sampleRate )
 {
 	if( mEvents.empty() )
 		return;
 
-	const Event &event = mEvents[0];
+	Event &event = mEvents[0];
 
-	uint64_t startRelative = ( beginFrame >= event.mBeginFrame ? 0 : beginFrame - event.mBeginFrame );
-	uint64_t endRelative = ( endFrame < event.mEndFrame ? arrayLength : endFrame - event.mEndFrame );
+	uint64_t endFrame = beginFrame + arrayLength; // one past last frame needed
+	uint64_t startRamp = ( beginFrame >= event.mBeginFrame ? 0 : beginFrame - event.mBeginFrame );
+	uint64_t endRamp = ( endFrame < event.mEndFrame ? arrayLength : event.mEndFrame - beginFrame );
 
-	CI_ASSERT( startRelative <= arrayLength && endRelative <= arrayLength );
-
-	if( startRelative > 0 )
-		memset( array, 0, (size_t)startRelative * sizeof( float ) );
+	// TODO NEXT: this is failing from test slider's gain rampTo
+	CI_ASSERT( startRamp <= arrayLength && endRamp <= arrayLength );
 
 	float value = mValue;
 	float incr = event.mIncr;
-	for( uint64_t i = startRelative; i < endRelative; i++ ) {
+
+	if( startRamp > 0 )
+		fill( value, array, (size_t)startRamp );
+
+	for( uint64_t i = startRamp; i < endRamp; i++ ) {
 		value += incr;
 		array[i] = value;
+		event.mFramesProcessed++;
+	}
+
+	if( endRamp < arrayLength ) {
+		size_t zeroLeft = size_t( arrayLength - endRamp );
+		size_t offset = (size_t)endRamp;
+		fill( event.mEndValue, array + offset, zeroLeft );
 	}
 
 	mValue = value;
-
-	if( endRelative < arrayLength ) {
-		size_t zeroLeft = size_t( arrayLength - endRelative );
-		size_t offset = (size_t)endRelative;
-		memset( array + offset, 0, zeroLeft * sizeof( float ) );
-	}
 
 	if( endFrame >= event.mEndFrame )
 		mEvents.clear();

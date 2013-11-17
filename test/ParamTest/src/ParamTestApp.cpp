@@ -80,7 +80,7 @@ void ParamTestApp::setupFilter()
 void ParamTestApp::triggerRamp()
 {
 	mGain->getGainParam()->setValue( 0.0f );
-	mGain->getGainParam()->rampTo( 0.7f, 0.5f );
+	mGain->getGainParam()->rampTo( 0.6f, 0.5f );
 }
 
 void ParamTestApp::setupUI()
@@ -115,7 +115,6 @@ void ParamTestApp::setupUI()
 	mLowPassFreqSlider.mBounds = sliderRect;
 	mLowPassFreqSlider.mTitle = "LowPass Freq";
 	mLowPassFreqSlider.mMax = 1000.0f;
-//	mLowPassFreqSlider.mMax = 10000.0f;
 	mLowPassFreqSlider.set( mLowPass->getCutoffFreq() );
 	mWidgets.push_back( &mLowPassFreqSlider );
 
@@ -139,8 +138,10 @@ void ParamTestApp::setupUI()
 
 void ParamTestApp::processDrag( Vec2i pos )
 {
-	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.mValueScaled );
+	if( mGainSlider.hitTest( pos ) ) {
+//		mGain->setGain( mGainSlider.mValueScaled );
+		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled );
+	}
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
 	if( mLowPassFreqSlider.hitTest( pos ) )

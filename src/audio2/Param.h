@@ -47,7 +47,7 @@ class Param {
 	bool	isVaryingNextEval() const;
 
 	float*	getValueArray();
-	void	eval( uint64_t beginFrame, uint64_t endFrame, float *array, size_t arrayLength, size_t sampleRate );
+	void	eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t sampleRate );
 
   private:
 	struct Event {
@@ -59,7 +59,7 @@ class Param {
 
 		// linear interpolation specific params (will be removed)
 		float mIncr;
-		uint64_t mFramesToProcess;
+		uint64_t mFramesProcessed;
 	};
 
 	std::vector<Event>	mEvents;
