@@ -29,7 +29,6 @@
 
 namespace cinder { namespace audio2 {
 
-
 class Param {
   public:
 	Param( float initialValue = 0.0f ) : mValue( initialValue ), mDefaultRampSeconds( 0.005 ), mInternalBufferInitialized( false ) {}
@@ -39,19 +38,28 @@ class Param {
 	float	getValue() const	{ return mValue; }
 	void	setValue( float value );
 
-	void rampTo( float value );
+	void rampTo( float value )	{ rampTo( value, mDefaultRampSeconds ); }
+
+	void rampTo( float value, double rampSeconds );
 
 	void setDefaultRampSeconds( double seconds )	{ mDefaultRampSeconds = seconds; }
 
 	bool	isVaryingNextEval() const;
 
-	float *getValueArray();
-	void eval( double startTime, double stopTime, float *array, size_t arraySize, size_t sampleRate );
+	float*	getValueArray();
+	void	eval( uint64_t beginFrame, uint64_t endFrame, float *array, size_t arrayLength, size_t sampleRate );
 
   private:
 	struct Event {
-		double mStartTime, mStopTime;
-		float mFinalValue;
+		Event() {}
+		Event( uint64_t beginFrame, uint64_t endFrame, double totalSeconds, float endValue );
+		uint64_t mBeginFrame, mEndFrame;
+		double mTotalSeconds;
+		float mEndValue;
+
+		// linear interpolation specific params (will be removed)
+		float mIncr;
+		uint64_t mFramesToProcess;
 	};
 
 	std::vector<Event>	mEvents;

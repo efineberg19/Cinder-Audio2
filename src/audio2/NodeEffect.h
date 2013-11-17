@@ -51,8 +51,11 @@ class NodeGain : public NodeEffect {
 
 	void process( Buffer *buffer ) override;
 
+	// TODO: rename set/getValue()
 	void setGain( float linear )	{ mGain = ci::math<float>::clamp( linear, mMin, mMax ); }
 	float getGain() const			{ return mGain.getValue(); }
+
+	Param* getGainParam()			{ return &mGain; }
 
 	void setMin( float min )		{ mMin = min; }
 	float getMin() const			{ return mMin; }

@@ -22,8 +22,16 @@
  */
 
 #include "audio2/Param.h"
+#include "audio2/Debug.h"
+
+using namespace std;
 
 namespace cinder { namespace audio2 {
+
+Param::Event::Event( uint64_t beginFrame, uint64_t endFrame, double totalSeconds, float endValue )
+	: mBeginFrame( beginFrame ), mEndFrame( endFrame ), mTotalSeconds( totalSeconds ), mEndValue( endValue )
+{
+}
 
 void Param::initialize( const ContextRef &context )
 {
@@ -35,33 +43,93 @@ void Param::setValue( float value )
 	mValue = value;
 }
 
-void Param::rampTo( float value )
+void Param::rampTo( float value, double rampSeconds )
 {
+	CI_ASSERT( mContext );
+
 	if( ! mInternalBufferInitialized )
 		mInternalBuffer.resize( mContext->getFramesPerBlock() );
 
-	double startTime = mContext->getNumProcessedSeconds();
-	double endTime = startTime + mDefaultRampSeconds / (double)mContext->getSampleRate();
+//	size_t framesPerBlock = mContext->getFramesPerBlock();
+	size_t sampleRate = mContext->getSampleRate();
+	uint64_t rampFrames = rampSeconds * sampleRate;
 
-	Event event = { startTime, endTime, value };
+	uint64_t beginFrame = mContext->getNumProcessedFrames();
+	uint64_t endFrame = beginFrame + rampFrames;
 
-	// TODO NEXT: prepare eval to evaluate this event.
+	Event event( beginFrame, endFrame, rampSeconds, value );
+
+	float deltaValue = value - mValue;
+	event.mIncr = deltaValue / float( endFrame - beginFrame );
+
+	LOG_V << "scheduling event with begin frame: " << event.mBeginFrame << ", endFrame: " << event.mEndFrame << ", rampFrames: " << rampFrames << ", incr: " << event.mIncr << endl;
+
+	lock_guard<mutex> lock( mContext->getMutex() );
+
+	mEvents.resize( 1 );
+	mEvents[0] = event;
 }
 
 bool Param::isVaryingNextEval() const
 {
+	CI_ASSERT( mContext );
+
+	if( ! mEvents.empty() ) {
+		uint64_t beginFrame = mContext->getNumProcessedFrames();
+		uint64_t endFrame = beginFrame + mContext->getFramesPerBlock();
+
+		const Event &event = mEvents[0];
+
+		if( event.mBeginFrame <= beginFrame || event.mEndFrame >= endFrame )
+			return true;
+	}
 	return false;
 }
 
 float* Param::getValueArray()
 {
+	CI_ASSERT( mContext );
+
+	uint64_t beginFrame = mContext->getNumProcessedFrames();
+	uint64_t endFrame = beginFrame + mContext->getFramesPerBlock();
+	eval( beginFrame, endFrame, mInternalBuffer.data(), mInternalBuffer.size(), mContext->getSampleRate() );
 
 	return mInternalBuffer.data();
 }
 
-void Param::eval( double startTime, double stopTime, float *array, size_t arraySize, size_t sampleRate )
+// FIXME: hearing a pop right before completion
+void Param::eval( uint64_t beginFrame, uint64_t endFrame, float *array, size_t arrayLength, size_t sampleRate )
 {
+	if( mEvents.empty() )
+		return;
 
+	const Event &event = mEvents[0];
+
+	uint64_t startRelative = ( beginFrame >= event.mBeginFrame ? 0 : beginFrame - event.mBeginFrame );
+	uint64_t endRelative = ( endFrame < event.mEndFrame ? arrayLength : endFrame - event.mEndFrame );
+
+	CI_ASSERT( startRelative <= arrayLength && endRelative <= arrayLength );
+
+	if( startRelative > 0 )
+		memset( array, 0, (size_t)startRelative * sizeof( float ) );
+
+	float value = mValue;
+	float incr = event.mIncr;
+	for( uint64_t i = startRelative; i < endRelative; i++ ) {
+		value += incr;
+		array[i] = value;
+	}
+
+	mValue = value;
+
+	if( endRelative < arrayLength ) {
+		size_t zeroLeft = size_t( arrayLength - endRelative );
+		size_t offset = (size_t)endRelative;
+		memset( array + offset, 0, zeroLeft * sizeof( float ) );
+	}
+
+	if( endFrame >= event.mEndFrame )
+		mEvents.clear();
 }
 
 } } // namespace cinder::audio2

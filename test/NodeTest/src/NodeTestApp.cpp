@@ -85,7 +85,7 @@ void NodeTestApp::setup()
 
 	mContext = Context::master();
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0.6f );
+	mGain->setGain( 0.0f );
 
 	mGain->connect( mContext->getTarget() );
 
@@ -111,6 +111,8 @@ void NodeTestApp::setupSine()
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
+
+	mGain->getGainParam()->rampTo( 1.0f, 1.0f );
 }
 
 void NodeTestApp::setup2to1()

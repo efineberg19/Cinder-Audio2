@@ -48,7 +48,7 @@ NodeEffect::NodeEffect( const Format &format )
 
 void NodeGain::initialize()
 {
-
+	mGain.initialize( getContext() );
 }
 
 void NodeGain::process( Buffer *buffer )
