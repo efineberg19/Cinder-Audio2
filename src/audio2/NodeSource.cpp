@@ -395,7 +395,7 @@ void NodeCallbackProcessor::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 NodeGen::NodeGen( const Format &format )
-	: NodeSource( format )
+	: NodeSource( format ), mPhase( 0 )
 {
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 1 );
@@ -471,17 +471,18 @@ void NodeGenTriangle::process( Buffer *buffer )
 	float phaseIncr = mFreq.getValue() / mSampleRate;
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
+	float phase = mPhase;
 
 	for( size_t i = 0; i < count; i++ )	{
 
-		float phase = fmodf( mPhase, 1.0f );
-		mPhase = phase + phaseIncr;
+		// if up slope = down slope = 1, signal ranges from 0 to 0.5. so normalize this from -1 to 1
+		float signal = std::min( phase * mUpSlope, ( 1 - phase ) * mDownSlope );
+		data[i] = signal * 4 - 1;
 
-		float up = phase * mUpSlope;
-		float down = (-phase + 1 ) * mDownSlope;
-
-		data[i] = std::min( up, down );
+		phase = fmodf( phase + phaseIncr, 1 );
 	}
+
+	mPhase = phase;
 }
 
 } } // namespace cinder::audio2

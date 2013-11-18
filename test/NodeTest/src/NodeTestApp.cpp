@@ -143,7 +143,7 @@ void NodeTestApp::setup1to2()
 	mSine->start();
 
 	if( ! mScope )
-		mScope = mContext->makeNode( new Scope() );
+		mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 2048 ) ) );
 	mSine->addConnection( mScope );
 
 	mEnableNoiseButton.setEnabled( false );
