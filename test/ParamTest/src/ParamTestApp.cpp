@@ -87,8 +87,10 @@ void ParamTestApp::setupFilter()
 
 void ParamTestApp::triggerRamp()
 {
-	mGain->getGainParam()->setValue( 0.0f );
-	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
+//	mGain->getGainParam()->setValue( 0.0f );
+//	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
+
+	mGen->getParamFreq()->rampTo( randFloat( 60, 600 ), 0.5f, 0.0f );
 }
 
 void ParamTestApp::setupUI()
@@ -155,8 +157,8 @@ void ParamTestApp::processDrag( Vec2i pos )
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
 	if( mGenFreqSlider.hitTest( pos ) ) {
-		mGen->setFreq( mGenFreqSlider.mValueScaled );
-//		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.03f );
+//		mGen->setFreq( mGenFreqSlider.mValueScaled );
+		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f );
 	}
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );

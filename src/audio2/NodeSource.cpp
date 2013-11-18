@@ -26,6 +26,7 @@
 #include "audio2/Debug.h"
 
 #include "cinder/Utilities.h"
+#include "cinder/CinderMath.h"
 
 using namespace ci;
 using namespace std;
@@ -418,17 +419,26 @@ void NodeGenNoise::process( Buffer *buffer )
 void NodeGenSine::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
-	size_t count = buffer->getSize();
+	const size_t count = buffer->getSize();
+	const float phaseMul = float( 2.0 * M_PI / (double)mSampleRate );
+	float phase = mPhase;
 
-	float phaseIncr = ( mFreq.getValue() / mSampleRate ) * 2.0f * (float)M_PI;
-
-	for( size_t i = 0; i < count; i++ ) {
-		data[i] = std::sin( mPhase );
-		mPhase += phaseIncr;
-		if( mPhase > M_PI * 2.0 ) {
-			mPhase -= (float)(M_PI * 2.0);
+	if( mFreq.isVaryingNextEval() ) {
+		float *freqValues = mFreq.getValueArray();
+		for( size_t i = 0; i < count; i++ ) {
+			data[i] = math<float>::sin( phase );
+			phase = fmodf( phase + freqValues[i] * phaseMul, M_PI * 2.0 );
 		}
 	}
+	else {
+		float phaseIncr = mFreq.getValue() * phaseMul;
+		for( size_t i = 0; i < count; i++ ) {
+			data[i] = math<float>::sin( phase );
+			phase = fmodf( phase + phaseIncr, M_PI * 2.0 );
+		}
+	}
+
+	mPhase = phase;
 }
 
 void NodeGenPhasor::process( Buffer *buffer )
