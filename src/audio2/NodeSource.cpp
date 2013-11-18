@@ -403,6 +403,7 @@ NodeGen::NodeGen( const Format &format )
 void NodeGen::initialize()
 {
 	mSampleRate = (float)getContext()->getSampleRate();
+	mFreq.initialize( getContext() );
 }
 
 void NodeGenNoise::process( Buffer *buffer )
@@ -419,7 +420,7 @@ void NodeGenSine::process( Buffer *buffer )
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
 
-	float phaseIncr = ( mFreq / mSampleRate ) * 2.0f * (float)M_PI;
+	float phaseIncr = ( mFreq.getValue() / mSampleRate ) * 2.0f * (float)M_PI;
 
 	for( size_t i = 0; i < count; i++ ) {
 		data[i] = std::sin( mPhase );
@@ -432,7 +433,7 @@ void NodeGenSine::process( Buffer *buffer )
 
 void NodeGenPhasor::process( Buffer *buffer )
 {
-	float phaseIncr = mFreq / mSampleRate;
+	float phaseIncr = mFreq.getValue() / mSampleRate;
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
 	for( size_t i = 0; i < count; i++ ) {
@@ -444,7 +445,7 @@ void NodeGenPhasor::process( Buffer *buffer )
 
 void NodeGenTriangle::process( Buffer *buffer )
 {
-	float phaseIncr = mFreq / mSampleRate;
+	float phaseIncr = mFreq.getValue() / mSampleRate;
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
 

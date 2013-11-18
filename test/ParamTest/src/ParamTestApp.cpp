@@ -10,6 +10,13 @@
 
 #include "Gui.h"
 
+// TODO LIST:
+// - make NodeGen's freq a Param
+// - account for multiple Param::Events
+//		- need an AudioTimeline here?
+// - make ramp happen by std::function<>, so it is easy to add variants
+// - decide whether time is measured in frames or seconds
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -31,7 +38,7 @@ class ParamTestApp : public AppNative {
 
 	Context*				mContext;
 	NodeSourceRef			mNoiseGen;
-	shared_ptr<NodeGenTriangle>		mWaveGen;
+	NodeGenRef				mGen;
 	NodeGainRef				mGain;
 	NodePan2dRef			mPan;
 	NodeFilterLowPassRef	mLowPass;
@@ -39,7 +46,7 @@ class ParamTestApp : public AppNative {
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton, mRampButton;
 	VSelector				mTestSelector;
-	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mFilterParam2Slider;
+	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mGenFreqSlider;
 };
 
 void ParamTestApp::setup()
@@ -52,8 +59,9 @@ void ParamTestApp::setup()
 	mPan = mContext->makeNode( new NodePan2d() );
 	mNoiseGen = mContext->makeNode( new NodeGenNoise( Node::Format().autoEnable() ) );
 
-	mWaveGen = mContext->makeNode( new NodeGenTriangle() );
-	mWaveGen->setFreq( 220.0f );
+//	mGen = mContext->makeNode( new NodeGenTriangle() );
+	mGen = mContext->makeNode( new NodeGenSine() );
+	mGen->setFreq( 220.0f );
 
 	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
 
@@ -68,8 +76,8 @@ void ParamTestApp::setup()
 
 void ParamTestApp::setupBasic()
 {
-	mWaveGen->connect( mGain )->connect( mContext->getTarget() );
-	mWaveGen->start();
+	mGen->connect( mGain )->connect( mContext->getTarget() );
+	mGen->start();
 }
 
 void ParamTestApp::setupFilter()
@@ -112,18 +120,19 @@ void ParamTestApp::setupUI()
 	mWidgets.push_back( &mPanSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	mGenFreqSlider.mBounds = sliderRect;
+	mGenFreqSlider.mTitle = "Gen Freq";
+	mGenFreqSlider.mMin = 60.0f;
+	mGenFreqSlider.mMax = 500.0f;
+	mGenFreqSlider.set( mGen->getFreq() );
+	mWidgets.push_back( &mGenFreqSlider );
+
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
 	mLowPassFreqSlider.mBounds = sliderRect;
 	mLowPassFreqSlider.mTitle = "LowPass Freq";
 	mLowPassFreqSlider.mMax = 1000.0f;
 	mLowPassFreqSlider.set( mLowPass->getCutoffFreq() );
 	mWidgets.push_back( &mLowPassFreqSlider );
-
-	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
-	mFilterParam2Slider.mBounds = sliderRect;
-	mFilterParam2Slider.mTitle = "filter resonance";
-	mFilterParam2Slider.mMax = 50.0f;
-	mFilterParam2Slider.set( mLowPass->getResonance() );
-	mWidgets.push_back( &mFilterParam2Slider );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -145,21 +154,21 @@ void ParamTestApp::processDrag( Vec2i pos )
 	}
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
+	if( mGenFreqSlider.hitTest( pos ) ) {
+		mGen->setFreq( mGenFreqSlider.mValueScaled );
+//		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.03f );
+	}
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );
-	if( mFilterParam2Slider.hitTest( pos ) )
-		mLowPass->setResonance( mFilterParam2Slider.mValueScaled );
 }
 
 void ParamTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-	if( mRampButton.hitTest( pos ) )
+	else if( mRampButton.hitTest( pos ) )
 		triggerRamp();
-
-	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
+	else if( mTestSelector.hitTest( pos ) && mTestSelector.mCurrentSectionIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
@@ -176,6 +185,8 @@ void ParamTestApp::processTap( Vec2i pos )
 		mContext->setEnabled( enabled );
 		mContext->printGraph();
 	}
+	else
+		processDrag( pos );
 }
 
 void ParamTestApp::draw()

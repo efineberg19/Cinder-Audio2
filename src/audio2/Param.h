@@ -23,11 +23,11 @@
 
 #pragma once
 
-#include "audio2/Context.h"
-
 #include <vector>
 
 namespace cinder { namespace audio2 {
+
+typedef std::shared_ptr<class Context>			ContextRef;
 
 class Param {
   public:

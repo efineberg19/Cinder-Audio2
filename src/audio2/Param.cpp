@@ -22,6 +22,7 @@
  */
 
 #include "audio2/Param.h"
+#include "audio2/Context.h"
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 

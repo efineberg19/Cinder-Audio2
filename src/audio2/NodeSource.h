@@ -24,6 +24,7 @@
 #pragma once
 
 #include "audio2/Node.h"
+#include "audio2/Param.h"
 #include "audio2/File.h"
 #include "audio2/Dsp.h"
 #include "audio2/RingBuffer.h"
@@ -39,6 +40,7 @@ typedef std::shared_ptr<class NodeLineIn>					NodeLineInRef;
 typedef std::shared_ptr<class NodeSamplePlayer>				NodeSamplePlayerRef;
 typedef std::shared_ptr<class NodeBufferPlayer>				NodeBufferPlayerRef;
 typedef std::shared_ptr<class NodeFilePlayer>				NodeFilePlayerRef;
+typedef std::shared_ptr<class NodeGen>						NodeGenRef;
 typedef std::shared_ptr<class NodeCallbackProcessor>		NodeCallbackProcessorRef;
 
 typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
@@ -195,10 +197,19 @@ class NodeGen : public NodeSource {
 
 	std::string virtual getTag() override			{ return "NodeGen"; }
 
+	void setFreq( float freq )		{ mFreq.setValue( freq ); }
+	float getFreq() const			{ return mFreq.getValue(); }
+
+	Param* getParamFreq()			{ return &mFreq; }
+
   protected:
 	float mSampleRate;
+
+	Param mFreq;
+	float mPhase;
 };
 
+//! \note freq param is ignored
 class NodeGenNoise : public NodeGen {
   public:
 	NodeGenNoise( const Format &format = Format() ) : NodeGen( format ) {}
@@ -206,51 +217,37 @@ class NodeGenNoise : public NodeGen {
 	void process( Buffer *buffer ) override;
 };
 
-class NodeGenSine : public NodeGen {
-  public:
-	NodeGenSine( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ) {}
-
-	void setFreq( float freq )		{ mFreq = freq; }
-	float getFreq() const			{ return mFreq; }
+class NodeGenPhasor : public NodeGen {
+public:
+	NodeGenPhasor( const Format &format = Format() ) : NodeGen( format )
+	{}
 
 	void process( Buffer *buffer ) override;
-
-  private:
-	std::atomic<float> mFreq;
-	float mPhase;
 };
 
-class NodeGenPhasor : public NodeGen {
+class NodeGenSine : public NodeGen {
   public:
-	NodeGenPhasor( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ) {}
-
-	void setFreq( float freq )		{ mFreq = freq; }
-	float getFreq() const			{ return mFreq; }
+	NodeGenSine( const Format &format = Format() ) : NodeGen( format )
+	{}
 
 	void process( Buffer *buffer ) override;
-
-  private:
-	std::atomic<float> mFreq;
-	float mPhase;
 };
 
 class NodeGenTriangle : public NodeGen {
   public:
-	NodeGenTriangle( const Format &format = Format() ) : NodeGen( format ), mPhase( 0.0f ), mFreq( 0.0f ), mUpSlope( 1.0f ), mDownSlope( 1.0f ) {}
+	NodeGenTriangle( const Format &format = Format() ) : NodeGen( format ), mUpSlope( 1.0f ), mDownSlope( 1.0f )
+	{}
 
-	void setFreq( float freq )			{ mFreq = freq; }
 	void setUpSlope( float up )			{ mUpSlope = up; }
-	void setDownSlope( float down )		{ mFreq = down; }
+	void setDownSlope( float down )		{ mDownSlope = down; }
 
-	float getFreq() const			{ return mFreq; }
 	float getUpSlope() const		{ return mUpSlope; }
 	float getDownSlope() const		{ return mDownSlope; }
 
 	void process( Buffer *buffer ) override;
 
   private:
-	std::atomic<float> mFreq, mUpSlope, mDownSlope;
-	float mPhase;
+	std::atomic<float> mUpSlope, mDownSlope;
 };
 
 } } // namespace cinder::audio2
