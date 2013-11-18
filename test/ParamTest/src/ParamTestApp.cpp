@@ -11,7 +11,6 @@
 #include "Gui.h"
 
 // TODO LIST:
-// - make NodeGen's freq a Param
 // - account for multiple Param::Events
 //		- need an AudioTimeline here?
 // - make ramp happen by std::function<>, so it is easy to add variants
@@ -57,9 +56,9 @@ void ParamTestApp::setup()
 
 	mPan = mContext->makeNode( new NodePan2d() );
 
-//	mGen = mContext->makeNode( new NodeGenTriangle() );
+	mGen = mContext->makeNode( new NodeGenTriangle() );
 //	mGen = mContext->makeNode( new NodeGenSine() );
-	mGen = mContext->makeNode( new NodeGenPhasor() );
+//	mGen = mContext->makeNode( new NodeGenPhasor() );
 	mGen->setFreq( 220.0f );
 
 	mLowPass = mContext->makeNode( new NodeFilterLowPass() );

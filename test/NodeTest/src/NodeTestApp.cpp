@@ -85,7 +85,7 @@ void NodeTestApp::setup()
 
 	mContext = Context::master();
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0.0f );
+//	mGain->setGain( 0.0f );
 
 	mGain->connect( mContext->getTarget() );
 

@@ -466,20 +466,38 @@ void NodeGenPhasor::process( Buffer *buffer )
 	mPhase = phase;
 }
 
+namespace {
+
+inline float calcTriangleSignal( float phase, float upSlope, float downSlope )
+{
+	// if up slope = down slope = 1, signal ranges from 0 to 0.5. so normalize this from -1 to 1
+	float signal = std::min( phase * upSlope, ( 1 - phase ) * downSlope );
+	return signal * 4 - 1;
+}
+
+} // anonymous namespace
+
 void NodeGenTriangle::process( Buffer *buffer )
 {
-	float phaseIncr = mFreq.getValue() / mSampleRate;
+	const float phaseMul = 1.0f / mSampleRate;
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
 	float phase = mPhase;
 
-	for( size_t i = 0; i < count; i++ )	{
+	if( mFreq.isVaryingThisBlock() ) {
+		float *freqValues = mFreq.getValueArray();
+		for( size_t i = 0; i < count; i++ )	{
+			data[i] = calcTriangleSignal( phase, mUpSlope, mDownSlope );
+			phase = fmodf( phase + freqValues[i] * phaseMul, 1.0f );
+		}
 
-		// if up slope = down slope = 1, signal ranges from 0 to 0.5. so normalize this from -1 to 1
-		float signal = std::min( phase * mUpSlope, ( 1 - phase ) * mDownSlope );
-		data[i] = signal * 4 - 1;
-
-		phase = fmodf( phase + phaseIncr, 1 );
+	}
+	else {
+		const float phaseIncr = mFreq.getValue() * phaseMul;
+		for( size_t i = 0; i < count; i++ )	{
+			data[i] = calcTriangleSignal( phase, mUpSlope, mDownSlope );
+			phase = fmodf( phase + phaseIncr, 1 );
+		}
 	}
 
 	mPhase = phase;
