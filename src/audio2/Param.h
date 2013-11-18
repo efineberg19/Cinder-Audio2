@@ -44,7 +44,7 @@ class Param {
 
 	void setDefaultRampSeconds( double seconds )	{ mDefaultRampSeconds = seconds; }
 
-	bool	isVaryingNextEval() const;
+	bool	isVaryingThisBlock() const;
 
 	float*	getValueArray();
 	void	eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t sampleRate );

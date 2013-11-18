@@ -73,7 +73,7 @@ void Param::rampTo( float value, double rampSeconds, double delaySeconds )
 	mEvents[0] = event;
 }
 
-bool Param::isVaryingNextEval() const
+bool Param::isVaryingThisBlock() const
 {
 	CI_ASSERT( mContext );
 

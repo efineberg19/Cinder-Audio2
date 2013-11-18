@@ -423,7 +423,7 @@ void NodeGenSine::process( Buffer *buffer )
 	const float phaseMul = float( 2.0 * M_PI / (double)mSampleRate );
 	float phase = mPhase;
 
-	if( mFreq.isVaryingNextEval() ) {
+	if( mFreq.isVaryingThisBlock() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase );
@@ -448,7 +448,7 @@ void NodeGenPhasor::process( Buffer *buffer )
 	const float phaseMul = 1.0f / mSampleRate;
 	float phase = mPhase;
 
-	if( mFreq.isVaryingNextEval() ) {
+	if( mFreq.isVaryingThisBlock() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = phase;

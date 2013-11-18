@@ -53,7 +53,7 @@ void NodeGain::initialize()
 
 void NodeGain::process( Buffer *buffer )
 {
-	if( mGain.isVaryingNextEval() )
+	if( mGain.isVaryingThisBlock() )
 		multiply( buffer->getData(), mGain.getValueArray(), buffer->getData(), buffer->getSize() );
 	else
 		multiply( buffer->getData(), mGain.getValue(), buffer->getData(), buffer->getSize() );
