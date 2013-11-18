@@ -140,7 +140,8 @@ void ParamTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) ) {
 //		mGain->setGain( mGainSlider.mValueScaled );
-		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled );
+//		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled );
+		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled, 0.05f );
 	}
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );

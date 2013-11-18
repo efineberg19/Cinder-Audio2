@@ -30,7 +30,7 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 Param::Event::Event( uint64_t beginFrame, uint64_t endFrame, double totalSeconds, float endValue )
-	: mBeginFrame( beginFrame ), mEndFrame( endFrame ), mTotalSeconds( totalSeconds ), mEndValue( endValue )
+	: mBeginFrame( beginFrame ), mEndFrame( endFrame ), mTotalSeconds( totalSeconds ), mEndValue( endValue ), mMarkedForRemoval( false )
 {
 }
 
@@ -64,7 +64,7 @@ void Param::rampTo( float value, double rampSeconds )
 	event.mIncr = deltaValue / float( endFrame - beginFrame );
 	event.mFramesProcessed = 0;
 
-	LOG_V << "scheduling event with begin frame: " << event.mBeginFrame << ", endFrame: " << event.mEndFrame << ", rampFrames: " << rampFrames << ", incr: " << event.mIncr << endl;
+//	app::console() << "event frame: " << event.mBeginFrame << "-" << event.mEndFrame << " (" << rampFrames << "), val: " << mValue << " - " << value << ", incr: " << event.mIncr << ", ramp seconds: " << rampSeconds << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -104,35 +104,39 @@ void Param::eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t 
 		return;
 
 	Event &event = mEvents[0];
+	if( event.mEndFrame > beginFrame ) {
+		uint64_t endFrame = beginFrame + arrayLength; // one past last frame needed
+		uint64_t startRamp = beginFrame >= event.mBeginFrame ? 0 : beginFrame - event.mBeginFrame;
+		uint64_t endRamp = endFrame < event.mEndFrame ? arrayLength : event.mEndFrame - beginFrame;
 
-	uint64_t endFrame = beginFrame + arrayLength; // one past last frame needed
-	uint64_t startRamp = ( beginFrame >= event.mBeginFrame ? 0 : beginFrame - event.mBeginFrame );
-	uint64_t endRamp = ( endFrame < event.mEndFrame ? arrayLength : event.mEndFrame - beginFrame );
+		CI_ASSERT( startRamp <= arrayLength && endRamp <= arrayLength );
 
-	// TODO NEXT: this is failing from test slider's gain rampTo
-	CI_ASSERT( startRamp <= arrayLength && endRamp <= arrayLength );
+		float value = mValue;
+		float incr = event.mIncr;
 
-	float value = mValue;
-	float incr = event.mIncr;
+		if( startRamp > 0 )
+			fill( value, array, (size_t)startRamp );
 
-	if( startRamp > 0 )
-		fill( value, array, (size_t)startRamp );
+		for( uint64_t i = startRamp; i < endRamp; i++ ) {
+			value += incr;
+			array[i] = value;
+			event.mFramesProcessed++;
+		}
 
-	for( uint64_t i = startRamp; i < endRamp; i++ ) {
-		value += incr;
-		array[i] = value;
-		event.mFramesProcessed++;
+		if( endRamp < arrayLength ) {
+			value = event.mEndValue;
+			size_t zeroLeft = size_t( arrayLength - endRamp );
+			size_t offset = (size_t)endRamp;
+			fill( value, array + offset, zeroLeft );
+			event.mMarkedForRemoval = true;
+		}
+		
+		mValue = value;
 	}
+	else
+		event.mMarkedForRemoval = true;
 
-	if( endRamp < arrayLength ) {
-		size_t zeroLeft = size_t( arrayLength - endRamp );
-		size_t offset = (size_t)endRamp;
-		fill( event.mEndValue, array + offset, zeroLeft );
-	}
-
-	mValue = value;
-
-	if( endFrame >= event.mEndFrame )
+	if( event.mMarkedForRemoval )
 		mEvents.clear();
 }
 

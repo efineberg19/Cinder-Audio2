@@ -54,8 +54,9 @@ class Param {
 		Event() {}
 		Event( uint64_t beginFrame, uint64_t endFrame, double totalSeconds, float endValue );
 		uint64_t mBeginFrame, mEndFrame;
-		double mTotalSeconds;
-		float mEndValue;
+		double	mTotalSeconds;
+		float	mEndValue;
+		bool	mMarkedForRemoval;
 
 		// linear interpolation specific params (will be removed)
 		float mIncr;
