@@ -44,18 +44,18 @@ void Param::setValue( float value )
 	mValue = value;
 }
 
-void Param::rampTo( float value, double rampSeconds )
+void Param::rampTo( float value, double rampSeconds, double delaySeconds )
 {
 	CI_ASSERT( mContext );
 
 	if( ! mInternalBufferInitialized )
 		mInternalBuffer.resize( mContext->getFramesPerBlock() );
 
-//	size_t framesPerBlock = mContext->getFramesPerBlock();
 	size_t sampleRate = mContext->getSampleRate();
 	uint64_t rampFrames = rampSeconds * sampleRate;
+	uint64_t delayFrames = delaySeconds * sampleRate;
 
-	uint64_t beginFrame = mContext->getNumProcessedFrames();
+	uint64_t beginFrame = mContext->getNumProcessedFrames() + delayFrames;
 	uint64_t endFrame = beginFrame + rampFrames;
 
 	Event event( beginFrame, endFrame, rampSeconds, value );
@@ -64,7 +64,7 @@ void Param::rampTo( float value, double rampSeconds )
 	event.mIncr = deltaValue / float( endFrame - beginFrame );
 	event.mFramesProcessed = 0;
 
-//	app::console() << "event frame: " << event.mBeginFrame << "-" << event.mEndFrame << " (" << rampFrames << "), val: " << mValue << " - " << value << ", incr: " << event.mIncr << ", ramp seconds: " << rampSeconds << endl;
+//	app::console() << "event frame: " << event.mBeginFrame << "-" << event.mEndFrame << " (" << rampFrames << "), val: " << mValue << " - " << value << ", incr: " << event.mIncr << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -103,10 +103,14 @@ void Param::eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t 
 	if( mEvents.empty() )
 		return;
 
+	uint64_t endFrame = beginFrame + arrayLength; // one past last frame needed
 	Event &event = mEvents[0];
-	if( event.mEndFrame > beginFrame ) {
-		uint64_t endFrame = beginFrame + arrayLength; // one past last frame needed
-		uint64_t startRamp = beginFrame >= event.mBeginFrame ? 0 : beginFrame - event.mBeginFrame;
+	if( endFrame < event.mBeginFrame ) {
+		// event does not begin until after this block, so just fill array with current value
+		fill( mValue, array, arrayLength );
+	}
+	else if( event.mEndFrame > beginFrame ) {
+		uint64_t startRamp = beginFrame >= event.mBeginFrame ? 0 : event.mBeginFrame - beginFrame;
 		uint64_t endRamp = endFrame < event.mEndFrame ? arrayLength : event.mEndFrame - beginFrame;
 
 		CI_ASSERT( startRamp <= arrayLength && endRamp <= arrayLength );

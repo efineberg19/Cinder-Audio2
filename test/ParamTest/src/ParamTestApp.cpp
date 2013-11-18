@@ -80,7 +80,7 @@ void ParamTestApp::setupFilter()
 void ParamTestApp::triggerRamp()
 {
 	mGain->getGainParam()->setValue( 0.0f );
-	mGain->getGainParam()->rampTo( 0.6f, 0.5f );
+	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
 }
 
 void ParamTestApp::setupUI()

@@ -38,9 +38,9 @@ class Param {
 	float	getValue() const	{ return mValue; }
 	void	setValue( float value );
 
-	void rampTo( float value )	{ rampTo( value, mDefaultRampSeconds ); }
-
-	void rampTo( float value, double rampSeconds );
+	void rampTo( float value )							{ rampTo( value, mDefaultRampSeconds, 0.0 ); }
+	void rampTo( float value, double rampSeconds )		{ rampTo( value, rampSeconds, 0.0 ); }
+	void rampTo( float value, double rampSeconds, double delaySeconds );
 
 	void setDefaultRampSeconds( double seconds )	{ mDefaultRampSeconds = seconds; }
 
