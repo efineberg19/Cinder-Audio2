@@ -431,7 +431,7 @@ void NodeGenSine::process( Buffer *buffer )
 		}
 	}
 	else {
-		float phaseIncr = mFreq.getValue() * phaseMul;
+		const float phaseIncr = mFreq.getValue() * phaseMul;
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase );
 			phase = fmodf( phase + phaseIncr, M_PI * 2.0 );
@@ -443,14 +443,27 @@ void NodeGenSine::process( Buffer *buffer )
 
 void NodeGenPhasor::process( Buffer *buffer )
 {
-	float phaseIncr = mFreq.getValue() / mSampleRate;
 	float *data = buffer->getData();
-	size_t count = buffer->getSize();
-	for( size_t i = 0; i < count; i++ ) {
-		float phase = fmodf( mPhase, 1.0f );
-		data[i] = phase;
-		mPhase = phase + phaseIncr;
+	const size_t count = buffer->getSize();
+	const float phaseMul = 1.0f / mSampleRate;
+	float phase = mPhase;
+
+	if( mFreq.isVaryingNextEval() ) {
+		float *freqValues = mFreq.getValueArray();
+		for( size_t i = 0; i < count; i++ ) {
+			data[i] = phase;
+			phase = fmodf( phase + freqValues[i] * phaseMul, 1.0f );
+		}
 	}
+	else {
+		const float phaseIncr = mFreq.getValue() * phaseMul;
+		for( size_t i = 0; i < count; i++ ) {
+			data[i] = phase;
+			phase = fmodf( phase + phaseIncr, 1.0f );
+		}
+	}
+
+	mPhase = phase;
 }
 
 void NodeGenTriangle::process( Buffer *buffer )

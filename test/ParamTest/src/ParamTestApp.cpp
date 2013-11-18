@@ -37,7 +37,6 @@ class ParamTestApp : public AppNative {
 	void triggerRamp();
 
 	Context*				mContext;
-	NodeSourceRef			mNoiseGen;
 	NodeGenRef				mGen;
 	NodeGainRef				mGain;
 	NodePan2dRef			mPan;
@@ -57,10 +56,10 @@ void ParamTestApp::setup()
 	mGain->setGain( 0.6f );
 
 	mPan = mContext->makeNode( new NodePan2d() );
-	mNoiseGen = mContext->makeNode( new NodeGenNoise( Node::Format().autoEnable() ) );
 
 //	mGen = mContext->makeNode( new NodeGenTriangle() );
-	mGen = mContext->makeNode( new NodeGenSine() );
+//	mGen = mContext->makeNode( new NodeGenSine() );
+	mGen = mContext->makeNode( new NodeGenPhasor() );
 	mGen->setFreq( 220.0f );
 
 	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
@@ -82,15 +81,16 @@ void ParamTestApp::setupBasic()
 
 void ParamTestApp::setupFilter()
 {
-	mNoiseGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mGen->start();
 }
 
 void ParamTestApp::triggerRamp()
 {
-//	mGain->getGainParam()->setValue( 0.0f );
-//	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
+	mGain->getGainParam()->setValue( 0.0f );
+	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
 
-	mGen->getParamFreq()->rampTo( randFloat( 60, 600 ), 0.5f, 0.0f );
+//	mGen->getParamFreq()->rampTo( randFloat( 60, 600 ), 0.5f, 0.0f );
 }
 
 void ParamTestApp::setupUI()
@@ -166,11 +166,13 @@ void ParamTestApp::processDrag( Vec2i pos )
 
 void ParamTestApp::processTap( Vec2i pos )
 {
+	size_t selectorIndex = mTestSelector.mCurrentSectionIndex;
+
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
 	else if( mRampButton.hitTest( pos ) )
 		triggerRamp();
-	else if( mTestSelector.hitTest( pos ) && mTestSelector.mCurrentSectionIndex != mTestSelector.mCurrentSectionIndex ) {
+	else if( mTestSelector.hitTest( pos ) && selectorIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
