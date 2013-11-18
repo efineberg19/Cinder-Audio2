@@ -101,8 +101,10 @@ float* Param::getValueArray()
 
 void Param::eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t sampleRate )
 {
-	if( mEvents.empty() )
+	if( mEvents.empty() ) {
+		fill( mValue, array, arrayLength );
 		return;
+	}
 
 	uint64_t endFrame = beginFrame + arrayLength; // one past last frame needed
 	Event &event = mEvents[0];
