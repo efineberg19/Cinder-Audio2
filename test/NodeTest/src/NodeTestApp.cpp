@@ -244,7 +244,7 @@ void NodeTestApp::draw()
 	gl::clear();
 
 	if( mScope && mScope->getNumConnectedInputs() )
-		drawAudioBuffer( mScope->getBuffer(), getWindowBounds() );
+		drawAudioBuffer( mScope->getBuffer(), getWindowBounds(), Vec2f( 20.0f, 20.0f ), true );
 
 	drawWidgets( mWidgets );
 }

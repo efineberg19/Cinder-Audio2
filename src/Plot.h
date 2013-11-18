@@ -31,7 +31,7 @@
 
 #include <vector>
 
-void drawAudioBuffer( const ci::audio2::Buffer &buffer, const ci::Rectf &bounds, float padding = 20.0f );
+void drawAudioBuffer( const ci::audio2::Buffer &buffer, const ci::Rectf &bounds, const ci::Vec2f &padding = ci::Vec2f( 0, 20 ), bool drawFrame = false );
 
 class Waveform {
   public:

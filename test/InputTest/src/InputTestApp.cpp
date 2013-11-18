@@ -184,7 +184,7 @@ void InputTestApp::draw()
 	if( mScope && mScope->isInitialized() ) {
 
 		float padding = 30.0f;
-		drawAudioBuffer( mScope->getBuffer(), getWindowBounds(), padding );
+		drawAudioBuffer( mScope->getBuffer(), getWindowBounds(), Vec2f( 0.0f, padding ) );
 
 		float volumeMeterHeight = 20.0f;
 		float volume = mScope->getVolume();
