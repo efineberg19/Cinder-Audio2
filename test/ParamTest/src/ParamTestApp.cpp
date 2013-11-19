@@ -11,10 +11,11 @@
 #include "Gui.h"
 
 // TODO LIST:
+// - make ramp happen by std::function<>, so it is easy to add variants
+//		- getting there, jump to with the sliders shows things still aren't perfectly connected
+// - (DONE, seconds is clearer in the general case) decide whether time is measured in frames or seconds
 // - account for multiple Param::Events
 //		- need an AudioTimeline here?
-// - make ramp happen by std::function<>, so it is easy to add variants
-// - decide whether time is measured in frames or seconds
 
 using namespace ci;
 using namespace ci::app;
@@ -52,14 +53,19 @@ void ParamTestApp::setup()
 	mContext = Context::master();
 
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0.6f );
+	mGain->setGain( 0 );
 
 	mPan = mContext->makeNode( new NodePan2d() );
 
 	mGen = mContext->makeNode( new NodeGenTriangle() );
 //	mGen = mContext->makeNode( new NodeGenSine() );
 //	mGen = mContext->makeNode( new NodeGenPhasor() );
-	mGen->setFreq( 220.0f );
+
+
+	// TODO: this isn't possible now because rampTo requires the Context to already be set.
+	// - needs the current number of processed seconds.  could set it to 0 if no context, but this may be a bit too hacky.
+	mGen->setFreq( 0 );
+//	mGen->getParamFreq()->rampTo( 100, 0.5f );
 
 	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
 
@@ -86,10 +92,14 @@ void ParamTestApp::setupFilter()
 
 void ParamTestApp::triggerRamp()
 {
-	mGain->getGainParam()->setValue( 0.0f );
-	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
+//	mGain->getGainParam()->setValue( 0.0f );
+//	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
+	mGain->getGainParam()->rampTo( 0.8f, 2.0f );
+
+//	mGain->getGainParam()->rampTo( 0.7f, 0.2f );
 
 //	mGen->getParamFreq()->rampTo( randFloat( 60, 600 ), 0.5f, 0.0f );
+	mGen->getParamFreq()->rampTo( 100, 1.0f );
 }
 
 void ParamTestApp::setupUI()
@@ -123,7 +133,7 @@ void ParamTestApp::setupUI()
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
 	mGenFreqSlider.mBounds = sliderRect;
 	mGenFreqSlider.mTitle = "Gen Freq";
-	mGenFreqSlider.mMin = 60.0f;
+	mGenFreqSlider.mMin = 0.0f;
 	mGenFreqSlider.mMax = 500.0f;
 	mGenFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mGenFreqSlider );

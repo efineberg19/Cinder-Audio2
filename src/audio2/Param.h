@@ -47,20 +47,19 @@ class Param {
 	bool	isVaryingThisBlock() const;
 
 	float*	getValueArray();
-	void	eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t sampleRate );
+	void	eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate );
 
   private:
 	struct Event {
 		Event() {}
-		Event( uint64_t beginFrame, uint64_t endFrame, double totalSeconds, float endValue );
-		uint64_t mBeginFrame, mEndFrame;
-		double	mTotalSeconds;
-		float	mEndValue;
+		Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd );
+
+		float	mTimeBegin, mTimeEnd, mTotalSeconds;
+		float	mValueBegin, mValueEnd;
 		bool	mMarkedForRemoval;
 
-		// linear interpolation specific params (will be removed)
-		float mIncr;
-		uint64_t mFramesProcessed;
+		// debug
+		size_t mTotalFrames, mFramesProcessed;
 	};
 
 	std::vector<Event>	mEvents;

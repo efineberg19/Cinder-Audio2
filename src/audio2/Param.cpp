@@ -30,8 +30,9 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-Param::Event::Event( uint64_t beginFrame, uint64_t endFrame, double totalSeconds, float endValue )
-	: mBeginFrame( beginFrame ), mEndFrame( endFrame ), mTotalSeconds( totalSeconds ), mEndValue( endValue ), mMarkedForRemoval( false )
+Param::Event::Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd )
+	: mTimeBegin( timeBegin ), mTimeEnd( timeEnd ), mTotalSeconds( timeEnd - timeBegin ),
+	mValueBegin( valueBegin ), mValueEnd( valueEnd ), mMarkedForRemoval( false )
 {
 }
 
@@ -52,20 +53,16 @@ void Param::rampTo( float value, double rampSeconds, double delaySeconds )
 	if( ! mInternalBufferInitialized )
 		mInternalBuffer.resize( mContext->getFramesPerBlock() );
 
-	size_t sampleRate = mContext->getSampleRate();
-	uint64_t rampFrames = rampSeconds * sampleRate;
-	uint64_t delayFrames = delaySeconds * sampleRate;
+	float timeBegin = mContext->getNumProcessedSeconds() + delaySeconds;
+	float timeEnd = timeBegin + rampSeconds;
 
-	uint64_t beginFrame = mContext->getNumProcessedFrames() + delayFrames;
-	uint64_t endFrame = beginFrame + rampFrames;
+	Event event( timeBegin, timeEnd, mValue, value );
 
-	Event event( beginFrame, endFrame, rampSeconds, value );
-
-	float deltaValue = value - mValue;
-	event.mIncr = deltaValue / float( endFrame - beginFrame );
+	// debug
+	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
 	event.mFramesProcessed = 0;
 
-//	app::console() << "event frame: " << event.mBeginFrame << "-" << event.mEndFrame << " (" << rampFrames << "), val: " << mValue << " - " << value << ", incr: " << event.mIncr << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
+	app::console() << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -78,12 +75,13 @@ bool Param::isVaryingThisBlock() const
 	CI_ASSERT( mContext );
 
 	if( ! mEvents.empty() ) {
-		uint64_t beginFrame = mContext->getNumProcessedFrames();
-		uint64_t endFrame = beginFrame + mContext->getFramesPerBlock();
 
 		const Event &event = mEvents[0];
 
-		if( event.mBeginFrame <= beginFrame || event.mEndFrame >= endFrame )
+		float timeBegin = mContext->getNumProcessedSeconds();
+		float timeEnd = timeBegin + mContext->getFramesPerBlock() / mContext->getSampleRate();
+
+		if( event.mTimeBegin <= timeBegin || event.mTimeEnd >= timeEnd )
 			return true;
 	}
 	return false;
@@ -93,52 +91,68 @@ float* Param::getValueArray()
 {
 	CI_ASSERT( mContext );
 
-	uint64_t beginFrame = mContext->getNumProcessedFrames();
-	eval( beginFrame, mInternalBuffer.data(), mInternalBuffer.size(), mContext->getSampleRate() );
+	float timeBegin = mContext->getNumProcessedSeconds();
+	eval( timeBegin, mInternalBuffer.data(), mInternalBuffer.size(), mContext->getSampleRate() );
 
 	return mInternalBuffer.data();
 }
 
-void Param::eval( uint64_t beginFrame, float *array, size_t arrayLength, size_t sampleRate )
+namespace {
+
+//! Array-based linear ramping function. \a valueBegin and \a valueEnd are the complete values from the Event, while \a timeBegin and \a timeEnd are normalized values between the tweens total time length
+void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized, float timeIncr, float timeCoeff )
+{
+	float t = timeBeginNormalized;
+	for( size_t i = 0; i < count; i++ ) {
+		float valueNormalized = t * timeCoeff;
+		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
+		array[i] = valueScaled;
+		t += timeIncr;
+	}
+}
+
+}
+
+void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
 {
 	if( mEvents.empty() ) {
 		fill( mValue, array, arrayLength );
 		return;
 	}
 
-	uint64_t endFrame = beginFrame + arrayLength; // one past last frame needed
 	Event &event = mEvents[0];
-	if( endFrame < event.mBeginFrame ) {
+
+	float timeIncr = 1.0f / sampleRate;
+	float timeEnd = timeBegin + arrayLength * timeIncr;
+
+	if( timeEnd < event.mTimeBegin ) {
 		// event does not begin until after this block, so just fill array with current value
 		fill( mValue, array, arrayLength );
 	}
-	else if( event.mEndFrame > beginFrame ) {
-		uint64_t startRamp = beginFrame >= event.mBeginFrame ? 0 : event.mBeginFrame - beginFrame;
-		uint64_t endRamp = endFrame < event.mEndFrame ? arrayLength : event.mEndFrame - beginFrame;
+	else if( timeBegin < event.mTimeEnd ) {
+		size_t startIndex = timeBegin >= event.mTimeBegin ? 0 : size_t( ( event.mTimeBegin - timeBegin ) * sampleRate );
+		size_t endIndex = timeEnd < event.mTimeEnd ? arrayLength : size_t( ( event.mTimeEnd - timeBegin ) * sampleRate );
 
-		CI_ASSERT( startRamp <= arrayLength && endRamp <= arrayLength );
+		CI_ASSERT( startIndex <= arrayLength && endIndex <= arrayLength );
 
-		float value = mValue;
-		float incr = event.mIncr;
+		if( startIndex > 0 )
+			fill( mValue, array, startIndex );
 
-		if( startRamp > 0 )
-			fill( value, array, (size_t)startRamp );
+		size_t count = size_t( endIndex - startIndex );
+		float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * timeIncr ) / event.mTotalSeconds;
+		float timeEndNormalized = float( timeBegin - event.mTimeBegin + endIndex * timeIncr ) / event.mTotalSeconds; // TODO: currently unused, needed?
+		float timeCoeff = 1.0f / event.mTotalSeconds;
+		rampLinear( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized, timeIncr, timeCoeff );
 
-		for( uint64_t i = startRamp; i < endRamp; i++ ) {
-			value += incr;
-			array[i] = value;
-			event.mFramesProcessed++;
-		}
+		event.mFramesProcessed += count;
 
-		if( endRamp < arrayLength ) {
-			value = event.mEndValue;
-			size_t zeroLeft = size_t( arrayLength - endRamp );
-			size_t offset = (size_t)endRamp;
-			fill( value, array + offset, zeroLeft );
+		if( endIndex < arrayLength ) {
+			mValue = event.mValueEnd;
+			size_t zeroLeft = size_t( arrayLength - endIndex );
+			size_t offset = (size_t)endIndex;
+			fill( mValue, array + offset, zeroLeft );
 			event.mMarkedForRemoval = true;
 		}
-		
-		mValue = value;
 	}
 	else
 		event.mMarkedForRemoval = true;
