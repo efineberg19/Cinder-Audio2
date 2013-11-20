@@ -53,12 +53,12 @@ void ParamTestApp::setup()
 	mContext = Context::master();
 
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0 );
+	mGain->setGain( 0.8 );
 
 	mPan = mContext->makeNode( new NodePan2d() );
 
-	mGen = mContext->makeNode( new NodeGenTriangle() );
-//	mGen = mContext->makeNode( new NodeGenSine() );
+//	mGen = mContext->makeNode( new NodeGenTriangle() );
+	mGen = mContext->makeNode( new NodeGenSine() );
 //	mGen = mContext->makeNode( new NodeGenPhasor() );
 
 
@@ -94,12 +94,12 @@ void ParamTestApp::triggerRamp()
 {
 //	mGain->getGainParam()->setValue( 0.0f );
 //	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
-	mGain->getGainParam()->rampTo( 0.8f, 2.0f );
+//	mGain->getGainParam()->rampTo( 1.0f, 1.0f );
 
 //	mGain->getGainParam()->rampTo( 0.7f, 0.2f );
 
 //	mGen->getParamFreq()->rampTo( randFloat( 60, 600 ), 0.5f, 0.0f );
-	mGen->getParamFreq()->rampTo( 100, 1.0f );
+	mGen->getParamFreq()->rampTo( 100, 0.03f );
 }
 
 void ParamTestApp::setupUI()
@@ -134,7 +134,7 @@ void ParamTestApp::setupUI()
 	mGenFreqSlider.mBounds = sliderRect;
 	mGenFreqSlider.mTitle = "Gen Freq";
 	mGenFreqSlider.mMin = 0.0f;
-	mGenFreqSlider.mMax = 500.0f;
+	mGenFreqSlider.mMax = 1200.0f;
 	mGenFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mGenFreqSlider );
 
@@ -161,7 +161,7 @@ void ParamTestApp::processDrag( Vec2i pos )
 	if( mGainSlider.hitTest( pos ) ) {
 //		mGain->setGain( mGainSlider.mValueScaled );
 //		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled );
-		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled, 0.05f );
+		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled, 0.15f );
 	}
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );

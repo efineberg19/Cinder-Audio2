@@ -62,7 +62,7 @@ void Param::rampTo( float value, double rampSeconds, double delaySeconds )
 	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
 	event.mFramesProcessed = 0;
 
-	app::console() << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
+//	app::console() << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -91,22 +91,22 @@ float* Param::getValueArray()
 {
 	CI_ASSERT( mContext );
 
-	float timeBegin = mContext->getNumProcessedSeconds();
-	eval( timeBegin, mInternalBuffer.data(), mInternalBuffer.size(), mContext->getSampleRate() );
-
+	eval( mContext->getNumProcessedSeconds(), mInternalBuffer.data(), mInternalBuffer.size(), mContext->getSampleRate() );
 	return mInternalBuffer.data();
 }
 
 namespace {
 
 //! Array-based linear ramping function. \a valueBegin and \a valueEnd are the complete values from the Event, while \a timeBegin and \a timeEnd are normalized values between the tweens total time length
-void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized, float timeIncr, float timeCoeff )
+void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized )
 {
+	float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
 	float t = timeBeginNormalized;
 	for( size_t i = 0; i < count; i++ ) {
-		float valueNormalized = t * timeCoeff;
+		float valueNormalized = t;
 		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
 		array[i] = valueScaled;
+
 		t += timeIncr;
 	}
 }
@@ -122,8 +122,8 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 
 	Event &event = mEvents[0];
 
-	float timeIncr = 1.0f / sampleRate;
-	float timeEnd = timeBegin + arrayLength * timeIncr;
+	float samplePeriod = 1.0f / sampleRate;
+	float timeEnd = timeBegin + arrayLength * samplePeriod;
 
 	if( timeEnd < event.mTimeBegin ) {
 		// event does not begin until after this block, so just fill array with current value
@@ -139,10 +139,10 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 			fill( mValue, array, startIndex );
 
 		size_t count = size_t( endIndex - startIndex );
-		float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * timeIncr ) / event.mTotalSeconds;
-		float timeEndNormalized = float( timeBegin - event.mTimeBegin + endIndex * timeIncr ) / event.mTotalSeconds; // TODO: currently unused, needed?
-		float timeCoeff = 1.0f / event.mTotalSeconds;
-		rampLinear( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized, timeIncr, timeCoeff );
+		float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mTotalSeconds;
+		float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mTotalSeconds; // TODO: currently unused, needed?
+
+		rampLinear( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
 
 		event.mFramesProcessed += count;
 
@@ -153,6 +153,8 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 			fill( mValue, array + offset, zeroLeft );
 			event.mMarkedForRemoval = true;
 		}
+		else
+			mValue = array[arrayLength - 1];
 	}
 	else
 		event.mMarkedForRemoval = true;
