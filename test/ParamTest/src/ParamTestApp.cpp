@@ -163,7 +163,8 @@ void ParamTestApp::processDrag( Vec2i pos )
 		mPan->setPos( mPanSlider.mValueScaled );
 	if( mGenFreqSlider.hitTest( pos ) ) {
 //		mGen->setFreq( mGenFreqSlider.mValueScaled );
-		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f );
+//		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f );
+		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f, &rampExpo );
 	}
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );

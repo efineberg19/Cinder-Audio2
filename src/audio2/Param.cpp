@@ -30,13 +30,27 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-//! Array-based linear ramping function. \a valueBegin and \a valueEnd are the complete values from the Event, while \a timeBegin and \a timeEnd are normalized values between the tweens total time length
+//! Array-based linear ramping function.
 void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized )
 {
 	float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
 	float t = timeBeginNormalized;
 	for( size_t i = 0; i < count; i++ ) {
 		float valueNormalized = t;
+		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
+		array[i] = valueScaled;
+
+		t += timeIncr;
+	}
+}
+
+//! Array-based exponential ramping function.
+void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized )
+{
+	float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
+	float t = timeBeginNormalized;
+	for( size_t i = 0; i < count; i++ ) {
+		float valueNormalized = t * t;
 		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
 		array[i] = valueScaled;
 

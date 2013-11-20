@@ -31,6 +31,7 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class Context>			ContextRef;
 
 void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
+void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
 
 class Param {
   public:
