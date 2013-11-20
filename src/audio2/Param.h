@@ -44,7 +44,7 @@ class Param {
 	float	getValue() const	{ return mValue; }
 	void	setValue( float value );
 
-	void rampTo( float value, float rampSeconds, const RampFn &rampFn = &rampLinear )		{ rampTo( value, rampSeconds, 0.0 ); }
+	void rampTo( float value, float rampSeconds, const RampFn &rampFn = &rampLinear )		{ rampTo( value, rampSeconds, 0.0, rampFn ); }
 	void rampTo( float value, double rampSeconds, double delaySeconds, const RampFn &rampFn = &rampLinear );
 
 	bool	isVaryingThisBlock() const;
