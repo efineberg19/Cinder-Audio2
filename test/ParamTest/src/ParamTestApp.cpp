@@ -10,12 +10,8 @@
 
 #include "Gui.h"
 
-// TODO LIST:
-// - make ramp happen by std::function<>, so it is easy to add variants
-//		- getting there, jump to with the sliders shows things still aren't perfectly connected
-// - (DONE, seconds is clearer in the general case) decide whether time is measured in frames or seconds
-// - account for multiple Param::Events
-//		- need an AudioTimeline here?
+// TODO - account for multiple Param::Events
+//			- need an AudioTimeline here?
 
 using namespace ci;
 using namespace ci::app;

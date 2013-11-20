@@ -30,9 +30,24 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-Param::Event::Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd )
+//! Array-based linear ramping function. \a valueBegin and \a valueEnd are the complete values from the Event, while \a timeBegin and \a timeEnd are normalized values between the tweens total time length
+void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized )
+{
+	float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
+	float t = timeBeginNormalized;
+	for( size_t i = 0; i < count; i++ ) {
+		float valueNormalized = t;
+		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
+		array[i] = valueScaled;
+
+		t += timeIncr;
+	}
+}
+
+
+Param::Event::Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn )
 	: mTimeBegin( timeBegin ), mTimeEnd( timeEnd ), mTotalSeconds( timeEnd - timeBegin ),
-	mValueBegin( valueBegin ), mValueEnd( valueEnd ), mMarkedForRemoval( false )
+	mValueBegin( valueBegin ), mValueEnd( valueEnd ), mRampFn( rampFn ), mMarkedForRemoval( false )
 {
 }
 
@@ -46,7 +61,7 @@ void Param::setValue( float value )
 	mValue = value;
 }
 
-void Param::rampTo( float value, double rampSeconds, double delaySeconds )
+void Param::rampTo( float value, double rampSeconds, double delaySeconds, const RampFn &rampFn )
 {
 	CI_ASSERT( mContext );
 
@@ -56,7 +71,7 @@ void Param::rampTo( float value, double rampSeconds, double delaySeconds )
 	float timeBegin = mContext->getNumProcessedSeconds() + delaySeconds;
 	float timeEnd = timeBegin + rampSeconds;
 
-	Event event( timeBegin, timeEnd, mValue, value );
+	Event event( timeBegin, timeEnd, mValue, value, rampFn );
 
 	// debug
 	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
@@ -95,24 +110,6 @@ float* Param::getValueArray()
 	return mInternalBuffer.data();
 }
 
-namespace {
-
-//! Array-based linear ramping function. \a valueBegin and \a valueEnd are the complete values from the Event, while \a timeBegin and \a timeEnd are normalized values between the tweens total time length
-void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized )
-{
-	float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
-	float t = timeBeginNormalized;
-	for( size_t i = 0; i < count; i++ ) {
-		float valueNormalized = t;
-		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
-		array[i] = valueScaled;
-
-		t += timeIncr;
-	}
-}
-
-}
-
 void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
 {
 	if( mEvents.empty() ) {
@@ -142,7 +139,7 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 		float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mTotalSeconds;
 		float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mTotalSeconds; // TODO: currently unused, needed?
 
-		rampLinear( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
+		event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
 
 		event.mFramesProcessed += count;
 

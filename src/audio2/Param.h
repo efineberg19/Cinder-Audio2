@@ -24,13 +24,18 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Context>			ContextRef;
 
+void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
+
 class Param {
   public:
+	typedef std::function<void ( float *, size_t, float, float, float, float )>	RampFn;
+
 	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ), mInternalBufferInitialized( false ) {}
 
 	void initialize( const ContextRef &context );
@@ -38,8 +43,8 @@ class Param {
 	float	getValue() const	{ return mValue; }
 	void	setValue( float value );
 
-	void rampTo( float value, double rampSeconds )		{ rampTo( value, rampSeconds, 0.0 ); }
-	void rampTo( float value, double rampSeconds, double delaySeconds );
+	void rampTo( float value, float rampSeconds, const RampFn &rampFn = &rampLinear )		{ rampTo( value, rampSeconds, 0.0 ); }
+	void rampTo( float value, double rampSeconds, double delaySeconds, const RampFn &rampFn = &rampLinear );
 
 	bool	isVaryingThisBlock() const;
 
@@ -49,10 +54,11 @@ class Param {
   private:
 	struct Event {
 		Event() {}
-		Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd );
+		Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
 
 		float	mTimeBegin, mTimeEnd, mTotalSeconds;
 		float	mValueBegin, mValueEnd;
+		RampFn	mRampFn;
 		bool	mMarkedForRemoval;
 
 		// debug
