@@ -31,18 +31,15 @@ typedef std::shared_ptr<class Context>			ContextRef;
 
 class Param {
   public:
-	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ), mDefaultRampSeconds( 0.005 ), mInternalBufferInitialized( false ) {}
+	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ), mInternalBufferInitialized( false ) {}
 
 	void initialize( const ContextRef &context );
 
 	float	getValue() const	{ return mValue; }
 	void	setValue( float value );
 
-	void rampTo( float value )							{ rampTo( value, mDefaultRampSeconds, 0.0 ); }
 	void rampTo( float value, double rampSeconds )		{ rampTo( value, rampSeconds, 0.0 ); }
 	void rampTo( float value, double rampSeconds, double delaySeconds );
-
-	void setDefaultRampSeconds( double seconds )	{ mDefaultRampSeconds = seconds; }
 
 	bool	isVaryingThisBlock() const;
 
@@ -66,7 +63,6 @@ class Param {
 
 	ContextRef	mContext;
 	float		mValue;
-	double		mDefaultRampSeconds;
 
 	bool				mInternalBufferInitialized;
 	std::vector<float>	mInternalBuffer;
