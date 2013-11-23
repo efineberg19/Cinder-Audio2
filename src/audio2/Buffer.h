@@ -249,7 +249,7 @@ template<typename T>
 std::unique_ptr<T, FreeDeleter<T> > makeAlignedArray( size_t size, size_t alignment = 16 )
 {
 	void *ptr = std::calloc( size, sizeof( T ) );
-	ptr = std::align( 16, size, ptr, size );
+	ptr = std::align( alignment, size, ptr, size );
 	CI_ASSERT( ptr );
 	
 	return std::unique_ptr<T, FreeDeleter<T> >( static_cast<T *>( ptr ) );
