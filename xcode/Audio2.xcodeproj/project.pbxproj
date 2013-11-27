@@ -29,7 +29,6 @@
 		1104F4B317754A6E003EAA2B /* NodeSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F48017754A6E003EAA2B /* NodeSource.cpp */; };
 		1104F4B417754A6E003EAA2B /* NodeSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F48117754A6E003EAA2B /* NodeSource.h */; };
 		1104F4C417754A6E003EAA2B /* RingBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49217754A6E003EAA2B /* RingBuffer.h */; };
-		1104F4C717754A6E003EAA2B /* Gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49517754A6E003EAA2B /* Gui.h */; };
 		1115501518026C9100D415BC /* ogg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115500D18026C9100D415BC /* ogg.h */; };
 		1115501618026C9100D415BC /* ogg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115500D18026C9100D415BC /* ogg.h */; };
 		1115501718026C9100D415BC /* os_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115500E18026C9100D415BC /* os_types.h */; };
@@ -234,8 +233,6 @@
 		118EB8F1180F984B00E056C5 /* NodeFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 118EB8ED180F984B00E056C5 /* NodeFilter.h */; };
 		11A669EE17E9623B003DF9B1 /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */; };
 		11A669EF17E9623B003DF9B1 /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */; };
-		11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B041AE179B89F80034BEE2 /* Plot.cpp */; };
-		11B041B1179B89F80034BEE2 /* Plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041AF179B89F80034BEE2 /* Plot.h */; };
 		11B041B3179B8A0C0034BEE2 /* CinderAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041B2179B8A0C0034BEE2 /* CinderAssert.h */; };
 		11B041F4179B90450034BEE2 /* NodeSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F48017754A6E003EAA2B /* NodeSource.cpp */; };
 		11B041F6179B90450034BEE2 /* CinderCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C58DE7177943DA00DF99F8 /* CinderCoreAudio.cpp */; };
@@ -243,7 +240,6 @@
 		11B041F8179B90450034BEE2 /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F47717754A6E003EAA2B /* Device.cpp */; };
 		11B041FA179B90450034BEE2 /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F47417754A6E003EAA2B /* Context.cpp */; };
 		11B041FB179B90450034BEE2 /* ContextAudioUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46817754A6E003EAA2B /* ContextAudioUnit.cpp */; };
-		11B041FC179B90450034BEE2 /* Plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B041AE179B89F80034BEE2 /* Plot.cpp */; };
 		11B041FD179B90450034BEE2 /* Fft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F47C17754A6E003EAA2B /* Fft.cpp */; };
 		11B041FE179B90450034BEE2 /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46417754A6E003EAA2B /* audio.cpp */; };
 		11B041FF179B90450034BEE2 /* FileCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F47017754A6E003EAA2B /* FileCoreAudio.cpp */; };
@@ -261,9 +257,7 @@
 		11B04210179B90450034BEE2 /* Fft.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47D17754A6E003EAA2B /* Fft.h */; };
 		11B04212179B90450034BEE2 /* CinderAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041B2179B8A0C0034BEE2 /* CinderAssert.h */; };
 		11B04213179B90450034BEE2 /* RingBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49217754A6E003EAA2B /* RingBuffer.h */; };
-		11B04214179B90450034BEE2 /* Plot.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B041AF179B89F80034BEE2 /* Plot.h */; };
 		11B04215179B90450034BEE2 /* FileCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47117754A6E003EAA2B /* FileCoreAudio.h */; };
-		11B04216179B90450034BEE2 /* Gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F49517754A6E003EAA2B /* Gui.h */; };
 		11B04218179B90450034BEE2 /* Device.h in Headers */ = {isa = PBXBuildFile; fileRef = 1104F47817754A6E003EAA2B /* Device.h */; };
 		11B0421D179B92CB0034BEE2 /* DeviceManagerAudioSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46C17754A6E003EAA2B /* DeviceManagerAudioSession.cpp */; };
 		11B0421E179B92D10034BEE2 /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1104F46E17754A6E003EAA2B /* DeviceManagerCoreAudio.cpp */; };
@@ -313,7 +307,6 @@
 		1104F48E17754A6E003EAA2B /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
 		1104F48F17754A6E003EAA2B /* xaudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xaudio.h; sourceTree = "<group>"; };
 		1104F49217754A6E003EAA2B /* RingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
-		1104F49517754A6E003EAA2B /* Gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gui.h; sourceTree = "<group>"; };
 		1115500D18026C9100D415BC /* ogg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ogg.h; sourceTree = "<group>"; };
 		1115500E18026C9100D415BC /* os_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = os_types.h; sourceTree = "<group>"; };
 		1115501218026C9100D415BC /* codec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codec.h; sourceTree = "<group>"; };
@@ -417,8 +410,6 @@
 		11A669ED17E9623B003DF9B1 /* CinderAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderAssert.cpp; sourceTree = "<group>"; };
 		11AB735A17FD277700B29C5F /* Converter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Converter.cpp; sourceTree = "<group>"; };
 		11AB735B17FD277700B29C5F /* Converter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Converter.h; sourceTree = "<group>"; };
-		11B041AE179B89F80034BEE2 /* Plot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Plot.cpp; sourceTree = "<group>"; };
-		11B041AF179B89F80034BEE2 /* Plot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Plot.h; sourceTree = "<group>"; };
 		11B041B2179B8A0C0034BEE2 /* CinderAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderAssert.h; sourceTree = "<group>"; };
 		11B0421C179B90450034BEE2 /* libAudio2-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libAudio2-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		11C58DE7177943DA00DF99F8 /* CinderCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderCoreAudio.cpp; sourceTree = "<group>"; };
@@ -487,9 +478,6 @@
 				1104F46117754A6E003EAA2B /* audio2 */,
 				114FE86818032BF000C5841B /* oggvorbis */,
 				114FE978180371F100C5841B /* r8brain */,
-				1104F49517754A6E003EAA2B /* Gui.h */,
-				11B041AE179B89F80034BEE2 /* Plot.cpp */,
-				11B041AF179B89F80034BEE2 /* Plot.h */,
 			);
 			name = src;
 			path = ../src;
@@ -846,13 +834,11 @@
 				1180FD8D17AB7CB70070AC30 /* Node.h in Headers */,
 				11446DB417E64CCD00457AC6 /* NodeEffect.h in Headers */,
 				114FE8D118032BF100C5841B /* codec_internal.h in Headers */,
-				11B041B1179B89F80034BEE2 /* Plot.h in Headers */,
 				114FE91B18032BF100C5841B /* setup_X.h in Headers */,
 				114FE98D180371F100C5841B /* CDSPResampler.h in Headers */,
 				114FE8FD18032BF100C5841B /* psych_44.h in Headers */,
 				1104F4A417754A6E003EAA2B /* FileCoreAudio.h in Headers */,
 				114FE993180371F100C5841B /* fft4g.h in Headers */,
-				1104F4C717754A6E003EAA2B /* Gui.h in Headers */,
 				1104F4AB17754A6E003EAA2B /* Device.h in Headers */,
 				114FE91118032BF100C5841B /* setup_32.h in Headers */,
 				1115502118026C9100D415BC /* vorbisfile.h in Headers */,
@@ -937,13 +923,11 @@
 				1180FD8E17AB7CB70070AC30 /* Node.h in Headers */,
 				11446DB517E64CCD00457AC6 /* NodeEffect.h in Headers */,
 				114FE8D218032BF100C5841B /* codec_internal.h in Headers */,
-				11B04214179B90450034BEE2 /* Plot.h in Headers */,
 				114FE91C18032BF100C5841B /* setup_X.h in Headers */,
 				114FE98E180371F100C5841B /* CDSPResampler.h in Headers */,
 				114FE8FE18032BF100C5841B /* psych_44.h in Headers */,
 				11B04215179B90450034BEE2 /* FileCoreAudio.h in Headers */,
 				114FE994180371F100C5841B /* fft4g.h in Headers */,
-				11B04216179B90450034BEE2 /* Gui.h in Headers */,
 				11B04218179B90450034BEE2 /* Device.h in Headers */,
 				114FE91218032BF100C5841B /* setup_32.h in Headers */,
 				1115502218026C9100D415BC /* vorbisfile.h in Headers */,
@@ -1059,7 +1043,6 @@
 				1104F49B17754A6E003EAA2B /* ContextAudioUnit.cpp in Sources */,
 				114FE8D918032BF100C5841B /* floor1.c in Sources */,
 				114FE8E518032BF100C5841B /* lpc.c in Sources */,
-				11B041B0179B89F80034BEE2 /* Plot.cpp in Sources */,
 				11446DB617E64CCD00457AC6 /* Scope.cpp in Sources */,
 				1180FD8B17AB7CB70070AC30 /* Node.cpp in Sources */,
 				114FE93B18032BF100C5841B /* window.c in Sources */,
@@ -1120,7 +1103,6 @@
 				1180FD8C17AB7CB70070AC30 /* Node.cpp in Sources */,
 				114FE93C18032BF100C5841B /* window.c in Sources */,
 				114FE92E18032BF100C5841B /* sharedbook.c in Sources */,
-				11B041FC179B90450034BEE2 /* Plot.cpp in Sources */,
 				114FE8EE18032BF100C5841B /* mapping0.c in Sources */,
 				114FE8E018032BF100C5841B /* lookup.c in Sources */,
 				114FE996180371F100C5841B /* r8bbase.cpp in Sources */,
@@ -1142,7 +1124,8 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				CINDER_PATH = ../cinder;
+				CINDER_PATH = ../../../cinder;
+				CINDER_PATH_RICH = ../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = NO;
@@ -1173,13 +1156,14 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(CINDER_PATH)/boost\"",
+					"\"$(CINDER_PATH_RICH)/boost\"",
 					../include/oggvorbis,
 				);
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../src \"$(CINDER_PATH)/include\" ../src/oggvorbis/vorbis";
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" \"$(CINDER_PATH_RICH)/boost\" ../src ../src/oggvorbis/vorbis";
 			};
 			name = Debug;
 		};
@@ -1188,7 +1172,8 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				CINDER_PATH = ../cinder;
+				CINDER_PATH = ../../../cinder;
+				CINDER_PATH_RICH = ../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = NO;
@@ -1214,12 +1199,13 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(CINDER_PATH)/boost\"",
+					"\"$(CINDER_PATH_RICH)/boost\"",
 					../include/oggvorbis,
 				);
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../src \"$(CINDER_PATH)/include\" ../src/oggvorbis/vorbis";
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" \"$(CINDER_PATH_RICH)/boost\" ../src ../src/oggvorbis/vorbis";
 			};
 			name = Release;
 		};
