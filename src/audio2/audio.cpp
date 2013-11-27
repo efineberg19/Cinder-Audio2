@@ -112,12 +112,12 @@ BufferRef Mixer::loadSourceFile( const SourceFileRef &sourceFile )
 
 void Mixer::setBusVolume( size_t busId, float volume )
 {
-	mBusses[busId].mGain->setGain( volume );
+	mBusses[busId].mGain->setValue( volume );
 }
 
 float Mixer::getBusVolume( size_t busId )
 {
-	return mBusses[busId].mGain->getGain();
+	return mBusses[busId].mGain->getValue();
 }
 
 void Mixer::setBusPan( size_t busId, float pos )
