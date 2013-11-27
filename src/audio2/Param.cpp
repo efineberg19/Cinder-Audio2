@@ -75,17 +75,17 @@ void Param::setValue( float value )
 	mValue = value;
 }
 
-void Param::rampTo( float value, double rampSeconds, double delaySeconds, const RampFn &rampFn )
+void Param::rampTo( float endValue, float rampSeconds, const Options &options )
 {
 	CI_ASSERT( mContext );
 
 	if( ! mInternalBufferInitialized )
 		mInternalBuffer.resize( mContext->getFramesPerBlock() );
 
-	float timeBegin = mContext->getNumProcessedSeconds() + delaySeconds;
+	float timeBegin = mContext->getNumProcessedSeconds() + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
 
-	Event event( timeBegin, timeEnd, mValue, value, rampFn );
+	Event event( timeBegin, timeEnd, mValue, endValue, options.getRampFn() );
 
 	// debug
 	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
@@ -95,8 +95,23 @@ void Param::rampTo( float value, double rampSeconds, double delaySeconds, const 
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
-	mEvents.resize( 1 );
-	mEvents[0] = event;
+	reset();
+	mEvents.push( event );
+}
+
+void Param::rampTo( float beginValue, float endValue, float rampSeconds, const Options &options )
+{
+	mValue = beginValue;
+	rampTo( endValue, rampSeconds, options );
+}
+
+void Param::reset()
+{
+	if( mEvents.empty() )
+		return;
+
+	while( ! mEvents.empty() )
+		mEvents.pop();
 }
 
 bool Param::isVaryingThisBlock() const
@@ -105,7 +120,7 @@ bool Param::isVaryingThisBlock() const
 
 	if( ! mEvents.empty() ) {
 
-		const Event &event = mEvents[0];
+		const Event &event = mEvents.back();
 
 		float timeBegin = mContext->getNumProcessedSeconds();
 		float timeEnd = timeBegin + mContext->getFramesPerBlock() / mContext->getSampleRate();
@@ -131,7 +146,7 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 		return;
 	}
 
-	Event &event = mEvents[0];
+	Event &event = mEvents.front();
 
 	float samplePeriod = 1.0f / sampleRate;
 	float timeEnd = timeBegin + arrayLength * samplePeriod;
@@ -171,7 +186,7 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 		event.mMarkedForRemoval = true;
 
 	if( event.mMarkedForRemoval )
-		mEvents.clear();
+		mEvents.pop();
 }
 
 } } // namespace cinder::audio2

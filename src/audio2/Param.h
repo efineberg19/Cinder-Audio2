@@ -23,13 +23,15 @@
 
 #pragma once
 
-#include <vector>
+#include <queue>
 #include <functional>
 
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Context>			ContextRef;
 
+// TODO: add rampLog
+// ???: why does webaudio use expo? is it an EaseOutExpo?
 void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
 void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
 
@@ -44,9 +46,27 @@ class Param {
 	float	getValue() const	{ return mValue; }
 	void	setValue( float value );
 
-	void rampTo( float value, float rampSeconds, const RampFn &rampFn = &rampLinear )		{ rampTo( value, rampSeconds, 0.0, rampFn ); }
-	void rampTo( float value, double rampSeconds, double delaySeconds, const RampFn &rampFn = &rampLinear );
+	struct Options {
+		Options() : mDelay( 0.0f ), mRampFn( rampLinear ) {}
 
+		Options& delay( float delay )				{ mDelay = delay; return *this; }
+		Options& rampFn( const RampFn &rampFn )		{ mRampFn = rampFn; return *this; }
+
+		float getDelay() const				{ return mDelay; }
+		const RampFn&	getRampFn() const	{ return mRampFn; }
+
+	private:
+		float mDelay;
+		RampFn	mRampFn;
+	};
+
+	void rampTo( float endValue, float rampSeconds, const Options &options = Options() );
+	void rampTo( float beginValue, float endValue, float rampSeconds, const Options &options = Options() );
+
+//	void appendTo( float endValue, float rampSeconds, const Options &options = Options() );
+
+	void reset();
+	
 	bool	isVaryingThisBlock() const;
 
 	float*	getValueArray();
@@ -66,7 +86,7 @@ class Param {
 		size_t mTotalFrames, mFramesProcessed;
 	};
 
-	std::vector<Event>	mEvents;
+	std::queue<Event>	mEvents;
 
 	ContextRef	mContext;
 	float		mValue;
