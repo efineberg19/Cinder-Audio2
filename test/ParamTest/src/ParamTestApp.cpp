@@ -49,7 +49,7 @@ void ParamTestApp::setup()
 	mContext = Context::master();
 
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0.8 );
+	mGain->setValue( 0.8 );
 
 	mPan = mContext->makeNode( new NodePan2d() );
 
@@ -117,7 +117,7 @@ void ParamTestApp::setupUI()
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
-	mGainSlider.set( mGain->getGain() );
+	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
@@ -155,16 +155,16 @@ void ParamTestApp::setupUI()
 void ParamTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) ) {
-//		mGain->setGain( mGainSlider.mValueScaled );
-//		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled );
-		mGain->getGainParam()->rampTo( mGainSlider.mValueScaled, 0.15f );
+//		mGain->setValue( mGainSlider.mValueScaled );
+//		mGain->getParamGain()->rampTo( mGainSlider.mValueScaled );
+		mGain->getParamGain()->rampTo( mGainSlider.mValueScaled, 0.15f );
 	}
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
 	if( mGenFreqSlider.hitTest( pos ) ) {
 //		mGen->setFreq( mGenFreqSlider.mValueScaled );
 //		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f );
-		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f, &rampExpo );
+		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f, Param::Options().rampFn( &rampExpo ) );
 	}
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );
