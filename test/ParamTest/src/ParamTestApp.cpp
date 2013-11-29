@@ -1,7 +1,6 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/audio.h"
 #include "audio2/NodeSource.h"
 #include "audio2/NodeEffect.h"
 #include "audio2/NodeFilter.h"
@@ -10,8 +9,9 @@
 
 #include "Gui.h"
 
-// TODO - account for multiple Param::Events
-//			- need an AudioTimeline here?
+// TODO: account for multiple Param::Events
+//	- need an AudioTimeline here?
+//	- implemented without, using a deque, needs testing
 
 using namespace ci;
 using namespace ci::app;
