@@ -79,8 +79,10 @@ void Param::rampTo( float endValue, float rampSeconds, const Options &options )
 {
 	CI_ASSERT( mContext );
 
-	if( ! mInternalBufferInitialized )
+	if( ! mInternalBufferInitialized ) {
 		mInternalBuffer.resize( mContext->getFramesPerBlock() );
+		mInternalBufferInitialized = true;
+	}
 
 	float timeBegin = mContext->getNumProcessedSeconds() + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
@@ -89,14 +91,12 @@ void Param::rampTo( float endValue, float rampSeconds, const Options &options )
 
 	// debug
 	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
-	event.mFramesProcessed = 0;
-
-//	app::console() << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
+//	app::console() << "(rampTo) event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
 	reset();
-	mEvents.push( event );
+	mEvents.push_back( event );
 }
 
 void Param::rampTo( float beginValue, float endValue, float rampSeconds, const Options &options )
@@ -105,13 +105,37 @@ void Param::rampTo( float beginValue, float endValue, float rampSeconds, const O
 	rampTo( endValue, rampSeconds, options );
 }
 
+void Param::appendTo( float endValue, float rampSeconds, const Options &options )
+{
+	CI_ASSERT( mContext );
+
+	if( ! mInternalBufferInitialized ) {
+		mInternalBuffer.resize( mContext->getFramesPerBlock() );
+		mInternalBufferInitialized = true;
+	}
+
+	float timeBegin = findEndTime() + options.getDelay();
+	float timeEnd = timeBegin + rampSeconds;
+
+	Event event( timeBegin, timeEnd, mValue, endValue, options.getRampFn() );
+
+	// debug
+	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
+//	app::console() << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
+
+	lock_guard<mutex> lock( mContext->getMutex() );
+
+	mEvents.push_back( event );
+}
+
 void Param::reset()
 {
 	if( mEvents.empty() )
 		return;
 
-	while( ! mEvents.empty() )
-		mEvents.pop();
+	mEvents.clear();
+//	while( ! mEvents.empty() )
+//		mEvents.pop();
 }
 
 bool Param::isVaryingThisBlock() const
@@ -139,54 +163,66 @@ float* Param::getValueArray()
 	return mInternalBuffer.data();
 }
 
+float Param::findEndTime()
+{
+	if( mEvents.empty() )
+		return mContext->getNumProcessedSeconds();
+	else
+		return mEvents.back().mTimeEnd;
+}
+
 void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
 {
-	if( mEvents.empty() ) {
-		fill( mValue, array, arrayLength );
-		return;
-	}
+	size_t samplesWritten = 0;
+	
+	while( ! mEvents.empty() ) {
+		Event &event = mEvents.front();
 
-	Event &event = mEvents.front();
+		float samplePeriod = 1.0f / sampleRate;
+		float timeEnd = timeBegin + arrayLength * samplePeriod;
 
-	float samplePeriod = 1.0f / sampleRate;
-	float timeEnd = timeBegin + arrayLength * samplePeriod;
+		if( event.mTimeBegin < timeEnd ) {
+			if( event.mTimeEnd > timeBegin ) {
+				size_t startIndex = timeBegin >= event.mTimeBegin ? 0 : size_t( ( event.mTimeBegin - timeBegin ) * sampleRate );
+				size_t endIndex = timeEnd < event.mTimeEnd ? arrayLength : size_t( ( event.mTimeEnd - timeBegin ) * sampleRate );
 
-	if( timeEnd < event.mTimeBegin ) {
-		// event does not begin until after this block, so just fill array with current value
-		fill( mValue, array, arrayLength );
-	}
-	else if( timeBegin < event.mTimeEnd ) {
-		size_t startIndex = timeBegin >= event.mTimeBegin ? 0 : size_t( ( event.mTimeBegin - timeBegin ) * sampleRate );
-		size_t endIndex = timeEnd < event.mTimeEnd ? arrayLength : size_t( ( event.mTimeEnd - timeBegin ) * sampleRate );
+				CI_ASSERT( startIndex <= arrayLength && endIndex <= arrayLength );
 
-		CI_ASSERT( startIndex <= arrayLength && endIndex <= arrayLength );
+				if( startIndex > 0 && samplesWritten == 0 )
+					fill( mValue, array, startIndex );
 
-		if( startIndex > 0 )
-			fill( mValue, array, startIndex );
+				size_t count = size_t( endIndex - startIndex );
+				float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mTotalSeconds;
+				float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mTotalSeconds; // TODO: currently unused, needed?
 
-		size_t count = size_t( endIndex - startIndex );
-		float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mTotalSeconds;
-		float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mTotalSeconds; // TODO: currently unused, needed?
+				event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
 
-		event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
+				event.mFramesProcessed += count;
 
-		event.mFramesProcessed += count;
+				samplesWritten += count;
 
-		if( endIndex < arrayLength ) {
-			mValue = event.mValueEnd;
-			size_t zeroLeft = size_t( arrayLength - endIndex );
-			size_t offset = (size_t)endIndex;
-			fill( mValue, array + offset, zeroLeft );
-			event.mMarkedForRemoval = true;
+				if( endIndex < arrayLength ) {
+					mValue = event.mValueEnd;
+					mEvents.pop_front();
+					continue;
+				}
+			}
 		}
-		else
-			mValue = array[arrayLength - 1];
+		else {
+			// context time end is > than event time begin, so remove
+			mEvents.pop_front();
+		}
+	}
+
+	// if after all events we still haven't written enough samples, fill with the final mValue, which
+	// was updated above to be the last event's mValueEnd
+	if( samplesWritten < arrayLength ) {
+		size_t zeroLeft = size_t( arrayLength - samplesWritten );
+		size_t offset = (size_t)samplesWritten;
+		fill( mValue, array + offset, zeroLeft );
 	}
 	else
-		event.mMarkedForRemoval = true;
-
-	if( event.mMarkedForRemoval )
-		mEvents.pop();
+		mValue = array[arrayLength - 1];
 }
 
 } } // namespace cinder::audio2

@@ -23,7 +23,8 @@
 
 #pragma once
 
-#include <queue>
+#include <deque>
+#include <vector>
 #include <functional>
 
 namespace cinder { namespace audio2 {
@@ -63,7 +64,7 @@ class Param {
 	void rampTo( float endValue, float rampSeconds, const Options &options = Options() );
 	void rampTo( float beginValue, float endValue, float rampSeconds, const Options &options = Options() );
 
-//	void appendTo( float endValue, float rampSeconds, const Options &options = Options() );
+	void appendTo( float endValue, float rampSeconds, const Options &options = Options() );
 
 	void reset();
 	
@@ -74,7 +75,7 @@ class Param {
 
   private:
 	struct Event {
-		Event() {}
+		Event() : mFramesProcessed( 0 ) {}
 		Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
 
 		float	mTimeBegin, mTimeEnd, mTotalSeconds;
@@ -86,7 +87,9 @@ class Param {
 		size_t mTotalFrames, mFramesProcessed;
 	};
 
-	std::queue<Event>	mEvents;
+	float findEndTime();
+
+	std::deque<Event>	mEvents;
 
 	ContextRef	mContext;
 	float		mValue;
