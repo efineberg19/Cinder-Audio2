@@ -73,7 +73,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	uint64_t	getNumProcessedFrames()		{ return getTarget()->getNumProcessedFrames(); }
 	double		getNumProcessedSeconds()	{ return (double)getNumProcessedFrames() / (double)getSampleRate(); }
 
-	std::mutex& getMutex()					{ return mMutex; }
+	std::mutex& getMutex() const			{ return mMutex; }
 
 	//! Initialize all Node's related by this Context
 	void initializeAllNodes()				{ initRecursisve( mTarget ); }
@@ -115,8 +115,8 @@ class Context : public std::enable_shared_from_this<Context> {
 	bool					mAutoPullRequired, mAutoPullCacheDirty;
 	BufferDynamic			mAutoPullBuffer;
 
-	std::mutex		mMutex;
-	bool			mEnabled;
+	mutable std::mutex		mMutex;
+	bool					mEnabled;
 
 	// TODO: if this is singleton, why hold in shared_ptr?
 	// - it's still stored in Node classes as a weak_ptr, so it needs to (for now) be created as a shared_ptr
