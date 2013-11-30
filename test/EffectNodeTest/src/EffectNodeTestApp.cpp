@@ -27,13 +27,10 @@ class EffectNodeTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	Context*				mContext;
-	NodeSourceRef			mGen;
-	GainRef				mGain;
-	Pan2dRef			mPan;
-	FilterLowPassRef	mLowPass;
-//	shared_ptr<FilterHighPass>	mLowPass;
-
+	audio2::NodeSourceRef		mGen;
+	audio2::GainRef				mGain;
+	audio2::Pan2dRef			mPan;
+	audio2::FilterLowPassRef	mLowPass;
 
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton;
@@ -43,16 +40,16 @@ class EffectNodeTestApp : public AppNative {
 
 void EffectNodeTestApp::setup()
 {
-	mContext = Context::master();
+	auto ctx = audio2::Context::master();
 
-	mGain = mContext->makeNode( new Gain() );
+	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	mPan = mContext->makeNode( new Pan2d() );
-	mGen = mContext->makeNode( new GenNoise( Node::Format().autoEnable() ) );
+	mPan = ctx->makeNode( new audio2::Pan2d() );
+	mGen = ctx->makeNode( new audio2::GenNoise( audio2::Node::Format().autoEnable() ) );
 
-	mLowPass = mContext->makeNode( new FilterLowPass() );
-//	mLowPass = mContext->makeNode( new FilterHighPass() );
+	mLowPass = ctx->makeNode( new audio2::FilterLowPass() );
+//	mLowPass = ctx->makeNode( new audio2::FilterHighPass() );
 
 	setupOne();
 //	setupForceStereo();
@@ -60,23 +57,24 @@ void EffectNodeTestApp::setup()
 
 	setupUI();
 
-	mContext->printGraph();
+	ctx->printGraph();
 }
 
 void EffectNodeTestApp::setupOne()
 {
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
 }
 
 void EffectNodeTestApp::setupForceStereo()
 {
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
 }
 
 void EffectNodeTestApp::setupDownMix()
 {
-	auto mono = mContext->makeNode( new Gain( Node::Format().channels( 1 ) ) );
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mono )->connect( mContext->getTarget() );
+	auto ctx = audio2::Context::master();
+	auto mono = ctx->makeNode( new audio2::Gain( audio2::Node::Format().channels( 1 ) ) );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mono )->connect( ctx->getTarget() );
 }
 
 void EffectNodeTestApp::setupUI()
@@ -144,18 +142,20 @@ void EffectNodeTestApp::processDrag( Vec2i pos )
 
 void EffectNodeTestApp::processTap( Vec2i pos )
 {
+	auto ctx = audio2::Context::master();
+
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
+		ctx->setEnabled( ! ctx->isEnabled() );
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool enabled = mContext->isEnabled();
-		mContext->stop();
+		bool enabled = ctx->isEnabled();
+		ctx->stop();
 
-		mContext->disconnectAllNodes();
+		ctx->disconnectAllNodes();
 
 		if( currentTest == "one" )
 			setupOne();
@@ -164,8 +164,8 @@ void EffectNodeTestApp::processTap( Vec2i pos )
 		if( currentTest == "down-mix" )
 			setupDownMix();
 
-		mContext->setEnabled( enabled );
-		mContext->printGraph();
+		ctx->setEnabled( enabled );
+		ctx->printGraph();
 	}
 }
 

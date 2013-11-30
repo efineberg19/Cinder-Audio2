@@ -28,9 +28,9 @@ class DeviceTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void setOutputDevice( const DeviceRef &device );
-	void setInputDevice( const DeviceRef &device );
-	void printDeviceDetails( const DeviceRef &device );
+	void setOutputDevice( const audio2::DeviceRef &device );
+	void setInputDevice( const audio2::DeviceRef &device );
+	void printDeviceDetails( const audio2::DeviceRef &device );
 
 	void setupSine();
 	void setupIOClean();
@@ -43,12 +43,11 @@ class DeviceTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void keyDown( KeyEvent event );
 
-	Context* mContext;
-	LineInRef mLineIn;
-	LineOutRef mLineOut;
-	ScopeRef mScope;
-	GainRef mGain;
-	NodeSourceRef mSourceNode;
+	audio2::LineInRef		mLineIn;
+	audio2::LineOutRef		mLineOut;
+	audio2::ScopeRef		mScope;
+	audio2::GainRef			mGain;
+	audio2::NodeSourceRef	mSourceNode;
 
 	vector<TestWidget *> mWidgets;
 	VSelector mTestSelector, mInputSelector, mOutputSelector;
@@ -68,55 +67,56 @@ void DeviceTestApp::prepareSettings( Settings *settings )
 
 void DeviceTestApp::setup()
 {
-	mContext = Context::master();
+	auto ctx = audio2::Context::master();
 
-	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
-	mGain = mContext->makeNode( new Gain() );
+	mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
+	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	setOutputDevice( Device::getDefaultOutput() );
-	setInputDevice( Device::getDefaultInput() );
+	setOutputDevice( audio2::Device::getDefaultOutput() );
+	setInputDevice( audio2::Device::getDefaultInput() );
 
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V << "LineOut params changed:" << endl; printDeviceDetails( mLineOut->getDevice() ); } );
-
 
 	mGain->connect( mScope )->connect( mLineOut );
 
 	setupSine();
 
-	mContext->printGraph();
+	ctx->printGraph();
 	setupUI();
 
-	LOG_V << "Context samplerate: " << mContext->getSampleRate() << endl;
+	LOG_V << "Context samplerate: " << ctx->getSampleRate() << endl;
 }
 
-void DeviceTestApp::setOutputDevice( const DeviceRef &device )
+void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
 {
-	NodeSourceRef currentSource = findFirstUpstreamNode<NodeSource>( mGain );
-	SaveNodeEnabledState enabled( currentSource );
+	audio2::NodeSourceRef currentSource = audio2::findFirstUpstreamNode<audio2::NodeSource>( mGain );
+	audio2::SaveNodeEnabledState enabled( currentSource );
 
-	mContext->uninitializeAllNodes();
+	auto ctx = audio2::Context::master();
 
-	mLineOut = mContext->createLineOut( device );
+	ctx->uninitializeAllNodes();
+
+	mLineOut = ctx->createLineOut( device );
 //	mLineOut->setInput( mScope, 0 );
 	mScope->connect( mLineOut );
 
-	mContext->setTarget( mLineOut );
+	ctx->setTarget( mLineOut );
 
-	mContext->initializeAllNodes();
+	ctx->initializeAllNodes();
 
 	LOG_V << "LineOut device properties: " << endl;
 	printDeviceDetails( device );
 }
 
-void DeviceTestApp::setInputDevice( const DeviceRef &device )
+void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device )
 {
-	SaveNodeEnabledState enabled( mLineIn );
+	audio2::SaveNodeEnabledState enabled( mLineIn );
 
 	if( mLineIn )
 		mLineIn->disconnectAllOutputs();
 
-	mLineIn = mContext->createLineIn( device );
+	mLineIn = audio2::Context::master()->createLineIn( device );
 
 	setupTest( mTestSelector.currentSection() );
 
@@ -124,7 +124,7 @@ void DeviceTestApp::setInputDevice( const DeviceRef &device )
 	printDeviceDetails( device );
 }
 
-void DeviceTestApp::printDeviceDetails( const DeviceRef &device )
+void DeviceTestApp::printDeviceDetails( const audio2::DeviceRef &device )
 {
 	console() << "\t name: " << device->getName() << endl;
 	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
@@ -139,8 +139,8 @@ void DeviceTestApp::printDeviceDetails( const DeviceRef &device )
 
 void DeviceTestApp::setupSine()
 {
-	auto sineGen = mContext->makeNode( new GenSine() );
-	sineGen->getGen().setFreq( 440.0f );
+	auto sineGen = audio2::Context::master()->makeNode( new audio2::GenSine() );
+	sineGen->setFreq( 440.0f );
 	mSourceNode = sineGen;
 
 	mSourceNode->connect( mGain, 0 );
@@ -149,7 +149,7 @@ void DeviceTestApp::setupSine()
 
 void DeviceTestApp::setupNoise()
 {
-	auto noiseGen = mContext->makeNode( new GenNoise() );
+	auto noiseGen = audio2::Context::master()->makeNode( new audio2::GenNoise() );
 	mSourceNode = noiseGen;
 
 	mSourceNode->connect( mGain, 0 );
@@ -164,7 +164,7 @@ void DeviceTestApp::setupIOClean()
 
 void DeviceTestApp::setupIOProcessed()
 {
-	auto ringMod = mContext->makeNode( new RingMod() );
+	auto ringMod = audio2::Context::master()->makeNode( new audio2::RingMod() );
 
 	mLineIn->connect( ringMod )->connect( mGain, 0 );
 	mLineIn->start();
@@ -199,7 +199,7 @@ void DeviceTestApp::setupUI()
 
 	mOutputSelector.mTitle = "Output Devices";
 	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40.0f, getWindowWidth(), getWindowHeight() );
-	for( const auto &dev : Device::getOutputDevices() ) {
+	for( const auto &dev : audio2::Device::getOutputDevices() ) {
 		if( dev == mLineOut->getDevice() )
 			mOutputSelector.mCurrentSectionIndex = mOutputSelector.mSegments.size();
 		mOutputSelector.mSegments.push_back( dev->getName() );
@@ -208,7 +208,7 @@ void DeviceTestApp::setupUI()
 
 	mInputSelector.mTitle = "Input Devices";
 	mInputSelector.mBounds = mOutputSelector.mBounds - Vec2f( mOutputSelector.mBounds.getWidth() + 10.0f, 0.0f );
-	for( const auto &dev : Device::getInputDevices() ) {
+	for( const auto &dev : audio2::Device::getInputDevices() ) {
 		if( dev == mLineIn->getDevice() )
 		mInputSelector.mCurrentSectionIndex = mInputSelector.mSegments.size();
 		mInputSelector.mSegments.push_back( dev->getName() );
@@ -218,13 +218,13 @@ void DeviceTestApp::setupUI()
 	Rectf textInputBounds( 0.0f, getWindowCenter().y + 40.0f, 200.0f, getWindowCenter().y + 70.0f  );
 	mSamplerateInput.mBounds = textInputBounds;
 	mSamplerateInput.mTitle = "samplerate";
-	mSamplerateInput.setValue( mContext->getSampleRate() );
+	mSamplerateInput.setValue( audio2::Context::master()->getSampleRate() );
 	mWidgets.push_back( &mSamplerateInput );
 
 	textInputBounds += Vec2f( 0.0f, textInputBounds.getHeight() + 24.0f );
 	mFramesPerBlockInput.mBounds = textInputBounds;
 	mFramesPerBlockInput.mTitle = "frames per block";
-	mFramesPerBlockInput.setValue( mContext->getFramesPerBlock() );
+	mFramesPerBlockInput.setValue( audio2::Context::master()->getFramesPerBlock() );
 	mWidgets.push_back( &mFramesPerBlockInput );
 
 
@@ -258,7 +258,7 @@ void DeviceTestApp::processDrag( Vec2i pos )
 void DeviceTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
+		audio2::Context::master()->setEnabled( ! audio2::Context::master()->isEnabled() );
 	else if( mSamplerateInput.hitTest( pos ) ) {
 		LOG_V << "mSamplerateInput selected" << endl;
 #if defined( CINDER_COCOA_TOUCH )
@@ -283,7 +283,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 
 	size_t currentOutputIndex = mOutputSelector.mCurrentSectionIndex;
 	if( mOutputSelector.hitTest( pos ) && currentOutputIndex != mOutputSelector.mCurrentSectionIndex ) {
-		DeviceRef dev = Device::findDeviceByName( mOutputSelector.mSegments[mOutputSelector.mCurrentSectionIndex] );
+		auto dev = audio2::Device::findDeviceByName( mOutputSelector.mSegments[mOutputSelector.mCurrentSectionIndex] );
 		LOG_V << "selected device named: " << dev->getName() << ", key: " << dev->getKey() << endl;
 
 		setOutputDevice( dev );
@@ -303,7 +303,7 @@ void DeviceTestApp::setupTest( const string &test )
 	else
 		setupSine();
 
-	mContext->printGraph();
+	audio2::Context::master()->printGraph();
 }
 
 void DeviceTestApp::keyDown( KeyEvent event )
@@ -321,20 +321,21 @@ void DeviceTestApp::keyDown( KeyEvent event )
 			if( currentSelected == &mSamplerateInput ) {
 				int sr = currentSelected->getValue();
 				LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
-				mLineOut->getDevice()->updateFormat( Device::Format().sampleRate( sr ) );
+				mLineOut->getDevice()->updateFormat( audio2::Device::Format().sampleRate( sr ) );
 			}
 			else if( currentSelected == &mFramesPerBlockInput ) {
 				int frames = currentSelected->getValue();
 				LOG_V << "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames << endl;
-				mLineOut->getDevice()->updateFormat( Device::Format().framesPerBlock( frames ) );
+				mLineOut->getDevice()->updateFormat( audio2::Device::Format().framesPerBlock( frames ) );
 			}
 			else
 				LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;
 		}
-		catch( AudioDeviceExc &exc ) {
+		catch( audio2::AudioDeviceExc &exc ) {
 			LOG_E << "AudioDeviceExc caught, what: " << exc.what() << endl;
-			mSamplerateInput.setValue( mContext->getSampleRate() );
-			mFramesPerBlockInput.setValue( mContext->getFramesPerBlock() );
+			auto ctx = audio2::Context::master();
+			mSamplerateInput.setValue( ctx->getSampleRate() );
+			mFramesPerBlockInput.setValue( ctx->getFramesPerBlock() );
 			return;
 		}
 	}

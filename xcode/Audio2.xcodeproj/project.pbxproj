@@ -191,7 +191,6 @@
 		119CD0C8184A793400853BEE /* DeviceManagerAudioSession.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD07D184A793400853BEE /* DeviceManagerAudioSession.h */; };
 		119CD0C9184A793400853BEE /* DeviceManagerAudioSession.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD07D184A793400853BEE /* DeviceManagerAudioSession.h */; };
 		119CD0CA184A793400853BEE /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD07E184A793400853BEE /* DeviceManagerCoreAudio.cpp */; };
-		119CD0CB184A793400853BEE /* DeviceManagerCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD07E184A793400853BEE /* DeviceManagerCoreAudio.cpp */; };
 		119CD0CC184A793400853BEE /* DeviceManagerCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD07F184A793400853BEE /* DeviceManagerCoreAudio.h */; };
 		119CD0CD184A793400853BEE /* DeviceManagerCoreAudio.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD07F184A793400853BEE /* DeviceManagerCoreAudio.h */; };
 		119CD0CE184A793400853BEE /* FileCoreAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD080184A793400853BEE /* FileCoreAudio.cpp */; };
@@ -370,7 +369,7 @@
 		119CD079184A793400853BEE /* CinderCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderCoreAudio.h; sourceTree = "<group>"; };
 		119CD07A184A793400853BEE /* ContextAudioUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextAudioUnit.cpp; sourceTree = "<group>"; };
 		119CD07B184A793400853BEE /* ContextAudioUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContextAudioUnit.h; sourceTree = "<group>"; };
-		119CD07C184A793400853BEE /* DeviceManagerAudioSession.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerAudioSession.cpp; sourceTree = "<group>"; };
+		119CD07C184A793400853BEE /* DeviceManagerAudioSession.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = DeviceManagerAudioSession.cpp; sourceTree = "<group>"; };
 		119CD07D184A793400853BEE /* DeviceManagerAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerAudioSession.h; sourceTree = "<group>"; };
 		119CD07E184A793400853BEE /* DeviceManagerCoreAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeviceManagerCoreAudio.cpp; sourceTree = "<group>"; };
 		119CD07F184A793400853BEE /* DeviceManagerCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerCoreAudio.h; sourceTree = "<group>"; };
@@ -1106,7 +1105,6 @@
 				114FE93018032BF100C5841B /* smallft.c in Sources */,
 				119CD12F184A793400853BEE /* Scope.cpp in Sources */,
 				114FE92A18032BF100C5841B /* res0.c in Sources */,
-				119CD0CB184A793400853BEE /* DeviceManagerCoreAudio.cpp in Sources */,
 				114FE8EA18032BF100C5841B /* lsp.c in Sources */,
 				114FE93A18032BF100C5841B /* vorbisfile.c in Sources */,
 				119CD0ED184A793400853BEE /* Fft.cpp in Sources */,

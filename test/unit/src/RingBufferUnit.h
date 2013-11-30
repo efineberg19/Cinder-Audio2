@@ -13,7 +13,7 @@ using namespace ci::audio2;
 
 BOOST_AUTO_TEST_CASE( test_full_write_read )
 {
-	RingBufferT<int> rb( 100 );
+	dsp::RingBufferT<int> rb( 100 );
 
 	vector<int> a( rb.getSize() );
 	vector<int> b( rb.getSize() );
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE( test_full_write_read )
 
 BOOST_AUTO_TEST_CASE( test_threaded_stress )
 {
-	RingBufferT<uint32_t> rb( 100 );
+	dsp::RingBufferT<uint32_t> rb( 100 );
 	const uint32_t kNumReads = 10000;
 	const size_t kReadBufferSize = 511;
 	const size_t kWriteBufferSize = 493;

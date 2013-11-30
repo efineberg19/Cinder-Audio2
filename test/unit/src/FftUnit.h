@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utils.h"
-#include "cinder/audio2/Fft.h"
+#include "cinder/audio2/dsp/Fft.h"
 
 #include <iostream>
 
@@ -13,7 +13,7 @@ namespace {
 
 	void computeRoundTrip( size_t sizeFft )
 	{
-		Fft fft( sizeFft );
+		dsp::Fft fft( sizeFft );
 		Buffer waveform( sizeFft );
 		BufferSpectral spectral( sizeFft );
 

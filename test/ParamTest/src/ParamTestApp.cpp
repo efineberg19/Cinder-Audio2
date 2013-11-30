@@ -1,5 +1,6 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
+#include "cinder/Rand.h"
 
 #include "cinder/audio2/NodeSource.h"
 #include "cinder/audio2/NodeEffect.h"
@@ -10,6 +11,8 @@
 #include "../../common/AudioTestGui.h"
 
 //#include "cinder/Timeline.h"
+
+// TODO NEXT: Param input via Node
 
 using namespace ci;
 using namespace ci::app;
@@ -33,11 +36,10 @@ class ParamTestApp : public AppNative {
 	void triggerAppend();
 	void triggerDelay();
 
-	Context*				mContext;
-	GenRef				mGen;
-	GainRef				mGain;
-	Pan2dRef			mPan;
-	FilterLowPassRef	mLowPass;
+	audio2::GenRef				mGen;
+	audio2::GainRef				mGain;
+	audio2::Pan2dRef			mPan;
+	audio2::FilterLowPassRef	mLowPass;
 
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton, mApplyButton, mApplyAppendButton, mAppendButton, mDelayButton;
@@ -52,26 +54,25 @@ void ParamTestApp::setup()
 //	timeline().apply( &pos, Vec2f::zero(), 1, EaseInQuad() );
 //	timeline().appendTo( &pos, Vec2f( 10, 20 ), 2 ); // ???: Tween's mStartValue = (1,1) here?
 
-	mContext = Context::master();
-
-	mGain = mContext->makeNode( new Gain() );
+	auto ctx = audio2::Context::master();
+	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.8 );
 
-	mPan = mContext->makeNode( new Pan2d() );
+	mPan = ctx->makeNode( new audio2::Pan2d() );
 
-	mGen = mContext->makeNode( new GenSine() );
-//	mGen = mContext->makeNode( new GenTriangle() );
-//	mGen = mContext->makeNode( new GenPhasor() );
+	mGen = ctx->makeNode( new audio2::GenSine() );
+//	mGen = ctx->makeNode( new audio2::GenTriangle() );
+//	mGen = ctx->makeNode( new audio2::GenPhasor() );
 
 	mGen->setFreq( 0 );
 
-	mLowPass = mContext->makeNode( new FilterLowPass() );
+	mLowPass = ctx->makeNode( new audio2::FilterLowPass() );
 
 	setupBasic();
 
 	setupUI();
 
-	mContext->printGraph();
+	ctx->printGraph();
 
 //	triggerApply();
 	triggerApply2();
@@ -79,13 +80,13 @@ void ParamTestApp::setup()
 
 void ParamTestApp::setupBasic()
 {
-	mGen->connect( mGain )->connect( mContext->getTarget() );
+	mGen->connect( mGain )->connect( audio2::Context::master()->getTarget() );
 	mGen->start();
 }
 
 void ParamTestApp::setupFilter()
 {
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
 	mGen->start();
 }
 
@@ -124,7 +125,7 @@ void ParamTestApp::triggerAppend()
 // make a ramp after a 1 second delay
 void ParamTestApp::triggerDelay()
 {
-	mGen->getParamFreq()->rampTo( 50, 440, 1, Param::Options().delay( 1 ) );
+	mGen->getParamFreq()->rampTo( 50, 440, 1, audio2::Param::Options().delay( 1 ) );
 	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
 }
 
@@ -212,7 +213,7 @@ void ParamTestApp::processDrag( Vec2i pos )
 	if( mGenFreqSlider.hitTest( pos ) ) {
 //		mGen->setFreq( mGenFreqSlider.mValueScaled );
 //		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f );
-		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f, Param::Options().rampFn( &rampExpo ) );
+		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f, audio2::Param::Options().rampFn( &audio2::rampExpo ) );
 	}
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );
@@ -220,10 +221,11 @@ void ParamTestApp::processDrag( Vec2i pos )
 
 void ParamTestApp::processTap( Vec2i pos )
 {
+	auto ctx = audio2::Context::master();
 	size_t selectorIndex = mTestSelector.mCurrentSectionIndex;
 
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
+		ctx->setEnabled( ! ctx->isEnabled() );
 	else if( mApplyButton.hitTest( pos ) )
 		triggerApply();
 	else if( mApplyAppendButton.hitTest( pos ) )
@@ -236,18 +238,18 @@ void ParamTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
 
-		bool enabled = mContext->isEnabled();
-		mContext->stop();
+		bool enabled = ctx->isEnabled();
+		ctx->stop();
 
-		mContext->disconnectAllNodes();
+		ctx->disconnectAllNodes();
 
 		if( currentTest == "basic" )
 			setupBasic();
 		if( currentTest == "filter" )
 			setupFilter();
 
-		mContext->setEnabled( enabled );
-		mContext->printGraph();
+		ctx->setEnabled( enabled );
+		ctx->printGraph();
 	}
 	else
 		processDrag( pos );
