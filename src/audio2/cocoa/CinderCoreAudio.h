@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "audio2/audio.h"
 #include "audio2/Converter.h"
 
 #include <memory>
