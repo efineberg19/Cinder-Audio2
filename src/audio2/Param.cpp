@@ -58,9 +58,8 @@ void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, flo
 	}
 }
 
-
 Param::Event::Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn )
-	: mTimeBegin( timeBegin ), mTimeEnd( timeEnd ), mTotalSeconds( timeEnd - timeBegin ),
+	: mTimeBegin( timeBegin ), mTimeEnd( timeEnd ), mDuration( timeEnd - timeBegin ),
 	mValueBegin( valueBegin ), mValueEnd( valueEnd ), mRampFn( rampFn ), mMarkedForRemoval( false )
 {
 }
@@ -77,6 +76,11 @@ void Param::setValue( float value )
 
 void Param::rampTo( float endValue, float rampSeconds, const Options &options )
 {
+	rampTo( mValue, endValue, rampSeconds, options );
+}
+
+void Param::rampTo( float beginValue, float endValue, float rampSeconds, const Options &options )
+{
 	CI_ASSERT( mContext );
 
 	if( ! mInternalBufferInitialized ) {
@@ -87,22 +91,16 @@ void Param::rampTo( float endValue, float rampSeconds, const Options &options )
 	float timeBegin = mContext->getNumProcessedSeconds() + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
 
-	Event event( timeBegin, timeEnd, mValue, endValue, options.getRampFn() );
+	Event event( timeBegin, timeEnd, beginValue, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
-	LOG_V << "(rampTo) event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
+	event.mTotalFrames = event.mDuration * mContext->getSampleRate();
+	LOG_V << "(rampTo) event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << beginValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
 	reset();
 	mEvents.push_back( event );
-}
-
-void Param::rampTo( float beginValue, float endValue, float rampSeconds, const Options &options )
-{
-	mValue = beginValue;
-	rampTo( endValue, rampSeconds, options );
 }
 
 void Param::appendTo( float endValue, float rampSeconds, const Options &options )
@@ -120,8 +118,8 @@ void Param::appendTo( float endValue, float rampSeconds, const Options &options 
 	Event event( timeBegin, timeEnd, mValue, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
-	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
+	event.mTotalFrames = event.mDuration * mContext->getSampleRate();
+	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << mValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -190,8 +188,8 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 					fill( mValue, array, startIndex );
 
 				size_t count = size_t( endIndex - startIndex );
-				float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mTotalSeconds;
-				float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mTotalSeconds; // TODO: currently unused, needed?
+				float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mDuration;
+				float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mDuration; // TODO: currently unused, needed?
 
 				event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
 

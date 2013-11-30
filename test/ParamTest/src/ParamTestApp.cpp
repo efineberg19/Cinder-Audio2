@@ -95,7 +95,8 @@ void ParamTestApp::triggerRamp()
 //	mGain->getGainParam()->rampTo( 0.7f, 0.2f );
 
 //	mGen->getParamFreq()->rampTo( randFloat( 60, 600 ), 0.5f, 0.0f );
-	mGen->getParamFreq()->rampTo( 100, 0.03f );
+//	mGen->getParamFreq()->rampTo( 220, 440, 1.0f );
+	mGen->getParamFreq()->rampTo( 220, 440, 1.0f, Param::Options().delay( 0.5f ) );
 }
 
 void ParamTestApp::setupUI()

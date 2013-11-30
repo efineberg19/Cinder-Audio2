@@ -78,7 +78,7 @@ class Param {
 		Event() : mFramesProcessed( 0 ) {}
 		Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
 
-		float	mTimeBegin, mTimeEnd, mTotalSeconds;
+		float	mTimeBegin, mTimeEnd, mDuration;
 		float	mValueBegin, mValueEnd;
 		RampFn	mRampFn;
 		bool	mMarkedForRemoval;
