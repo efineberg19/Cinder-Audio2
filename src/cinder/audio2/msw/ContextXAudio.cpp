@@ -22,7 +22,7 @@
 */
 
 #include "cinder/audio2/msw/ContextXAudio.h"
-#include "cinder/audio2/msw/NodeLineInWasapi.h"
+#include "cinder/audio2/msw/LineInWasapi.h"
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/msw/xaudio.h"
 
@@ -80,7 +80,7 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 };
 
 struct EngineCallbackImpl : public IXAudio2EngineCallback {
-	EngineCallbackImpl( NodeLineOutXAudio *lineOut ) : mLineOut( lineOut ), mFramesPerBlock( lineOut->getFramesPerBlock() ) {}
+	EngineCallbackImpl( LineOutXAudio *lineOut ) : mLineOut( lineOut ), mFramesPerBlock( lineOut->getFramesPerBlock() ) {}
 
 	void _stdcall OnProcessingPassStart() {}
 	void _stdcall OnProcessingPassEnd ()
@@ -92,7 +92,7 @@ struct EngineCallbackImpl : public IXAudio2EngineCallback {
 		LOG_E << "error: " << Error << endl;
 	}
 
-	NodeLineOutXAudio *mLineOut;
+	LineOutXAudio *mLineOut;
 	uint64_t mFramesPerBlock;
 };
 
@@ -224,8 +224,8 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 // MARK: - LineOutXAudio
 // ----------------------------------------------------------------------------------------------------
 
-NodeLineOutXAudio::NodeLineOutXAudio( DeviceRef device, const Format &format )
-: NodeLineOut( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
+LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
+: LineOut( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
 {
 #if defined( CINDER_XAUDIO_2_7 )
 	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
@@ -255,12 +255,12 @@ NodeLineOutXAudio::NodeLineOutXAudio( DeviceRef device, const Format &format )
 	mXAudio->StopEngine();
 }
 
-NodeLineOutXAudio::~NodeLineOutXAudio()
+LineOutXAudio::~LineOutXAudio()
 {
 	mXAudio->Release();
 }
 
-void NodeLineOutXAudio::initialize()
+void LineOutXAudio::initialize()
 {
 	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
 	const wstring &deviceId = deviceManager->getDeviceId( mDevice );
@@ -304,13 +304,13 @@ void NodeLineOutXAudio::initialize()
 	mInitialized = true;
 }
 
-void NodeLineOutXAudio::uninitialize()
+void LineOutXAudio::uninitialize()
 {
 	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
 	mMasteringVoice->DestroyVoice();
 }
 
-void NodeLineOutXAudio::start()
+void LineOutXAudio::start()
 {
 	if( mEnabled || ! mInitialized )
 		return;
@@ -322,7 +322,7 @@ void NodeLineOutXAudio::start()
 	LOG_V "started" << endl;
 }
 
-void NodeLineOutXAudio::stop()
+void LineOutXAudio::stop()
 {
 	if( ! mEnabled || ! mInitialized )
 		return;
@@ -332,12 +332,12 @@ void NodeLineOutXAudio::stop()
 	LOG_V "stopped" << endl;
 }
 
-uint64_t NodeLineOutXAudio::getLastClip()
+uint64_t LineOutXAudio::getLastClip()
 {
 	return 0; // TODO: set clip frame from source nodes
 }
 
-bool NodeLineOutXAudio::supportsInputNumChannels( size_t numChannels )
+bool LineOutXAudio::supportsInputNumChannels( size_t numChannels )
 {
 	return true;
 }
@@ -478,19 +478,19 @@ ContextXAudio::~ContextXAudio()
 {
 }
 
-NodeLineOutRef ContextXAudio::createLineOut( const DeviceRef &device, const Node::Format &format )
+LineOutRef ContextXAudio::createLineOut( const DeviceRef &device, const Node::Format &format )
 {
-	return makeNode( new NodeLineOutXAudio( device, format ) );
+	return makeNode( new LineOutXAudio( device, format ) );
 }
 
-NodeLineInRef ContextXAudio::createLineIn( const DeviceRef &device, const Node::Format &format )
+LineInRef ContextXAudio::createLineIn( const DeviceRef &device, const Node::Format &format )
 {
-	return makeNode( new NodeLineInWasapi( device ) );
+	return makeNode( new LineInWasapi( device ) );
 }
 
 void ContextXAudio::setTarget( const NodeTargetRef &target )
 {
-	CI_ASSERT_MSG( dynamic_pointer_cast<NodeLineOutXAudio>( target ), "ContextXAudio only supports a target of type NodeLineOutXAudio" );
+	CI_ASSERT_MSG( dynamic_pointer_cast<LineOutXAudio>( target ), "ContextXAudio only supports a target of type LineOutXAudio" );
 	Context::setTarget( target );
 }
 

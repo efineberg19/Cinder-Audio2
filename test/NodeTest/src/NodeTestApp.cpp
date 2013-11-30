@@ -59,9 +59,9 @@ public:
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	audio2::NodeGainRef		mGain;
+	audio2::GainRef		mGain;
 	audio2::ScopeRef		mScope;
-	audio2::NodeGenRef		mGen, mNoise;
+	audio2::GenRef		mGen, mNoise;
 
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton, mEnableNoiseButton, mEnableSineButton;
@@ -82,14 +82,14 @@ void NodeTestApp::setup()
 	console() << "\t frames per block: " << device->getFramesPerBlock() << endl;
 
 	auto ctx = audio2::Context::master();
-	mGain = ctx->makeNode( new audio2::NodeGain() );
+	mGain = ctx->makeNode( new audio2::Gain() );
 //	mGain->setValue( 0.0f );
 
 	mGain->connect( ctx->getTarget() );
 
-	mNoise = ctx->makeNode( new audio2::NodeGenNoise() );
+	mNoise = ctx->makeNode( new audio2::GenNoise() );
 
-	mGen = ctx->makeNode( new audio2::NodeGenTriangle() );
+	mGen = ctx->makeNode( new audio2::GenTriangle() );
 	mGen->setFreq( 440.0f );
 
 	setupGen();

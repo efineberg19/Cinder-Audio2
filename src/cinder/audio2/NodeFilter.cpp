@@ -27,7 +27,7 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-void NodeFilterBiquad::initialize()
+void FilterBiquad::initialize()
 {
 	// Convert from Hertz to normalized frequency 0 -> 1.
 	mNiquist = getContext()->getSampleRate() / 2;
@@ -39,12 +39,12 @@ void NodeFilterBiquad::initialize()
 		updateBiquadParams();
 }
 
-void NodeFilterBiquad::uninitialize()
+void FilterBiquad::uninitialize()
 {
 	mBiquads.clear();
 }
 
-void NodeFilterBiquad::process( Buffer *buffer )
+void FilterBiquad::process( Buffer *buffer )
 {
 	if( mCoeffsDirty )
 		updateBiquadParams();
@@ -57,7 +57,7 @@ void NodeFilterBiquad::process( Buffer *buffer )
 	}
 }
 
-void NodeFilterBiquad::updateBiquadParams()
+void FilterBiquad::updateBiquadParams()
 {
 	mCoeffsDirty = false;
 	double normalizedFrequency = mFreq / mNiquist;

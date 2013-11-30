@@ -34,10 +34,10 @@ class ParamTestApp : public AppNative {
 	void triggerDelay();
 
 	Context*				mContext;
-	NodeGenRef				mGen;
-	NodeGainRef				mGain;
-	NodePan2dRef			mPan;
-	NodeFilterLowPassRef	mLowPass;
+	GenRef				mGen;
+	GainRef				mGain;
+	Pan2dRef			mPan;
+	FilterLowPassRef	mLowPass;
 
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton, mApplyButton, mApplyAppendButton, mAppendButton, mDelayButton;
@@ -54,18 +54,18 @@ void ParamTestApp::setup()
 
 	mContext = Context::master();
 
-	mGain = mContext->makeNode( new NodeGain() );
+	mGain = mContext->makeNode( new Gain() );
 	mGain->setValue( 0.8 );
 
-	mPan = mContext->makeNode( new NodePan2d() );
+	mPan = mContext->makeNode( new Pan2d() );
 
-	mGen = mContext->makeNode( new NodeGenSine() );
-//	mGen = mContext->makeNode( new NodeGenTriangle() );
-//	mGen = mContext->makeNode( new NodeGenPhasor() );
+	mGen = mContext->makeNode( new GenSine() );
+//	mGen = mContext->makeNode( new GenTriangle() );
+//	mGen = mContext->makeNode( new GenPhasor() );
 
 	mGen->setFreq( 0 );
 
-	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
+	mLowPass = mContext->makeNode( new FilterLowPass() );
 
 	setupBasic();
 

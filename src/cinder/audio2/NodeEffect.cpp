@@ -43,15 +43,15 @@ NodeEffect::NodeEffect( const Format &format )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeGain
+// MARK: - Gain
 // ----------------------------------------------------------------------------------------------------
 
-void NodeGain::initialize()
+void Gain::initialize()
 {
 	mGain.initialize( getContext() );
 }
 
-void NodeGain::process( Buffer *buffer )
+void Gain::process( Buffer *buffer )
 {
 	if( mGain.isVaryingThisBlock() )
 		dsp::mul( buffer->getData(), mGain.getValueArray(), buffer->getData(), buffer->getSize() );
@@ -60,10 +60,10 @@ void NodeGain::process( Buffer *buffer )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodePan2d
+// MARK: - Pan2d
 // ----------------------------------------------------------------------------------------------------
 
-NodePan2d::NodePan2d( const Format &format )
+Pan2d::Pan2d( const Format &format )
 : NodeEffect( format ), mPos( 0.5f ), mMonoInputMode( true )
 {
 	mChannelMode = ChannelMode::SPECIFIED;
@@ -73,7 +73,7 @@ NodePan2d::NodePan2d( const Format &format )
 /*
  * TODO: below is an attempt at an optimization for (possibly many) mono input -> stereo output
  8	- I didn't get it to mesh well enough with Node::configureConnections, during various edge cases, so it is on the back burner for now..
-bool NodePan2d::supportsInputNumChannels( size_t numChannels )
+bool Pan2d::supportsInputNumChannels( size_t numChannels )
 {
 	if( numChannels == 1 ) {
 		mMonoInputMode = true;
@@ -94,7 +94,7 @@ bool NodePan2d::supportsInputNumChannels( size_t numChannels )
 	return ( numChannels <= 2 );
 }
 
-void NodePan2d::pullInputs( Buffer *destBuffer )
+void Pan2d::pullInputs( Buffer *destBuffer )
 {
 	CI_ASSERT( getContext() );
 
@@ -134,7 +134,7 @@ void NodePan2d::pullInputs( Buffer *destBuffer )
 // equal power panning eq:
 // left = cos(p) * signal, right = sin(p) * signal, where p is in radians from 0 to PI/2
 // gives +3db when panned to center, which helps to remove the 'dead spot'
-void NodePan2d::process( Buffer *buffer )
+void Pan2d::process( Buffer *buffer )
 {
 	float pos = mPos;
 	float *channel0 = buffer->getChannel( 0 );
@@ -169,7 +169,7 @@ void NodePan2d::process( Buffer *buffer )
 	}
 }
 
-void NodePan2d::setPos( float pos )
+void Pan2d::setPos( float pos )
 {
 	mPos = math<float>::clamp( pos );
 }

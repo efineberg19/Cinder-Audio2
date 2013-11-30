@@ -37,8 +37,8 @@ class InputTestApp : public AppNative {
 	void setupInTapProcessOut();
 
 	Context* mContext;
-	NodeLineInRef mLineIn;
-	NodeLineOutRef mLineOut;
+	LineInRef mLineIn;
+	LineOutRef mLineOut;
 	ScopeRef mScope;
 
 	VSelector mTestSelector;

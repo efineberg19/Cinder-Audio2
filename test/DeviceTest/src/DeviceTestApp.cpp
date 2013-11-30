@@ -44,10 +44,10 @@ class DeviceTestApp : public AppNative {
 	void keyDown( KeyEvent event );
 
 	Context* mContext;
-	NodeLineInRef mLineIn;
-	NodeLineOutRef mLineOut;
+	LineInRef mLineIn;
+	LineOutRef mLineOut;
 	ScopeRef mScope;
-	NodeGainRef mGain;
+	GainRef mGain;
 	NodeSourceRef mSourceNode;
 
 	vector<TestWidget *> mWidgets;
@@ -71,7 +71,7 @@ void DeviceTestApp::setup()
 	mContext = Context::master();
 
 	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
-	mGain = mContext->makeNode( new NodeGain() );
+	mGain = mContext->makeNode( new Gain() );
 	mGain->setValue( 0.6f );
 
 	setOutputDevice( Device::getDefaultOutput() );
@@ -139,7 +139,7 @@ void DeviceTestApp::printDeviceDetails( const DeviceRef &device )
 
 void DeviceTestApp::setupSine()
 {
-	auto sineGen = mContext->makeNode( new NodeGenSine() );
+	auto sineGen = mContext->makeNode( new GenSine() );
 	sineGen->getGen().setFreq( 440.0f );
 	mSourceNode = sineGen;
 
@@ -149,7 +149,7 @@ void DeviceTestApp::setupSine()
 
 void DeviceTestApp::setupNoise()
 {
-	auto noiseGen = mContext->makeNode( new NodeGenNoise() );
+	auto noiseGen = mContext->makeNode( new GenNoise() );
 	mSourceNode = noiseGen;
 
 	mSourceNode->connect( mGain, 0 );

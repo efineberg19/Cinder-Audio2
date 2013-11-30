@@ -59,11 +59,11 @@ class VoiceSamplePlayer : public Voice {
   public:
 
 	NodeRef getNode() const override				{ return mNode; }
-	NodeSamplePlayerRef getSamplePlayer() const		{ return mNode; }
+	SamplePlayerRef getSamplePlayer() const		{ return mNode; }
 
   protected:
 	VoiceSamplePlayer( const DataSourceRef &dataSource );
-	NodeSamplePlayerRef mNode;
+	SamplePlayerRef mNode;
 
 	friend class Voice;
 };
@@ -75,7 +75,7 @@ class VoiceCallbackProcessor : public Voice {
   protected:
 	VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn );
 
-	NodeCallbackProcessorRef mNode;
+	CallbackProcessorRef mNode;
 	friend class Voice;
 };
 

@@ -57,40 +57,40 @@ void NodeSource::connectInput( const NodeRef &input, size_t bus )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeLineIn
+// MARK: - LineIn
 // ----------------------------------------------------------------------------------------------------
 
-NodeLineIn::NodeLineIn( const DeviceRef &device, const Format &format )
+LineIn::LineIn( const DeviceRef &device, const Format &format )
 : NodeSource( format ), mDevice( device )
 {
 	if( boost::indeterminate( format.getAutoEnable() ) )
 		setAutoEnabled();
 }
 
-NodeLineIn::~NodeLineIn()
+LineIn::~LineIn()
 {
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeSamplePlayer
+// MARK: - SamplePlayer
 // ----------------------------------------------------------------------------------------------------
 
-void NodeSamplePlayer::seekToTime( double readPositionSeconds )
+void SamplePlayer::seekToTime( double readPositionSeconds )
 {
 	return seek( size_t( readPositionSeconds * (double)getContext()->getSampleRate() ) );
 }
 
-double NodeSamplePlayer::getReadPositionTime() const
+double SamplePlayer::getReadPositionTime() const
 {
 	return (double)mReadPos / (double)getContext()->getSampleRate();
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeBufferPlayer
+// MARK: - BufferPlayer
 // ----------------------------------------------------------------------------------------------------
 
-NodeBufferPlayer::NodeBufferPlayer( const Format &format )
-: NodeSamplePlayer( format )
+BufferPlayer::BufferPlayer( const Format &format )
+: SamplePlayer( format )
 {
 	// If the Format doesn't specify num channels, set to one until further notice.
 	if( ! mChannelMode == ChannelMode::SPECIFIED ) {
@@ -99,8 +99,8 @@ NodeBufferPlayer::NodeBufferPlayer( const Format &format )
 	}
 }
 
-NodeBufferPlayer::NodeBufferPlayer( const BufferRef &buffer, const Format &format )
-: NodeSamplePlayer( format ), mBuffer( buffer )
+BufferPlayer::BufferPlayer( const BufferRef &buffer, const Format &format )
+: SamplePlayer( format ), mBuffer( buffer )
 {
 	mNumFrames = mBuffer->getNumFrames();
 
@@ -109,7 +109,7 @@ NodeBufferPlayer::NodeBufferPlayer( const BufferRef &buffer, const Format &forma
 	setNumChannels( mBuffer->getNumChannels() );
 }
 
-void NodeBufferPlayer::start()
+void BufferPlayer::start()
 {
 	if( ! mBuffer ) {
 		LOG_E << "no audio buffer, returning." << endl;
@@ -122,19 +122,19 @@ void NodeBufferPlayer::start()
 	LOG_V << "started" << endl;
 }
 
-void NodeBufferPlayer::stop()
+void BufferPlayer::stop()
 {
 	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
 }
 
-void NodeBufferPlayer::seek( size_t readPositionFrames )
+void BufferPlayer::seek( size_t readPositionFrames )
 {
 	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
 }
 
-void NodeBufferPlayer::setBuffer( const BufferRef &buffer )
+void BufferPlayer::setBuffer( const BufferRef &buffer )
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
@@ -154,7 +154,7 @@ void NodeBufferPlayer::setBuffer( const BufferRef &buffer )
 		start();
 }
 
-void NodeBufferPlayer::process( Buffer *buffer )
+void BufferPlayer::process( Buffer *buffer )
 {
 	size_t readPos = mReadPos;
 	size_t numFrames = buffer->getNumFrames();
@@ -177,18 +177,18 @@ void NodeBufferPlayer::process( Buffer *buffer )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeFilePlayer
+// MARK: - FilePlayer
 // ----------------------------------------------------------------------------------------------------
 
-NodeFilePlayer::NodeFilePlayer( const Format &format )
-: NodeSamplePlayer( format ), mRingBufferPaddingFactor( 2 )
+FilePlayer::FilePlayer( const Format &format )
+: SamplePlayer( format ), mRingBufferPaddingFactor( 2 )
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
 }
 
-NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
-: NodeSamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mRingBufferPaddingFactor( 2 )
+FilePlayer::FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, const Format &format )
+: SamplePlayer( format ), mSourceFile( sourceFile ), mMultiThreaded( isMultiThreaded ), mRingBufferPaddingFactor( 2 )
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
@@ -196,11 +196,11 @@ NodeFilePlayer::NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThr
 	mNumFrames = mSourceFile->getNumFrames();
 }
 
-NodeFilePlayer::~NodeFilePlayer()
+FilePlayer::~FilePlayer()
 {
 }
 
-void NodeFilePlayer::initialize()
+void FilePlayer::initialize()
 {
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
@@ -211,18 +211,18 @@ void NodeFilePlayer::initialize()
 
 	if( mMultiThreaded ) {
 		mReadOnBackground = true;
-		mReadThread = unique_ptr<thread>( new thread( bind( &NodeFilePlayer::readFromBackgroundThread, this ) ) );
+		mReadThread = unique_ptr<thread>( new thread( bind( &FilePlayer::readFromBackgroundThread, this ) ) );
 	}
 
 	LOG_V << " multithreaded: " << boolalpha << mMultiThreaded << dec << ", ringbufer frames: " << mRingBuffers[0].getSize() << ", mBufferFramesThreshold: " << mBufferFramesThreshold << ", source file max frames per read: " << mSourceFile->getMaxFramesPerRead() << endl;
 }
 
-void NodeFilePlayer::uninitialize()
+void FilePlayer::uninitialize()
 {
 	destroyIoThread();
 }
 
-void NodeFilePlayer::start()
+void FilePlayer::start()
 {
 	if( ! mSourceFile ) {
 		LOG_E << "no source file, returning." << endl;
@@ -235,14 +235,14 @@ void NodeFilePlayer::start()
 	LOG_V << "started" << endl;
 }
 
-void NodeFilePlayer::stop()
+void FilePlayer::stop()
 {
 	mEnabled = false;
 
 	LOG_V << "stopped" << endl;
 }
 
-void NodeFilePlayer::seek( size_t readPositionFrames )
+void FilePlayer::seek( size_t readPositionFrames )
 {
 	if( ! mSourceFile ) {
 		LOG_E << "no source file, returning." << endl;
@@ -255,7 +255,7 @@ void NodeFilePlayer::seek( size_t readPositionFrames )
 	mSourceFile->seekToTime( mReadPos );
 }
 
-void NodeFilePlayer::setSourceFile( const SourceFileRef &sourceFile )
+void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
@@ -275,21 +275,21 @@ void NodeFilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 		start();
 }
 
-uint64_t NodeFilePlayer::getLastUnderrun()
+uint64_t FilePlayer::getLastUnderrun()
 {
 	uint64_t result = mLastUnderrun;
 	mLastUnderrun = 0;
 	return result;
 }
 
-uint64_t NodeFilePlayer::getLastOverrun()
+uint64_t FilePlayer::getLastOverrun()
 {
 	uint64_t result = mLastOverrun;
 	mLastOverrun = 0;
 	return result;
 }
 
-void NodeFilePlayer::process( Buffer *buffer )
+void FilePlayer::process( Buffer *buffer )
 {
 	size_t numFrames = buffer->getNumFrames();
 	size_t readPos = mReadPos;
@@ -327,7 +327,7 @@ void NodeFilePlayer::process( Buffer *buffer )
 	}
 }
 
-void NodeFilePlayer::readFromBackgroundThread()
+void FilePlayer::readFromBackgroundThread()
 {
 	size_t lastReadPos = mReadPos;
 	while( true ) {
@@ -346,7 +346,7 @@ void NodeFilePlayer::readFromBackgroundThread()
 	}
 }
 
-void NodeFilePlayer::readFile()
+void FilePlayer::readFile()
 {
 	size_t availableWrite = mRingBuffers[0].getAvailableWrite();
 	size_t numFramesToRead = min( availableWrite, mNumFrames - mReadPos );
@@ -371,7 +371,7 @@ void NodeFilePlayer::readFile()
 //	LOG_V << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
 }
 
-void NodeFilePlayer::destroyIoThread()
+void FilePlayer::destroyIoThread()
 {
 	if( mMultiThreaded && mReadThread ) {
 		LOG_V << "destroying I/O thread" << endl;
@@ -382,33 +382,33 @@ void NodeFilePlayer::destroyIoThread()
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeCallbackProcessor
+// MARK: - CallbackProcessor
 // ----------------------------------------------------------------------------------------------------
 
-void NodeCallbackProcessor::process( Buffer *buffer )
+void CallbackProcessor::process( Buffer *buffer )
 {
 	if( mCallbackFn )
 		mCallbackFn( buffer, getContext()->getSampleRate() );
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeGen's
+// MARK: - Gen's
 // ----------------------------------------------------------------------------------------------------
 
-NodeGen::NodeGen( const Format &format )
+Gen::Gen( const Format &format )
 	: NodeSource( format ), mPhase( 0 )
 {
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 1 );
 }
 
-void NodeGen::initialize()
+void Gen::initialize()
 {
 	mSampleRate = (float)getContext()->getSampleRate();
 	mFreq.initialize( getContext() );
 }
 
-void NodeGenNoise::process( Buffer *buffer )
+void GenNoise::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
@@ -417,7 +417,7 @@ void NodeGenNoise::process( Buffer *buffer )
 		data[i] = ci::randFloat( -1.0f, 1.0f );
 }
 
-void NodeGenSine::process( Buffer *buffer )
+void GenSine::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	const size_t count = buffer->getSize();
@@ -442,7 +442,7 @@ void NodeGenSine::process( Buffer *buffer )
 	mPhase = phase;
 }
 
-void NodeGenPhasor::process( Buffer *buffer )
+void GenPhasor::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	const size_t count = buffer->getSize();
@@ -478,7 +478,7 @@ inline float calcTriangleSignal( float phase, float upSlope, float downSlope )
 
 } // anonymous namespace
 
-void NodeGenTriangle::process( Buffer *buffer )
+void GenTriangle::process( Buffer *buffer )
 {
 	const float phaseMul = 1.0f / mSampleRate;
 	float *data = buffer->getData();

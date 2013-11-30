@@ -31,8 +31,8 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeEffect>		NodeEffectRef;
-typedef std::shared_ptr<class NodeGain>			NodeGainRef;
-typedef std::shared_ptr<class NodePan2d>		NodePan2dRef;
+typedef std::shared_ptr<class Gain>			GainRef;
+typedef std::shared_ptr<class Pan2d>		Pan2dRef;
 
 class NodeEffect : public Node {
   public:
@@ -40,14 +40,14 @@ class NodeEffect : public Node {
 	virtual ~NodeEffect() {}
 };
 
-class NodeGain : public NodeEffect {
+class Gain : public NodeEffect {
   public:
-	NodeGain( const Format &format = Format() ) : NodeEffect( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
-	virtual ~NodeGain() {}
+	Gain( const Format &format = Format() ) : NodeEffect( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
+	virtual ~Gain() {}
 
 	void initialize() override;
 
-	std::string virtual getTag() override			{ return "NodeGain"; }
+	std::string virtual getTag() override			{ return "Gain"; }
 
 	void process( Buffer *buffer ) override;
 
@@ -67,13 +67,13 @@ class NodeGain : public NodeEffect {
 };
 
 //! Simple stereo panning using an equal power cross-fade. The panning position is specified by a single position between the left and right speakers.
-class NodePan2d : public NodeEffect {
+class Pan2d : public NodeEffect {
   public:
-	//! Constructs a NodePan2d. \note Format::channel() and Format::channelMode() are ignored and number of output channels is always 2.
-	NodePan2d( const Format &format = Format() );
-	virtual ~NodePan2d() {}
+	//! Constructs a Pan2d. \note Format::channel() and Format::channelMode() are ignored and number of output channels is always 2.
+	Pan2d( const Format &format = Format() );
+	virtual ~Pan2d() {}
 
-	std::string virtual getTag() override			{ return "NodePan2d"; }
+	std::string virtual getTag() override			{ return "Pan2d"; }
 
 //	//! Overridden to handle mono input without upmixing
 //	bool supportsInputNumChannels( size_t numChannels ) override;

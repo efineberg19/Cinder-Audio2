@@ -56,12 +56,12 @@ class NodeAudioUnit {
 	} mRenderData;
 };
 
-class NodeLineOutAudioUnit : public NodeLineOut, public NodeAudioUnit {
+class LineOutAudioUnit : public LineOut, public NodeAudioUnit {
   public:
-	NodeLineOutAudioUnit( DeviceRef device, const Format &format = Format() );
-	virtual ~NodeLineOutAudioUnit() = default;
+	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
+	virtual ~LineOutAudioUnit() = default;
 
-	std::string virtual getTag() override			{ return "NodeLineOutAudioUnit"; }
+	std::string virtual getTag() override			{ return "LineOutAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -79,15 +79,15 @@ class NodeLineOutAudioUnit : public NodeLineOut, public NodeAudioUnit {
 	std::atomic<uint64_t>				mProcessedFrames, mLastClip;
 	bool								mSynchronousIO;
 
-	friend class NodeLineInAudioUnit;
+	friend class LineInAudioUnit;
 };
 
-class NodeLineInAudioUnit : public NodeLineIn, public NodeAudioUnit {
+class LineInAudioUnit : public LineIn, public NodeAudioUnit {
   public:
-	NodeLineInAudioUnit( DeviceRef device, const Format &format = Format() );
-	virtual ~NodeLineInAudioUnit();
+	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
+	virtual ~LineInAudioUnit();
 
-	std::string virtual getTag() override			{ return "NodeLineInAudioUnit"; }
+	std::string virtual getTag() override			{ return "LineInAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -137,8 +137,8 @@ class ContextAudioUnit : public Context {
   public:
 	virtual ~ContextAudioUnit();
 
-	virtual NodeLineOutRef		createLineOut( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
-	virtual NodeLineInRef		createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
+	virtual LineOutRef		createLineOut( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
+	virtual LineInRef		createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
 
 	//! set by the NodeTarget
 	void setCurrentTimeStamp( const ::AudioTimeStamp *timeStamp ) { mCurrentTimeStamp = timeStamp; }

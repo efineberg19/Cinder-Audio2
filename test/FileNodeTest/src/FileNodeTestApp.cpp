@@ -43,12 +43,12 @@ class FileNodeTestApp : public AppNative {
 	void testWrite();
 
 	Context* mContext;
-	NodeSamplePlayerRef mSamplePlayer;
+	SamplePlayerRef mSamplePlayer;
 	SourceFileRef mSourceFile;
 	WaveformPlot mWaveformPlot;
 	ScopeRef mScope;
-	NodeGainRef mGain;
-	NodePan2dRef mPan;
+	GainRef mGain;
+	Pan2dRef mPan;
 
 	vector<TestWidget *> mWidgets;
 	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
@@ -73,9 +73,9 @@ void FileNodeTestApp::setup()
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
-	mPan = mContext->makeNode( new NodePan2d() );
+	mPan = mContext->makeNode( new Pan2d() );
 	mPan->enableMonoInputMode( false );
-	mGain = mContext->makeNode( new NodeGain() );
+	mGain = mContext->makeNode( new Gain() );
 	mGain->setValue( 0.6f );
 
 	mSourceFile = SourceFile::create( dataSource, mContext->getSampleRate(), 0 );
@@ -102,7 +102,7 @@ void FileNodeTestApp::setupBufferPlayer()
 
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
-	mSamplePlayer = mContext->makeNode( new NodeBufferPlayer( audioBuffer ) );
+	mSamplePlayer = mContext->makeNode( new BufferPlayer( audioBuffer ) );
 	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
 }
 
@@ -110,8 +110,8 @@ void FileNodeTestApp::setupFilePlayer()
 {
 //	mSourceFile->setMaxFramesPerRead( 8192 );
 
-	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile ) );
-//	mSamplePlayer = mContext->makeNode( new NodeFilePlayer( mSourceFile, false ) ); // synchronous file i/o
+	mSamplePlayer = mContext->makeNode( new FilePlayer( mSourceFile ) );
+//	mSamplePlayer = mContext->makeNode( new FilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
 	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
 
@@ -239,14 +239,14 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
 	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
 
-	auto bufferPlayer = dynamic_pointer_cast<NodeBufferPlayer>( mSamplePlayer );
+	auto bufferPlayer = dynamic_pointer_cast<BufferPlayer>( mSamplePlayer );
 	if( bufferPlayer ) {
 		bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
 		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
 	}
 	else {
-		auto filePlayer = dynamic_pointer_cast<NodeFilePlayer>( mSamplePlayer );
-		CI_ASSERT_MSG( filePlayer, "expected sample player to be either NodeBufferPlayer or NodeFilePlayer" );
+		auto filePlayer = dynamic_pointer_cast<FilePlayer>( mSamplePlayer );
+		CI_ASSERT_MSG( filePlayer, "expected sample player to be either BufferPlayer or FilePlayer" );
 
 		filePlayer->setSourceFile( mSourceFile );
 	}
@@ -262,7 +262,7 @@ void FileNodeTestApp::update()
 {
 	const float xrunFadeTime = 1.3f;
 
-	auto filePlayer = dynamic_pointer_cast<NodeFilePlayer>( mSamplePlayer );
+	auto filePlayer = dynamic_pointer_cast<FilePlayer>( mSamplePlayer );
 	if( filePlayer ) {
 		if( filePlayer->getLastUnderrun() )
 			timeline().apply( &mUnderrunFade, 1.0f, 0.0f, xrunFadeTime );

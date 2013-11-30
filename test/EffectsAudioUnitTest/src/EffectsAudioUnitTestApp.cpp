@@ -45,7 +45,7 @@ void EffectsAudioUnitTestApp::setup()
 {
 	mContext = Context::master();
 
-	auto noise = mContext->makeNode( new NodeGenNoise() );
+	auto noise = mContext->makeNode( new GenNoise() );
 	noise->setAutoEnabled();
 	noise->getGen().setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono

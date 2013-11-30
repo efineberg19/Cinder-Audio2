@@ -28,7 +28,7 @@
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeTarget>		NodeTargetRef;
-typedef std::shared_ptr<class NodeLineOut>		NodeLineOutRef;
+typedef std::shared_ptr<class LineOut>		LineOutRef;
 
 class NodeTarget : public Node {
   public:
@@ -48,9 +48,9 @@ class NodeTarget : public Node {
 	const NodeRef& connect( const NodeRef &dest, size_t outputBus, size_t inputBus ) override;
 };
 
-class NodeLineOut : public NodeTarget {
+class LineOut : public NodeTarget {
   public:
-	virtual ~NodeLineOut() {}
+	virtual ~LineOut() {}
 
 	const DeviceRef& getDevice() const		{ return mDevice; }
 
@@ -66,7 +66,7 @@ class NodeLineOut : public NodeTarget {
 	virtual void deviceParamsDidChange();
 
   protected:
-	NodeLineOut( const DeviceRef &device, const Format &format = Format() );
+	LineOut( const DeviceRef &device, const Format &format = Format() );
 
 	DeviceRef mDevice;
 

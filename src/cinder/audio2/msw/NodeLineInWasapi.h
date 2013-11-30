@@ -32,12 +32,12 @@
 
 namespace cinder { namespace audio2 { namespace msw {
 
-class NodeLineInWasapi : public NodeLineIn {
+class LineInWasapi : public LineIn {
   public:
-	NodeLineInWasapi( const DeviceRef &device, const Format &format = Format() );
-	virtual ~NodeLineInWasapi();
+	LineInWasapi( const DeviceRef &device, const Format &format = Format() );
+	virtual ~LineInWasapi();
 
-	std::string virtual getTag()				{ return "NodeLineInWasapi"; }
+	std::string virtual getTag()				{ return "LineInWasapi"; }
 
 	void initialize() override;
 	void uninitialize() override;

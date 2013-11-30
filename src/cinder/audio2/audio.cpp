@@ -32,7 +32,7 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
-// TODO: replace this private Mixer, which composits a NodeGain + NodePan per voice, into a NodeMixer
+// TODO: replace this private Mixer, which composits a Gain + NodePan per voice, into a NodeMixer
 // that has a custom pullInputs and performs that gain / pan as a post-processing step
 class Mixer {
 public:
@@ -54,14 +54,14 @@ private:
 
 	struct Bus {
 		VoiceRef		mVoice;
-		NodeGainRef		mGain;
-		NodePan2dRef	mPan;
+		GainRef		mGain;
+		Pan2dRef	mPan;
 	};
 
 	std::vector<Bus> mBusses;
 	std::map<SourceFileRef, BufferRef> mBufferCache;
 
-	NodeGainRef mMasterGain;
+	GainRef mMasterGain;
 };
 
 Mixer* Mixer::get()
@@ -76,7 +76,7 @@ Mixer* Mixer::get()
 Mixer::Mixer()
 {
 	Context *ctx = Context::master();
-	mMasterGain = ctx->makeNode( new NodeGain() );
+	mMasterGain = ctx->makeNode( new Gain() );
 
 	mMasterGain->addConnection( ctx->getTarget() );
 
@@ -92,8 +92,8 @@ void Mixer::addVoice( const VoiceRef &source )
 	Mixer::Bus &bus = mBusses.back();
 
 	bus.mVoice = source;
-	bus.mGain = ctx->makeNode( new NodeGain() );
-	bus.mPan = ctx->makeNode( new NodePan2d() );
+	bus.mGain = ctx->makeNode( new Gain() );
+	bus.mPan = ctx->makeNode( new Pan2d() );
 
 	source->getNode()->connect( bus.mGain )->connect( bus.mPan )->connect( mMasterGain );
 }
@@ -156,16 +156,16 @@ VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 
 	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback ) {
 		BufferRef buffer = Mixer::get()->loadSourceFile( sourceFile );
-		mNode = Context::master()->makeNode( new NodeBufferPlayer( buffer ) );
+		mNode = Context::master()->makeNode( new BufferPlayer( buffer ) );
 	} else
-		mNode = Context::master()->makeNode( new NodeFilePlayer( sourceFile ) );
+		mNode = Context::master()->makeNode( new FilePlayer( sourceFile ) );
 }
 
 // TODO: how best to specify channel count?
 VoiceCallbackProcessor::VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn )
 {
-	mNode = Context::master()->makeNode( new NodeCallbackProcessor( callbackFn ) );
-//	mNode = Context::master()->makeNode( new NodeCallbackProcessor( callbackFn, Node::Format().channels( 2 ) ) );
+	mNode = Context::master()->makeNode( new CallbackProcessor( callbackFn ) );
+//	mNode = Context::master()->makeNode( new CallbackProcessor( callbackFn, Node::Format().channels( 2 ) ) );
 }
 
 VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )

@@ -32,19 +32,19 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeFilterLowPass>		NodeFilterLowPassRef;
-typedef std::shared_ptr<class NodeFilterHighPass>		NodeFilterHighPassRef;
-typedef std::shared_ptr<class NodeFilterBandPass>		NodeFilterBandPassRef;
+typedef std::shared_ptr<class FilterLowPass>		FilterLowPassRef;
+typedef std::shared_ptr<class FilterHighPass>		FilterHighPassRef;
+typedef std::shared_ptr<class FilterBandPass>		FilterBandPassRef;
 
 //! Base class for filter nodes that use Biquad
-class NodeFilterBiquad : public NodeEffect {
+class FilterBiquad : public NodeEffect {
   public:
 	enum Mode { LOWPASS, HIGHPASS, BANDPASS, LOWSHELF, HIGHSHELF, PEAKING, ALLPASS, NOTCH, CUSTOM };
 
-	NodeFilterBiquad( Mode mode = LOWPASS, const Format &format = Format() ) : NodeEffect( format ), mMode( mode ), mCoeffsDirty( true ), mFreq( 200.0f ), mQ( 1.0f ), mGain( 0.0f ) {}
-	virtual ~NodeFilterBiquad() {}
+	FilterBiquad( Mode mode = LOWPASS, const Format &format = Format() ) : NodeEffect( format ), mMode( mode ), mCoeffsDirty( true ), mFreq( 200.0f ), mQ( 1.0f ), mGain( 0.0f ) {}
+	virtual ~FilterBiquad() {}
 
-	std::string virtual getTag() override			{ return "NodeFilterBiquad"; }
+	std::string virtual getTag() override			{ return "FilterBiquad"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -74,26 +74,12 @@ class NodeFilterBiquad : public NodeEffect {
 	float mFreq, mQ, mGain;
 };
 
-class NodeFilterLowPass : public NodeFilterBiquad {
+class FilterLowPass : public FilterBiquad {
   public:
-	NodeFilterLowPass( const Format &format = Format() ) : NodeFilterBiquad( LOWPASS, format ) {}
-	virtual ~NodeFilterLowPass() {}
+	FilterLowPass( const Format &format = Format() ) : FilterBiquad( LOWPASS, format ) {}
+	virtual ~FilterLowPass() {}
 
-	std::string virtual getTag() override			{ return "NodeFilterLowPass"; }
-
-	void setCutoffFreq( float freq )			{ setFreq( freq ); }
-	void setResonance( float resonance )		{ setQ( resonance ); }
-
-	float getCutoffFreq() const	{ return mFreq; }
-	float getResonance() const	{ return mQ; }
-};
-
-class NodeFilterHighPass : public NodeFilterBiquad {
-public:
-	NodeFilterHighPass( const Format &format = Format() ) : NodeFilterBiquad( HIGHPASS, format ) {}
-	virtual ~NodeFilterHighPass() {}
-
-	std::string virtual getTag() override			{ return "NodeFilterHighPass"; }
+	std::string virtual getTag() override			{ return "FilterLowPass"; }
 
 	void setCutoffFreq( float freq )			{ setFreq( freq ); }
 	void setResonance( float resonance )		{ setQ( resonance ); }
@@ -102,12 +88,26 @@ public:
 	float getResonance() const	{ return mQ; }
 };
 
-class NodeFilterBandPass : public NodeFilterBiquad {
+class FilterHighPass : public FilterBiquad {
 public:
-	NodeFilterBandPass( const Format &format = Format() ) : NodeFilterBiquad( BANDPASS, format ) {}
-	virtual ~NodeFilterBandPass() {}
+	FilterHighPass( const Format &format = Format() ) : FilterBiquad( HIGHPASS, format ) {}
+	virtual ~FilterHighPass() {}
 
-	std::string virtual getTag() override			{ return "NodeFilterBandPass"; }
+	std::string virtual getTag() override			{ return "FilterHighPass"; }
+
+	void setCutoffFreq( float freq )			{ setFreq( freq ); }
+	void setResonance( float resonance )		{ setQ( resonance ); }
+
+	float getCutoffFreq() const	{ return mFreq; }
+	float getResonance() const	{ return mQ; }
+};
+
+class FilterBandPass : public FilterBiquad {
+public:
+	FilterBandPass( const Format &format = Format() ) : FilterBiquad( BANDPASS, format ) {}
+	virtual ~FilterBandPass() {}
+
+	std::string virtual getTag() override			{ return "FilterBandPass"; }
 
 	void setCutoffFreq( float freq )	{ setFreq( freq ); }
 	void setWidth( float width )		{ setQ( width ); }

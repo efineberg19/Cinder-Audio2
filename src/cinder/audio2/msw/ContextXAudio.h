@@ -82,10 +82,10 @@ private:
 
 struct EngineCallbackImpl;
 
-class NodeLineOutXAudio : public NodeLineOut, public NodeXAudio {
+class LineOutXAudio : public LineOut, public NodeXAudio {
   public:
-	NodeLineOutXAudio( DeviceRef device, const Format &format = Format() );
-	virtual ~NodeLineOutXAudio();
+	LineOutXAudio( DeviceRef device, const Format &format = Format() );
+	virtual ~LineOutXAudio();
 
 	std::string virtual getTag()				{ return "LineOutXAudio"; }
 
@@ -168,16 +168,16 @@ class ContextXAudio : public Context {
 	ContextXAudio();
 	virtual ~ContextXAudio();
 
-	NodeLineOutRef	createLineOut( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
+	LineOutRef	createLineOut( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
 	//! If deployment target is 0x601 (win vista) or greater, uses \a LineInWasapi, else returns an empty \a LineInRef
-	NodeLineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
+	LineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
 
 	//! When connections change, ensure a NodeXAudioSourceVoice is in the right position to enable pulling audio samples.
 	void connectionsDidChange( const NodeRef &node ) override; 
-	//! Overridden to assert type is NodeLineOutXAudio
+	//! Overridden to assert type is LineOutXAudio
 	void setTarget( const NodeTargetRef &target ) override;
-	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a NodeLineOut.
-	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<NodeLineOutXAudio>( mTarget )->getXAudio(); }
+	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a LineOut.
+	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<LineOutXAudio>( mTarget )->getXAudio(); }
 
 	//! Sets whether to enable filter usage within this audio context (default = true). \see NodeEffectXAudioFilter
 	void setFilterEffectsEnabled( bool b = true )	{ mFilterEnabled = b; }

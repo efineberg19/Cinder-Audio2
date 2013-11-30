@@ -43,15 +43,15 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
 	static DeviceManager*		deviceManager();
 
-	virtual NodeLineOutRef		createLineOut( const DeviceRef &device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
-	virtual NodeLineInRef		createLineIn( const DeviceRef &device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual LineOutRef		createLineOut( const DeviceRef &device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
+	virtual LineInRef		createLineIn( const DeviceRef &device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );
 
 	virtual void setTarget( const NodeTargetRef &target );
 
-	//! If the target has not already been set, it is the default NodeLineOut
+	//! If the target has not already been set, it is the default LineOut
 	virtual const NodeTargetRef& getTarget();
 	//! Enables audio processing. Effectively the same as calling getTarget()->start()
 	virtual void start();
@@ -82,7 +82,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Disconnect all Node's related by this Context
 	virtual void disconnectAllNodes();
 
-	//! Add \a node to the list of auto-pulled nodes, who will have their Node::pullInputs() method called after a NodeLineOut implementation finishes pulling its inputs.
+	//! Add \a node to the list of auto-pulled nodes, who will have their Node::pullInputs() method called after a LineOut implementation finishes pulling its inputs.
 	//! \note Callers on the non-audio thread must synchronize with getMutex().
 	void addAutoPulledNode( const NodeRef &node );
 	//! Remove \a node from the list of auto-pulled nodes.
@@ -90,7 +90,7 @@ class Context : public std::enable_shared_from_this<Context> {
 	void removeAutoPulledNode( const NodeRef &node );
 
 	//! Calls Node::pullInputs() for any Node's that have registered with addAutoPulledNode()
-	//! \note Expected to be called on the audio thread by a NodeLineOut implementation at the end of its render loop.
+	//! \note Expected to be called on the audio thread by a LineOut implementation at the end of its render loop.
 	void autoPullNodesIfNecessary();
 
 	//! Prints the Node graph to console()

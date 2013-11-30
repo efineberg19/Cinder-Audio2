@@ -29,10 +29,10 @@ class EffectNodeTestApp : public AppNative {
 
 	Context*				mContext;
 	NodeSourceRef			mGen;
-	NodeGainRef				mGain;
-	NodePan2dRef			mPan;
-	NodeFilterLowPassRef	mLowPass;
-//	shared_ptr<NodeFilterHighPass>	mLowPass;
+	GainRef				mGain;
+	Pan2dRef			mPan;
+	FilterLowPassRef	mLowPass;
+//	shared_ptr<FilterHighPass>	mLowPass;
 
 
 	vector<TestWidget *>	mWidgets;
@@ -45,14 +45,14 @@ void EffectNodeTestApp::setup()
 {
 	mContext = Context::master();
 
-	mGain = mContext->makeNode( new NodeGain() );
+	mGain = mContext->makeNode( new Gain() );
 	mGain->setValue( 0.6f );
 
-	mPan = mContext->makeNode( new NodePan2d() );
-	mGen = mContext->makeNode( new NodeGenNoise( Node::Format().autoEnable() ) );
+	mPan = mContext->makeNode( new Pan2d() );
+	mGen = mContext->makeNode( new GenNoise( Node::Format().autoEnable() ) );
 
-	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
-//	mLowPass = mContext->makeNode( new NodeFilterHighPass() );
+	mLowPass = mContext->makeNode( new FilterLowPass() );
+//	mLowPass = mContext->makeNode( new FilterHighPass() );
 
 	setupOne();
 //	setupForceStereo();
@@ -75,7 +75,7 @@ void EffectNodeTestApp::setupForceStereo()
 
 void EffectNodeTestApp::setupDownMix()
 {
-	auto mono = mContext->makeNode( new NodeGain( Node::Format().channels( 1 ) ) );
+	auto mono = mContext->makeNode( new Gain( Node::Format().channels( 1 ) ) );
 	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mono )->connect( mContext->getTarget() );
 }
 

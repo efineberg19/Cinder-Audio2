@@ -36,13 +36,13 @@ const NodeRef& NodeTarget::connect( const NodeRef &dest, size_t outputBus, size_
 	return dest;
 }
 
-NodeLineOut::NodeLineOut( const DeviceRef &device, const Format &format )
+LineOut::LineOut( const DeviceRef &device, const Format &format )
 	: NodeTarget( format ), mDevice( device ), mClipDetectionEnabled( true ), mClipThreshold( 2.0f )
 {
 	CI_ASSERT( mDevice );
 
-	mDevice->getSignalParamsWillChange().connect( bind( &NodeLineOut::deviceParamsWillChange, this ) );
-	mDevice->getSignalParamsDidChange().connect( bind( &NodeLineOut::deviceParamsDidChange, this ) );
+	mDevice->getSignalParamsWillChange().connect( bind( &LineOut::deviceParamsWillChange, this ) );
+	mDevice->getSignalParamsDidChange().connect( bind( &LineOut::deviceParamsDidChange, this ) );
 
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
@@ -53,7 +53,7 @@ NodeLineOut::NodeLineOut( const DeviceRef &device, const Format &format )
 		throw AudioFormatExc( "Device can not accommodate specified number of channels." );
 }
 
-void NodeLineOut::deviceParamsWillChange()
+void LineOut::deviceParamsWillChange()
 {
 	LOG_V << "bang" << endl;
 	mWasEnabledBeforeParamsChange = mEnabled;
@@ -62,7 +62,7 @@ void NodeLineOut::deviceParamsWillChange()
 	getContext()->uninitializeAllNodes();
 }
 
-void NodeLineOut::deviceParamsDidChange()
+void LineOut::deviceParamsDidChange()
 {
 	LOG_V << "bang" << endl;
 	getContext()->initializeAllNodes();
@@ -70,7 +70,7 @@ void NodeLineOut::deviceParamsDidChange()
 	getContext()->setEnabled( mWasEnabledBeforeParamsChange );
 }
 
-void NodeLineOut::enableClipDetection( bool enable, float threshold )
+void LineOut::enableClipDetection( bool enable, float threshold )
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
 	mClipDetectionEnabled = enable;

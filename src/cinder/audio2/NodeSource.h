@@ -36,12 +36,12 @@
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeSource>					NodeSourceRef;
-typedef std::shared_ptr<class NodeLineIn>					NodeLineInRef;
-typedef std::shared_ptr<class NodeSamplePlayer>				NodeSamplePlayerRef;
-typedef std::shared_ptr<class NodeBufferPlayer>				NodeBufferPlayerRef;
-typedef std::shared_ptr<class NodeFilePlayer>				NodeFilePlayerRef;
-typedef std::shared_ptr<class NodeGen>						NodeGenRef;
-typedef std::shared_ptr<class NodeCallbackProcessor>		NodeCallbackProcessorRef;
+typedef std::shared_ptr<class LineIn>					LineInRef;
+typedef std::shared_ptr<class SamplePlayer>				SamplePlayerRef;
+typedef std::shared_ptr<class BufferPlayer>				BufferPlayerRef;
+typedef std::shared_ptr<class FilePlayer>				FilePlayerRef;
+typedef std::shared_ptr<class Gen>						GenRef;
+typedef std::shared_ptr<class CallbackProcessor>		CallbackProcessorRef;
 
 typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
 
@@ -57,11 +57,11 @@ class NodeSource : public Node {
 	void connectInput( const NodeRef &input, size_t bus ) override;
 };
 
-class NodeLineIn : public NodeSource {
+class LineIn : public NodeSource {
 public:
-	virtual ~NodeLineIn();
+	virtual ~LineIn();
 
-	std::string virtual getTag() override			{ return "NodeLineIn"; }
+	std::string virtual getTag() override			{ return "LineIn"; }
 
 	//! Returns the associated \a Device.
 	virtual const DeviceRef& getDevice() const		{ return mDevice; }
@@ -71,18 +71,18 @@ public:
 	virtual uint64_t getLastOverrun() = 0;
 
 protected:
-	NodeLineIn( const DeviceRef &device, const Format &format );
+	LineIn( const DeviceRef &device, const Format &format );
 
 	DeviceRef	mDevice;
 };
 
 //! \brief Base Node class for sampled audio playback
-//! \note NodeSamplePlayer itself doesn't process any audio, but contains the common interface for Node's that do.
-//! \see NodeBufferPlayer
-//! \see NodeFilePlayer
-class NodeSamplePlayer : public NodeSource {
+//! \note SamplePlayer itself doesn't process any audio, but contains the common interface for Node's that do.
+//! \see BufferPlayer
+//! \see FilePlayer
+class SamplePlayer : public NodeSource {
 public:
-	std::string virtual getTag() override			{ return "NodeSamplePlayer"; }
+	std::string virtual getTag() override			{ return "SamplePlayer"; }
 
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;
@@ -99,8 +99,8 @@ public:
 	virtual size_t getNumFrames() const	{ return mNumFrames; }
 
 protected:
-	NodeSamplePlayer( const Format &format = Format() ) : NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
-	virtual ~NodeSamplePlayer() {}
+	SamplePlayer( const Format &format = Format() ) : NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
+	virtual ~SamplePlayer() {}
 
 	size_t mNumFrames;
 	std::atomic<size_t> mReadPos;
@@ -108,15 +108,15 @@ protected:
 };
 
 //! Buffer-based sample player.
-class NodeBufferPlayer : public NodeSamplePlayer {
+class BufferPlayer : public SamplePlayer {
 public:
-	//! Constructs a NodeBufferPlayer without a buffer, with the assumption one will be set later. \note Format::channels() can still be used to allocate the expected channel count ahead of time.
-	NodeBufferPlayer( const Format &format = Format() );
-	//! Constructs a NodeBufferPlayer \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
-	NodeBufferPlayer( const BufferRef &buffer, const Format &format = Format() );
-	virtual ~NodeBufferPlayer() {}
+	//! Constructs a BufferPlayer without a buffer, with the assumption one will be set later. \note Format::channels() can still be used to allocate the expected channel count ahead of time.
+	BufferPlayer( const Format &format = Format() );
+	//! Constructs a BufferPlayer \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
+	BufferPlayer( const BufferRef &buffer, const Format &format = Format() );
+	virtual ~BufferPlayer() {}
 
-	std::string virtual getTag() override			{ return "NodeBufferPlayer"; }
+	std::string virtual getTag() override			{ return "BufferPlayer"; }
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -130,13 +130,13 @@ protected:
 	BufferRef mBuffer;
 };
 
-class NodeFilePlayer : public NodeSamplePlayer {
+class FilePlayer : public SamplePlayer {
 public:
-	NodeFilePlayer( const Format &format = Format() );
-	NodeFilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
-	virtual ~NodeFilePlayer();
+	FilePlayer( const Format &format = Format() );
+	FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
+	virtual ~FilePlayer();
 
-	std::string virtual getTag() override			{ return "NodeFilePlayer"; }
+	std::string virtual getTag() override			{ return "FilePlayer"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -176,12 +176,12 @@ public:
 	std::condition_variable	mNeedMoreSamplesCond;
 };
 
-class NodeCallbackProcessor : public NodeSource {
+class CallbackProcessor : public NodeSource {
   public:
-	NodeCallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeSource( format ), mCallbackFn( callbackFn ) {}
-	virtual ~NodeCallbackProcessor() {}
+	CallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeSource( format ), mCallbackFn( callbackFn ) {}
+	virtual ~CallbackProcessor() {}
 
-	std::string virtual getTag() override			{ return "NodeCallbackProcessor"; }
+	std::string virtual getTag() override			{ return "CallbackProcessor"; }
 
 	void process( Buffer *buffer ) override;
 
@@ -189,13 +189,13 @@ class NodeCallbackProcessor : public NodeSource {
 	CallbackProcessorFn mCallbackFn;
 };
 
-class NodeGen : public NodeSource {
+class Gen : public NodeSource {
   public:
-	NodeGen( const Format &format = Format() );
+	Gen( const Format &format = Format() );
 
 	void initialize() override;
 
-	std::string virtual getTag() override			{ return "NodeGen"; }
+	std::string virtual getTag() override			{ return "Gen"; }
 
 	void setFreq( float freq )		{ mFreq.setValue( freq ); }
 	float getFreq() const			{ return mFreq.getValue(); }
@@ -210,32 +210,32 @@ class NodeGen : public NodeSource {
 };
 
 //! \note freq param is ignored
-class NodeGenNoise : public NodeGen {
+class GenNoise : public Gen {
   public:
-	NodeGenNoise( const Format &format = Format() ) : NodeGen( format ) {}
+	GenNoise( const Format &format = Format() ) : Gen( format ) {}
 
 	void process( Buffer *buffer ) override;
 };
 
-class NodeGenPhasor : public NodeGen {
+class GenPhasor : public Gen {
 public:
-	NodeGenPhasor( const Format &format = Format() ) : NodeGen( format )
+	GenPhasor( const Format &format = Format() ) : Gen( format )
 	{}
 
 	void process( Buffer *buffer ) override;
 };
 
-class NodeGenSine : public NodeGen {
+class GenSine : public Gen {
   public:
-	NodeGenSine( const Format &format = Format() ) : NodeGen( format )
+	GenSine( const Format &format = Format() ) : Gen( format )
 	{}
 
 	void process( Buffer *buffer ) override;
 };
 
-class NodeGenTriangle : public NodeGen {
+class GenTriangle : public Gen {
   public:
-	NodeGenTriangle( const Format &format = Format() ) : NodeGen( format ), mUpSlope( 1.0f ), mDownSlope( 1.0f )
+	GenTriangle( const Format &format = Format() ) : Gen( format ), mUpSlope( 1.0f ), mDownSlope( 1.0f )
 	{}
 
 	void setUpSlope( float up )			{ mUpSlope = up; }
