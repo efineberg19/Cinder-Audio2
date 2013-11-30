@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "Plot.h"
+#include "AudioPlotUtils.h"
 
 #include "cinder/CinderMath.h"
 #include "cinder/Triangulate.h"
@@ -60,6 +60,8 @@ void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, const V
 // MARK: - WaveformPlot
 // ----------------------------------------------------------------------------------------------------
 
+namespace {
+
 inline void calcMinMaxForSection( const float *buffer, size_t samplesPerSection, float &max, float &min ) {
 	max = 0.0f;
 	min = 0.0f;
@@ -84,6 +86,8 @@ inline void calcAverageForSection( const float *buffer, size_t samplesPerSection
 	upper /= samplesPerSection;
 	lower /= samplesPerSection;
 }
+
+} // anonymouse namespace
 
 void Waveform::load( const float *samples, size_t numSamples, const ci::Vec2i &waveSize, size_t pixelsPerVertex, CalcMode mode )
 {

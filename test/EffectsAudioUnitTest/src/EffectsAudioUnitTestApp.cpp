@@ -8,7 +8,7 @@
 
 #include "audio2/cocoa/ContextAudioUnit.h"
 
-#include "Gui.h"
+#include "../../common/AudioTestGui.h"
 
 using namespace ci;
 using namespace ci::app;

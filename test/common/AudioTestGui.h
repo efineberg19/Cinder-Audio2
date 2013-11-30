@@ -21,7 +21,8 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-// note: this minimal gui set is not meant to be reusable beyond the scope of cinder's audio tests.
+// note: this minimal gui set is not meant to be reusable beyond the scope of cinder's audio tests, it is
+// merely written in the most convenient way possible in order to provide cross-platform UI functionality.
 
 #pragma once
 

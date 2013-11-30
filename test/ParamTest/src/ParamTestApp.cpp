@@ -7,13 +7,9 @@
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
-#include "Gui.h"
+#include "../../common/AudioTestGui.h"
 
-#include "cinder/Timeline.h"
-
-// TODO: account for multiple Param::Events
-//	- need an AudioTimeline here?
-//	- implemented without, using a deque, needs testing
+//#include "cinder/Timeline.h"
 
 using namespace ci;
 using namespace ci::app;

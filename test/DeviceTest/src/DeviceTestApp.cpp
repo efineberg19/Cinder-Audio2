@@ -9,7 +9,7 @@
 #include "audio2/Dsp.h"
 #include "audio2/Debug.h"
 
-#include "Gui.h"
+#include "../../common/AudioTestGui.h"
 
 // NOTE: currently requires the experimental cinder branch 'ios_keyboard'
 
@@ -73,7 +73,7 @@ void DeviceTestApp::setup()
 
 	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0.6f );
+	mGain->setValue( 0.6f );
 
 	setOutputDevice( Device::getDefaultOutput() );
 	setInputDevice( Device::getDefaultInput() );
@@ -195,7 +195,7 @@ void DeviceTestApp::setupUI()
 
 	mGainSlider.mBounds = Rectf( mTestSelector.mBounds.x1, mTestSelector.mBounds.y2 + 10.0f, mTestSelector.mBounds.x2, mTestSelector.mBounds.y2 + 50.0f );
 	mGainSlider.mTitle = "Gain";
-	mGainSlider.set( mGain->getGain() );
+	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
 	mOutputSelector.mTitle = "Output Devices";
@@ -253,7 +253,7 @@ void DeviceTestApp::setupUI()
 void DeviceTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.mValueScaled );
+		mGain->setValue( mGainSlider.mValueScaled );
 }
 
 void DeviceTestApp::processTap( Vec2i pos )

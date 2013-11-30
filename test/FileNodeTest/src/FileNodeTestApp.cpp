@@ -12,8 +12,8 @@
 
 #include "Resources.h"
 
-#include "Gui.h"
-#include "Plot.h"
+#include "../../common/AudioTestGui.h"
+#include "../../../samples/common/AudioPlotUtils.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -77,7 +77,7 @@ void FileNodeTestApp::setup()
 	mPan = mContext->makeNode( new NodePan2d() );
 	mPan->enableMonoInputMode( false );
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0.6f );
+	mGain->setValue( 0.6f );
 
 	mSourceFile = SourceFile::create( dataSource, mContext->getSampleRate(), 0 );
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
@@ -153,7 +153,7 @@ void FileNodeTestApp::setupUI()
 	Rectf sliderRect( getWindowWidth() - 200.0f, kPadding, getWindowWidth(), 50.0f );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
-	mGainSlider.set( mGain->getGain() );
+	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + kPadding );
@@ -180,7 +180,7 @@ void FileNodeTestApp::setupUI()
 void FileNodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.mValueScaled );
+		mGain->setValue( mGainSlider.mValueScaled );
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
 	else if( pos.y > getWindowCenter().y )

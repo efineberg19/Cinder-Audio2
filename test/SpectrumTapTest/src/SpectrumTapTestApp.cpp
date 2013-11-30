@@ -8,8 +8,8 @@
 #include "audio2/Debug.h"
 #include "audio2/Dsp.h"
 
-#include "Gui.h"
-#include "Plot.h"
+#include "../../common/AudioTestGui.h"
+#include "../../../samples/common/AudioPlotUtils.h"
 #include "Resources.h"
 
 //#define SOUND_FILE "tone440.wav"

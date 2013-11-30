@@ -8,8 +8,8 @@
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
-#include "Gui.h"
-#include "Plot.h"
+#include "../../common/AudioTestGui.h"
+#include "../../../samples/common/AudioPlotUtils.h"
 
 // TODO: implement cycle detection and add test for it that catches exception
 
@@ -85,7 +85,7 @@ void NodeTestApp::setup()
 
 	mContext = Context::master();
 	mGain = mContext->makeNode( new NodeGain() );
-//	mGain->setGain( 0.0f );
+//	mGain->setValue( 0.0f );
 
 	mGain->connect( mContext->getTarget() );
 
@@ -112,7 +112,7 @@ void NodeTestApp::setupSine()
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
 
-	mGain->getGainParam()->rampTo( 1.0f, 1.0f );
+	mGain->getParamGain()->rampTo( 1.0f, 1.0f );
 }
 
 void NodeTestApp::setup2to1()
@@ -179,7 +179,7 @@ void NodeTestApp::setupUI()
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
 	mGainSlider.mMax = 1.0f;
-	mGainSlider.set( mGain->getGain() );
+	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
 	mEnableSineButton.mIsToggle = true;
@@ -209,7 +209,7 @@ void NodeTestApp::setupUI()
 void NodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.mValueScaled );
+		mGain->setValue( mGainSlider.mValueScaled );
 }
 
 void NodeTestApp::processTap( Vec2i pos )

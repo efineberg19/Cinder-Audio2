@@ -12,6 +12,7 @@
 		00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */; };
 		00B784B50FF439BC000DE1D7 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B10FF439BC000DE1D7 /* AudioUnit.framework */; };
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
+		119CCEE5184A6EC600853BEE /* AudioPlotUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CCEE4184A6EC600853BEE /* AudioPlotUtils.cpp */; };
 		11B92E4A17A0B91B003D6346 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B92E4517A0B903003D6346 /* libAudio2.a */; };
 		45E73D08F7D14B79939BB7DC /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 4C25C7997E6A487FA19C5DC0 /* CinderApp.icns */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
@@ -51,6 +52,9 @@
 		00B784B10FF439BC000DE1D7 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		00B784B20FF439BC000DE1D7 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		119CCEE4184A6EC600853BEE /* AudioPlotUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AudioPlotUtils.cpp; path = ../../../samples/common/AudioPlotUtils.cpp; sourceTree = "<group>"; };
+		119CCEE9184A713900853BEE /* AudioPlotUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AudioPlotUtils.h; path = ../../../samples/common/AudioPlotUtils.h; sourceTree = "<group>"; };
+		119CCEEA184A716B00853BEE /* AudioTestGui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AudioTestGui.h; path = ../../common/AudioTestGui.h; sourceTree = "<group>"; };
 		11B92E3F17A0B903003D6346 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
 		128572BBFD5C4118B6B34756 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -88,6 +92,9 @@
 			isa = PBXGroup;
 			children = (
 				B29ACADC4C05419E8F9B2D3D /* NodeTestApp.cpp */,
+				119CCEEA184A716B00853BEE /* AudioTestGui.h */,
+				119CCEE9184A713900853BEE /* AudioPlotUtils.h */,
+				119CCEE4184A6EC600853BEE /* AudioPlotUtils.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -261,6 +268,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FE6541737CFA406192BDC3E9 /* NodeTestApp.cpp in Sources */,
+				119CCEE5184A6EC600853BEE /* AudioPlotUtils.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

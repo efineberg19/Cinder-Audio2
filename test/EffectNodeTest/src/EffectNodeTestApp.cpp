@@ -8,7 +8,7 @@
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
-#include "Gui.h"
+#include "../../common/AudioTestGui.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -47,7 +47,7 @@ void EffectNodeTestApp::setup()
 	mContext = Context::master();
 
 	mGain = mContext->makeNode( new NodeGain() );
-	mGain->setGain( 0.6f );
+	mGain->setValue( 0.6f );
 
 	mPan = mContext->makeNode( new NodePan2d() );
 	mGen = mContext->makeNode( new NodeGenNoise( Node::Format().autoEnable() ) );
@@ -96,7 +96,7 @@ void EffectNodeTestApp::setupUI()
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
-	mGainSlider.set( mGain->getGain() );
+	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
@@ -134,7 +134,7 @@ void EffectNodeTestApp::setupUI()
 void EffectNodeTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
-		mGain->setGain( mGainSlider.mValueScaled );
+		mGain->setValue( mGainSlider.mValueScaled );
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
 	if( mLowPassFreqSlider.hitTest( pos ) )
