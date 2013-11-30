@@ -57,6 +57,8 @@ class BufferBaseT {
 	size_t getNumChannels() const	{ return mNumChannels; }
 	size_t getSize() const			{ return mNumFrames * mNumChannels; }
 
+	bool isEmpty() const			{ return mNumFrames == 0; }
+
 	T* getData() { return mData.data(); }
 	const T* getData() const { return mData.data(); }
 

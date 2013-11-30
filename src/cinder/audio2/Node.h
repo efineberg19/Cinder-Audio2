@@ -177,6 +177,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	std::weak_ptr<Context>	mContext;
 	friend class Context;
+	friend class Param;
 };
 
 //! a Node that can be pulled without being connected to any outputs.

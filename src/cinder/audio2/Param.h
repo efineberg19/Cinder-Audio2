@@ -27,9 +27,12 @@
 #include <vector>
 #include <functional>
 
+#include "cinder/audio2/Buffer.h"
+
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class Context>			ContextRef;
+typedef std::shared_ptr<class Context>		ContextRef;
+typedef std::shared_ptr<class Node>			NodeRef;
 
 // TODO: add rampLog
 // ???: why does webaudio use expo? is it an EaseOutExpo?
@@ -40,7 +43,7 @@ class Param {
   public:
 	typedef std::function<void ( float *, size_t, float, float, float, float )>	RampFn;
 
-	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ), mInternalBufferInitialized( false ) {}
+	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ) {}
 
 	void initialize( const ContextRef &context );
 
@@ -66,6 +69,8 @@ class Param {
 
 	void appendTo( float endValue, float rampSeconds, const Options &options = Options() );
 
+	void setModulator( const NodeRef node );
+
 	void reset();
 	size_t getNumEvents() const;
 	
@@ -88,15 +93,16 @@ class Param {
 		size_t mTotalFrames, mFramesProcessed;
 	};
 
+	void					initInternalBuffer();
 	std::pair<float, float> findEndTimeAndValue();
 
 	std::list<Event>	mEvents;
 
 	ContextRef	mContext;
+	NodeRef		mModulatorNode;
 	float		mValue;
 
-	bool				mInternalBufferInitialized;
-	std::vector<float>	mInternalBuffer;
+	BufferDynamic	mInternalBuffer;
 };
 
 } } // namespace cinder::audio2

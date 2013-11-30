@@ -54,7 +54,7 @@ class Gain : public NodeEffect {
 	void setValue( float linear )	{ mGain.setValue( ci::math<float>::clamp( linear, mMin, mMax ) ); }
 	float getValue() const			{ return mGain.getValue(); }
 
-	Param* getParamGain()			{ return &mGain; }
+	Param* getParam()			{ return &mGain; }
 
 	void setMin( float min )		{ mMin = min; }
 	float getMin() const			{ return mMin; }
