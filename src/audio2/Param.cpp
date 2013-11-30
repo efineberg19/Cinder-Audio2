@@ -91,7 +91,7 @@ void Param::rampTo( float endValue, float rampSeconds, const Options &options )
 
 	// debug
 	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
-//	app::console() << "(rampTo) event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
+	LOG_V << "(rampTo) event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -121,7 +121,7 @@ void Param::appendTo( float endValue, float rampSeconds, const Options &options 
 
 	// debug
 	event.mTotalFrames = event.mTotalSeconds * mContext->getSampleRate();
-//	app::console() << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << value << ", ramp seconds: " << rampSeconds << ", delay: " << delaySeconds << endl;
+	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mTotalSeconds << "), val: " << mValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -134,22 +134,21 @@ void Param::reset()
 		return;
 
 	mEvents.clear();
-//	while( ! mEvents.empty() )
-//		mEvents.pop();
 }
 
 bool Param::isVaryingThisBlock() const
 {
 	CI_ASSERT( mContext );
 
-	if( ! mEvents.empty() ) {
-
-		const Event &event = mEvents.back();
+	for( const Event &event : mEvents ) {
 
 		float timeBegin = mContext->getNumProcessedSeconds();
-		float timeEnd = timeBegin + mContext->getFramesPerBlock() / mContext->getSampleRate();
+		float timeEnd = timeBegin + (float)mContext->getFramesPerBlock() / (float)mContext->getSampleRate();
 
-		if( event.mTimeBegin <= timeBegin || event.mTimeEnd >= timeEnd )
+//		if( event.mTimeBegin <= timeBegin || event.mTimeEnd >= timeEnd )
+//			return true;
+
+		if( event.mTimeBegin < timeEnd && event.mTimeEnd > timeBegin )
 			return true;
 	}
 	return false;
@@ -175,8 +174,7 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 {
 	size_t samplesWritten = 0;
 	
-	while( ! mEvents.empty() ) {
-		Event &event = mEvents.front();
+	for( Event &event : mEvents ) {
 
 		float samplePeriod = 1.0f / sampleRate;
 		float timeEnd = timeBegin + arrayLength * samplePeriod;

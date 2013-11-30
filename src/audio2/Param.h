@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <deque>
+#include <list>
 #include <vector>
 #include <functional>
 
@@ -89,7 +89,7 @@ class Param {
 
 	float findEndTime();
 
-	std::deque<Event>	mEvents;
+	std::list<Event>	mEvents;
 
 	ContextRef	mContext;
 	float		mValue;
