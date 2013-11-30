@@ -67,6 +67,7 @@ class Param {
 	void appendTo( float endValue, float rampSeconds, const Options &options = Options() );
 
 	void reset();
+	size_t getNumEvents() const;
 	
 	bool	isVaryingThisBlock() const;
 
@@ -87,7 +88,7 @@ class Param {
 		size_t mTotalFrames, mFramesProcessed;
 	};
 
-	float findEndTime();
+	std::pair<float, float> findEndTimeAndValue();
 
 	std::list<Event>	mEvents;
 

@@ -9,6 +9,8 @@
 
 #include "Gui.h"
 
+#include "cinder/Timeline.h"
+
 // TODO: account for multiple Param::Events
 //	- need an AudioTimeline here?
 //	- implemented without, using a deque, needs testing
@@ -22,6 +24,7 @@ class ParamTestApp : public AppNative {
   public:
 	void setup();
 	void draw();
+	void keyDown( KeyEvent event );
 
 	void setupBasic();
 	void setupFilter();
@@ -30,7 +33,10 @@ class ParamTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	void triggerRamp();
+	void triggerApply();
+	void triggerApply2();
+	void triggerAppend();
+	void triggerDelay();
 
 	Context*				mContext;
 	NodeGenRef				mGen;
@@ -39,13 +45,18 @@ class ParamTestApp : public AppNative {
 	NodeFilterLowPassRef	mLowPass;
 
 	vector<TestWidget *>	mWidgets;
-	Button					mPlayButton, mRampButton;
+	Button					mPlayButton, mApplyButton, mApplyAppendButton, mAppendButton, mDelayButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mGenFreqSlider;
 };
 
 void ParamTestApp::setup()
 {
+	// example code posed to afb
+//	Anim<Vec2f> pos = Vec2f( 1, 1 );
+//	timeline().apply( &pos, Vec2f::zero(), 1, EaseInQuad() );
+//	timeline().appendTo( &pos, Vec2f( 10, 20 ), 2 ); // ???: Tween's mStartValue = (1,1) here?
+
 	mContext = Context::master();
 
 	mGain = mContext->makeNode( new NodeGain() );
@@ -53,15 +64,11 @@ void ParamTestApp::setup()
 
 	mPan = mContext->makeNode( new NodePan2d() );
 
-//	mGen = mContext->makeNode( new NodeGenTriangle() );
 	mGen = mContext->makeNode( new NodeGenSine() );
+//	mGen = mContext->makeNode( new NodeGenTriangle() );
 //	mGen = mContext->makeNode( new NodeGenPhasor() );
 
-
-	// TODO: this isn't possible now because rampTo requires the Context to already be set.
-	// - needs the current number of processed seconds.  could set it to 0 if no context, but this may be a bit too hacky.
 	mGen->setFreq( 0 );
-//	mGen->getParamFreq()->rampTo( 100, 0.5f );
 
 	mLowPass = mContext->makeNode( new NodeFilterLowPass() );
 
@@ -71,7 +78,8 @@ void ParamTestApp::setup()
 
 	mContext->printGraph();
 
-	triggerRamp();
+//	triggerApply();
+	triggerApply2();
 }
 
 void ParamTestApp::setupBasic()
@@ -86,28 +94,72 @@ void ParamTestApp::setupFilter()
 	mGen->start();
 }
 
-void ParamTestApp::triggerRamp()
+void ParamTestApp::triggerApply()
 {
-//	mGain->getGainParam()->setValue( 0.0f );
-//	mGain->getGainParam()->rampTo( 0.8f, 0.5f, 1.0f );
-//	mGain->getGainParam()->rampTo( 1.0f, 1.0f );
-
+	// (a): ramp volume to 0.7 of 0.2 seconds
 //	mGain->getGainParam()->rampTo( 0.7f, 0.2f );
 
-//	mGen->getParamFreq()->rampTo( randFloat( 60, 600 ), 0.5f, 0.0f );
-//	mGen->getParamFreq()->rampTo( 220, 440, 1.0f );
-	mGen->getParamFreq()->rampTo( 220, 440, 1.0f, Param::Options().delay( 0.5f ) );
+	mGen->getParamFreq()->rampTo( 220, 440, 1 );
+//	mGen->getParamFreq()->rampTo( 220, 440, 1, Param::Options().delay( 0.5f ) );
+
+	// PSEUDO CODE: possible syntax where context keeps references to Params, calling updateValueArray() (or just process() ?) on them each block:
+	// - problem I have with this right now is that its alot more syntax for the common case (see: (a)) of ramping up volume
+//	Context::master()->timeline()->apply( mGen->getParamFreq(), 220, 440, 1 );
+
+	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
+}
+
+// 2 events - first apply the ramp, blowing away anything else, then append another event to happen after that
+void ParamTestApp::triggerApply2()
+{
+	mGen->getParamFreq()->rampTo( 220, 1440, 1 );
+	mGen->getParamFreq()->appendTo( 369.994f, 1 ); // F#4
+
+	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
+}
+
+// append an event with random frequency and duration 1 second, allowing them to build up. new events begin from the end of the last event
+void ParamTestApp::triggerAppend()
+{
+	mGen->getParamFreq()->appendTo( randFloat( 50, 800 ), 1.0f );
+
+	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
+}
+
+// make a ramp after a 1 second delay
+void ParamTestApp::triggerDelay()
+{
+	mGen->getParamFreq()->rampTo( 50, 440, 1, Param::Options().delay( 1 ) );
+	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
 }
 
 void ParamTestApp::setupUI()
 {
+	const float padding = 10.0f;
+
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mPlayButton );
 
-	mRampButton = Button( false, "ramp" );
-	mRampButton.mBounds = mPlayButton.mBounds + Vec2f( mPlayButton.mBounds.x2 + 10.0f, 0.0f );
-	mWidgets.push_back( &mRampButton );
+	Rectf paramButtonRect( 0, mPlayButton.mBounds.y2 + padding, 120, mPlayButton.mBounds.y2 + padding + 40 );
+	mApplyButton = Button( false, "apply" );
+	mApplyButton.mBounds = paramButtonRect;
+	mWidgets.push_back( &mApplyButton );
+
+	paramButtonRect += Vec2f( paramButtonRect.getWidth() + padding, 0 );
+	mApplyAppendButton = Button( false, "apply 2" );
+	mApplyAppendButton.mBounds = paramButtonRect;
+	mWidgets.push_back( &mApplyAppendButton );
+
+	paramButtonRect += Vec2f( paramButtonRect.getWidth() + padding, 0 );
+	mAppendButton = Button( false, "append" );
+	mAppendButton.mBounds = paramButtonRect;
+	mWidgets.push_back( &mAppendButton );
+
+	paramButtonRect = mApplyButton.mBounds + Vec2f( 0, mApplyButton.mBounds.getHeight() + padding );
+	mDelayButton = Button( false, "delay" );
+	mDelayButton.mBounds = paramButtonRect;
+	mWidgets.push_back( &mDelayButton );
 
 	mTestSelector.mSegments.push_back( "basic" );
 	mTestSelector.mSegments.push_back( "filter" );
@@ -177,8 +229,14 @@ void ParamTestApp::processTap( Vec2i pos )
 
 	if( mPlayButton.hitTest( pos ) )
 		mContext->setEnabled( ! mContext->isEnabled() );
-	else if( mRampButton.hitTest( pos ) )
-		triggerRamp();
+	else if( mApplyButton.hitTest( pos ) )
+		triggerApply();
+	else if( mApplyAppendButton.hitTest( pos ) )
+		triggerApply2();
+	else if( mAppendButton.hitTest( pos ) )
+		triggerAppend();
+	else if( mDelayButton.hitTest( pos ) )
+		triggerDelay();
 	else if( mTestSelector.hitTest( pos ) && selectorIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V << "selected: " << currentTest << endl;
@@ -198,6 +256,12 @@ void ParamTestApp::processTap( Vec2i pos )
 	}
 	else
 		processDrag( pos );
+}
+
+void ParamTestApp::keyDown( KeyEvent event )
+{
+	if( event.getCode() == KeyEvent::KEY_e )
+		LOG_V << "mGen freq events: " << mGen->getParamFreq()->getNumEvents() << endl;
 }
 
 void ParamTestApp::draw()

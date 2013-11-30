@@ -95,7 +95,7 @@ void Param::rampTo( float beginValue, float endValue, float rampSeconds, const O
 
 	// debug
 	event.mTotalFrames = event.mDuration * mContext->getSampleRate();
-	LOG_V << "(rampTo) event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << beginValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
+	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -112,14 +112,16 @@ void Param::appendTo( float endValue, float rampSeconds, const Options &options 
 		mInternalBufferInitialized = true;
 	}
 
-	float timeBegin = findEndTime() + options.getDelay();
+	auto endTimeAndValue = findEndTimeAndValue();
+
+	float timeBegin = endTimeAndValue.first + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
 
-	Event event( timeBegin, timeEnd, mValue, endValue, options.getRampFn() );
+	Event event( timeBegin, timeEnd, endTimeAndValue.second, endValue, options.getRampFn() );
 
 	// debug
 	event.mTotalFrames = event.mDuration * mContext->getSampleRate();
-	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << mValue << " - " << endValue << ", ramp seconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
+	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
@@ -132,6 +134,14 @@ void Param::reset()
 		return;
 
 	mEvents.clear();
+}
+
+
+size_t Param::getNumEvents() const
+{
+	lock_guard<mutex> lock( mContext->getMutex() );
+
+	return mEvents.size();
 }
 
 bool Param::isVaryingThisBlock() const
@@ -160,63 +170,65 @@ float* Param::getValueArray()
 	return mInternalBuffer.data();
 }
 
-float Param::findEndTime()
+pair<float, float> Param::findEndTimeAndValue()
 {
+	lock_guard<mutex> lock( mContext->getMutex() );
+
 	if( mEvents.empty() )
-		return mContext->getNumProcessedSeconds();
-	else
-		return mEvents.back().mTimeEnd;
+		return make_pair( mContext->getNumProcessedSeconds(), mValue );
+	else {
+		Event &event = mEvents.back();
+		return make_pair( event.mTimeEnd, event.mValueEnd );
+	}
 }
 
 void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
 {
 	size_t samplesWritten = 0;
-	
-	for( Event &event : mEvents ) {
+	const float samplePeriod = 1.0f / sampleRate;
 
-		float samplePeriod = 1.0f / sampleRate;
+	for( Event &event : mEvents ) {
+		// if event time end is before the current processing block, remove event
+		if( event.mTimeEnd < timeBegin ) {
+			mEvents.pop_front();
+			continue;
+		}
+
 		float timeEnd = timeBegin + arrayLength * samplePeriod;
 
-		if( event.mTimeBegin < timeEnd ) {
-			if( event.mTimeEnd > timeBegin ) {
-				size_t startIndex = timeBegin >= event.mTimeBegin ? 0 : size_t( ( event.mTimeBegin - timeBegin ) * sampleRate );
-				size_t endIndex = timeEnd < event.mTimeEnd ? arrayLength : size_t( ( event.mTimeEnd - timeBegin ) * sampleRate );
+		if( event.mTimeBegin < timeEnd && event.mTimeEnd > timeBegin ) {
+			size_t startIndex = timeBegin >= event.mTimeBegin ? 0 : size_t( ( event.mTimeBegin - timeBegin ) * sampleRate );
+			size_t endIndex = timeEnd < event.mTimeEnd ? arrayLength : size_t( ( event.mTimeEnd - timeBegin ) * sampleRate );
 
-				CI_ASSERT( startIndex <= arrayLength && endIndex <= arrayLength );
+			CI_ASSERT( startIndex <= arrayLength && endIndex <= arrayLength );
 
-				if( startIndex > 0 && samplesWritten == 0 )
-					fill( mValue, array, startIndex );
+			if( startIndex > 0 && samplesWritten == 0 )
+				fill( mValue, array, startIndex );
 
-				size_t count = size_t( endIndex - startIndex );
-				float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mDuration;
-				float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mDuration; // TODO: currently unused, needed?
+			size_t count = size_t( endIndex - startIndex );
+			float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mDuration;
+			float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mDuration; // TODO: currently unused, needed?
 
-				event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
+			event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
 
-				event.mFramesProcessed += count;
+			event.mFramesProcessed += count;
 
-				samplesWritten += count;
+			samplesWritten += count;
 
-				if( endIndex < arrayLength ) {
-					mValue = event.mValueEnd;
-					mEvents.pop_front();
-					continue;
-				}
+			// if this event ended with the current processing block, update mValue then remove event
+			if( endIndex < arrayLength ) {
+				mValue = event.mValueEnd;
+				mEvents.pop_front();
 			}
-		}
-		else {
-			// context time end is > than event time begin, so remove
-			mEvents.pop_front();
+			else if( samplesWritten == arrayLength )
+				break;
 		}
 	}
 
 	// if after all events we still haven't written enough samples, fill with the final mValue, which
-	// was updated above to be the last event's mValueEnd
-	if( samplesWritten < arrayLength ) {
-		size_t zeroLeft = size_t( arrayLength - samplesWritten );
-		size_t offset = (size_t)samplesWritten;
-		fill( mValue, array + offset, zeroLeft );
-	}
+	// was updated above to be the last event's mValueEnd. else set mValue to the last updated array value
+	if( samplesWritten < arrayLength )
+		fill( mValue, array + (size_t)samplesWritten, size_t( arrayLength - samplesWritten ) );
 	else
 		mValue = array[arrayLength - 1];
 }
