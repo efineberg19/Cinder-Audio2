@@ -3,12 +3,12 @@
 #include "cinder/Timeline.h"
 #include "cinder/Timer.h"
 
-#include "audio2/audio.h"
-#include "audio2/Converter.h"
-#include "audio2/NodeSource.h"
-#include "audio2/NodeEffect.h"
-#include "audio2/Scope.h"
-#include "audio2/Debug.h"
+#include "cinder/audio2/audio.h"
+#include "cinder/audio2/Converter.h"
+#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeEffect.h"
+#include "cinder/audio2/Scope.h"
+#include "cinder/audio2/Debug.h"
 
 #include "Resources.h"
 
@@ -19,7 +19,6 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-using namespace ci::audio2;
 
 class FileNodeTestApp : public AppNative {
   public:

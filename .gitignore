@@ -1,5 +1,6 @@
 # symlinked cinder path
 cinder
+!src/cinder
 
 # Mac OS X cruft
 *.pbxuser

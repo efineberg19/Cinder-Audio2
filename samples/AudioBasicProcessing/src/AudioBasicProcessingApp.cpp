@@ -1,5 +1,5 @@
 #include "cinder/app/AppNative.h"
-#include "audio2/audio.h"
+#include "cinder/audio2/audio.h"
 
 #include <atomic>
 

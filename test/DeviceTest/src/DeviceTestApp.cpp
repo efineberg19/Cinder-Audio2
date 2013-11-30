@@ -2,12 +2,12 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Timeline.h"
 
-#include "audio2/audio.h"
-#include "audio2/Context.h"
-#include "audio2/NodeEffect.h"
-#include "audio2/Scope.h"
-#include "audio2/Dsp.h"
-#include "audio2/Debug.h"
+#include "cinder/audio2/audio.h"
+#include "cinder/audio2/Context.h"
+#include "cinder/audio2/NodeEffect.h"
+#include "cinder/audio2/Scope.h"
+#include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
 
@@ -20,7 +20,6 @@
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-using namespace ci::audio2;
 
 class DeviceTestApp : public AppNative {
   public:

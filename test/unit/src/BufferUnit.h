@@ -1,6 +1,6 @@
 #pragma once
 
-#include "audio2/Buffer.h"
+#include "cinder/audio2/Buffer.h"
 #include "utils.h"
 
 BOOST_AUTO_TEST_SUITE( test_buffer )

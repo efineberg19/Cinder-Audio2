@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "audio2/Buffer.h"
+#include "cinder/audio2/Buffer.h"
 
 #include "cinder/Vector.h"
 #include "cinder/PolyLine.h"

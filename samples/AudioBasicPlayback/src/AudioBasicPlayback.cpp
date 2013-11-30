@@ -1,6 +1,6 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/Timeline.h"
-#include "audio2/audio.h"
+#include "cinder/audio2/audio.h"
 
 #include "Resources.h"
 

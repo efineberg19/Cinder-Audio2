@@ -1,19 +1,18 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/audio.h"
-#include "audio2/NodeSource.h"
-#include "audio2/NodeEffect.h"
-#include "audio2/NodeFilter.h"
-#include "audio2/CinderAssert.h"
-#include "audio2/Debug.h"
+#include "cinder/audio2/audio.h"
+#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeEffect.h"
+#include "cinder/audio2/NodeFilter.h"
+#include "cinder/audio2/CinderAssert.h"
+#include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-using namespace ci::audio2;
 
 class EffectNodeTestApp : public AppNative {
   public:

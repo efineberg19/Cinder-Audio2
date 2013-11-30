@@ -1,6 +1,6 @@
 #pragma once
 
-#include "audio2/RingBuffer.h"
+#include "cinder/audio2/dsp/RingBuffer.h"
 
 #include "cinder/Thread.h"
 

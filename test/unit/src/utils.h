@@ -1,7 +1,7 @@
 #pragma once
 
-#include "audio2/Buffer.h"
-#include "audio2/CinderAssert.h"
+#include "cinder/audio2/Buffer.h"
+#include "cinder/audio2/CinderAssert.h"
 #include "cinder/Rand.h"
 
 #define ACCEPTABLE_FLOAT_ERROR 0.000001f 

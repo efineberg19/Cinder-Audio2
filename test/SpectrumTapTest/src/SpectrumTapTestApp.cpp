@@ -2,11 +2,11 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Utilities.h"
 
-#include "audio2/audio.h"
-#include "audio2/Scope.h"
-#include "audio2/NodeSource.h"
-#include "audio2/Debug.h"
-#include "audio2/Dsp.h"
+#include "cinder/audio2/audio.h"
+#include "cinder/audio2/Scope.h"
+#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/Debug.h"
+#include "cinder/audio2/dsp/Dsp.h"
 
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioPlotUtils.h"
@@ -26,7 +26,6 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-using namespace ci::audio2;
 
 class SpectrumScopeTestApp : public AppNative {
   public:

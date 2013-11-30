@@ -1,12 +1,12 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/audio.h"
-#include "audio2/NodeSource.h"
-#include "audio2/CinderAssert.h"
-#include "audio2/Debug.h"
+#include "cinder/audio2/audio.h"
+#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/CinderAssert.h"
+#include "cinder/audio2/Debug.h"
 
-#include "audio2/cocoa/ContextAudioUnit.h"
+#include "cinder/audio2/cocoa/ContextAudioUnit.h"
 
 #include "../../common/AudioTestGui.h"
 
@@ -14,7 +14,6 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-using namespace ci::audio2;
 using namespace audio2::cocoa;
 
 class EffectsAudioUnitTestApp : public AppNative {

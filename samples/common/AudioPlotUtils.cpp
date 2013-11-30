@@ -29,7 +29,6 @@
 
 using namespace std;
 using namespace ci;
-using namespace ci::audio2;
 
 void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, const Vec2f &padding, bool drawFrame )
 {
@@ -125,7 +124,7 @@ void WaveformPlot::load( const std::vector<float> &samples, const ci::Rectf &bou
 	mWaveforms.push_back( Waveform( samples, waveSize, pixelsPerVertex, Waveform::CalcMode::AVERAGE ) );
 }
 
-void WaveformPlot::load( const BufferRef &buffer, const ci::Rectf &bounds, size_t pixelsPerVertex )
+void WaveformPlot::load( const audio2::BufferRef &buffer, const ci::Rectf &bounds, size_t pixelsPerVertex )
 {
 	mBounds = bounds;
 	mWaveforms.clear();
@@ -194,7 +193,7 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 	for( size_t i = 0; i < numBins; i++ ) {
 		float m = magSpectrum[i];
 		if( mScaleDecibels )
-			m = toDecibels( m ) / 100.0f;
+			m = audio2::toDecibels( m ) / 100.0f;
 
 		bin.y1 = bin.y2 - m * height;
 

@@ -1,12 +1,12 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/audio.h"
-#include "audio2/NodeSource.h"
-#include "audio2/NodeEffect.h"
-#include "audio2/Scope.h"
-#include "audio2/CinderAssert.h"
-#include "audio2/Debug.h"
+#include "cinder/audio2/audio.h"
+#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeEffect.h"
+#include "cinder/audio2/Scope.h"
+#include "cinder/audio2/CinderAssert.h"
+#include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioPlotUtils.h"
@@ -17,9 +17,8 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-using namespace ci::audio2;
 
-struct InterleavedPassThruNode : public Node {
+struct InterleavedPassThruNode : public audio2::Node {
 	InterleavedPassThruNode() : Node( Format() )
 	{
 		setAutoEnabled();
@@ -31,7 +30,7 @@ struct InterleavedPassThruNode : public Node {
 
 	virtual void initialize() override
 	{
-		mBufferInterleaved = BufferInterleaved( getContext()->getFramesPerBlock(), 2 );
+		mBufferInterleaved = audio2::BufferInterleaved( getContext()->getFramesPerBlock(), 2 );
 	}
 
 	void process( audio2::Buffer *buffer ) override
@@ -43,7 +42,7 @@ struct InterleavedPassThruNode : public Node {
 	}
 
 private:
-	BufferInterleaved mBufferInterleaved;
+	audio2::BufferInterleaved mBufferInterleaved;
 };
 
 class NodeTestApp : public AppNative {
@@ -51,7 +50,7 @@ public:
 	void setup();
 	void draw();
 
-	void setupSine();
+	void setupGen();
 	void setup2to1();
 	void setup1to2();
 	void setupInterleavedPassThru();
@@ -60,10 +59,9 @@ public:
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	Context*		mContext;
-	NodeGainRef		mGain;
-	ScopeRef		mScope;
-	NodeSourceRef	mSine, mNoise;
+	audio2::NodeGainRef		mGain;
+	audio2::ScopeRef		mScope;
+	audio2::NodeGenRef		mGen, mNoise;
 
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton, mEnableNoiseButton, mEnableSineButton;
@@ -75,7 +73,7 @@ public:
 
 void NodeTestApp::setup()
 {
-	DeviceRef device = Device::getDefaultOutput();
+	audio2::DeviceRef device = audio2::Device::getDefaultOutput();
 
 	LOG_V << "device name: " << device->getName() << endl;
 	console() << "\t input channels: " << device->getNumInputChannels() << endl;
@@ -83,31 +81,30 @@ void NodeTestApp::setup()
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t frames per block: " << device->getFramesPerBlock() << endl;
 
-	mContext = Context::master();
-	mGain = mContext->makeNode( new NodeGain() );
+	auto ctx = audio2::Context::master();
+	mGain = ctx->makeNode( new audio2::NodeGain() );
 //	mGain->setValue( 0.0f );
 
-	mGain->connect( mContext->getTarget() );
+	mGain->connect( ctx->getTarget() );
 
-	mNoise = mContext->makeNode( new NodeGenNoise() );
+	mNoise = ctx->makeNode( new audio2::NodeGenNoise() );
 
-	auto sine = mContext->makeNode( new NodeGenTriangle() );
-	sine->setFreq( 440.0f );
-	mSine = sine;
+	mGen = ctx->makeNode( new audio2::NodeGenTriangle() );
+	mGen->setFreq( 440.0f );
 
-	setupSine();
+	setupGen();
 
 	setupUI();
 
-	mContext->printGraph();
+	ctx->printGraph();
 }
 
-void NodeTestApp::setupSine()
+void NodeTestApp::setupGen()
 {
 	mGain->disconnectAllInputs();
 
-	mSine->connect( mGain );
-	mSine->start();
+	mGen->connect( mGain );
+	mGen->start();
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
@@ -119,32 +116,32 @@ void NodeTestApp::setup2to1()
 {
 	// connect by appending
 //	mNoise->connect( mGain );
-//	mSine->addConnection( mGain );
+//	mGen->addConnection( mGain );
 
 	// connect by index
 	mNoise->connect( mGain, 0, GainInputBus::NOISE );
-	mSine->connect( mGain, 0, GainInputBus::SINE );
+	mGen->connect( mGain, 0, GainInputBus::SINE );
 
-	mSine->start();
+	mGen->start();
 	mNoise->start();
 
 	mEnableSineButton.setEnabled( true );
 	mEnableNoiseButton.setEnabled( true );
 }
 
-// note: this enables the scope as a secondary output of mSine, and as no one ever disconnects that, it harmlessly remains when the test is switched.
+// note: this enables the scope as a secondary output of mGen, and as no one ever disconnects that, it harmlessly remains when the test is switched.
 void NodeTestApp::setup1to2()
 {
 	// either of these should work, given there are only 2 NodeSource's in this test, but the latter is a tad less work.
 //	mGain->disconnectAllInputs();
 	mNoise->disconnect();
 
-	mSine->connect( mGain );
-	mSine->start();
+	mGen->connect( mGain );
+	mGen->start();
 
 	if( ! mScope )
-		mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 2048 ) ) );
-	mSine->addConnection( mScope );
+		mScope = audio2::Context::master()->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
+	mGen->addConnection( mScope );
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
@@ -154,8 +151,8 @@ void NodeTestApp::setupInterleavedPassThru()
 {
 	mGain->disconnectAllInputs();
 
-	auto interleaved = mContext->makeNode( new InterleavedPassThruNode() );
-	mSine->connect( interleaved )->connect( mGain );
+	auto interleaved = audio2::Context::master()->makeNode( new InterleavedPassThruNode() );
+	mGen->connect( interleaved )->connect( mGain );
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
@@ -214,11 +211,13 @@ void NodeTestApp::processDrag( Vec2i pos )
 
 void NodeTestApp::processTap( Vec2i pos )
 {
+	auto ctx = audio2::Context::master();
+
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
-	if( mSine && mEnableSineButton.hitTest( pos ) )
-		mSine->setEnabled( ! mSine->isEnabled() );
-	if( mNoise && mEnableNoiseButton.hitTest( pos ) ) // FIXME: this check doesn't work any more because there is always an mNoise / mSine
+		ctx->setEnabled( ! ctx->isEnabled() );
+	if( mGen && mEnableSineButton.hitTest( pos ) )
+		mGen->setEnabled( ! mGen->isEnabled() );
+	if( mNoise && mEnableNoiseButton.hitTest( pos ) ) // FIXME: this check doesn't work any more because there is always an mNoise / mGen
 		mNoise->setEnabled( ! mNoise->isEnabled() );
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
@@ -227,7 +226,7 @@ void NodeTestApp::processTap( Vec2i pos )
 		LOG_V << "selected: " << currentTest << endl;
 
 		if( currentTest == "sine" )
-			setupSine();
+			setupGen();
 		if( currentTest == "2 to 1" )
 			setup2to1();
 		if( currentTest == "1 to 2" )
@@ -235,7 +234,7 @@ void NodeTestApp::processTap( Vec2i pos )
 		if( currentTest == "interleave pass-thru" )
 			setupInterleavedPassThru();
 
-		mContext->printGraph();
+		ctx->printGraph();
 	}
 }
 
