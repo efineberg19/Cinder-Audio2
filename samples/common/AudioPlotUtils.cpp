@@ -23,6 +23,8 @@
 
 #include "AudioPlotUtils.h"
 
+#include "cinder/audio2/Utilities.h"
+
 #include "cinder/CinderMath.h"
 #include "cinder/Triangulate.h"
 #include "cinder/gl/gl.h"
@@ -97,8 +99,8 @@ void Waveform::load( const float *samples, size_t numSamples, const ci::Vec2i &w
 	vector<Vec2f> &points = mOutline.getPoints();
 	points.resize( numSections * 2 );
 
-    for( int i = 0; i < numSections; i++ ) {
-		float x = i * pixelsPerVertex;
+    for( size_t i = 0; i < numSections; i++ ) {
+		float x = (float)i * pixelsPerVertex;
 		float yUpper, yLower;
 		if( mode == CalcMode::MIN_MAX ) {
 			calcMinMaxForSection( &samples[i * samplesPerSection], samplesPerSection, yUpper, yLower );

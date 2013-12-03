@@ -75,7 +75,7 @@ void NodeTestApp::setup()
 {
 	audio2::DeviceRef device = audio2::Device::getDefaultOutput();
 
-	LOG_V << "device name: " << device->getName() << endl;
+	LOG_V( "device name: " << device->getName() );
 	console() << "\t input channels: " << device->getNumInputChannels() << endl;
 	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
@@ -223,7 +223,7 @@ void NodeTestApp::processTap( Vec2i pos )
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V << "selected: " << currentTest << endl;
+		LOG_V( "selected: " << currentTest );
 
 		if( currentTest == "sine" )
 			setupGen();
