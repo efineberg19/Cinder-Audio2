@@ -30,5 +30,14 @@
 
 #include "cinder/app/App.h"
 
-#define LOG_V ci::app::console() << BOOST_CURRENT_FUNCTION << " | "
-#define LOG_E LOG_V << __LINE__ << " | " << " *** ERROR *** : "
+#if DEBUG
+
+#define LOG_V( stream )			{ ci::app::console() << BOOST_CURRENT_FUNCTION << " | " << stream << std::endl; }
+#define LOG_E( errorStream )	{ LOG_V( __LINE__ << " | ERROR | " << errorStream ); }
+
+#else
+
+#define LOG_V( stream )
+#define LOG_E( errorStream )
+
+#endif // DEBUG

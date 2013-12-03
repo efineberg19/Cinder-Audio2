@@ -244,7 +244,7 @@ void DeviceManagerCoreAudio::setCurrentDeviceImpl( const DeviceRef &device, cons
 	OSStatus status = ::AudioUnitSetProperty( componentInstance, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceId, sizeof( deviceId ) );
 	CI_ASSERT( status == noErr );
 
-	LOG_V << "set current device to: " << device->getName() << ", isOutput: " << boolalpha << isOutput << dec << endl;
+	LOG_V( "set current device to: " << device->getName() << ", isOutput: " << boolalpha << isOutput << dec );
 }
 
 // note: device doesn't need to be copied because DeviceManagerCoreAudio owns it.
@@ -253,7 +253,7 @@ void DeviceManagerCoreAudio::registerPropertyListeners( const DeviceRef &device,
 {
 	AudioObjectPropertyListenerBlock listenerBlock = ^( UInt32 inNumberAddresses, const AudioObjectPropertyAddress inAddresses[] ) {
 
-		LOG_V << "# properties changed: " << inNumberAddresses << endl;
+		LOG_V( "# properties changed: " << inNumberAddresses );
 		bool paramsUpdated = false;
 
 		for( UInt32 i = 0; i < inNumberAddresses; i++ ) {
@@ -270,18 +270,18 @@ void DeviceManagerCoreAudio::registerPropertyListeners( const DeviceRef &device,
 				string dataSourceName = ci::cocoa::convertCfString( dataSourceNameCF );
 				CFRelease( dataSourceNameCF );
 
-				LOG_V << "device data source changed to: " << dataSourceName << endl;
+				LOG_V( "device data source changed to: " << dataSourceName );
 			}
 			else if( propertyAddress.mSelector == kAudioDevicePropertyNominalSampleRate ) {
 				paramsUpdated = true;
 				auto result = getAudioObjectProperty<Float64>( deviceId, propertyAddress );
-				LOG_V << "device samplerate changed to: " << (int)result << endl;
+				LOG_V( "device samplerate changed to: " << (int)result );
 			}
 			else if( propertyAddress.mSelector == kAudioDevicePropertyBufferFrameSize ) {
 				paramsUpdated = true;
 
 				auto result = getAudioObjectProperty<UInt32>( deviceId, propertyAddress );
-				LOG_V << "device samplerate changed to: " << (int)result << endl;
+				LOG_V( "device samplerate changed to: " << (int)result );
 			}
 		}
 

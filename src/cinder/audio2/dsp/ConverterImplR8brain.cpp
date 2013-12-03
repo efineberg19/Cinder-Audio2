@@ -60,7 +60,7 @@ ConverterImplR8brain::ConverterImplR8brain( size_t sourceSampleRate, size_t dest
 
 	for( size_t ch = 0; ch < numResamplers; ch++ ) {
 		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceSampleRate, (const double)mDestSampleRate, (const int)mSourceMaxFramesPerBlock ) ) );
-		LOG_V << "getInLenBeforeOutStart: " << mResamplers[ch]->getInLenBeforeOutStart() << endl;
+		LOG_V( "getInLenBeforeOutStart: " << mResamplers[ch]->getInLenBeforeOutStart() );
 	}
 
 }

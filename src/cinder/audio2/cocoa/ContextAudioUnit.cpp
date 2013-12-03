@@ -119,7 +119,7 @@ void LineOutAudioUnit::start()
 	OSStatus status = ::AudioOutputUnitStart( mAudioUnit );
 	CI_ASSERT( status == noErr );
 
-	LOG_V << "started." << endl;
+	LOG_V( "started." );
 }
 
 void LineOutAudioUnit::stop()
@@ -131,7 +131,7 @@ void LineOutAudioUnit::stop()
 	OSStatus status = ::AudioOutputUnitStop( mAudioUnit );
 	CI_ASSERT( status == noErr );
 
-	LOG_V << "stopped: " << mDevice->getName() << endl;
+	LOG_V( "stopped: " << mDevice->getName() );
 }
 
 uint64_t LineOutAudioUnit::getLastClip()
@@ -236,7 +236,7 @@ void LineInAudioUnit::initialize()
 	::AudioStreamBasicDescription asbd = createFloatAsbd( sampleRate, getNumChannels() );
 
 	if( mSynchronousIO ) {
-		LOG_V << "Synchronous I/O." << endl;
+		LOG_V( "Synchronous I/O." );
 		// LineOutAudioUnit is expected to initialize the AudioUnit, since it is pulling to here. But make sure input is enabled.
 		// TODO: this path can surely be optimized to not require line out being initialized twice
 		lineOutAu->mSynchronousIO = true;
@@ -260,7 +260,7 @@ void LineInAudioUnit::initialize()
 
 	}
 	else {
-		LOG_V << "ASynchronous I/O, initiate ringbuffer" << endl;
+		LOG_V( "ASynchronous I/O, initiate ringbuffer" );
 		
 		if( mDevice->getSampleRate() != sampleRate || mDevice->getFramesPerBlock() != framesPerBlock )
 			mDevice->updateFormat( Device::Format().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
@@ -309,7 +309,7 @@ void LineInAudioUnit::start()
 		OSStatus status = ::AudioOutputUnitStart( mAudioUnit );
 		CI_ASSERT( status == noErr );
 
-		LOG_V << "started." << endl;
+		LOG_V( "started." );
 	}
 }
 
@@ -323,7 +323,7 @@ void LineInAudioUnit::stop()
 	if( ! mSynchronousIO ) {
 		OSStatus status = ::AudioOutputUnitStop( mAudioUnit );
 		CI_ASSERT( status == noErr );
-		LOG_V << "stopped: " << mDevice->getName() << endl;
+		LOG_V( "stopped: " << mDevice->getName() );
 	}
 }
 

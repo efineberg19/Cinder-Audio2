@@ -112,21 +112,21 @@ BufferPlayer::BufferPlayer( const BufferRef &buffer, const Format &format )
 void BufferPlayer::start()
 {
 	if( ! mBuffer ) {
-		LOG_E << "no audio buffer, returning." << endl;
+		LOG_E( "no audio buffer, returning." );
 		return;
 	}
 
 	mReadPos = 0;
 	mEnabled = true;
 
-	LOG_V << "started" << endl;
+	LOG_V( "started" );
 }
 
 void BufferPlayer::stop()
 {
 	mEnabled = false;
 
-	LOG_V << "stopped" << endl;
+	LOG_V( "stopped" );
 }
 
 void BufferPlayer::seek( size_t readPositionFrames )
@@ -214,7 +214,7 @@ void FilePlayer::initialize()
 		mReadThread = unique_ptr<thread>( new thread( bind( &FilePlayer::readFromBackgroundThread, this ) ) );
 	}
 
-	LOG_V << " multithreaded: " << boolalpha << mMultiThreaded << dec << ", ringbufer frames: " << mRingBuffers[0].getSize() << ", mBufferFramesThreshold: " << mBufferFramesThreshold << ", source file max frames per read: " << mSourceFile->getMaxFramesPerRead() << endl;
+	LOG_V( " multithreaded: " << boolalpha << mMultiThreaded << dec << ", ringbufer frames: " << mRingBuffers[0].getSize() << ", mBufferFramesThreshold: " << mBufferFramesThreshold << ", source file max frames per read: " << mSourceFile->getMaxFramesPerRead() );
 }
 
 void FilePlayer::uninitialize()
@@ -225,27 +225,27 @@ void FilePlayer::uninitialize()
 void FilePlayer::start()
 {
 	if( ! mSourceFile ) {
-		LOG_E << "no source file, returning." << endl;
+		LOG_E( "no source file, returning." );
 		return;
 	}
 
 	seek( 0 );
 	mEnabled = true;
 
-	LOG_V << "started" << endl;
+	LOG_V( "started" );
 }
 
 void FilePlayer::stop()
 {
 	mEnabled = false;
 
-	LOG_V << "stopped" << endl;
+	LOG_V( "stopped" );
 }
 
 void FilePlayer::seek( size_t readPositionFrames )
 {
 	if( ! mSourceFile ) {
-		LOG_E << "no source file, returning." << endl;
+		LOG_E( "no source file, returning." );
 		return;
 	}
 
@@ -295,7 +295,7 @@ void FilePlayer::process( Buffer *buffer )
 	size_t readPos = mReadPos;
 	size_t numReadAvail = mRingBuffers[0].getAvailableRead();
 
-//	LOG_V << "numReadAvail: " << numReadAvail << endl;
+//	LOG_V( "numReadAvail: " << numReadAvail );
 
 	if( numReadAvail < mBufferFramesThreshold ) {
 		if( mMultiThreaded )
@@ -368,13 +368,13 @@ void FilePlayer::readFile()
 		}
 	}
 
-//	LOG_V << "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead << endl;
+//	LOG_V( "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead );
 }
 
 void FilePlayer::destroyIoThread()
 {
 	if( mMultiThreaded && mReadThread ) {
-		LOG_V << "destroying I/O thread" << endl;
+		LOG_V( "destroying I/O thread" );
 		mReadOnBackground = false;
 		mNeedMoreSamplesCond.notify_one();
 		mReadThread->join();

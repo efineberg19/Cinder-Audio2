@@ -37,7 +37,7 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
 		throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
 
 
-	LOG_V << "open success, ogg file info: " << endl;
+	LOG_V( "open success, ogg file info: " );
 	// print comments plus a few lines about the bitstream we're decoding
 	char **comment = ov_comment( &mOggVorbisFile, -1 )->user_comments;
 	while( *comment )
@@ -77,7 +77,7 @@ size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 		long outNumFrames = ov_read_float( &mOggVorbisFile, &outChannels, numFramesToRead - numFramesRead, &section );
         if( outNumFrames <= 0 ) {
 			if( outNumFrames < 0 )
-				LOG_E << "stream error." << endl;
+				LOG_E( "stream error." );
             break;
 		}
 
@@ -106,7 +106,7 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
         long outNumFrames = ov_read_float( &mOggVorbisFile, &outChannels, (int)mMaxFramesPerRead, &section );
         if( outNumFrames <= 0 ) {
 			if( outNumFrames < 0 )
-				LOG_E << "stream error." << endl;
+				LOG_E( "stream error." );
             break;
 		}
         else {

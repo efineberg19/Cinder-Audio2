@@ -61,7 +61,7 @@ Node::~Node()
 const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
 {
 	if( ! dest->checkInput( shared_from_this() ) ) {
-		LOG_E << "could not make connection." << endl;
+		LOG_E( "could not make connection." );
 		return dest;
 	}
 
@@ -210,7 +210,7 @@ void Node::initializeImpl()
 
 	initialize();
 	mInitialized = true;
-	LOG_V << getTag() << " initialized." << endl;
+	LOG_V( getTag() << " initialized." );
 
 	if( mAutoEnabled )
 		start();
@@ -227,7 +227,7 @@ void Node::uninitializeImpl()
 
 	uninitialize();
 	mInitialized = false;
-	LOG_V << getTag() << " un-initialized." << endl;
+	LOG_V( getTag() << " un-initialized." );
 }
 
 void Node::setNumChannels( size_t numChannels )
@@ -393,12 +393,12 @@ void NodeAutoPullable::updatePullMethod()
 	if( ! hasOutputs && ! mIsPulledByContext ) {
 		mIsPulledByContext = true;
 		getContext()->addAutoPulledNode( shared_from_this() );
-		LOG_V << "added " << getTag() << " to auto-pull list" << endl;
+		LOG_V( "added " << getTag() << " to auto-pull list" );
 	}
 	else if( hasOutputs && mIsPulledByContext ) {
 		mIsPulledByContext = false;
 		getContext()->removeAutoPulledNode( shared_from_this() );
-		LOG_V << "removed " << getTag() << " from auto-pull list" << endl;
+		LOG_V( "removed " << getTag() << " from auto-pull list" );
 	}
 }
 
