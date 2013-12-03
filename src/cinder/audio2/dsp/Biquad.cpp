@@ -25,6 +25,7 @@
 #include "cinder/audio2/Buffer.h"
 
 #include "cinder/Cinder.h"
+#include "cinder/CinderMath.h"
 
 #if defined( CINDER_AUDIO_VDSP )
 	#include <Accelerate/Accelerate.h>

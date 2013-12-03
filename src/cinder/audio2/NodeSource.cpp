@@ -421,21 +421,21 @@ void GenSine::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	const size_t count = buffer->getSize();
-	const float phaseMul = float( 2.0 * M_PI / (double)mSampleRate );
+	const float phaseMul = float( 2 * M_PI / (double)mSampleRate );
 	float phase = mPhase;
 
 	if( mFreq.isVaryingThisBlock() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase );
-			phase = fmodf( phase + freqValues[i] * phaseMul, M_PI * 2.0 );
+			phase = fmodf( phase + freqValues[i] * phaseMul, M_PI * 2 );
 		}
 	}
 	else {
 		const float phaseIncr = mFreq.getValue() * phaseMul;
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase );
-			phase = fmodf( phase + phaseIncr, M_PI * 2.0 );
+			phase = fmodf( phase + phaseIncr, M_PI * 2 );
 		}
 	}
 
@@ -453,14 +453,14 @@ void GenPhasor::process( Buffer *buffer )
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = phase;
-			phase = fmodf( phase + freqValues[i] * phaseMul, 1.0f );
+			phase = fmodf( phase + freqValues[i] * phaseMul, 1 );
 		}
 	}
 	else {
 		const float phaseIncr = mFreq.getValue() * phaseMul;
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = phase;
-			phase = fmodf( phase + phaseIncr, 1.0f );
+			phase = fmodf( phase + phaseIncr, 1 );
 		}
 	}
 

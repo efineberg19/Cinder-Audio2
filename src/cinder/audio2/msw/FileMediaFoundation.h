@@ -45,9 +45,6 @@ class SourceFileMediaFoundation : public SourceFile {
 	BufferRef	loadBuffer() override;
 	void		seek( size_t readPositionFrames ) override;
 
-	void	setSampleRate( size_t sampleRate ) override;
-	void	setNumChannels( size_t channels ) override;
-
   private:
 	void initMediaFoundation();
 	void initReader( const DataSourceRef &dataSource );

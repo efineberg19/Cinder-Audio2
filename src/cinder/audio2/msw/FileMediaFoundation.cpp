@@ -95,7 +95,7 @@ SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataS
 
 	mNumFrames = static_cast<size_t>( mSeconds * mSampleRate  / mFileNumChannels );
 
-	LOG_V << "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek << endl;
+	LOG_V( "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek );
 }
 
 SourceFileMediaFoundation::~SourceFileMediaFoundation()
@@ -129,7 +129,7 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 
 
 		if( numFramesRead + readCount > mNumFrames ) {
-			LOG_V << "warning, buffer resize from: " << mNumFrames << " to: " << numFramesRead + readCount << endl; // TODO: should resize buffer if necessary
+			LOG_V( "warning, buffer resize from: " << mNumFrames << " to: " << numFramesRead + readCount ); // TODO: should resize buffer if necessary
 			mNumFrames = numFramesRead + readCount;
 			result->setNumFrames( mNumFrames );
 		}
@@ -153,16 +153,16 @@ void SourceFileMediaFoundation::seek( size_t readPositionFrames )
 	//mReadPos = readPosition;
 
 	if( ! mCanSeek ) {
-		LOG_E << "cannot seek." << endl;
+		LOG_E( "cannot seek." );
 		return;
 	}
 
 	float positionSeconds = (float)readPositionFrames / (float)mSampleRate;
 	if( positionSeconds > mSeconds ) {
-		LOG_E << "cannot seek beyond end of file (" << positionSeconds << "s)." << endl;
+		LOG_E( "cannot seek beyond end of file (" << positionSeconds << "s)." );
 		return;
 	}
-	//LOG_V << "seeking to: " << milliseconds << endl;
+	//LOG_V( "seeking to: " << milliseconds );
 
 	LONGLONG position = secondsToNanoSeconds( positionSeconds );
 	PROPVARIANT seekVar;
@@ -172,18 +172,6 @@ void SourceFileMediaFoundation::seek( size_t readPositionFrames )
 	CI_ASSERT( hr == S_OK );
 	hr = PropVariantClear( &seekVar );
 	CI_ASSERT( hr == S_OK );
-}
-
-void SourceFileMediaFoundation::setSampleRate( size_t sampleRate )
-{
-	mSampleRate = sampleRate;
-	//updateOutputFormat();
-}
-
-void SourceFileMediaFoundation::setNumChannels( size_t numChannels )
-{
-	mNumChannels = numChannels;
-	//updateOutputFormat();
 }
 
 void SourceFileMediaFoundation::initMediaFoundation()
@@ -234,7 +222,7 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 	GUID outputSubType = MFAudioFormat_PCM; // default to PCM, upgrade if we can.
 	mSampleFormat = Format::INT_16;
 	mBytesPerSample = 2;
-	LOG_V << "native bytes per sample: " << mBytesPerSample << endl;
+	LOG_V( "native bytes per sample: " << mBytesPerSample );
 
 	if( fileFormat->wBitsPerSample == 32 ) {
 		mSampleFormat = Format::FLOAT_32;
@@ -245,7 +233,7 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 	mFileNumChannels = fileFormat->nChannels;
 	mFileSampleRate = fileFormat->nSamplesPerSec;
 
-	LOG_V << "file channels: " << mFileNumChannels << ", samplerate: " << mFileSampleRate << endl;
+	LOG_V( "file channels: " << mFileNumChannels << ", samplerate: " << mFileSampleRate );
 
 	::CoTaskMemFree( fileFormat );
 
@@ -297,16 +285,16 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	CI_ASSERT( hr == S_OK );
 
 	if( streamFlags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED ) {
-		LOG_E << "type change" << endl;
+		LOG_E( "type change" );
 		return 0;
 	}
 	if( streamFlags & MF_SOURCE_READERF_ENDOFSTREAM ) {
-		LOG_V << "end of file." << endl;
+		LOG_V( "end of file." );
 		//mFinished = true;
 		return 0;
 	}
 	if( ! mediaSample ) {
-		LOG_V << "no sample." << endl;
+		LOG_V( "no sample." );
 		mediaSample->Release();
 		return 0;
 	}
@@ -368,7 +356,7 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 	mediaBuffer->Release();
 
-	LOG_V << "frames read: " << numFramesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" << endl;
+	LOG_V( "frames read: " << numFramesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" );
 
 	return numFramesRead;
 }
@@ -377,7 +365,7 @@ void SourceFileMediaFoundation::resizeReadBufferIfNecessary( size_t requiredFram
 {
 	size_t requiredSize = requiredFrames * mFileNumChannels;
 	if( requiredSize > mReadBuffer.size() ) {
-		LOG_V << "RESIZE buffer to " << requiredSize << endl;
+		LOG_V( "RESIZE buffer to " << requiredSize );
 		mReadBuffer.resize( requiredSize );
 	}
 }

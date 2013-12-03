@@ -23,11 +23,12 @@
 
 #pragma once
 
+#include "cinder/audio2/Buffer.h"
+
 #include <list>
 #include <vector>
-#include <functional>
 
-#include "cinder/audio2/Buffer.h"
+#include <functional>
 
 namespace cinder { namespace audio2 {
 
@@ -36,6 +37,7 @@ typedef std::shared_ptr<class Node>			NodeRef;
 
 // TODO: add rampLog
 // ???: why does webaudio use expo? is it an EaseOutExpo?
+// TODO: try to avoid the _VARIADIC_MAX=6 in preprocessor definitions by reducing number of args here
 void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
 void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
 

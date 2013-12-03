@@ -200,7 +200,7 @@ template <typename NodeT>
 static std::shared_ptr<NodeT> findFirstDownstreamNode( NodeRef node )
 {
 	if( ! node )
-		return;
+		return std::shared_ptr<NodeT>();
 
 	for( auto &out : node->getOutputs() ) {
 		auto output = out.second.lock();

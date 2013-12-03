@@ -149,7 +149,7 @@ void Fft::inverse( const BufferSpectral *spectral, Buffer *waveform )
 	}
 
 	ooura::rdft( (int)mSize, -1, a, mOouraIp, mOouraW );
-	multiply( a, 2.0f / (float)mSize, a, mSize );
+	dsp::mul( a, 2.0f / (float)mSize, a, mSize );
 }
 
 #endif // defined( CINDER_AUDIO_FFT_OOURA )

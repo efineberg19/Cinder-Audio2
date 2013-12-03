@@ -32,10 +32,12 @@
 #include "cinder/DataSource.h"
 
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeSource>					NodeSourceRef;
+typedef std::shared_ptr<class NodeSource>				NodeSourceRef;
 typedef std::shared_ptr<class LineIn>					LineInRef;
 typedef std::shared_ptr<class SamplePlayer>				SamplePlayerRef;
 typedef std::shared_ptr<class BufferPlayer>				BufferPlayerRef;

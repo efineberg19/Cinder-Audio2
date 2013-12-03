@@ -86,13 +86,13 @@ void Param::rampTo( float beginValue, float endValue, float rampSeconds, const O
 {
 	initInternalBuffer();
 
-	float timeBegin = mContext->getNumProcessedSeconds() + options.getDelay();
+	float timeBegin = (float)mContext->getNumProcessedSeconds() + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
 
 	Event event( timeBegin, timeEnd, beginValue, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = event.mDuration * mContext->getSampleRate();
+	event.mTotalFrames = size_t( event.mDuration * mContext->getSampleRate() );
 //	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
@@ -113,7 +113,7 @@ void Param::appendTo( float endValue, float rampSeconds, const Options &options 
 	Event event( timeBegin, timeEnd, endTimeAndValue.second, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = event.mDuration * mContext->getSampleRate();
+	event.mTotalFrames = size_t( event.mDuration * mContext->getSampleRate() );
 //	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( mContext->getMutex() );
@@ -167,7 +167,7 @@ bool Param::isVaryingThisBlock() const
 
 	for( const Event &event : mEvents ) {
 
-		float timeBegin = mContext->getNumProcessedSeconds();
+		float timeBegin = (float)mContext->getNumProcessedSeconds();
 		float timeEnd = timeBegin + (float)mContext->getFramesPerBlock() / (float)mContext->getSampleRate();
 
 		if( event.mTimeBegin < timeEnd && event.mTimeEnd > timeBegin )
@@ -183,7 +183,7 @@ float* Param::getValueArray()
 	if( mModulatorNode )
 		mModulatorNode->pullInputs( &mInternalBuffer );
 	else
-		eval( mContext->getNumProcessedSeconds(), mInternalBuffer.getData(), mInternalBuffer.getSize(), mContext->getSampleRate() );
+		eval( (float)mContext->getNumProcessedSeconds(), mInternalBuffer.getData(), mInternalBuffer.getSize(), mContext->getSampleRate() );
 
 	return mInternalBuffer.getData();
 }
@@ -193,7 +193,7 @@ pair<float, float> Param::findEndTimeAndValue()
 	lock_guard<mutex> lock( mContext->getMutex() );
 
 	if( mEvents.empty() )
-		return make_pair( mContext->getNumProcessedSeconds(), mValue );
+		return make_pair( (float)mContext->getNumProcessedSeconds(), mValue );
 	else {
 		Event &event = mEvents.back();
 		return make_pair( event.mTimeEnd, event.mValueEnd );

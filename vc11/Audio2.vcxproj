@@ -11,50 +11,143 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\audio2\Atomic.h" />
-    <ClInclude Include="..\src\audio2\audio.h" />
-    <ClInclude Include="..\src\audio2\Buffer.h" />
-    <ClInclude Include="..\src\audio2\CinderAssert.h" />
-    <ClInclude Include="..\src\audio2\Context.h" />
-    <ClInclude Include="..\src\audio2\Debug.h" />
-    <ClInclude Include="..\src\audio2\Device.h" />
-    <ClInclude Include="..\src\audio2\Dsp.h" />
-    <ClInclude Include="..\src\audio2\NodeEffect.h" />
-    <ClInclude Include="..\src\audio2\Fft.h" />
-    <ClInclude Include="..\src\audio2\File.h" />
-    <ClInclude Include="..\src\audio2\msw\ContextXAudio.h" />
-    <ClInclude Include="..\src\audio2\msw\NodeLineInWasapi.h" />
-    <ClInclude Include="..\src\audio2\msw\DeviceManagerWasapi.h" />
-    <ClInclude Include="..\src\audio2\msw\FileMediaFoundation.h" />
-    <ClInclude Include="..\src\audio2\msw\util.h" />
-    <ClInclude Include="..\src\audio2\msw\xaudio.h" />
-    <ClInclude Include="..\src\audio2\Node.h" />
-    <ClInclude Include="..\src\audio2\NodeSource.h" />
-    <ClInclude Include="..\src\audio2\NodeTarget.h" />
-    <ClInclude Include="..\src\audio2\ooura\fftsg.h" />
-    <ClInclude Include="..\src\audio2\RingBuffer.h" />
-    <ClInclude Include="..\src\audio2\NodeTap.h" />
-    <ClInclude Include="..\src\Gui.h" />
-    <ClInclude Include="..\src\Plot.h" />
+    <ClCompile Include="..\src\cinder\audio2\audio.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\CinderAssert.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Context.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Device.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\dsp\Biquad.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\dsp\Converter.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\dsp\ConverterImplR8brain.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\dsp\Dsp.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\dsp\Fft.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\dsp\ooura\fftsg.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\File.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\FileOggVorbis.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\msw\ContextXAudio.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\msw\DeviceManagerWasapi.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\msw\FileMediaFoundation.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\msw\LineInWasapi.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\msw\util.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Node.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\NodeEffect.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\NodeFilter.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\NodeSource.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\NodeTarget.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Param.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Scope.cpp" />
+    <ClCompile Include="..\src\oggvorbis\ogg\bitwise.c" />
+    <ClCompile Include="..\src\oggvorbis\ogg\framing.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\analysis.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\bitrate.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\block.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\codebook.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\envelope.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\floor0.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\floor1.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\info.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\lookup.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\lpc.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\lsp.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\mapping0.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\mdct.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\psy.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\registry.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\res0.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\sharedbook.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\smallft.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\synthesis.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\vorbisenc.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\vorbisfile.c" />
+    <ClCompile Include="..\src\oggvorbis\vorbis\window.c" />
+    <ClCompile Include="..\src\r8brain\r8bbase.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\audio2\audio.cpp" />
-    <ClCompile Include="..\src\audio2\Context.cpp" />
-    <ClCompile Include="..\src\audio2\Device.cpp" />
-    <ClCompile Include="..\src\audio2\Dsp.cpp" />
-    <ClCompile Include="..\src\audio2\Fft.cpp" />
-    <ClCompile Include="..\src\audio2\File.cpp" />
-    <ClCompile Include="..\src\audio2\msw\ContextXAudio.cpp" />
-    <ClCompile Include="..\src\audio2\msw\NodeLineInWasapi.cpp" />
-    <ClCompile Include="..\src\audio2\msw\DeviceManagerWasapi.cpp" />
-    <ClCompile Include="..\src\audio2\msw\FileMediaFoundation.cpp" />
-    <ClCompile Include="..\src\audio2\msw\util.cpp" />
-    <ClCompile Include="..\src\audio2\Node.cpp" />
-    <ClCompile Include="..\src\audio2\NodeSource.cpp" />
-    <ClCompile Include="..\src\audio2\NodeTarget.cpp" />
-    <ClCompile Include="..\src\audio2\ooura\fftsg.cpp" />
-    <ClCompile Include="..\src\audio2\NodeTap.cpp" />
-    <ClCompile Include="..\src\Plot.cpp" />
+    <ClInclude Include="..\include\oggvorbis\ogg\ogg.h" />
+    <ClInclude Include="..\include\oggvorbis\ogg\os_types.h" />
+    <ClInclude Include="..\include\oggvorbis\vorbis\codec.h" />
+    <ClInclude Include="..\include\oggvorbis\vorbis\vorbisenc.h" />
+    <ClInclude Include="..\include\oggvorbis\vorbis\vorbisfile.h" />
+    <ClInclude Include="..\src\cinder\audio2\audio.h" />
+    <ClInclude Include="..\src\cinder\audio2\Buffer.h" />
+    <ClInclude Include="..\src\cinder\audio2\CinderAssert.h" />
+    <ClInclude Include="..\src\cinder\audio2\Context.h" />
+    <ClInclude Include="..\src\cinder\audio2\Debug.h" />
+    <ClInclude Include="..\src\cinder\audio2\Device.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\Biquad.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\Converter.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\ConverterImplR8brain.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\Dsp.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\Fft.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\ooura\fftsg.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\RingBuffer.h" />
+    <ClInclude Include="..\src\cinder\audio2\Exception.h" />
+    <ClInclude Include="..\src\cinder\audio2\File.h" />
+    <ClInclude Include="..\src\cinder\audio2\FileOggVorbis.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\ContextXAudio.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\DeviceManagerWasapi.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\FileMediaFoundation.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\LineInWasapi.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\util.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\xaudio.h" />
+    <ClInclude Include="..\src\cinder\audio2\Node.h" />
+    <ClInclude Include="..\src\cinder\audio2\NodeEffect.h" />
+    <ClInclude Include="..\src\cinder\audio2\NodeFilter.h" />
+    <ClInclude Include="..\src\cinder\audio2\NodeSource.h" />
+    <ClInclude Include="..\src\cinder\audio2\NodeTarget.h" />
+    <ClInclude Include="..\src\cinder\audio2\Param.h" />
+    <ClInclude Include="..\src\cinder\audio2\Scope.h" />
+    <ClInclude Include="..\src\cinder\audio2\Utilities.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\backends.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\bitrate.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\books\coupled\res_books_51.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\books\coupled\res_books_stereo.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\books\floor\floor_books.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\books\uncoupled\res_books_uncoupled.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\codebook.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\codec_internal.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\envelope.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\highlevel.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\lookup.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\lookup_data.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\lpc.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\lsp.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\masking.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\mdct.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\misc.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\floor_all.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\psych_11.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\psych_16.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\psych_44.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\psych_8.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\residue_16.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\residue_44.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\residue_44p51.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\residue_44u.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\residue_8.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_11.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_16.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_22.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_32.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_44.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_44p51.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_44u.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_8.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\modes\setup_X.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\os.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\psy.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\registry.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\scales.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\smallft.h" />
+    <ClInclude Include="..\src\oggvorbis\vorbis\window.h" />
+    <ClInclude Include="..\src\r8brain\CDSPBlockConvolver.h" />
+    <ClInclude Include="..\src\r8brain\CDSPFIRFilter.h" />
+    <ClInclude Include="..\src\r8brain\CDSPFracInterpolator.h" />
+    <ClInclude Include="..\src\r8brain\CDSPRealFFT.h" />
+    <ClInclude Include="..\src\r8brain\CDSPResampler.h" />
+    <ClInclude Include="..\src\r8brain\CDSPSincFilterGen.h" />
+    <ClInclude Include="..\src\r8brain\fft4g.h" />
+    <ClInclude Include="..\src\r8brain\r8bbase.h" />
+    <ClInclude Include="..\src\r8brain\r8bconf.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}</ProjectGuid>
@@ -103,8 +196,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src;..\cinder\include;..\cinder\boost;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_VARIADIC_MAX=6;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <MinimalRebuild>true</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -123,9 +216,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NOMINMAX;NDEBUG;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_VARIADIC_MAX=6;_SCL_SECURE_NO_WARNINGS;_WINDOWS;NOMINMAX;NDEBUG;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\src;..\cinder\include;..\cinder\boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>

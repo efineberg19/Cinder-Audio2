@@ -32,7 +32,7 @@ namespace cinder { namespace audio2 {
 SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
 	: SourceFile( dataSource, sampleRate, numChannels )
 {
-	int status = ov_fopen( dataSource->getFilePath().c_str(), &mOggVorbisFile );
+	int status = ov_fopen( dataSource->getFilePath().string().c_str(), &mOggVorbisFile );
 	if( status )
 		throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
 

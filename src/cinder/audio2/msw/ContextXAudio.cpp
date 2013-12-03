@@ -72,7 +72,7 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 	void _stdcall OnLoopEnd( void *pBufferContext ) {}
 	void _stdcall OnVoiceError( void *pBufferContext, HRESULT Error )
 	{
-		LOG_E << "error: " << Error << endl;
+		LOG_E( "error: " << Error );
 	}
 
 	::IXAudio2SourceVoice	*mSourceVoice;
@@ -89,7 +89,7 @@ struct EngineCallbackImpl : public IXAudio2EngineCallback {
 	}
 	void _stdcall OnCriticalError( HRESULT Error )
 	{
-		LOG_E << "error: " << Error << endl;
+		LOG_E( "error: " << Error );
 	}
 
 	LineOutXAudio *mLineOut;
@@ -192,7 +192,7 @@ void NodeXAudioSourceVoice::start()
 	mEnabled = true;
 	mSourceVoice->Start();
 
-	LOG_V << "started." << endl;
+	LOG_V( "started." );
 }
 
 void NodeXAudioSourceVoice::stop()
@@ -203,7 +203,7 @@ void NodeXAudioSourceVoice::stop()
 	CI_ASSERT( mSourceVoice );
 	mEnabled = false;
 	mSourceVoice->Stop();
-	LOG_V << "stopped." << endl;
+	LOG_V( "stopped." );
 }
 
 void NodeXAudioSourceVoice::submitNextBuffer()
@@ -228,13 +228,13 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 : LineOut( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
 {
 #if defined( CINDER_XAUDIO_2_7 )
-	LOG_V << "CINDER_XAUDIO_2_7, toolset: v110_xp" << endl;
+	LOG_V( "CINDER_XAUDIO_2_7, toolset: v110_xp" );
 	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
 
 	ci::msw::initializeCom();
 
 #else
-	LOG_V << "CINDER_XAUDIO_2_8, toolset: v110" << endl;
+	LOG_V( "CINDER_XAUDIO_2_8, toolset: v110" );
 	UINT32 flags = 0;
 #endif
 
@@ -281,8 +281,8 @@ void LineOutXAudio::initialize()
 		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
 		CI_ASSERT( hr == S_OK );
 		if( mKey == ci::toUtf8( deviceDetails.DeviceID ) ) {
-			LOG_V << "found match: display name: " << deviceDetails.DisplayName << endl;
-			LOG_V << "device id: " << deviceDetails.DeviceID << endl;
+			LOG_V( "found match: display name: " << deviceDetails.DisplayName );
+			LOG_V( "device id: " << deviceDetails.DeviceID );
 
 			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice,  getNumChannels(), getSampleRate(), 0, i );
 			CI_ASSERT( hr == S_OK );
@@ -296,7 +296,7 @@ void LineOutXAudio::initialize()
 
 	::XAUDIO2_VOICE_DETAILS voiceDetails;
 	mMasteringVoice->GetVoiceDetails( &voiceDetails );
-	LOG_V << "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate << endl;
+	LOG_V( "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate );
 
 	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
 	// needs to ensure this guy is around before it can do anything and it can't call
@@ -319,7 +319,7 @@ void LineOutXAudio::start()
 
 	HRESULT hr = mXAudio->StartEngine();
 	CI_ASSERT( hr ==S_OK );
-	LOG_V "started" << endl;
+	LOG_V( "started" );
 }
 
 void LineOutXAudio::stop()
@@ -329,7 +329,7 @@ void LineOutXAudio::stop()
 
 	mEnabled = false;
 	mXAudio->StopEngine();
-	LOG_V "stopped" << endl;
+	LOG_V( "stopped" );
 }
 
 uint64_t LineOutXAudio::getLastClip()
@@ -388,7 +388,7 @@ void NodeEffectXAudioXapo::notifyConnected()
 	if( mChainIndex > 0 ) {
 		// An effect has already been connected and thereby SetEffectsChain has already been called.
 		// As it seems this can only be called once for the lifetime of an IXAUdio2SourceVoice, we re-init
-		LOG_V << "sourceVoice re-init, mChainIndex: " << mChainIndex << endl;
+		LOG_V( "sourceVoice re-init, mChainIndex: " << mChainIndex );
 		sourceVoice->uninitSourceVoice();
 		sourceVoice->initSourceVoice();
 	}
@@ -399,7 +399,7 @@ void NodeEffectXAudioXapo::notifyConnected()
 	effectsChain.EffectCount = effects.size();
 	effectsChain.pEffectDescriptors = effects.data();
 
-	LOG_V << "SetEffectChain, p: " << (void*)sourceVoice->getNative() << ", count: " << effectsChain.EffectCount << endl;
+	LOG_V( "SetEffectChain, p: " << (void*)sourceVoice->getNative() << ", count: " << effectsChain.EffectCount );
 	HRESULT hr = sourceVoice->getNative()->SetEffectChain( &effectsChain );
 	CI_ASSERT( hr == S_OK );
 }
@@ -509,22 +509,32 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 				// see if there is already an upstream source voice
 				sourceVoice = findFirstUpstreamNode<NodeXAudioSourceVoice>( input );
 				if( sourceVoice ) {
-					LOG_V << "detected upstream source node, shuffling." << endl;
-					// FIXME: account account for multiple inputs in both input and sourceVoice
+					LOG_V( "detected upstream source node, shuffling." );
+					// TODO: account account for multiple inputs in both input and sourceVoice
 					NodeRef sourceInput = sourceVoice->getInputs()[0];
 					sourceVoice->disconnect();
-					node->setInput( sourceVoice, i );
-					sourceVoice->setInput( input, 0 );
-					input->setInput( sourceInput, 0 );
+
+					//node->setInput( sourceVoice, i );
+					//sourceVoice->setInput( input, 0 );
+					//input->setInput( sourceInput, 0 );
+
+					sourceInput->connect( input );
+					input->connect( sourceVoice );
+					sourceVoice->connect( node, 0, i );
+
 				}
 				else if( findFirstUpstreamNode<NodeXAudio>( input ) )
 					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 				else {
-					LOG_V << "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() << endl;
+					LOG_V( "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() );
 
 					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
-					node->setInput( sourceVoice, i );
-					sourceVoice->setInput( input );
+
+					//node->setInput( sourceVoice, i );
+					//sourceVoice->setInput( input );
+
+					input->connect( sourceVoice );
+					sourceVoice->connect( node, 0, i );
 
 					sourceVoice->start();
 				}
