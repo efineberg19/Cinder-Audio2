@@ -37,13 +37,13 @@ typedef std::shared_ptr<class Node>			NodeRef;
 
 // TODO: add rampLog
 // ???: why does webaudio use expo? is it an EaseOutExpo?
-// TODO: try to avoid the _VARIADIC_MAX=6 in preprocessor definitions by reducing number of args here
-void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
-void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized );
+// note: unless we want to add _VARIADIC_MAX=6 in preprocessor definitions to all projects, number of args here has to be 5 or less for vc11 support
+void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, const std::pair<float, float> &timeRangeNormalized );
+void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, const std::pair<float, float> &timeRangeNormalized );
 
 class Param {
   public:
-	typedef std::function<void ( float *, size_t, float, float, float, float )>	RampFn;
+	typedef std::function<void ( float *, size_t, float, float, const std::pair<float, float>& )>	RampFn;
 
 	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ) {}
 

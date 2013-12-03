@@ -196,7 +196,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_VARIADIC_MAX=6;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <MinimalRebuild>true</MinimalRebuild>
@@ -216,7 +216,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_VARIADIC_MAX=6;_SCL_SECURE_NO_WARNINGS;_WINDOWS;NOMINMAX;NDEBUG;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_WINDOWS;NOMINMAX;NDEBUG;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

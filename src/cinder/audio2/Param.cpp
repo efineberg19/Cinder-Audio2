@@ -31,10 +31,10 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 //! Array-based linear ramping function.
-void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized )
+void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, const pair<float, float> &timeRangeNormalized )
 {
-	float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
-	float t = timeBeginNormalized;
+	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
+	float t = timeRangeNormalized.first;
 	for( size_t i = 0; i < count; i++ ) {
 		float valueNormalized = t;
 		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
@@ -45,10 +45,10 @@ void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, f
 }
 
 //! Array-based exponential ramping function.
-void rampExpo( float *array, size_t count, float valueBegin, float valueEnd, float timeBeginNormalized, float timeEndNormalized )
+void rampExpo( float *array, size_t count, float valueBegin, float valueEnd,  const pair<float, float> &timeRangeNormalized )
 {
-	float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
-	float t = timeBeginNormalized;
+	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
+	float t = timeRangeNormalized.first;
 	for( size_t i = 0; i < count; i++ ) {
 		float valueNormalized = t * t;
 		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
@@ -225,10 +225,11 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 
 			size_t count = size_t( endIndex - startIndex );
 			float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mDuration;
-			float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mDuration; // TODO: currently unused, needed?
+			float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mDuration;
 
-			event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, timeBeginNormalized, timeEndNormalized );
+			event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, make_pair( timeBeginNormalized, timeEndNormalized ) );
 
+			// debug
 			event.mFramesProcessed += count;
 
 			samplesWritten += count;
