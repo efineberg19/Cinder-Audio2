@@ -82,7 +82,7 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inpu
 
 const NodeRef& Node::addConnection( const NodeRef &dest )
 {
-	return connect( dest, getFirstAvailableOutputBus(), getFirstAvailableInputBus() );
+	return connect( dest, getFirstAvailableOutputBus(), dest->getFirstAvailableInputBus() );
 }
 
 void Node::disconnect( size_t outputBus )
