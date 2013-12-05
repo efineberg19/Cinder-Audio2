@@ -26,7 +26,7 @@
 #include "cinder/audio2/CinderAssert.h"
 #include <boost/current_function.hpp>
 
-// note: this file will be removed at a later point
+// note: this file will be removed post alpha stages
 
 #include "cinder/app/App.h"
 
