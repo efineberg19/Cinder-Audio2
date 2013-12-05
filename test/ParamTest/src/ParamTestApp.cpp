@@ -104,7 +104,7 @@ void ParamTestApp::triggerApply()
 	// - problem I have with this right now is that its alot more syntax for the common case (see: (a)) of ramping up volume
 //	Context::master()->timeline()->apply( mGen->getParamFreq(), 220, 440, 1 );
 
-	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
+	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 }
 
 // 2 events - first apply the ramp, blowing away anything else, then append another event to happen after that
@@ -113,7 +113,7 @@ void ParamTestApp::triggerApply2()
 	mGen->getParamFreq()->rampTo( 220, 880, 1 );
 	mGen->getParamFreq()->appendTo( 369.994f, 1 ); // F#4
 
-	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
+	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 }
 
 // append an event with random frequency and duration 1 second, allowing them to build up. new events begin from the end of the last event
@@ -121,14 +121,14 @@ void ParamTestApp::triggerAppend()
 {
 	mGen->getParamFreq()->appendTo( randFloat( 50, 800 ), 1.0f );
 
-	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
+	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 }
 
 // make a ramp after a 1 second delay
 void ParamTestApp::triggerDelay()
 {
 	mGen->getParamFreq()->rampTo( 50, 440, 1, audio2::Param::Options().delay( 1 ) );
-	LOG_V << "num events: " << mGen->getParamFreq()->getNumEvents() << endl;
+	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 }
 
 void ParamTestApp::connectModulator()
@@ -259,7 +259,7 @@ void ParamTestApp::processTap( Vec2i pos )
 		connectModulator();
 	else if( mTestSelector.hitTest( pos ) && selectorIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V << "selected: " << currentTest << endl;
+		LOG_V( "selected: " << currentTest );
 
 		bool enabled = ctx->isEnabled();
 		ctx->stop();
@@ -281,7 +281,7 @@ void ParamTestApp::processTap( Vec2i pos )
 void ParamTestApp::keyDown( KeyEvent event )
 {
 	if( event.getCode() == KeyEvent::KEY_e )
-		LOG_V << "mGen freq events: " << mGen->getParamFreq()->getNumEvents() << endl;
+		LOG_V( "mGen freq events: " << mGen->getParamFreq()->getNumEvents() );
 }
 
 void ParamTestApp::draw()
