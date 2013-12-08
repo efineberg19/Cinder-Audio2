@@ -109,7 +109,7 @@ void NodeTestApp::setupGen()
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
 
-	mGain->getParam()->rampTo( 1.0f, 1.0f );
+	mGain->getParam()->applyRamp( 1.0f, 1.0f );
 }
 
 void NodeTestApp::setup2to1()

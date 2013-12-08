@@ -55,7 +55,7 @@ void ParamTestApp::setup()
 	// example code posed to afb
 //	Anim<Vec2f> pos = Vec2f( 1, 1 );
 //	timeline().apply( &pos, Vec2f::zero(), 1, EaseInQuad() );
-//	timeline().appendTo( &pos, Vec2f( 10, 20 ), 2 ); // ???: Tween's mStartValue = (1,1) here?
+//	timeline().appendRamp( &pos, Vec2f( 10, 20 ), 2 ); // ???: Tween's mStartValue = (1,1) here?
 
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
@@ -64,8 +64,8 @@ void ParamTestApp::setup()
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 
 //	mGen = ctx->makeNode( new audio2::GenSine() );
-//	mGen = ctx->makeNode( new audio2::GenTriangle() );
-	mGen = ctx->makeNode( new audio2::GenPhasor() );
+	mGen = ctx->makeNode( new audio2::GenTriangle() );
+//	mGen = ctx->makeNode( new audio2::GenPhasor() );
 
 	mGen->setFreq( 0 );
 
@@ -97,10 +97,10 @@ void ParamTestApp::setupFilter()
 void ParamTestApp::triggerApply()
 {
 	// (a): ramp volume to 0.7 of 0.2 seconds
-//	mGain->getGainParam()->rampTo( 0.7f, 0.2f );
+//	mGain->getGainParam()->applyRamp( 0.7f, 0.2f );
 
-	mGen->getParamFreq()->rampTo( 220, 440, 1 );
-//	mGen->getParamFreq()->rampTo( 220, 440, 1, Param::Options().delay( 0.5f ) );
+	mGen->getParamFreq()->applyRamp( 220, 440, 1 );
+//	mGen->getParamFreq()->applyRamp( 220, 440, 1, Param::Options().delay( 0.5f ) );
 
 	// PSEUDO CODE: possible syntax where context keeps references to Params, calling updateValueArray() (or just process() ?) on them each block:
 	// - problem I have with this right now is that its alot more syntax for the common case (see: (a)) of ramping up volume
@@ -114,8 +114,8 @@ void ParamTestApp::triggerApply()
 // 2 events - first apply the ramp, blowing away anything else, then append another event to happen after that
 void ParamTestApp::triggerApply2()
 {
-	mGen->getParamFreq()->rampTo( 220, 880, 1 );
-	mGen->getParamFreq()->appendTo( 369.994f, 1 ); // F#4
+	mGen->getParamFreq()->applyRamp( 220, 880, 1 );
+	mGen->getParamFreq()->appendRamp( 369.994f, 1 ); // F#4
 
 	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 
@@ -125,7 +125,7 @@ void ParamTestApp::triggerApply2()
 // append an event with random frequency and duration 1 second, allowing them to build up. new events begin from the end of the last event
 void ParamTestApp::triggerAppend()
 {
-	mGen->getParamFreq()->appendTo( randFloat( 50, 800 ), 1.0f );
+	mGen->getParamFreq()->appendRamp( randFloat( 50, 800 ), 1.0f );
 
 	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 }
@@ -133,7 +133,7 @@ void ParamTestApp::triggerAppend()
 // make a ramp after a 1 second delay
 void ParamTestApp::triggerDelay()
 {
-	mGen->getParamFreq()->rampTo( 50, 440, 1, audio2::Param::Options().delay( 1 ) );
+	mGen->getParamFreq()->applyRamp( 50, 440, 1, audio2::Param::Options().delay( 1 ) );
 	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 }
 
@@ -232,15 +232,15 @@ void ParamTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) ) {
 //		mGain->setValue( mGainSlider.mValueScaled );
-//		mGain->getParam()->rampTo( mGainSlider.mValueScaled );
-		mGain->getParam()->rampTo( mGainSlider.mValueScaled, 0.15f );
+//		mGain->getParam()->applyRamp( mGainSlider.mValueScaled );
+		mGain->getParam()->applyRamp( mGainSlider.mValueScaled, 0.15f );
 	}
 	if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
 	if( mGenFreqSlider.hitTest( pos ) ) {
 //		mGen->setFreq( mGenFreqSlider.mValueScaled );
-//		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f );
-		mGen->getParamFreq()->rampTo( mGenFreqSlider.mValueScaled, 0.3f, audio2::Param::Options().rampFn( &audio2::rampExpo ) );
+//		mGen->getParamFreq()->applyRamp( mGenFreqSlider.mValueScaled, 0.3f );
+		mGen->getParamFreq()->applyRamp( mGenFreqSlider.mValueScaled, 0.3f, audio2::Param::Options().rampFn( &audio2::rampExpo ) );
 	}
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );

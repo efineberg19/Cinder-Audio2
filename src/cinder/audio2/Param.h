@@ -66,11 +66,14 @@ class Param {
 		RampFn	mRampFn;
 	};
 
-	void rampTo( float endValue, float rampSeconds, const Options &options = Options() );
-	void rampTo( float beginValue, float endValue, float rampSeconds, const Options &options = Options() );
+	//! Replaces any existing events with a ramp event from the current value to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
+	void applyRamp( float endValue, float rampSeconds, const Options &options = Options() );
+	//! Replaces any existing ramps param manipulations with a ramp event from \a beginValue to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
+	void applyRamp( float beginValue, float endValue, float rampSeconds, const Options &options = Options() );
+	//! Appends a ramp event from the end of the last scheduled event (or the current time) to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
+	void appendRamp( float endValue, float rampSeconds, const Options &options = Options() );
 
-	void appendTo( float endValue, float rampSeconds, const Options &options = Options() );
-
+	//TODO: make sure ramps behave well with this
 	void setModulator( const NodeRef node );
 
 	void reset();

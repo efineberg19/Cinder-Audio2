@@ -77,12 +77,12 @@ void Param::setValue( float value )
 	mValue = value;
 }
 
-void Param::rampTo( float endValue, float rampSeconds, const Options &options )
+void Param::applyRamp( float endValue, float rampSeconds, const Options &options )
 {
-	rampTo( mValue, endValue, rampSeconds, options );
+	applyRamp( mValue, endValue, rampSeconds, options );
 }
 
-void Param::rampTo( float beginValue, float endValue, float rampSeconds, const Options &options )
+void Param::applyRamp( float beginValue, float endValue, float rampSeconds, const Options &options )
 {
 	initInternalBuffer();
 
@@ -101,7 +101,7 @@ void Param::rampTo( float beginValue, float endValue, float rampSeconds, const O
 	mEvents.push_back( event );
 }
 
-void Param::appendTo( float endValue, float rampSeconds, const Options &options )
+void Param::appendRamp( float endValue, float rampSeconds, const Options &options )
 {
 	initInternalBuffer();
 
