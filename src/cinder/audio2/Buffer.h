@@ -44,15 +44,10 @@ class BufferBaseT {
 	typedef T SampleType;
 
 	BufferBaseT( size_t numFrames, size_t numChannels )
-	: mNumFrames( numFrames ), mNumChannels( numChannels ), mData( numFrames * numChannels ), mSilent( true )
+	: mNumFrames( numFrames ), mNumChannels( numChannels ), mData( numFrames * numChannels )
 	{
 	}
 
-	void zero()
-	{
-		std::memset( mData.data(), 0, mData.size() * sizeof( T ) );
-	}
-	
 	size_t getNumFrames() const		{ return mNumFrames; }
 	size_t getNumChannels() const	{ return mNumChannels; }
 	size_t getSize() const			{ return mNumFrames * mNumChannels; }
@@ -62,12 +57,14 @@ class BufferBaseT {
 	T* getData() { return mData.data(); }
 	const T* getData() const { return mData.data(); }
 
-	T& operator[]( size_t n ) {
+	T& operator[]( size_t n )
+	{
 		CI_ASSERT( n < getSize() );
 		return mData[n];
 	}
 
-	const T& operator[]( size_t n ) const {
+	const T& operator[]( size_t n ) const
+	{
 		CI_ASSERT( n < getSize() );
 		return mData[n];
 	}
@@ -82,10 +79,14 @@ class BufferBaseT {
 			mData[i] = other.getData()[i];
 	}
 
+	void zero()
+	{
+		std::memset( mData.data(), 0, mData.size() * sizeof( T ) );
+	}
+
 protected:
 	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
-	bool mSilent;
 };
 
 template <typename T>

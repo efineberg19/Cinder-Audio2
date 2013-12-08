@@ -98,6 +98,4 @@ class TargetFile {
 	size_t mSampleRate, mNumChannels;
 };
 
-//BufferRef loadAudio( SourceFileRef sourcefile );
-
 } } // namespace cinder::audio2
