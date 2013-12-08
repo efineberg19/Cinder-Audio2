@@ -62,6 +62,7 @@ Param::Event::Event( float timeBegin, float timeEnd, float valueBegin, float val
 	: mTimeBegin( timeBegin ), mTimeEnd( timeEnd ), mDuration( timeEnd - timeBegin ),
 	mValueBegin( valueBegin ), mValueEnd( valueEnd ), mRampFn( rampFn ), mMarkedForRemoval( false )
 {
+	mFramesProcessed = 0;
 }
 
 void Param::initialize( const ContextRef &context )
@@ -237,7 +238,7 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 
 			size_t count = size_t( endIndex - startIndex );
 			float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mDuration;
-			float timeEndNormalized = float( timeBegin - event.mTimeBegin + ( endIndex - 1 ) * samplePeriod ) / event.mDuration;
+			float timeEndNormalized = float( timeBegin - event.mTimeBegin + endIndex * samplePeriod ) / event.mDuration;
 
 			event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, make_pair( timeBeginNormalized, timeEndNormalized ) );
 
