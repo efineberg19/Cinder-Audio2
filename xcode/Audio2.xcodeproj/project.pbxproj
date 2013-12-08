@@ -402,8 +402,6 @@
 		119CD09E184A793400853BEE /* DeviceManagerWasapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeviceManagerWasapi.h; sourceTree = "<group>"; };
 		119CD09F184A793400853BEE /* FileMediaFoundation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileMediaFoundation.cpp; sourceTree = "<group>"; };
 		119CD0A0184A793400853BEE /* FileMediaFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileMediaFoundation.h; sourceTree = "<group>"; };
-		119CD0A1184A793400853BEE /* NodeLineInWasapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeLineInWasapi.cpp; sourceTree = "<group>"; };
-		119CD0A2184A793400853BEE /* NodeLineInWasapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeLineInWasapi.h; sourceTree = "<group>"; };
 		119CD0A3184A793400853BEE /* util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = util.cpp; sourceTree = "<group>"; };
 		119CD0A4184A793400853BEE /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
 		119CD0A5184A793400853BEE /* xaudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xaudio.h; sourceTree = "<group>"; };
@@ -425,6 +423,8 @@
 		119CD134184A7A1200853BEE /* fftsg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fftsg.h; sourceTree = "<group>"; };
 		119CD139184A7E5E00853BEE /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
 		11B0421C179B90450034BEE2 /* libAudio2-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libAudio2-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		11C0B5C318544734001664F7 /* LineInWasapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LineInWasapi.cpp; sourceTree = "<group>"; };
+		11C0B5C418544734001664F7 /* LineInWasapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LineInWasapi.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -770,8 +770,8 @@
 				119CD09E184A793400853BEE /* DeviceManagerWasapi.h */,
 				119CD09F184A793400853BEE /* FileMediaFoundation.cpp */,
 				119CD0A0184A793400853BEE /* FileMediaFoundation.h */,
-				119CD0A1184A793400853BEE /* NodeLineInWasapi.cpp */,
-				119CD0A2184A793400853BEE /* NodeLineInWasapi.h */,
+				11C0B5C318544734001664F7 /* LineInWasapi.cpp */,
+				11C0B5C418544734001664F7 /* LineInWasapi.h */,
 				119CD0A3184A793400853BEE /* util.cpp */,
 				119CD0A4184A793400853BEE /* util.h */,
 				119CD0A5184A793400853BEE /* xaudio.h */,
