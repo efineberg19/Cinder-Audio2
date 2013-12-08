@@ -12,7 +12,9 @@
 
 //#include "cinder/Timeline.h"
 
-// TODO NEXT: Param input via Node
+// TODO: Param input via Node (done, but test)
+// TODO: enable cancelling events and detecting when they are complete
+//	 - can possibly do this by making Event's public and returning EventRef's, but there are syncing issues to sort out
 
 using namespace ci;
 using namespace ci::app;
@@ -21,6 +23,7 @@ using namespace std;
 class ParamTestApp : public AppNative {
   public:
 	void setup();
+	void update();
 	void draw();
 	void keyDown( KeyEvent event );
 
@@ -59,7 +62,7 @@ void ParamTestApp::setup()
 
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
-	mGain->setValue( 0.8 );
+	mGain->setValue( 0.0 );
 
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 
@@ -67,7 +70,7 @@ void ParamTestApp::setup()
 	mGen = ctx->makeNode( new audio2::GenTriangle() );
 //	mGen = ctx->makeNode( new audio2::GenPhasor() );
 
-	mGen->setFreq( 0 );
+	mGen->setFreq( 220 );
 
 	mLowPass = ctx->makeNode( new audio2::FilterLowPass() );
 
@@ -77,8 +80,8 @@ void ParamTestApp::setup()
 
 	ctx->printGraph();
 
-//	triggerApply();
-	triggerApply2();
+	triggerApply();
+//	triggerApply2();
 //	connectModulator();
 }
 
@@ -97,9 +100,10 @@ void ParamTestApp::setupFilter()
 void ParamTestApp::triggerApply()
 {
 	// (a): ramp volume to 0.7 of 0.2 seconds
-//	mGain->getGainParam()->applyRamp( 0.7f, 0.2f );
+//	mGain->getParam()->applyRamp( 0.7f, 0.2f );
+	mGain->getParam()->applyRamp( 0, 0.5f, 0.01f );
 
-	mGen->getParamFreq()->applyRamp( 220, 440, 1 );
+//	mGen->getParamFreq()->applyRamp( 220, 440, 1 );
 //	mGen->getParamFreq()->applyRamp( 220, 440, 1, Param::Options().delay( 0.5f ) );
 
 	// PSEUDO CODE: possible syntax where context keeps references to Params, calling updateValueArray() (or just process() ?) on them each block:
@@ -233,6 +237,7 @@ void ParamTestApp::processDrag( Vec2i pos )
 	if( mGainSlider.hitTest( pos ) ) {
 //		mGain->setValue( mGainSlider.mValueScaled );
 //		mGain->getParam()->applyRamp( mGainSlider.mValueScaled );
+		LOG_V( "applying ramp on gain from: " << mGain->getValue() << " to: " << mGainSlider.mValueScaled );
 		mGain->getParam()->applyRamp( mGainSlider.mValueScaled, 0.15f );
 	}
 	if( mPanSlider.hitTest( pos ) )
@@ -240,7 +245,7 @@ void ParamTestApp::processDrag( Vec2i pos )
 	if( mGenFreqSlider.hitTest( pos ) ) {
 //		mGen->setFreq( mGenFreqSlider.mValueScaled );
 //		mGen->getParamFreq()->applyRamp( mGenFreqSlider.mValueScaled, 0.3f );
-		mGen->getParamFreq()->applyRamp( mGenFreqSlider.mValueScaled, 0.3f, audio2::Param::Options().rampFn( &audio2::rampExpo ) );
+		mGen->getParamFreq()->applyRamp( mGenFreqSlider.mValueScaled, 0.3f, audio2::Param::Options().rampFn( &audio2::rampOutQuad ) );
 	}
 	if( mLowPassFreqSlider.hitTest( pos ) )
 		mLowPass->setCutoffFreq( mLowPassFreqSlider.mValueScaled );
@@ -288,6 +293,14 @@ void ParamTestApp::keyDown( KeyEvent event )
 {
 	if( event.getCode() == KeyEvent::KEY_e )
 		LOG_V( "mGen freq events: " << mGen->getParamFreq()->getNumEvents() );
+}
+
+void ParamTestApp::update()
+{
+	if( audio2::Context::master()->isEnabled() ) {
+		mGainSlider.set( mGain->getValue() );
+		mGenFreqSlider.set( mGen->getFreq() );
+	}
 }
 
 void ParamTestApp::draw()

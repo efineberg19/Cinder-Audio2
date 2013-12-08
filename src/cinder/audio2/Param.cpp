@@ -26,34 +26,41 @@
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/Debug.h"
 
+#include "cinder/CinderMath.h"
+
 using namespace std;
 
 namespace cinder { namespace audio2 {
 
-//! Array-based linear ramping function.
 void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, const pair<float, float> &timeRangeNormalized )
 {
 	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
 	float t = timeRangeNormalized.first;
 	for( size_t i = 0; i < count; i++ ) {
 		float valueNormalized = t;
-		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
-		array[i] = valueScaled;
-
+		array[i] = lerp( valueBegin, valueEnd, valueNormalized );
 		t += timeIncr;
 	}
 }
 
-//! Array-based exponential ramping function.
-void rampExpo( float *array, size_t count, float valueBegin, float valueEnd,  const pair<float, float> &timeRangeNormalized )
+void rampInQuad( float *array, size_t count, float valueBegin, float valueEnd, const pair<float, float> &timeRangeNormalized )
 {
 	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
 	float t = timeRangeNormalized.first;
 	for( size_t i = 0; i < count; i++ ) {
 		float valueNormalized = t * t;
-		float valueScaled = valueBegin * ( 1 - valueNormalized ) + valueEnd * valueNormalized;
-		array[i] = valueScaled;
+		array[i] = lerp( valueBegin, valueEnd, valueNormalized );
+		t += timeIncr;
+	}
+}
 
+void rampOutQuad( float *array, size_t count, float valueBegin, float valueEnd, const std::pair<float, float> &timeRangeNormalized )
+{
+	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
+	float t = timeRangeNormalized.first;
+	for( size_t i = 0; i < count; i++ ) {
+		float valueNormalized = -t * ( t - 2 );
+		array[i] = lerp( valueBegin, valueEnd, valueNormalized );
 		t += timeIncr;
 	}
 }
