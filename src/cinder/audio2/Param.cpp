@@ -188,14 +188,26 @@ float* Param::getValueArray()
 	return mInternalBuffer.getData();
 }
 
-pair<float, float> Param::findEndTimeAndValue()
+float Param::findDuration() const
+{
+	lock_guard<mutex> lock( mContext->getMutex() );
+
+	if( mEvents.empty() )
+		return 0;
+	else {
+		const Event &event = mEvents.back();
+		return event.mTimeEnd - (float)mContext->getNumProcessedSeconds();
+	}
+}
+
+pair<float, float> Param::findEndTimeAndValue() const
 {
 	lock_guard<mutex> lock( mContext->getMutex() );
 
 	if( mEvents.empty() )
 		return make_pair( (float)mContext->getNumProcessedSeconds(), mValue );
 	else {
-		Event &event = mEvents.back();
+		const Event &event = mEvents.back();
 		return make_pair( event.mTimeEnd, event.mValueEnd );
 	}
 }

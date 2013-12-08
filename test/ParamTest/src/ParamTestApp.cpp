@@ -37,6 +37,8 @@ class ParamTestApp : public AppNative {
 	void triggerDelay();
 	void connectModulator();
 
+	void writeParamEval( audio2::Param *param );
+
 	audio2::GenRef				mGen;
 	audio2::GainRef				mGain;
 	audio2::Pan2dRef			mPan;
@@ -76,8 +78,8 @@ void ParamTestApp::setup()
 	ctx->printGraph();
 
 //	triggerApply();
-//	triggerApply2();
-	connectModulator();
+	triggerApply2();
+//	connectModulator();
 }
 
 void ParamTestApp::setupBasic()
@@ -103,6 +105,8 @@ void ParamTestApp::triggerApply()
 	// PSEUDO CODE: possible syntax where context keeps references to Params, calling updateValueArray() (or just process() ?) on them each block:
 	// - problem I have with this right now is that its alot more syntax for the common case (see: (a)) of ramping up volume
 //	Context::master()->timeline()->apply( mGen->getParamFreq(), 220, 440, 1 );
+	// - a bit shorter:
+//	audio2::timeline()->apply( mGen->getParamFreq(), 220, 440, 1 );
 
 	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
 }
@@ -114,6 +118,8 @@ void ParamTestApp::triggerApply2()
 	mGen->getParamFreq()->appendTo( 369.994f, 1 ); // F#4
 
 	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
+
+//	writeParamEval( mGen->getParamFreq() );
 }
 
 // append an event with random frequency and duration 1 second, allowing them to build up. new events begin from the end of the last event
@@ -288,6 +294,23 @@ void ParamTestApp::draw()
 {
 	gl::clear();
 	drawWidgets( mWidgets );
+}
+
+// TODO: this will be formalized once there is an offline audio context and NodeTargetFile.
+void ParamTestApp::writeParamEval( audio2::Param *param )
+{
+	auto ctx = audio2::Context::master();
+	float duration = param->findDuration();
+	float currTime = (float)ctx->getNumProcessedSeconds();
+	size_t sampleRate = ctx->getSampleRate();
+	audio2::Buffer audioBuffer( duration * sampleRate );
+
+	param->eval( currTime, audioBuffer.getData(), audioBuffer.getSize(), sampleRate );
+
+	auto target = audio2::TargetFile::create( "param.wav", sampleRate, 1 );
+	target->write( &audioBuffer );
+
+	LOG_V( "write complete" );
 }
 
 CINDER_APP_NATIVE( ParamTestApp, RendererGl )

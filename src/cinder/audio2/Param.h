@@ -81,6 +81,9 @@ class Param {
 	float*	getValueArray();
 	void	eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate );
 
+	float					findDuration() const;
+	std::pair<float, float> findEndTimeAndValue() const;
+
   private:
 	struct Event {
 		Event() : mFramesProcessed( 0 ) {}
@@ -96,7 +99,6 @@ class Param {
 	};
 
 	void					initInternalBuffer();
-	std::pair<float, float> findEndTimeAndValue();
 
 	std::list<Event>	mEvents;
 
