@@ -32,36 +32,30 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, const pair<float, float> &timeRangeNormalized )
+void rampLinear( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange )
 {
-	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
-	float t = timeRangeNormalized.first;
 	for( size_t i = 0; i < count; i++ ) {
-		float valueNormalized = t;
-		array[i] = lerp( valueBegin, valueEnd, valueNormalized );
-		t += timeIncr;
+		float factor = t;
+		array[i] = lerp( valueRange.first, valueRange.second, factor );
+		t += tIncr;
 	}
 }
 
-void rampInQuad( float *array, size_t count, float valueBegin, float valueEnd, const pair<float, float> &timeRangeNormalized )
+void rampInQuad( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange )
 {
-	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
-	float t = timeRangeNormalized.first;
 	for( size_t i = 0; i < count; i++ ) {
-		float valueNormalized = t * t;
-		array[i] = lerp( valueBegin, valueEnd, valueNormalized );
-		t += timeIncr;
+		float factor = t * t;
+		array[i] = lerp( valueRange.first, valueRange.second, factor );
+		t += tIncr;
 	}
 }
 
-void rampOutQuad( float *array, size_t count, float valueBegin, float valueEnd, const std::pair<float, float> &timeRangeNormalized )
+void rampOutQuad( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange )
 {
-	float timeIncr = ( timeRangeNormalized.second - timeRangeNormalized.first ) / (float)count;
-	float t = timeRangeNormalized.first;
 	for( size_t i = 0; i < count; i++ ) {
-		float valueNormalized = -t * ( t - 2 );
-		array[i] = lerp( valueBegin, valueEnd, valueNormalized );
-		t += timeIncr;
+		float factor = -t * ( t - 2 );
+		array[i] = lerp( valueRange.first, valueRange.second, factor );
+		t += tIncr;
 	}
 }
 
@@ -246,8 +240,9 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 			size_t count = size_t( endIndex - startIndex );
 			float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mDuration;
 			float timeEndNormalized = float( timeBegin - event.mTimeBegin + endIndex * samplePeriod ) / event.mDuration;
+			float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
 
-			event.mRampFn( array + startIndex, count, event.mValueBegin, event.mValueEnd, make_pair( timeBeginNormalized, timeEndNormalized ) );
+			event.mRampFn( array + startIndex, count, timeBeginNormalized, timeIncr, make_pair( event.mValueBegin, event.mValueEnd ) );
 
 			// debug
 			event.mFramesProcessed += count;

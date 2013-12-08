@@ -39,11 +39,11 @@ typedef std::shared_ptr<class Node>			NodeRef;
 // ???: why does webaudio use expo? is it an EaseOutExpo?
 // note: unless we want to add _VARIADIC_MAX=6 in preprocessor definitions to all projects, number of args here has to be 5 or less for vc11 support
 //! Array-based linear ramping function.
-void rampLinear( float *array, size_t count, float valueBegin, float valueEnd, const std::pair<float, float> &timeRangeNormalized );
+void rampLinear( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange );
 //! Array-based quadradic (t^2) ease-in ramping function.
-void rampInQuad( float *array, size_t count, float valueBegin, float valueEnd, const std::pair<float, float> &timeRangeNormalized );
+void rampInQuad( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange );
 //! Array-based quadradic (t^2) ease-out ramping function.
-void rampOutQuad( float *array, size_t count, float valueBegin, float valueEnd, const std::pair<float, float> &timeRangeNormalized );
+void rampOutQuad( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange );
 
 class Param {
   public:
