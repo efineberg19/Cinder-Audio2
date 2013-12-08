@@ -37,7 +37,6 @@ namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Context>			ContextRef;
 typedef std::shared_ptr<class Node>				NodeRef;
-typedef std::shared_ptr<class NodeMixer>		NodeMixerRef;
 
 class Node : public std::enable_shared_from_this<Node> {
   public:
