@@ -12,12 +12,6 @@
 
 //#include "cinder/Timeline.h"
 
-// TODO: Param input via Node (done, but test)
-
-// TODO: should be able to call setValue or apply tweens from app setup, which could possibly be before Node is initialized
-//	- soln 1:  node registers param to have its context set when constructed
-//  - soln 2:  param is passed a pointer to Node when constructed.  if Node isn't initialized when it needs it to be, calls the initImpl
-
 // TODO: enable cancelling events and detecting when they are complete
 //	 - can possibly do this by making Event's public and returning EventRef's, but there are syncing issues to sort out
 
@@ -150,11 +144,6 @@ void ParamTestApp::connectModulator()
 	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
 	mod->setFreq( 2 );
 
-	mGen->setFreq( 200.0 );
-
-//	sineMod->connect( mGen->getParamFreq() );
-
-//	mGen->getParamFreq()->setModulator( mod );
 	mGain->getParam()->setModulator( mod );
 }
 

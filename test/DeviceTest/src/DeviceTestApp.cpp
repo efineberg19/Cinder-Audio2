@@ -11,8 +11,6 @@
 
 #include "../../common/AudioTestGui.h"
 
-// NOTE: currently requires the experimental cinder branch 'ios_keyboard'
-
 // TODO: finish testing on-the-fly device changes with fireface
 // TODO: check iOS 6+ interruption handlers via notification
 // TODO: add channels controls for i/o
@@ -76,16 +74,17 @@ void DeviceTestApp::setup()
 	setOutputDevice( audio2::Device::getDefaultOutput() );
 	setInputDevice( audio2::Device::getDefaultInput() );
 
-	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V << "LineOut params changed:" << endl; printDeviceDetails( mLineOut->getDevice() ); } );
+	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
 
 	mGain->connect( mScope )->connect( mLineOut );
 
-	setupSine();
+//	setupSine();
+	setupIOClean();
 
 	ctx->printGraph();
 	setupUI();
 
-	LOG_V << "Context samplerate: " << ctx->getSampleRate() << endl;
+	LOG_V( "Context samplerate: " << ctx->getSampleRate() );
 }
 
 void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
@@ -98,14 +97,13 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
 	ctx->uninitializeAllNodes();
 
 	mLineOut = ctx->createLineOut( device );
-//	mLineOut->setInput( mScope, 0 );
 	mScope->connect( mLineOut );
 
 	ctx->setTarget( mLineOut );
 
 	ctx->initializeAllNodes();
 
-	LOG_V << "LineOut device properties: " << endl;
+	LOG_V( "LineOut device properties: " );
 	printDeviceDetails( device );
 }
 
@@ -120,7 +118,7 @@ void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device )
 
 	setupTest( mTestSelector.currentSection() );
 
-	LOG_V << "LineIn device properties: " << endl;
+	LOG_V( "LineIn device properties: " );
 	printDeviceDetails( device );
 }
 
@@ -164,9 +162,15 @@ void DeviceTestApp::setupIOClean()
 
 void DeviceTestApp::setupIOProcessed()
 {
-	auto ringMod = audio2::Context::master()->makeNode( new audio2::RingMod() );
+	auto ctx = audio2::Context::master();
+	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
+	mod->setFreq( 2 );
+
+	auto ringMod = audio2::Context::master()->makeNode( new audio2::Gain );
+	ringMod->getParam()->setModulator( mod );
 
 	mLineIn->connect( ringMod )->connect( mGain, 0 );
+
 	mLineIn->start();
 }
 
@@ -260,13 +264,13 @@ void DeviceTestApp::processTap( Vec2i pos )
 	if( mPlayButton.hitTest( pos ) )
 		audio2::Context::master()->setEnabled( ! audio2::Context::master()->isEnabled() );
 	else if( mSamplerateInput.hitTest( pos ) ) {
-		LOG_V << "mSamplerateInput selected" << endl;
+		LOG_V( "mSamplerateInput selected" );
 #if defined( CINDER_COCOA_TOUCH )
 		showKeyboard( KeyboardOptions().type( KeyboardType::NUMERICAL ).initialString( mSamplerateInput.mInputString ) );
 #endif
 	}
 	else if( mFramesPerBlockInput.hitTest( pos ) ) {
-		LOG_V << "mFramesPerBlockInput selected" << endl;
+		LOG_V( "mFramesPerBlockInput selected" );
 #if defined( CINDER_COCOA_TOUCH )
 		showKeyboard( KeyboardOptions().type( KeyboardType::NUMERICAL ).initialString( mFramesPerBlockInput.mInputString ) );
 #endif
@@ -275,7 +279,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 	size_t currentTestIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentTestIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V << "selected: " << currentTest << endl;
+		LOG_V( "selected: " << currentTest );
 
 		setupTest( currentTest );
 		return;
@@ -284,7 +288,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 	size_t currentOutputIndex = mOutputSelector.mCurrentSectionIndex;
 	if( mOutputSelector.hitTest( pos ) && currentOutputIndex != mOutputSelector.mCurrentSectionIndex ) {
 		auto dev = audio2::Device::findDeviceByName( mOutputSelector.mSegments[mOutputSelector.mCurrentSectionIndex] );
-		LOG_V << "selected device named: " << dev->getName() << ", key: " << dev->getKey() << endl;
+		LOG_V( "selected device named: " << dev->getName() << ", key: " << dev->getKey() );
 
 		setOutputDevice( dev );
 	}
@@ -320,19 +324,19 @@ void DeviceTestApp::keyDown( KeyEvent event )
 		try {
 			if( currentSelected == &mSamplerateInput ) {
 				int sr = currentSelected->getValue();
-				LOG_V << "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr << endl;
+				LOG_V( "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr );
 				mLineOut->getDevice()->updateFormat( audio2::Device::Format().sampleRate( sr ) );
 			}
 			else if( currentSelected == &mFramesPerBlockInput ) {
 				int frames = currentSelected->getValue();
-				LOG_V << "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames << endl;
+				LOG_V( "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames );
 				mLineOut->getDevice()->updateFormat( audio2::Device::Format().framesPerBlock( frames ) );
 			}
 			else
-				LOG_V << "unhandled return for string: " << currentSelected->mInputString << endl;
+				LOG_V( "unhandled return for string: " << currentSelected->mInputString );
 		}
 		catch( audio2::AudioDeviceExc &exc ) {
-			LOG_E << "AudioDeviceExc caught, what: " << exc.what() << endl;
+			LOG_E( "AudioDeviceExc caught, what: " << exc.what() );
 			auto ctx = audio2::Context::master();
 			mSamplerateInput.setValue( ctx->getSampleRate() );
 			mFramesPerBlockInput.setValue( ctx->getFramesPerBlock() );
