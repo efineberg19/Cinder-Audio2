@@ -424,7 +424,7 @@ void GenSine::process( Buffer *buffer )
 	const float phaseMul = float( 2 * M_PI / (double)mSampleRate );
 	float phase = mPhase;
 
-	if( mFreq.isVaryingThisBlock() ) {
+	if( mFreq.eval() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase );
@@ -449,7 +449,7 @@ void GenPhasor::process( Buffer *buffer )
 	const float phaseMul = 1.0f / mSampleRate;
 	float phase = mPhase;
 
-	if( mFreq.isVaryingThisBlock() ) {
+	if( mFreq.eval() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = phase;
@@ -485,7 +485,7 @@ void GenTriangle::process( Buffer *buffer )
 	size_t count = buffer->getSize();
 	float phase = mPhase;
 
-	if( mFreq.isVaryingThisBlock() ) {
+	if( mFreq.eval() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ )	{
 			data[i] = calcTriangleSignal( phase, mUpSlope, mDownSlope );

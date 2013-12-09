@@ -62,7 +62,7 @@ void ParamTestApp::setup()
 
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
-	mGain->setValue( 0.0 );
+	mGain->setValue( 0.8 );
 
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 
@@ -101,10 +101,8 @@ void ParamTestApp::triggerApply()
 {
 	// (a): ramp volume to 0.7 of 0.2 seconds
 //	mGain->getParam()->applyRamp( 0.7f, 0.2f );
-	mGain->getParam()->applyRamp( 0, 0.5f, 0.01f );
 
-//	mGen->getParamFreq()->applyRamp( 220, 440, 1 );
-//	mGen->getParamFreq()->applyRamp( 220, 440, 1, Param::Options().delay( 0.5f ) );
+	mGen->getParamFreq()->applyRamp( 220, 440, 1 );
 
 	// PSEUDO CODE: possible syntax where context keeps references to Params, calling updateValueArray() (or just process() ?) on them each block:
 	// - problem I have with this right now is that its alot more syntax for the common case (see: (a)) of ramping up volume

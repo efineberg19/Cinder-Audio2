@@ -53,7 +53,7 @@ void Gain::initialize()
 
 void Gain::process( Buffer *buffer )
 {
-	if( mGain.isVaryingThisBlock() )
+	if( mGain.eval() )
 		dsp::mul( buffer->getData(), mGain.getValueArray(), buffer->getData(), buffer->getSize() );
 	else
 		dsp::mul( buffer->getData(), mGain.getValue(), buffer->getData(), buffer->getSize() );

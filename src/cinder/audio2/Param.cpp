@@ -160,36 +160,6 @@ size_t Param::getNumEvents() const
 	return mEvents.size();
 }
 
-bool Param::isVaryingThisBlock() const
-{
-	CI_ASSERT( mContext );
-
-	if( mModulatorNode )
-		return true;
-
-	for( const Event &event : mEvents ) {
-
-		float timeBegin = (float)mContext->getNumProcessedSeconds();
-		float timeEnd = timeBegin + (float)mContext->getFramesPerBlock() / (float)mContext->getSampleRate();
-
-		if( event.mTimeBegin < timeEnd && event.mTimeEnd > timeBegin )
-			return true;
-	}
-	return false;
-}
-
-float* Param::getValueArray()
-{
-	CI_ASSERT( mContext );
-
-	if( mModulatorNode )
-		mModulatorNode->pullInputs( &mInternalBuffer );
-	else
-		eval( (float)mContext->getNumProcessedSeconds(), mInternalBuffer.getData(), mInternalBuffer.getSize(), mContext->getSampleRate() );
-
-	return mInternalBuffer.getData();
-}
-
 float Param::findDuration() const
 {
 	lock_guard<mutex> lock( mContext->getMutex() );
@@ -214,7 +184,27 @@ pair<float, float> Param::findEndTimeAndValue() const
 	}
 }
 
-void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
+float* Param::getValueArray()
+{
+	CI_ASSERT( mContext );
+	CI_ASSERT( ! mInternalBuffer.isEmpty() );
+
+	return mInternalBuffer.getData();
+}
+
+bool Param::eval()
+{
+	CI_ASSERT( mContext );
+
+	if( mModulatorNode ) {
+		mModulatorNode->pullInputs( &mInternalBuffer );
+		return true;
+	}
+	else
+		return eval( (float)mContext->getNumProcessedSeconds(), mInternalBuffer.getData(), mInternalBuffer.getSize(), mContext->getSampleRate() );
+}
+
+bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
 {
 	size_t samplesWritten = 0;
 	const float samplePeriod = 1.0f / sampleRate;
@@ -254,17 +244,18 @@ void Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 				mValue = event.mValueEnd;
 				mEvents.pop_front();
 			}
-			else if( samplesWritten == arrayLength )
+			else if( samplesWritten == arrayLength ) {
+				mValue = array[arrayLength - 1];
 				break;
+			}
 		}
 	}
 
-	// if after all events we still haven't written enough samples, fill with the final mValue, which
-	// was updated above to be the last event's mValueEnd. else set mValue to the last updated array value
+	// if after all events we still haven't written enough samples, fill with the final mValue, which was updated above to be the last event's mValueEnd.
 	if( samplesWritten < arrayLength )
 		dsp::fill( mValue, array + (size_t)samplesWritten, size_t( arrayLength - samplesWritten ) );
-	else
-		mValue = array[arrayLength - 1];
+
+	return samplesWritten != 0;
 }
 
 void Param::initInternalBuffer()

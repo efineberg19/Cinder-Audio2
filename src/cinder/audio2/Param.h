@@ -81,10 +81,10 @@ class Param {
 	void reset();
 	size_t getNumEvents() const;
 	
-	bool	isVaryingThisBlock() const;
-
 	float*	getValueArray();
-	void	eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate );
+
+	bool	eval();
+	bool	eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate );
 
 	float					findDuration() const;
 	std::pair<float, float> findEndTimeAndValue() const;
