@@ -46,9 +46,9 @@ NodeEffect::NodeEffect( const Format &format )
 // MARK: - Gain
 // ----------------------------------------------------------------------------------------------------
 
-void Gain::initialize()
+Gain::Gain( const Format &format )
+	: NodeEffect( format ), mGain( this, 1.0f ), mMin( 0.0f ), mMax( 1.0f )
 {
-	mGain.initialize( getContext() );
 }
 
 void Gain::process( Buffer *buffer )

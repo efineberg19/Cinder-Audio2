@@ -42,10 +42,8 @@ class NodeEffect : public Node {
 
 class Gain : public NodeEffect {
   public:
-	Gain( const Format &format = Format() ) : NodeEffect( format ), mGain( 1.0f ), mMin( 0.0f ), mMax( 1.0f ) {}
+	Gain( const Format &format = Format() );
 	virtual ~Gain() {}
-
-	void initialize() override;
 
 	std::string virtual getTag() override			{ return "Gain"; }
 

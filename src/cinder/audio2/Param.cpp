@@ -66,15 +66,14 @@ Param::Event::Event( float timeBegin, float timeEnd, float valueBegin, float val
 	mFramesProcessed = 0;
 }
 
-void Param::initialize( const ContextRef &context )
+Param::Param( Node *parentNode, float initialValue )
+	: mParentNode( parentNode ), mValue( initialValue )
 {
-	mContext = context;
 }
 
 void Param::setValue( float value )
 {
-	// FIXME: can't yet do this because param needs to be set close to init time, before node is init'ed
-//	lock_guard<mutex> lock( mContext->getMutex() );
+	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	resetImpl();
 	mValue = value;
@@ -89,16 +88,17 @@ void Param::applyRamp( float beginValue, float endValue, float rampSeconds, cons
 {
 	initInternalBuffer();
 
-	float timeBegin = (float)mContext->getNumProcessedSeconds() + options.getDelay();
+	auto ctx = getContext();
+	float timeBegin = (float)ctx->getNumProcessedSeconds() + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
 
 	Event event( timeBegin, timeEnd, beginValue, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = size_t( event.mDuration * mContext->getSampleRate() );
+	event.mTotalFrames = size_t( event.mDuration * ctx->getSampleRate() );
 //	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
-	lock_guard<mutex> lock( mContext->getMutex() );
+	lock_guard<mutex> lock( ctx->getMutex() );
 
 	resetImpl();
 	mEvents.push_back( event );
@@ -108,6 +108,7 @@ void Param::appendRamp( float endValue, float rampSeconds, const Options &option
 {
 	initInternalBuffer();
 
+	auto ctx = getContext();
 	auto endTimeAndValue = findEndTimeAndValue();
 
 	float timeBegin = endTimeAndValue.first + options.getDelay();
@@ -116,10 +117,10 @@ void Param::appendRamp( float endValue, float rampSeconds, const Options &option
 	Event event( timeBegin, timeEnd, endTimeAndValue.second, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = size_t( event.mDuration * mContext->getSampleRate() );
+	event.mTotalFrames = size_t( event.mDuration * ctx->getSampleRate() );
 //	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
-	lock_guard<mutex> lock( mContext->getMutex() );
+	lock_guard<mutex> lock( ctx->getMutex() );
 
 	mEvents.push_back( event );
 }
@@ -131,8 +132,7 @@ void Param::setModulator( const NodeRef &node )
 
 	initInternalBuffer();
 
-	CI_ASSERT( mContext );
-	lock_guard<mutex> lock( mContext->getMutex() );
+	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	resetImpl();
 
@@ -147,36 +147,37 @@ void Param::setModulator( const NodeRef &node )
 
 void Param::reset()
 {
-	lock_guard<mutex> lock( mContext->getMutex() );
+	lock_guard<mutex> lock( getContext()->getMutex() );
 	resetImpl();
 }
 
 
 size_t Param::getNumEvents() const
 {
-	lock_guard<mutex> lock( mContext->getMutex() );
-
+	lock_guard<mutex> lock( getContext()->getMutex() );
 	return mEvents.size();
 }
 
 float Param::findDuration() const
 {
-	lock_guard<mutex> lock( mContext->getMutex() );
+	auto ctx = getContext();
+	lock_guard<mutex> lock( ctx->getMutex() );
 
 	if( mEvents.empty() )
 		return 0;
 	else {
 		const Event &event = mEvents.back();
-		return event.mTimeEnd - (float)mContext->getNumProcessedSeconds();
+		return event.mTimeEnd - (float)ctx->getNumProcessedSeconds();
 	}
 }
 
 pair<float, float> Param::findEndTimeAndValue() const
 {
-	lock_guard<mutex> lock( mContext->getMutex() );
+	auto ctx = getContext();
+	lock_guard<mutex> lock( ctx->getMutex() );
 
 	if( mEvents.empty() )
-		return make_pair( (float)mContext->getNumProcessedSeconds(), mValue );
+		return make_pair( (float)ctx->getNumProcessedSeconds(), mValue );
 	else {
 		const Event &event = mEvents.back();
 		return make_pair( event.mTimeEnd, event.mValueEnd );
@@ -185,7 +186,6 @@ pair<float, float> Param::findEndTimeAndValue() const
 
 float* Param::getValueArray()
 {
-	CI_ASSERT( mContext );
 	CI_ASSERT( ! mInternalBuffer.isEmpty() );
 
 	return mInternalBuffer.getData();
@@ -193,14 +193,14 @@ float* Param::getValueArray()
 
 bool Param::eval()
 {
-	CI_ASSERT( mContext );
-
 	if( mModulator ) {
 		mModulator->pullInputs( &mInternalBuffer );
 		return true;
 	}
-	else
-		return eval( (float)mContext->getNumProcessedSeconds(), mInternalBuffer.getData(), mInternalBuffer.getSize(), mContext->getSampleRate() );
+	else {
+		auto ctx = getContext();
+		return eval( (float)ctx->getNumProcessedSeconds(), mInternalBuffer.getData(), mInternalBuffer.getSize(), ctx->getSampleRate() );
+	}
 }
 
 bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
@@ -271,10 +271,13 @@ void Param::resetImpl()
 
 void Param::initInternalBuffer()
 {
-	CI_ASSERT( mContext );
-
 	if( mInternalBuffer.isEmpty() )
-		mInternalBuffer.setNumFrames( mContext->getFramesPerBlock() );
+		mInternalBuffer.setNumFrames( getContext()->getFramesPerBlock() );
+}
+
+ContextRef Param::getContext() const
+{
+	return	mParentNode->getContext();
 }
 
 } } // namespace cinder::audio2

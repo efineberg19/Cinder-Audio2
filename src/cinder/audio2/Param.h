@@ -47,12 +47,7 @@ class Param {
 	//! note: unless we want to add _VARIADIC_MAX=6 in preprocessor definitions to all projects, number of args here has to be 5 or less for vc11 support
 	typedef std::function<void ( float *, size_t, float, float, const std::pair<float, float>& )>	RampFn;
 
-	explicit Param( float initialValue = 0.0f ) : mValue( initialValue ) {}
-
-	void initialize( const ContextRef &context );
-
-	float	getValue() const	{ return mValue; }
-	void	setValue( float value );
+	Param( Node *parentNode, float initialValue = 0.0f );
 
 	struct Options {
 		Options() : mDelay( 0.0f ), mRampFn( rampLinear ) {}
@@ -68,6 +63,14 @@ class Param {
 		RampFn	mRampFn;
 	};
 
+	//! Sets the value of the Param, blowing away any scheduled Event's or modulator. \note Must be called from a non-audio thread.
+	void	setValue( float value );
+	//! Returns the current value of the Param.
+	float	getValue() const	{ return mValue; }
+	//! Returns a pointer to the buffer used when evaluating a Param that is varying over the current processing block, of equal size to the owning Context's frames per block.
+	//! \note If not varying (eval() returns false), the returned pointer will be invalid.
+	float*	getValueArray();
+
 	//! Replaces any existing events with a ramp event from the current value to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
 	void applyRamp( float endValue, float rampSeconds, const Options &options = Options() );
 	//! Replaces any existing ramps param manipulations with a ramp event from \a beginValue to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
@@ -75,19 +78,24 @@ class Param {
 	//! Appends a ramp event from the end of the last scheduled event (or the current time) to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
 	void appendRamp( float endValue, float rampSeconds, const Options &options = Options() );
 
-	//TODO: make sure ramps behave well with this
+	//! Sets this Param's input to be the processing performed by \a node, blowing away any scheduled Event's. \note Forces \a node to be mono.
 	void setModulator( const NodeRef &node );
 
 	//! Resets Param, blowing away any Event's or modulator. \note Must be called from a non-audio thread.
 	void reset();
+	//! Returns the number of Event's that are currently scheduled.
 	size_t getNumEvents() const;
-	
-	float*	getValueArray();
 
+	//! Evaluates the Param's events for the current processing block, determined from the parent Node's Context.
+	//! \return true if the Param is varying this block and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
 	bool	eval();
+	//! Evaluates the Param's events from \a timeBegin for \a arrayLength samples at \a sampleRate.
+	//! \return true if the Param is varying this block and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
 	bool	eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate );
 
+	//! Returns the total duration of any schedulated events (including delays), or 0 if none are scheduled.
 	float					findDuration() const;
+	//! Returns the end time and value of the latest scheduled event, or [0,getValue()] if none are scheduled.
 	std::pair<float, float> findEndTimeAndValue() const;
 
   protected:
@@ -104,12 +112,15 @@ class Param {
 		size_t mTotalFrames, mFramesProcessed;
 	};
 
-	void					initInternalBuffer(); // non-locking
-	void					resetImpl(); // non-locking
+	// non-locking protected methods
+	void		initInternalBuffer();
+	void		resetImpl();
+	ContextRef	getContext() const;
+
 
 	std::list<Event>	mEvents;
 
-	ContextRef	mContext;
+	Node*		mParentNode;
 	NodeRef		mModulator;
 	float		mValue;
 

@@ -396,7 +396,7 @@ void CallbackProcessor::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 Gen::Gen( const Format &format )
-	: NodeSource( format ), mPhase( 0 )
+	: NodeSource( format ), mFreq( this ), mPhase( 0 )
 {
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 1 );
@@ -405,7 +405,6 @@ Gen::Gen( const Format &format )
 void Gen::initialize()
 {
 	mSampleRate = (float)getContext()->getSampleRate();
-	mFreq.initialize( getContext() );
 }
 
 void GenNoise::process( Buffer *buffer )
