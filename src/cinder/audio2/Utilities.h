@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "cinder/CinderMath.h"
+
 namespace cinder { namespace audio2 {
 
 // TODO: decide on decibel convensions
@@ -31,7 +33,7 @@ namespace cinder { namespace audio2 {
 const float kGainNegative100Decibels = 0.00001f;
 const float kGainNegative100DecibelsInverse = 1.0f / kGainNegative100Decibels;
 
-//! convert linear (0-1) gain to decibel (0-100) scale
+//! Scale \a gainLinear from linear (0-1) to decibel (0-100) scale
 inline float toDecibels( float gainLinear )
 {
 	if( gainLinear < kGainNegative100Decibels )
@@ -40,12 +42,14 @@ inline float toDecibels( float gainLinear )
 		return 20.0f * log10f( gainLinear * kGainNegative100DecibelsInverse );
 }
 
+//! Scale \a array of length \a length from linear (0-1) to decibel (0-100) scale
 inline void toDecibels( float *array, size_t length )
 {
 	for( size_t i = 0; i < length; i++ )
 		array[i] = toDecibels( array[i] );
 }
 
+//! Scale \a gainLinear from decibel (0-100) to linear (0-1) scale
 inline float toLinear( float gainDecibels )
 {
 	if( gainDecibels < kGainNegative100Decibels )
@@ -54,10 +58,28 @@ inline float toLinear( float gainDecibels )
 		return( kGainNegative100Decibels * powf( 10.0f, gainDecibels * 0.05f ) );
 }
 
+//! Scale \a array of length \a length from decibel (0-100) to linear (0-1) scale
 inline void toLinear( float *array, size_t length )
 {
 	for( size_t i = 0; i < length; i++ )
 		array[i] = toLinear( array[i] );
+}
+
+//! Scale \a freq from hertz to MIDI note values, so as one can refer to pitches using the equal temperament scale.
+//! For example, 'middle C' equals 261.6 hertz and has a midi value of 60. Adapted from Pure Data's ftom function.
+inline float toMidi( float freq )
+{
+	if( freq < 0 )
+		return -1500;
+
+	return 17.3123405046f * math<float>::log( .12231220585f * freq );
+}
+
+//! Scale \a midi from MIDI note values to frequency in hertz. Adapted from Pure Data's mtof function. \see toMidi()
+inline float toFreq( float midi )
+{
+	float m = math<float>::clamp( midi, -1499, 1499 );
+	return 8.17579891564f * math<float>::exp( .0577622650f * m );
 }
 
 // TODO: move to CinderMath.h
