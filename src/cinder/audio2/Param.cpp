@@ -73,9 +73,10 @@ void Param::initialize( const ContextRef &context )
 
 void Param::setValue( float value )
 {
+	// FIXME: can't yet do this because param needs to be set close to init time, before node is init'ed
 //	lock_guard<mutex> lock( mContext->getMutex() );
 
-	reset();
+	resetImpl();
 	mValue = value;
 }
 
@@ -99,7 +100,7 @@ void Param::applyRamp( float beginValue, float endValue, float rampSeconds, cons
 
 	lock_guard<mutex> lock( mContext->getMutex() );
 
-	reset();
+	resetImpl();
 	mEvents.push_back( event );
 }
 
@@ -133,23 +134,21 @@ void Param::setModulator( const NodeRef &node )
 	CI_ASSERT( mContext );
 	lock_guard<mutex> lock( mContext->getMutex() );
 
-	reset();
+	resetImpl();
 
-	// FIXME: node doesn't know that its output is Param, and as such is mono.
-	
+	// force node to be mono and initialize it
+	node->setNumChannels( 1 );
 	node->initializeImpl();
 
-	mModulatorNode = node;
+	mModulator = node;
 
-	LOG_V( "modulator to: " << mModulatorNode->getTag() );
+	LOG_V( "modulator to: " << mModulator->getTag() );
 }
 
 void Param::reset()
 {
-	if( mEvents.empty() )
-		return;
-
-	mEvents.clear();
+	lock_guard<mutex> lock( mContext->getMutex() );
+	resetImpl();
 }
 
 
@@ -196,8 +195,8 @@ bool Param::eval()
 {
 	CI_ASSERT( mContext );
 
-	if( mModulatorNode ) {
-		mModulatorNode->pullInputs( &mInternalBuffer );
+	if( mModulator ) {
+		mModulator->pullInputs( &mInternalBuffer );
 		return true;
 	}
 	else
@@ -256,6 +255,18 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 		dsp::fill( mValue, array + (size_t)samplesWritten, size_t( arrayLength - samplesWritten ) );
 
 	return samplesWritten != 0;
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Protected
+// ----------------------------------------------------------------------------------------------------
+
+void Param::resetImpl()
+{
+	if( ! mEvents.empty() )
+		mEvents.clear();
+
+	mModulator.reset();
 }
 
 void Param::initInternalBuffer()

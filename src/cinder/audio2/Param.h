@@ -78,6 +78,7 @@ class Param {
 	//TODO: make sure ramps behave well with this
 	void setModulator( const NodeRef &node );
 
+	//! Resets Param, blowing away any Event's or modulator. \note Must be called from a non-audio thread.
 	void reset();
 	size_t getNumEvents() const;
 	
@@ -89,7 +90,7 @@ class Param {
 	float					findDuration() const;
 	std::pair<float, float> findEndTimeAndValue() const;
 
-  private:
+  protected:
 	struct Event {
 		Event() : mFramesProcessed( 0 ) {}
 		Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
@@ -103,12 +104,13 @@ class Param {
 		size_t mTotalFrames, mFramesProcessed;
 	};
 
-	void					initInternalBuffer();
+	void					initInternalBuffer(); // non-locking
+	void					resetImpl(); // non-locking
 
 	std::list<Event>	mEvents;
 
 	ContextRef	mContext;
-	NodeRef		mModulatorNode;
+	NodeRef		mModulator;
 	float		mValue;
 
 	BufferDynamic	mInternalBuffer;
