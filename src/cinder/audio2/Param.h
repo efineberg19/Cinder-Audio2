@@ -76,7 +76,7 @@ class Param {
 	void appendRamp( float endValue, float rampSeconds, const Options &options = Options() );
 
 	//TODO: make sure ramps behave well with this
-	void setModulator( const NodeRef node );
+	void setModulator( const NodeRef &node );
 
 	void reset();
 	size_t getNumEvents() const;

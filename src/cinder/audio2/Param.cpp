@@ -123,7 +123,7 @@ void Param::appendRamp( float endValue, float rampSeconds, const Options &option
 	mEvents.push_back( event );
 }
 
-void Param::setModulator( const NodeRef node )
+void Param::setModulator( const NodeRef &node )
 {
 	if( ! node )
 		return;
