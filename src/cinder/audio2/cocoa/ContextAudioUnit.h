@@ -61,7 +61,7 @@ class LineOutAudioUnit : public LineOut, public NodeAudioUnit {
 	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutAudioUnit() = default;
 
-	std::string virtual getTag() override			{ return "LineOutAudioUnit"; }
+	std::string virtual getName() override			{ return "LineOutAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -87,7 +87,7 @@ class LineInAudioUnit : public LineIn, public NodeAudioUnit {
 	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
 	virtual ~LineInAudioUnit();
 
-	std::string virtual getTag() override			{ return "LineInAudioUnit"; }
+	std::string virtual getName() override			{ return "LineInAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -118,7 +118,7 @@ class NodeEffectAudioUnit : public NodeEffect, public NodeAudioUnit {
 	NodeEffectAudioUnit( UInt32 subType, const Format &format = Format() );
 	virtual ~NodeEffectAudioUnit();
 
-	std::string virtual getTag() override			{ return "NodeEffectAudioUnit"; }
+	std::string virtual getName() override			{ return "NodeEffectAudioUnit"; }
 
 	void initialize() override;
 	void uninitialize() override;

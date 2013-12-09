@@ -37,7 +37,7 @@ class LineInWasapi : public LineIn {
 	LineInWasapi( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineInWasapi();
 
-	std::string virtual getTag()				{ return "LineInWasapi"; }
+	std::string virtual getName()				{ return "LineInWasapi"; }
 
 	void initialize() override;
 	void uninitialize() override;

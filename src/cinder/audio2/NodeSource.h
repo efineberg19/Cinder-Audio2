@@ -49,7 +49,7 @@ typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
 
 class NodeSource : public Node {
   public:
-	std::string virtual getTag() override			{ return "NodeSource"; }
+	std::string virtual getName() override			{ return "NodeSource"; }
 	virtual ~NodeSource();
 
   protected:
@@ -63,7 +63,7 @@ class LineIn : public NodeSource {
 public:
 	virtual ~LineIn();
 
-	std::string virtual getTag() override			{ return "LineIn"; }
+	std::string virtual getName() override			{ return "LineIn"; }
 
 	//! Returns the associated \a Device.
 	virtual const DeviceRef& getDevice() const		{ return mDevice; }
@@ -84,7 +84,7 @@ protected:
 //! \see FilePlayer
 class SamplePlayer : public NodeSource {
 public:
-	std::string virtual getTag() override			{ return "SamplePlayer"; }
+	std::string virtual getName() override			{ return "SamplePlayer"; }
 
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;
@@ -118,7 +118,7 @@ public:
 	BufferPlayer( const BufferRef &buffer, const Format &format = Format() );
 	virtual ~BufferPlayer() {}
 
-	std::string virtual getTag() override			{ return "BufferPlayer"; }
+	std::string virtual getName() override			{ return "BufferPlayer"; }
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -138,7 +138,7 @@ public:
 	FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
 	virtual ~FilePlayer();
 
-	std::string virtual getTag() override			{ return "FilePlayer"; }
+	std::string virtual getName() override			{ return "FilePlayer"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -183,7 +183,7 @@ class CallbackProcessor : public NodeSource {
 	CallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeSource( format ), mCallbackFn( callbackFn ) {}
 	virtual ~CallbackProcessor() {}
 
-	std::string virtual getTag() override			{ return "CallbackProcessor"; }
+	std::string virtual getName() override			{ return "CallbackProcessor"; }
 
 	void process( Buffer *buffer ) override;
 
@@ -197,7 +197,7 @@ class Gen : public NodeSource {
 
 	void initialize() override;
 
-	std::string virtual getTag() override			{ return "Gen"; }
+	std::string virtual getName() override			{ return "Gen"; }
 
 	void setFreq( float freq )		{ mFreq.setValue( freq ); }
 	float getFreq() const			{ return mFreq.getValue(); }

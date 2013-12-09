@@ -26,7 +26,7 @@ struct InterleavedPassThruNode : public audio2::Node {
 		setNumChannels( 2 );
 	}
 
-	std::string virtual getTag() override			{ return "InterleavedPassThruNode"; }
+	std::string virtual getName() override			{ return "InterleavedPassThruNode"; }
 
 	virtual void initialize() override
 	{

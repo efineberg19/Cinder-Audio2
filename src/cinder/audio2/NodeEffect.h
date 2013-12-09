@@ -45,7 +45,7 @@ class Gain : public NodeEffect {
 	Gain( const Format &format = Format() );
 	virtual ~Gain() {}
 
-	std::string virtual getTag() override			{ return "Gain"; }
+	std::string virtual getName() override			{ return "Gain"; }
 
 	void process( Buffer *buffer ) override;
 
@@ -71,7 +71,7 @@ class Pan2d : public NodeEffect {
 	Pan2d( const Format &format = Format() );
 	virtual ~Pan2d() {}
 
-	std::string virtual getTag() override			{ return "Pan2d"; }
+	std::string virtual getName() override			{ return "Pan2d"; }
 
 //	//! Overridden to handle mono input without upmixing
 //	bool supportsInputNumChannels( size_t numChannels ) override;

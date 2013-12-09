@@ -55,7 +55,7 @@ class Scope : public NodeAutoPullable {
 	Scope( const Format &format = Format() );
 	virtual ~Scope();
 
-	std::string virtual getTag() override			{ return "Scope"; }
+	std::string virtual getName() override			{ return "Scope"; }
 
 	const Buffer& getBuffer();
 
@@ -100,7 +100,7 @@ class ScopeSpectral : public Scope {
 	ScopeSpectral( const Format &format = Format() );
 	virtual ~ScopeSpectral();
 
-	std::string virtual getTag() override			{ return "ScopeSpectral"; }
+	std::string virtual getName() override			{ return "ScopeSpectral"; }
 
 	virtual void initialize() override;
 

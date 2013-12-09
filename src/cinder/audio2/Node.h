@@ -69,7 +69,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual ~Node();
 
-	std::string virtual getTag()				{ return "Node"; }
+	std::string virtual getName()				{ return "Node"; }
 
 	//! Called before audio buffers need to be used. There is always a valid Context at this point.
 	virtual void initialize()	{}

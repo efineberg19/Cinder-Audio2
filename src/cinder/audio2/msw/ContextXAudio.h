@@ -49,7 +49,7 @@ class NodeXAudioSourceVoice : public Node, public NodeXAudio {
 public:
 	virtual	~NodeXAudioSourceVoice();
 
-	std::string virtual getTag()				{ return "SourceVoiceXAudio"; }
+	std::string virtual getName()				{ return "SourceVoiceXAudio"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -87,7 +87,7 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	LineOutXAudio( DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutXAudio();
 
-	std::string virtual getTag()				{ return "LineOutXAudio"; }
+	std::string virtual getName()				{ return "LineOutXAudio"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -120,7 +120,7 @@ public:
 	NodeEffectXAudioXapo( XapoType type, const Format &format = Format() );
 	virtual ~NodeEffectXAudioXapo();
 
-	std::string virtual getTag()				{ return "EffectXAudioXapo"; }
+	std::string virtual getName()				{ return "EffectXAudioXapo"; }
 
 	void initialize() override;
 
@@ -154,7 +154,7 @@ public:
 	NodeEffectXAudioFilter( const Format &format = Format() );
 	virtual ~NodeEffectXAudioFilter();
 
-	std::string virtual getTag()				{ return "EffectXAudioFilter"; }
+	std::string virtual getName()				{ return "EffectXAudioFilter"; }
 
 	void initialize() override;
 	void uninitialize() override;

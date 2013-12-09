@@ -240,7 +240,7 @@ void printRecursive( const NodeRef &node, size_t depth )
 		case Node::ChannelMode::MATCHES_OUTPUT: channelMode = "matches output"; break;
 	}
 
-	app::console() << node->getTag() << "\t[ " << ( node->isEnabled() ? "enabled" : "disabled" );
+	app::console() << node->getName() << "\t[ " << ( node->isEnabled() ? "enabled" : "disabled" );
 	app::console() << ", ch: " << node->getNumChannels();
 	app::console() << ", ch mode: " << channelMode;
 	app::console() << ", " << ( node->getProcessInPlace() ? "in-place" : "sum" );

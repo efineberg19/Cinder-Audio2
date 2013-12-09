@@ -44,7 +44,7 @@ class FilterBiquad : public NodeEffect {
 	FilterBiquad( Mode mode = LOWPASS, const Format &format = Format() ) : NodeEffect( format ), mMode( mode ), mCoeffsDirty( true ), mFreq( 200.0f ), mQ( 1.0f ), mGain( 0.0f ) {}
 	virtual ~FilterBiquad() {}
 
-	std::string virtual getTag() override			{ return "FilterBiquad"; }
+	std::string virtual getName() override			{ return "FilterBiquad"; }
 
 	void initialize() override;
 	void uninitialize() override;
@@ -79,7 +79,7 @@ class FilterLowPass : public FilterBiquad {
 	FilterLowPass( const Format &format = Format() ) : FilterBiquad( LOWPASS, format ) {}
 	virtual ~FilterLowPass() {}
 
-	std::string virtual getTag() override			{ return "FilterLowPass"; }
+	std::string virtual getName() override			{ return "FilterLowPass"; }
 
 	void setCutoffFreq( float freq )			{ setFreq( freq ); }
 	void setResonance( float resonance )		{ setQ( resonance ); }
@@ -93,7 +93,7 @@ public:
 	FilterHighPass( const Format &format = Format() ) : FilterBiquad( HIGHPASS, format ) {}
 	virtual ~FilterHighPass() {}
 
-	std::string virtual getTag() override			{ return "FilterHighPass"; }
+	std::string virtual getName() override			{ return "FilterHighPass"; }
 
 	void setCutoffFreq( float freq )			{ setFreq( freq ); }
 	void setResonance( float resonance )		{ setQ( resonance ); }
@@ -107,7 +107,7 @@ public:
 	FilterBandPass( const Format &format = Format() ) : FilterBiquad( BANDPASS, format ) {}
 	virtual ~FilterBandPass() {}
 
-	std::string virtual getTag() override			{ return "FilterBandPass"; }
+	std::string virtual getName() override			{ return "FilterBandPass"; }
 
 	void setCutoffFreq( float freq )	{ setFreq( freq ); }
 	void setWidth( float width )		{ setQ( width ); }

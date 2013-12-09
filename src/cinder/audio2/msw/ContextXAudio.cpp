@@ -526,7 +526,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 				else if( findFirstUpstreamNode<NodeXAudio>( input ) )
 					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 				else {
-					LOG_V( "implicit connection: " << input->getTag() << " -> SourceVoiceXAudio -> " << node->getTag() );
+					LOG_V( "implicit connection: " << input->getName() << " -> SourceVoiceXAudio -> " << node->getName() );
 
 					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
 

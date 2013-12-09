@@ -142,7 +142,7 @@ void Param::setModulator( const NodeRef &node )
 
 	mModulator = node;
 
-	LOG_V( "modulator to: " << mModulator->getTag() );
+	LOG_V( "modulator to: " << mModulator->getName() );
 }
 
 void Param::reset()
