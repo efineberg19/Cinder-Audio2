@@ -103,8 +103,11 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Returns the number of outputs this Node is connected to.
 	size_t getNumConnectedOutputs() const;
 
+	//! Returns the number of channels this Node will process.
 	size_t		getNumChannels() const			{ return mNumChannels; }
+	//! Returns the channel mode. \see ChannelMode.
 	ChannelMode getChannelMode() const			{ return mChannelMode; }
+	//! Returns the maximum number of channels any input has.
 	size_t		getMaxNumInputChannels() const;
 
 	//! Sets whether this Node is automatically enabled / disabled when connected
@@ -136,7 +139,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	Node( const Format &format );
 
 	//! Stores \a input at bus \a inputBus, replacing any Node currently existing there. Stores this Node at input's output bus \a outputBus. Returns whether a new connection was made or not.
-	//! \note Should be called on a non-audio thread and synchronized with the Context's mutex.
+	//! \note Must be called on a non-audio thread and synchronized with the Context's mutex.
 	virtual void connectInput( const NodeRef &input, size_t bus );
 	virtual void disconnectInput( const NodeRef &input );
 	virtual void disconnectOutput( const NodeRef &output );
