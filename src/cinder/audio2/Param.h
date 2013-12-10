@@ -50,16 +50,13 @@ class Param {
 	typedef std::shared_ptr<class Ramp>	RampRef;
 
 	struct Ramp {
-		Ramp() : mFramesProcessed( 0 ) {}
+		Ramp() {} // TODO: remove once stored as ref's
 		Ramp( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
 
 		float	mTimeBegin, mTimeEnd, mDuration;
 		float	mValueBegin, mValueEnd;
 		RampFn	mRampFn;
 		bool	mMarkedForRemoval;
-
-		// debug
-		size_t mTotalFrames, mFramesProcessed;
 	};
 
 	//! Optional parameters when applying or appending ramps. \see applyRamp() \see appendRamp()

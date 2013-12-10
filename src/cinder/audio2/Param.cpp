@@ -63,7 +63,6 @@ Param::Ramp::Ramp( float timeBegin, float timeEnd, float valueBegin, float value
 	: mTimeBegin( timeBegin ), mTimeEnd( timeEnd ), mDuration( timeEnd - timeBegin ),
 	mValueBegin( valueBegin ), mValueEnd( valueEnd ), mRampFn( rampFn ), mMarkedForRemoval( false )
 {
-	mFramesProcessed = 0;
 }
 
 Param::Param( Node *parentNode, float initialValue )
@@ -94,12 +93,7 @@ void Param::applyRamp( float beginValue, float endValue, float rampSeconds, cons
 
 	Ramp ramp( timeBegin, timeEnd, beginValue, endValue, options.getRampFn() );
 
-	// debug
-	ramp.mTotalFrames = size_t( ramp.mDuration * ctx->getSampleRate() );
-//	LOG_V << "ramp time: " << ramp.mTimeBegin << "-" << ramp.mTimeEnd << " (" << ramp.mDuration << "), val: " << ramp.mValueBegin << " - " << ramp.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
-
 	lock_guard<mutex> lock( ctx->getMutex() );
-
 	resetImpl();
 	mRamps.push_back( ramp );
 }
@@ -116,12 +110,7 @@ void Param::appendRamp( float endValue, float rampSeconds, const Options &option
 
 	Ramp ramp( timeBegin, timeEnd, endTimeAndValue.second, endValue, options.getRampFn() );
 
-	// debug
-	ramp.mTotalFrames = size_t( ramp.mDuration * ctx->getSampleRate() );
-//	LOG_V << "ramp time: " << ramp.mTimeBegin << "-" << ramp.mTimeEnd << " (" << ramp.mDuration << "), val: " << ramp.mValueBegin << " - " << ramp.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
-
 	lock_guard<mutex> lock( ctx->getMutex() );
-
 	mRamps.push_back( ramp );
 }
 
@@ -232,10 +221,6 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 			float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
 
 			ramp.mRampFn( array + startIndex, count, timeBeginNormalized, timeIncr, make_pair( ramp.mValueBegin, ramp.mValueEnd ) );
-
-			// debug
-			ramp.mFramesProcessed += count;
-
 			samplesWritten += count;
 
 			// if this ramp ended with the current processing block, update mValue then remove ramp
