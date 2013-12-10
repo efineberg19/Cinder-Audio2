@@ -35,6 +35,11 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class Context>		ContextRef;
 typedef std::shared_ptr<class Node>			NodeRef;
 
+//! A Reference to Ramp's returned by the ramping methods. \see applyRamp() \see appendRamp()
+typedef std::shared_ptr<class Ramp>			RampRef;
+//! note: unless we want to add _VARIADIC_MAX=6 in preprocessor definitions to all projects, number of args here has to be 5 or less for vc11 support
+typedef std::function<void ( float *, size_t, float, float, const std::pair<float, float>& )>	RampFn;
+
 //! Array-based linear ramping function.
 void rampLinear( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange );
 //! Array-based quadradic (t^2) ease-in ramping function.
@@ -42,31 +47,44 @@ void rampInQuad( float *array, size_t count, float t, float tIncr, const std::pa
 //! Array-based quadradic (t^2) ease-out ramping function.
 void rampOutQuad( float *array, size_t count, float t, float tIncr, const std::pair<float, float> &valueRange );
 
+class Ramp {
+  public:
+	float getTimeBegin()		const	{ return mTimeBegin; }
+	float getTimeEnd()			const	{ return mTimeEnd; }
+	float getDuration()			const	{ return mDuration; }
+	float getValueBegin()		const	{ return mValueBegin; }
+	float getValueEnd()			const	{ return mValueEnd; }
+	const RampFn& getRampFn()	const	{ return mRampFn; }
+
+	void cancel()				{ mIsCanceled = true; }
+	bool isComplete() const		{ return mIsComplete; }
+
+  private:
+	Ramp( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
+
+	float				mTimeBegin, mTimeEnd, mDuration;
+	float				mValueBegin, mValueEnd;
+	std::atomic_bool	mIsComplete, mIsCanceled;
+	RampFn	mRampFn;
+
+	friend class Param;
+};
+
 class Param {
   public:
-	//! note: unless we want to add _VARIADIC_MAX=6 in preprocessor definitions to all projects, number of args here has to be 5 or less for vc11 support
-	typedef std::function<void ( float *, size_t, float, float, const std::pair<float, float>& )>	RampFn;
-	//! A Reference to Ramp's returned by the ramping methods. \see applyRamp() \see appendRamp()
-	typedef std::shared_ptr<class Ramp>	RampRef;
-
-	struct Ramp {
-		Ramp() {} // TODO: remove once stored as ref's
-		Ramp( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
-
-		float	mTimeBegin, mTimeEnd, mDuration;
-		float	mValueBegin, mValueEnd;
-		RampFn	mRampFn;
-		bool	mMarkedForRemoval;
-	};
 
 	//! Optional parameters when applying or appending ramps. \see applyRamp() \see appendRamp()
 	struct Options {
 		Options() : mDelay( 0.0f ), mRampFn( rampLinear ) {}
 
+		//! Specifies a delay of \a delay in seconds.
 		Options& delay( float delay )				{ mDelay = delay; return *this; }
+		//! Specifies the ramping function used during evaluation.
 		Options& rampFn( const RampFn &rampFn )		{ mRampFn = rampFn; return *this; }
 
+		//! Returns the delay specified in seconds.
 		float getDelay() const				{ return mDelay; }
+		//! Returns the ramping function that will be used during evaluation.
 		const RampFn&	getRampFn() const	{ return mRampFn; }
 
 	private:
@@ -85,12 +103,12 @@ class Param {
 	//! \note If not varying (eval() returns false), the returned pointer will be invalid.
 	float*	getValueArray();
 
-	//! Replaces any existing Ramp's with a Ramp from the current value to \a endValue over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
-	void applyRamp( float endValue, float rampSeconds, const Options &options = Options() );
-	//! Replaces any existing Ramp's with a Ramp from \a beginValue to \a endValue over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
-	void applyRamp( float beginValue, float endValue, float rampSeconds, const Options &options = Options() );
-	//! Appends a Ramp from the end of the last scheduled Param (or the current time) to \a endValue over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
-	void appendRamp( float endValue, float rampSeconds, const Options &options = Options() );
+	//! Replaces any existing Ramp's with a Ramp from the current value to \a valueEnd over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
+	RampRef applyRamp( float valueEnd, float rampSeconds, const Options &options = Options() );
+	//! Replaces any existing Ramp's with a Ramp from \a valueBegin to \a valueEnd over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
+	RampRef applyRamp( float valueBegin, float valueEnd, float rampSeconds, const Options &options = Options() );
+	//! Appends a Ramp from the end of the last scheduled Param (or the current time) to \a valueEnd over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
+	RampRef appendRamp( float valueEnd, float rampSeconds, const Options &options = Options() );
 
 	//! Sets this Param's input to be the processing performed by \a node. Any existing Ramp's are discarded.
 	//! \note Forces \a node to be mono.
@@ -122,7 +140,7 @@ class Param {
 	void		resetImpl();
 	ContextRef	getContext() const;
 
-	std::list<Ramp>		mRamps;
+	std::list<RampRef>	mRamps;
 	Node*				mParentNode;
 	NodeRef				mModulator;
 	float				mValue;

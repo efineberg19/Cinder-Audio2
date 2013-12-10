@@ -1,6 +1,7 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Rand.h"
+#include "cinder/Timeline.h"
 
 #include "cinder/audio2/NodeSource.h"
 #include "cinder/audio2/NodeEffect.h"
@@ -9,11 +10,6 @@
 #include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
-
-//#include "cinder/Timeline.h"
-
-// TODO: enable cancelling events and detecting when they are complete
-//	 - can possibly do this by making Event's public and returning EventRef's, but there are syncing issues to sort out
 
 using namespace ci;
 using namespace ci::app;
@@ -139,12 +135,17 @@ void ParamTestApp::testDelay()
 	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 }
 
-// append a ramp and then after a 1 second delay, cancel it.
+// apply a ramp from 220 to 880 over 2 seconds and then after a 1 second delay, cancel it. result should be ~ 550: 220 + (880 - 220) / 2.
 void ParamTestApp::testAppendCancel()
 {
-	mGen->getParamFreq()->appendRamp( randFloat( 50, 800 ), 1.0f );
+	audio2::RampRef ramp = mGen->getParamFreq()->applyRamp( 220, 880, 2 );
 
 	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
+
+	timeline().add( [ramp] {
+		LOG_V( "canceling." );
+		ramp->cancel();
+	}, getElapsedSeconds() + 1 );
 }
 
 void ParamTestApp::testModulator()
