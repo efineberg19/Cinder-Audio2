@@ -46,9 +46,23 @@ class Param {
   public:
 	//! note: unless we want to add _VARIADIC_MAX=6 in preprocessor definitions to all projects, number of args here has to be 5 or less for vc11 support
 	typedef std::function<void ( float *, size_t, float, float, const std::pair<float, float>& )>	RampFn;
+	//! A Reference to Ramp's returned by the ramping methods. \see applyRamp() \see appendRamp()
+	typedef std::shared_ptr<class Ramp>	RampRef;
 
-	Param( Node *parentNode, float initialValue = 0.0f );
+	struct Ramp {
+		Ramp() : mFramesProcessed( 0 ) {}
+		Ramp( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
 
+		float	mTimeBegin, mTimeEnd, mDuration;
+		float	mValueBegin, mValueEnd;
+		RampFn	mRampFn;
+		bool	mMarkedForRemoval;
+
+		// debug
+		size_t mTotalFrames, mFramesProcessed;
+	};
+
+	//! Optional parameters when applying or appending ramps. \see applyRamp() \see appendRamp()
 	struct Options {
 		Options() : mDelay( 0.0f ), mRampFn( rampLinear ) {}
 
@@ -63,6 +77,9 @@ class Param {
 		RampFn	mRampFn;
 	};
 
+	//! Constructs a Param with a pointer (weak reference) to the owning parent Node and an optional \a initialValue.
+	Param( Node *parentNode, float initialValue = 0.0f );
+
 	//! Sets the value of the Param, blowing away any scheduled Event's or modulator. \note Must be called from a non-audio thread.
 	void	setValue( float value );
 	//! Returns the current value of the Param.
@@ -71,60 +88,48 @@ class Param {
 	//! \note If not varying (eval() returns false), the returned pointer will be invalid.
 	float*	getValueArray();
 
-	//! Replaces any existing events with a ramp event from the current value to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
+	//! Replaces any existing Ramp's with a Ramp from the current value to \a endValue over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
 	void applyRamp( float endValue, float rampSeconds, const Options &options = Options() );
-	//! Replaces any existing ramps param manipulations with a ramp event from \a beginValue to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
+	//! Replaces any existing Ramp's with a Ramp from \a beginValue to \a endValue over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
 	void applyRamp( float beginValue, float endValue, float rampSeconds, const Options &options = Options() );
-	//! Appends a ramp event from the end of the last scheduled event (or the current time) to \a endValue over \a rampSeconds, according to \a options. If there is an existing modulator, it is disconnected.
+	//! Appends a Ramp from the end of the last scheduled Param (or the current time) to \a endValue over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
 	void appendRamp( float endValue, float rampSeconds, const Options &options = Options() );
 
-	//! Sets this Param's input to be the processing performed by \a node, blowing away any scheduled Event's. \note Forces \a node to be mono.
+	//! Sets this Param's input to be the processing performed by \a node. Any existing Ramp's are discarded.
+	//! \note Forces \a node to be mono.
 	void setModulator( const NodeRef &node );
 
-	//! Resets Param, blowing away any Event's or modulator. \note Must be called from a non-audio thread.
+	//! Resets Param, blowing away any Ramps's or modulator. \note Must be called from a non-audio thread.
 	void reset();
-	//! Returns the number of Event's that are currently scheduled.
-	size_t getNumEvents() const;
+	//! Returns the number of Ramp's that are currently scheduled.
+	size_t getNumRamps() const;
 
-	//! Evaluates the Param's events for the current processing block, determined from the parent Node's Context.
-	//! \return true if the Param is varying this block and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
+	//! Evaluates the Param for the current processing block, with current time determined from the parent Node's Context.
+	//! \return true if the Param is varying this block (there are Ramp's or a modulator) and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
+	//! \note Safe to call on the audio thread.
 	bool	eval();
-	//! Evaluates the Param's events from \a timeBegin for \a arrayLength samples at \a sampleRate.
-	//! \return true if the Param is varying this block and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
+	//! Evaluates the Param from \a timeBegin for \a arrayLength samples at \a sampleRate.
+	//! \return true if the Param is varying this block (there are Ramp's or a modulator) and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
+	//! \note Safe to call on the audio thread.
 	bool	eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate );
 
-	//! Returns the total duration of any schedulated events (including delays), or 0 if none are scheduled.
+	//! Returns the total duration of any scheduled Param's, including delay, or 0 if none are scheduled.
 	float					findDuration() const;
-	//! Returns the end time and value of the latest scheduled event, or [0,getValue()] if none are scheduled.
+	//! Returns the end time and value of the latest scheduled Param, or [0, getValue()] if none are scheduled.
 	std::pair<float, float> findEndTimeAndValue() const;
 
   protected:
-	struct Event {
-		Event() : mFramesProcessed( 0 ) {}
-		Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn );
-
-		float	mTimeBegin, mTimeEnd, mDuration;
-		float	mValueBegin, mValueEnd;
-		RampFn	mRampFn;
-		bool	mMarkedForRemoval;
-
-		// debug
-		size_t mTotalFrames, mFramesProcessed;
-	};
 
 	// non-locking protected methods
 	void		initInternalBuffer();
 	void		resetImpl();
 	ContextRef	getContext() const;
 
-
-	std::list<Event>	mEvents;
-
-	Node*		mParentNode;
-	NodeRef		mModulator;
-	float		mValue;
-
-	BufferDynamic	mInternalBuffer;
+	std::list<Ramp>		mRamps;
+	Node*				mParentNode;
+	NodeRef				mModulator;
+	float				mValue;
+	BufferDynamic		mInternalBuffer;
 };
 
 } } // namespace cinder::audio2

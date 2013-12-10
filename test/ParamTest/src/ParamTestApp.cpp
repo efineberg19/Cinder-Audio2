@@ -33,11 +33,12 @@ class ParamTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	void triggerApply();
-	void triggerApply2();
-	void triggerAppend();
-	void triggerDelay();
-	void connectModulator();
+	void testApply();
+	void testApply2();
+	void testAppend();
+	void testDelay();
+	void testAppendCancel();
+	void testModulator();
 
 	void writeParamEval( audio2::Param *param );
 
@@ -47,7 +48,7 @@ class ParamTestApp : public AppNative {
 	audio2::FilterLowPassRef	mLowPass;
 
 	vector<TestWidget *>	mWidgets;
-	Button					mPlayButton, mApplyButton, mApplyAppendButton, mAppendButton, mDelayButton, mModulatorButton;
+	Button					mPlayButton, mApplyButton, mApplyAppendButton, mAppendButton, mDelayButton, mModulatorButton, mAppendCancelButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mGenFreqSlider;
 };
@@ -79,8 +80,8 @@ void ParamTestApp::setup()
 
 	ctx->printGraph();
 
-	triggerApply();
-//	triggerApply2();
+	testApply();
+//	testApply2();
 //	connectModulator();
 }
 
@@ -96,7 +97,7 @@ void ParamTestApp::setupFilter()
 	mGen->start();
 }
 
-void ParamTestApp::triggerApply()
+void ParamTestApp::testApply()
 {
 	// (a): ramp volume to 0.7 of 0.2 seconds
 //	mGain->getParam()->applyRamp( 0.7f, 0.2f );
@@ -109,36 +110,44 @@ void ParamTestApp::triggerApply()
 	// - a bit shorter:
 //	audio2::timeline()->apply( mGen->getParamFreq(), 220, 440, 1 );
 
-	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
+	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 }
 
 // 2 events - first apply the ramp, blowing away anything else, then append another event to happen after that
-void ParamTestApp::triggerApply2()
+void ParamTestApp::testApply2()
 {
 	mGen->getParamFreq()->applyRamp( 220, 880, 1 );
 	mGen->getParamFreq()->appendRamp( 369.994f, 1 ); // F#4
 
-	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
+	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 
 //	writeParamEval( mGen->getParamFreq() );
 }
 
 // append an event with random frequency and duration 1 second, allowing them to build up. new events begin from the end of the last event
-void ParamTestApp::triggerAppend()
+void ParamTestApp::testAppend()
 {
 	mGen->getParamFreq()->appendRamp( randFloat( 50, 800 ), 1.0f );
 
-	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
+	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 }
 
 // make a ramp after a 1 second delay
-void ParamTestApp::triggerDelay()
+void ParamTestApp::testDelay()
 {
 	mGen->getParamFreq()->applyRamp( 50, 440, 1, audio2::Param::Options().delay( 1 ) );
-	LOG_V( "num events: " << mGen->getParamFreq()->getNumEvents() );
+	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 }
 
-void ParamTestApp::connectModulator()
+// append a ramp and then after a 1 second delay, cancel it.
+void ParamTestApp::testAppendCancel()
+{
+	mGen->getParamFreq()->appendRamp( randFloat( 50, 800 ), 1.0f );
+
+	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
+}
+
+void ParamTestApp::testModulator()
 {
 	auto ctx = audio2::Context::master();
 	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
@@ -179,6 +188,11 @@ void ParamTestApp::setupUI()
 	mModulatorButton = Button( false, "modulator" );
 	mModulatorButton.mBounds = paramButtonRect;
 	mWidgets.push_back( &mModulatorButton );
+
+	paramButtonRect += Vec2f( paramButtonRect.getWidth() + padding, 0 );
+	mAppendCancelButton = Button( false, "cancel" );
+	mAppendCancelButton.mBounds = paramButtonRect;
+	mWidgets.push_back( &mAppendCancelButton );
 
 	mTestSelector.mSegments.push_back( "basic" );
 	mTestSelector.mSegments.push_back( "filter" );
@@ -251,15 +265,17 @@ void ParamTestApp::processTap( Vec2i pos )
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
 	else if( mApplyButton.hitTest( pos ) )
-		triggerApply();
+		testApply();
 	else if( mApplyAppendButton.hitTest( pos ) )
-		triggerApply2();
+		testApply2();
 	else if( mAppendButton.hitTest( pos ) )
-		triggerAppend();
+		testAppend();
 	else if( mDelayButton.hitTest( pos ) )
-		triggerDelay();
+		testDelay();
 	else if( mModulatorButton.hitTest( pos ) )
-		connectModulator();
+		testModulator();
+	else if( mAppendCancelButton.hitTest( pos ) )
+		testAppendCancel();
 	else if( mTestSelector.hitTest( pos ) && selectorIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V( "selected: " << currentTest );
@@ -284,7 +300,7 @@ void ParamTestApp::processTap( Vec2i pos )
 void ParamTestApp::keyDown( KeyEvent event )
 {
 	if( event.getCode() == KeyEvent::KEY_e )
-		LOG_V( "mGen freq events: " << mGen->getParamFreq()->getNumEvents() );
+		LOG_V( "mGen freq events: " << mGen->getParamFreq()->getNumRamps() );
 }
 
 void ParamTestApp::update()

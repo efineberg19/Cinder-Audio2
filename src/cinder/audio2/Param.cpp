@@ -59,7 +59,7 @@ void rampOutQuad( float *array, size_t count, float t, float tIncr, const std::p
 	}
 }
 
-Param::Event::Event( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn )
+Param::Ramp::Ramp( float timeBegin, float timeEnd, float valueBegin, float valueEnd, const RampFn &rampFn )
 	: mTimeBegin( timeBegin ), mTimeEnd( timeEnd ), mDuration( timeEnd - timeBegin ),
 	mValueBegin( valueBegin ), mValueEnd( valueEnd ), mRampFn( rampFn ), mMarkedForRemoval( false )
 {
@@ -92,16 +92,16 @@ void Param::applyRamp( float beginValue, float endValue, float rampSeconds, cons
 	float timeBegin = (float)ctx->getNumProcessedSeconds() + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
 
-	Event event( timeBegin, timeEnd, beginValue, endValue, options.getRampFn() );
+	Ramp ramp( timeBegin, timeEnd, beginValue, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = size_t( event.mDuration * ctx->getSampleRate() );
-//	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
+	ramp.mTotalFrames = size_t( ramp.mDuration * ctx->getSampleRate() );
+//	LOG_V << "ramp time: " << ramp.mTimeBegin << "-" << ramp.mTimeEnd << " (" << ramp.mDuration << "), val: " << ramp.mValueBegin << " - " << ramp.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( ctx->getMutex() );
 
 	resetImpl();
-	mEvents.push_back( event );
+	mRamps.push_back( ramp );
 }
 
 void Param::appendRamp( float endValue, float rampSeconds, const Options &options )
@@ -114,15 +114,15 @@ void Param::appendRamp( float endValue, float rampSeconds, const Options &option
 	float timeBegin = endTimeAndValue.first + options.getDelay();
 	float timeEnd = timeBegin + rampSeconds;
 
-	Event event( timeBegin, timeEnd, endTimeAndValue.second, endValue, options.getRampFn() );
+	Ramp ramp( timeBegin, timeEnd, endTimeAndValue.second, endValue, options.getRampFn() );
 
 	// debug
-	event.mTotalFrames = size_t( event.mDuration * ctx->getSampleRate() );
-//	LOG_V << "event time: " << event.mTimeBegin << "-" << event.mTimeEnd << " (" << event.mDuration << "), val: " << event.mValueBegin << " - " << event.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
+	ramp.mTotalFrames = size_t( ramp.mDuration * ctx->getSampleRate() );
+//	LOG_V << "ramp time: " << ramp.mTimeBegin << "-" << ramp.mTimeEnd << " (" << ramp.mDuration << "), val: " << ramp.mValueBegin << " - " << ramp.mValueEnd << ", rampSeconds: " << rampSeconds << ", delay: " << options.getDelay() << endl;
 
 	lock_guard<mutex> lock( ctx->getMutex() );
 
-	mEvents.push_back( event );
+	mRamps.push_back( ramp );
 }
 
 void Param::setModulator( const NodeRef &node )
@@ -152,10 +152,10 @@ void Param::reset()
 }
 
 
-size_t Param::getNumEvents() const
+size_t Param::getNumRamps() const
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
-	return mEvents.size();
+	return mRamps.size();
 }
 
 float Param::findDuration() const
@@ -163,11 +163,11 @@ float Param::findDuration() const
 	auto ctx = getContext();
 	lock_guard<mutex> lock( ctx->getMutex() );
 
-	if( mEvents.empty() )
+	if( mRamps.empty() )
 		return 0;
 	else {
-		const Event &event = mEvents.back();
-		return event.mTimeEnd - (float)ctx->getNumProcessedSeconds();
+		const Ramp &ramp = mRamps.back();
+		return ramp.mTimeEnd - (float)ctx->getNumProcessedSeconds();
 	}
 }
 
@@ -176,11 +176,11 @@ pair<float, float> Param::findEndTimeAndValue() const
 	auto ctx = getContext();
 	lock_guard<mutex> lock( ctx->getMutex() );
 
-	if( mEvents.empty() )
+	if( mRamps.empty() )
 		return make_pair( (float)ctx->getNumProcessedSeconds(), mValue );
 	else {
-		const Event &event = mEvents.back();
-		return make_pair( event.mTimeEnd, event.mValueEnd );
+		const Ramp &ramp = mRamps.back();
+		return make_pair( ramp.mTimeEnd, ramp.mValueEnd );
 	}
 }
 
@@ -208,18 +208,18 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 	size_t samplesWritten = 0;
 	const float samplePeriod = 1.0f / sampleRate;
 
-	for( Event &event : mEvents ) {
-		// if event time end is before the current processing block, remove event
-		if( event.mTimeEnd < timeBegin ) {
-			mEvents.pop_front();
+	for( Ramp &ramp : mRamps ) {
+		// if ramp time end is before the current processing block, remove ramp
+		if( ramp.mTimeEnd < timeBegin ) {
+			mRamps.pop_front();
 			continue;
 		}
 
 		float timeEnd = timeBegin + arrayLength * samplePeriod;
 
-		if( event.mTimeBegin < timeEnd && event.mTimeEnd > timeBegin ) {
-			size_t startIndex = timeBegin >= event.mTimeBegin ? 0 : size_t( ( event.mTimeBegin - timeBegin ) * sampleRate );
-			size_t endIndex = timeEnd < event.mTimeEnd ? arrayLength : size_t( ( event.mTimeEnd - timeBegin ) * sampleRate );
+		if( ramp.mTimeBegin < timeEnd && ramp.mTimeEnd > timeBegin ) {
+			size_t startIndex = timeBegin >= ramp.mTimeBegin ? 0 : size_t( ( ramp.mTimeBegin - timeBegin ) * sampleRate );
+			size_t endIndex = timeEnd < ramp.mTimeEnd ? arrayLength : size_t( ( ramp.mTimeEnd - timeBegin ) * sampleRate );
 
 			CI_ASSERT( startIndex <= arrayLength && endIndex <= arrayLength );
 
@@ -227,21 +227,21 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 				dsp::fill( mValue, array, startIndex );
 
 			size_t count = size_t( endIndex - startIndex );
-			float timeBeginNormalized = float( timeBegin - event.mTimeBegin + startIndex * samplePeriod ) / event.mDuration;
-			float timeEndNormalized = float( timeBegin - event.mTimeBegin + endIndex * samplePeriod ) / event.mDuration;
+			float timeBeginNormalized = float( timeBegin - ramp.mTimeBegin + startIndex * samplePeriod ) / ramp.mDuration;
+			float timeEndNormalized = float( timeBegin - ramp.mTimeBegin + endIndex * samplePeriod ) / ramp.mDuration;
 			float timeIncr = ( timeEndNormalized - timeBeginNormalized ) / (float)count;
 
-			event.mRampFn( array + startIndex, count, timeBeginNormalized, timeIncr, make_pair( event.mValueBegin, event.mValueEnd ) );
+			ramp.mRampFn( array + startIndex, count, timeBeginNormalized, timeIncr, make_pair( ramp.mValueBegin, ramp.mValueEnd ) );
 
 			// debug
-			event.mFramesProcessed += count;
+			ramp.mFramesProcessed += count;
 
 			samplesWritten += count;
 
-			// if this event ended with the current processing block, update mValue then remove event
+			// if this ramp ended with the current processing block, update mValue then remove ramp
 			if( endIndex < arrayLength ) {
-				mValue = event.mValueEnd;
-				mEvents.pop_front();
+				mValue = ramp.mValueEnd;
+				mRamps.pop_front();
 			}
 			else if( samplesWritten == arrayLength ) {
 				mValue = array[arrayLength - 1];
@@ -250,7 +250,7 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 		}
 	}
 
-	// if after all events we still haven't written enough samples, fill with the final mValue, which was updated above to be the last event's mValueEnd.
+	// if after all ramps we still haven't written enough samples, fill with the final mValue, which was updated above to be the last ramp's mValueEnd.
 	if( samplesWritten < arrayLength )
 		dsp::fill( mValue, array + (size_t)samplesWritten, size_t( arrayLength - samplesWritten ) );
 
@@ -263,8 +263,8 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 
 void Param::resetImpl()
 {
-	if( ! mEvents.empty() )
-		mEvents.clear();
+	if( ! mRamps.empty() )
+		mRamps.clear();
 
 	mModulator.reset();
 }
