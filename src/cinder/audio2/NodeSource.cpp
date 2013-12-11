@@ -318,7 +318,7 @@ void FilePlayer::process( Buffer *buffer )
 		// check if end of file
 		if( readPos + readCount >= mNumFrames ) {
 			if( mLoop ) {
-				seek( 0 );
+				seek( 0 ); // FIXME: instead of zeroing above, should fill with samples from the beginning of file
 				return;
 			}
 

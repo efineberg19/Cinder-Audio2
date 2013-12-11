@@ -1,6 +1,7 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/Timeline.h"
 #include "cinder/audio2/Voice.h"
+#include "cinder/audio2/File.h"
 
 #include "Resources.h"
 
@@ -18,10 +19,15 @@ public:
 
 void AudioBasicPlaybackApp::setup()
 {
-	mVoice = audio2::VoiceSamplePlayer::create( loadResource( RES_DRAIN_OGG ) );
+//	mVoice = audio2::Voice::create( loadResource( RES_DRAIN_OGG ) );
+
+//	audio2::SourceRef source = audio2::load( loadResource( RES_DRAIN_OGG ) );
+	audio2::SourceFileRef source = audio2::SourceFile::create( loadResource( RES_DRAIN_OGG ) );
+
+	mVoice = audio2::Voice::create( source );
 
 	// possible (proposed) shortcut:
-//	mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ), audio2::VoiceOptions().enablePan() );
+//	mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ) );
 }
 
 void AudioBasicPlaybackApp::mouseDown( MouseEvent event )

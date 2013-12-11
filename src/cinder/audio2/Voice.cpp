@@ -153,9 +153,9 @@ VoiceRef Voice::create( CallbackProcessorFn callbackFn )
 	return result;
 }
 
-VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )
+VoiceSamplePlayerRef Voice::create( const SourceFileRef &sourceFile )
 {
-	VoiceSamplePlayerRef result( new VoiceSamplePlayer( dataSource ) );
+	VoiceSamplePlayerRef result( new VoiceSamplePlayer( sourceFile ) );
 	MixerImpl::get()->addVoice( result );
 
 	return result;
@@ -180,16 +180,13 @@ void play( const VoiceRef &source )
 // MARK: - VoiceSamplePlayer
 // ----------------------------------------------------------------------------------------------------
 
-VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
+VoiceSamplePlayer::VoiceSamplePlayer( const SourceFileRef &sourceFile )
 {
-	size_t sampleRate = Context::master()->getSampleRate();
-	SourceFileRef sourceFile = SourceFile::create( dataSource, sampleRate, 0 );
-
 	// maximum samples for default buffer playback is 1 second stereo at 48k samplerate
 	const size_t kMaxFramesForBufferPlayback = 48000 * 2;
 
 	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback ) {
-		BufferRef buffer = MixerImpl::get()->loadSourceFile( sourceFile );
+		BufferRef buffer = MixerImpl::get()->loadSourceFile( sourceFile ); // TODO: cache buffer
 		mNode = Context::master()->makeNode( new BufferPlayer( buffer ) );
 	} else
 		mNode = Context::master()->makeNode( new FilePlayer( sourceFile ) );

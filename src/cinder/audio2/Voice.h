@@ -37,8 +37,8 @@ typedef std::shared_ptr<class VoiceSamplePlayer> VoiceSamplePlayerRef;
 class Voice {
   public:
 
-	//! Creates a Voice that manages sample playback of an audio file pointed at with \a dataSource.
-	static VoiceSamplePlayerRef create( const DataSourceRef &dataSource );
+	//! Creates a Voice that manages sample playback of an audio file pointed at with \a sourceFile.
+	static VoiceSamplePlayerRef create( const SourceFileRef &sourceFile );
 	//! Creates a Voice that continously calls \a callbackFn to process a Buffer of samples.
 	static VoiceRef create( CallbackProcessorFn callbackFn );
 
@@ -62,7 +62,7 @@ class VoiceSamplePlayer : public Voice {
 	SamplePlayerRef getSamplePlayer() const		{ return mNode; }
 
   protected:
-	VoiceSamplePlayer( const DataSourceRef &dataSource );
+	VoiceSamplePlayer( const SourceFileRef &sourceFile );
 	SamplePlayerRef mNode;
 
 	friend class Voice;
@@ -79,6 +79,7 @@ class VoiceCallbackProcessor : public Voice {
 	friend class Voice;
 };
 
+// TODO: remove this in favor of Voice->play() ?
 void play( const VoiceRef &voice );
 
 } } // namespace cinder::audio2
