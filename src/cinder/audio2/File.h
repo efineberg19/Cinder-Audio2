@@ -105,4 +105,7 @@ class TargetFile {
 	size_t mSampleRate, mNumChannels;
 };
 
+//! Convenience method for loading a SourceFile from \a dataSource. \see SourceFile::create()
+inline std::unique_ptr<SourceFile>	load( const DataSourceRef &dataSource, size_t sampleRate = 0, size_t numChannels = 0 )	{ return SourceFile::create( dataSource, sampleRate, numChannels ); }
+
 } } // namespace cinder::audio2

@@ -19,12 +19,7 @@ public:
 
 void AudioBasicPlaybackApp::setup()
 {
-//	mVoice = audio2::Voice::create( loadResource( RES_DRAIN_OGG ) );
-
-//	audio2::SourceRef source = audio2::load( loadResource( RES_DRAIN_OGG ) );
-	audio2::SourceFileRef source = audio2::SourceFile::create( loadResource( RES_DRAIN_OGG ) );
-
-	mVoice = audio2::Voice::create( source );
+	mVoice = audio2::Voice::create( audio2::load( loadResource( RES_DRAIN_OGG ) ) );
 
 	// possible (proposed) shortcut:
 //	mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ) );
