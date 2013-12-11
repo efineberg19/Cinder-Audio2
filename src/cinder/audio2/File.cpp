@@ -22,6 +22,7 @@
 */
 
 #include "cinder/audio2/File.h"
+#include "cinder/audio2/Context.h"
 
 #include "cinder/Cinder.h"
 #include "cinder/Utilities.h"
@@ -40,6 +41,9 @@ namespace cinder { namespace audio2 {
 
 std::unique_ptr<SourceFile> SourceFile::create( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
 {
+	if( ! sampleRate )
+		sampleRate = Context::master()->getSampleRate();
+
 	if( getPathExtension( dataSource->getFilePathHint() ) == "ogg" )
 		return std::unique_ptr<SourceFile>( new SourceFileImplOggVorbis( dataSource, sampleRate, numChannels ) );
 

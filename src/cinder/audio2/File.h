@@ -32,22 +32,38 @@
 
 namespace cinder { namespace audio2 {
 	
-typedef std::shared_ptr<class SourceFile> SourceFileRef;
-typedef std::shared_ptr<class TargetFile> TargetFileRef;
+typedef std::shared_ptr<class Source>			SourceRef;
+typedef std::shared_ptr<class SourceFile>		SourceFileRef;
+typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 
 class Source {
   public:
 	virtual size_t	getSampleRate() const				{ return mSampleRate; }
 	virtual size_t	getNumChannels() const				{ return mNumChannels; }
-  protected:
-	Source( size_t sampleRate, size_t numChannels ) : mSampleRate( sampleRate ), mNumChannels( numChannels ) {}
 
-	size_t mSampleRate, mNumChannels;
+	virtual void	setMaxFramesPerRead( size_t count )	{ mMaxFramesPerRead = count; }
+	virtual size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
+
+	//! \brief loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
+	virtual size_t read( Buffer *buffer ) = 0;
+	//! Seek the read position to \a readPositionFrames
+	virtual void seek( size_t readPositionFrames ) = 0;
+	//! Seek to read position \a readPositionSeconds
+	virtual void seekToTime( double readPositionSeconds ) = 0;
+
+  protected:
+	Source( size_t sampleRate, size_t numChannels )
+		: mSampleRate( sampleRate ), mNumChannels( numChannels ), mMaxFramesPerRead( 4096 )
+	{}
+
+	size_t mSampleRate, mNumChannels, mMaxFramesPerRead;
 };
 
 class SourceFile : public Source {
   public:
-	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels );
+	//! Creates a new SourceFile from \a dataSource, without optional output \a sampleRate and \a numChannels.
+	//! Default \a sampleRate (0) means infer from the Context::master()'s sampleRate.  Default \a numChannels (0) means infer from the file.
+	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource, size_t sampleRate = 0, size_t numChannels = 0 );
 	virtual ~SourceFile() {}
 
 	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
@@ -58,25 +74,16 @@ class SourceFile : public Source {
 	//! Returns the length in seconds when played back at the specified samplerate.
 	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
 
-	virtual void	setMaxFramesPerRead( size_t count )	{ mMaxFramesPerRead = count; }
-	virtual size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
-
-	//! \brief loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
-	virtual size_t read( Buffer *buffer ) = 0;
+		virtual void seekToTime( double readPositionSeconds ) override	{ return seek( size_t( readPositionSeconds * (double)getFileSampleRate() ) ); }
 
 	virtual BufferRef loadBuffer() = 0;
 
-	//! Seek the read position to \a readPositionFrames
-	virtual void seek( size_t readPositionFrames ) = 0;
-	//! Seek to read position \a readPositionSeconds
-	void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getFileSampleRate() ) ); }
-
   protected:
 	SourceFile( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
-	: Source( sampleRate, numChannels ), mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 ), mMaxFramesPerRead( 4096 )
+		: Source( sampleRate, numChannels ), mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 )
 	{}
 
-	size_t mNumFrames, mFileSampleRate, mFileNumChannels, mMaxFramesPerRead;
+	size_t mNumFrames, mFileSampleRate, mFileNumChannels;
 };
 
 // TODO: support sample formats other than float
