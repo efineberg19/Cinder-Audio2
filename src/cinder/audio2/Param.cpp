@@ -253,8 +253,12 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 
 void Param::resetImpl()
 {
-	if( ! mRamps.empty() )
+	if( ! mRamps.empty() ) {
+		for( auto &ramp : mRamps )
+			ramp->cancel();
+
 		mRamps.clear();
+	}
 
 	mModulator.reset();
 }
