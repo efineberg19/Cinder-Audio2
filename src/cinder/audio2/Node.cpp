@@ -23,7 +23,6 @@
 
 
 #include "cinder/audio2/Node.h"
-#include "cinder/audio2/audio.h"
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Debug.h"

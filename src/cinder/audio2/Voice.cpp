@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "cinder/audio2/audio.h"
+#include "cinder/audio2/Voice.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/NodeEffect.h"
 
@@ -34,10 +34,10 @@ namespace cinder { namespace audio2 {
 
 // TODO: replace this private Mixer, which composits a Gain + NodePan per voice, into a NodeMixer
 // that has a custom pullInputs and performs that gain / pan as a post-processing step
-class Mixer {
+class MixerImpl {
 public:
 
-	static Mixer *get();
+	static MixerImpl *get();
 
 	//! returns the number of connected busses.
 	void	setBusVolume( size_t busId, float volume );
@@ -50,7 +50,7 @@ public:
 	BufferRef loadSourceFile( const SourceFileRef &sourceFile );
 
 private:
-	Mixer();
+	MixerImpl();
 
 	struct Bus {
 		VoiceRef		mVoice;
@@ -64,16 +64,16 @@ private:
 	GainRef mMasterGain;
 };
 
-Mixer* Mixer::get()
+MixerImpl* MixerImpl::get()
 {
-	static unique_ptr<Mixer> sMixer;
+	static unique_ptr<MixerImpl> sMixer;
 	if( ! sMixer )
-		sMixer.reset( new Mixer );
+		sMixer.reset( new MixerImpl );
 
 	return sMixer.get();
 }
 
-Mixer::Mixer()
+MixerImpl::MixerImpl()
 {
 	Context *ctx = Context::master();
 	mMasterGain = ctx->makeNode( new Gain() );
@@ -83,13 +83,13 @@ Mixer::Mixer()
 	ctx->start();
 }
 
-void Mixer::addVoice( const VoiceRef &source )
+void MixerImpl::addVoice( const VoiceRef &source )
 {
 	Context *ctx = Context::master();
 
 	source->mBusId = mBusses.size();
-	mBusses.push_back( Mixer::Bus() );
-	Mixer::Bus &bus = mBusses.back();
+	mBusses.push_back( MixerImpl::Bus() );
+	MixerImpl::Bus &bus = mBusses.back();
 
 	bus.mVoice = source;
 	bus.mGain = ctx->makeNode( new Gain() );
@@ -98,7 +98,7 @@ void Mixer::addVoice( const VoiceRef &source )
 	source->getNode()->connect( bus.mGain )->connect( bus.mPan )->connect( mMasterGain );
 }
 
-BufferRef Mixer::loadSourceFile( const SourceFileRef &sourceFile )
+BufferRef MixerImpl::loadSourceFile( const SourceFileRef &sourceFile )
 {
 	auto cached = mBufferCache.find( sourceFile );
 	if( cached != mBufferCache.end() )
@@ -110,24 +110,24 @@ BufferRef Mixer::loadSourceFile( const SourceFileRef &sourceFile )
 	}
 }
 
-void Mixer::setBusVolume( size_t busId, float volume )
+void MixerImpl::setBusVolume( size_t busId, float volume )
 {
 	mBusses[busId].mGain->setValue( volume );
 }
 
-float Mixer::getBusVolume( size_t busId )
+float MixerImpl::getBusVolume( size_t busId )
 {
 	return mBusses[busId].mGain->getValue();
 }
 
-void Mixer::setBusPan( size_t busId, float pos )
+void MixerImpl::setBusPan( size_t busId, float pos )
 {
 	auto pan = mBusses[busId].mPan;
 	if( pan )
 		pan->setPos( pos );
 }
 
-float Mixer::getBusPan( size_t busId )
+float MixerImpl::getBusPan( size_t busId )
 {
 	auto pan = mBusses[busId].mPan;
 	if( pan )
@@ -138,12 +138,12 @@ float Mixer::getBusPan( size_t busId )
 
 void Voice::setVolume( float volume )
 {
-	Mixer::get()->setBusVolume( mBusId, volume );
+	MixerImpl::get()->setBusVolume( mBusId, volume );
 }
 
 void Voice::setPan( float pan )
 {
-	Mixer::get()->setBusPan( mBusId, pan );
+	MixerImpl::get()->setBusPan( mBusId, pan );
 }
 
 VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
@@ -155,7 +155,7 @@ VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 	const size_t kMaxFramesForBufferPlayback = 48000 * 2;
 
 	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback ) {
-		BufferRef buffer = Mixer::get()->loadSourceFile( sourceFile );
+		BufferRef buffer = MixerImpl::get()->loadSourceFile( sourceFile );
 		mNode = Context::master()->makeNode( new BufferPlayer( buffer ) );
 	} else
 		mNode = Context::master()->makeNode( new FilePlayer( sourceFile ) );
@@ -171,7 +171,7 @@ VoiceCallbackProcessor::VoiceCallbackProcessor( const CallbackProcessorFn &callb
 VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )
 {
 	VoiceSamplePlayerRef result( new VoiceSamplePlayer( dataSource ) );
-	Mixer::get()->addVoice( result );
+	MixerImpl::get()->addVoice( result );
 
 	return result;
 }
@@ -179,7 +179,7 @@ VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )
 VoiceRef Voice::create( CallbackProcessorFn callbackFn )
 {
 	VoiceRef result( new VoiceCallbackProcessor( callbackFn ) );
-	Mixer::get()->addVoice( result );
+	MixerImpl::get()->addVoice( result );
 
 	return result;
 }

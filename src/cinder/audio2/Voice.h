@@ -52,7 +52,7 @@ class Voice {
 
   private:
 	size_t mBusId;
-	friend class Mixer;
+	friend class MixerImpl;
 };
 
 class VoiceSamplePlayer : public Voice {

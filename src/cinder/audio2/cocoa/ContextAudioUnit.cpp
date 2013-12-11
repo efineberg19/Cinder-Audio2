@@ -23,7 +23,6 @@
 
 #include "cinder/audio2/cocoa/ContextAudioUnit.h"
 #include "cinder/audio2/cocoa/CinderCoreAudio.h"
-#include "cinder/audio2/audio.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 

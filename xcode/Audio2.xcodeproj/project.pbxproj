@@ -169,10 +169,10 @@
 		114FE998180371F100C5841B /* r8bbase.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE983180371F100C5841B /* r8bbase.h */; };
 		114FE999180371F100C5841B /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE984180371F100C5841B /* r8bconf.h */; };
 		114FE99A180371F100C5841B /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE984180371F100C5841B /* r8bconf.h */; };
-		119CD0B4184A793400853BEE /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD072184A793400853BEE /* audio.cpp */; };
-		119CD0B5184A793400853BEE /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD072184A793400853BEE /* audio.cpp */; };
-		119CD0B6184A793400853BEE /* audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD073184A793400853BEE /* audio.h */; };
-		119CD0B7184A793400853BEE /* audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD073184A793400853BEE /* audio.h */; };
+		119CD0B4184A793400853BEE /* Voice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD072184A793400853BEE /* Voice.cpp */; };
+		119CD0B5184A793400853BEE /* Voice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD072184A793400853BEE /* Voice.cpp */; };
+		119CD0B6184A793400853BEE /* Voice.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD073184A793400853BEE /* Voice.h */; };
+		119CD0B7184A793400853BEE /* Voice.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD073184A793400853BEE /* Voice.h */; };
 		119CD0B8184A793400853BEE /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD074184A793400853BEE /* Buffer.h */; };
 		119CD0B9184A793400853BEE /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD074184A793400853BEE /* Buffer.h */; };
 		119CD0BA184A793400853BEE /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD075184A793400853BEE /* CinderAssert.cpp */; };
@@ -360,8 +360,8 @@
 		114FE982180371F100C5841B /* r8bbase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = r8bbase.cpp; sourceTree = "<group>"; };
 		114FE983180371F100C5841B /* r8bbase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r8bbase.h; sourceTree = "<group>"; };
 		114FE984180371F100C5841B /* r8bconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r8bconf.h; sourceTree = "<group>"; };
-		119CD072184A793400853BEE /* audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio.cpp; sourceTree = "<group>"; };
-		119CD073184A793400853BEE /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
+		119CD072184A793400853BEE /* Voice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Voice.cpp; sourceTree = "<group>"; };
+		119CD073184A793400853BEE /* Voice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Voice.h; sourceTree = "<group>"; };
 		119CD074184A793400853BEE /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		119CD075184A793400853BEE /* CinderAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderAssert.cpp; sourceTree = "<group>"; };
 		119CD076184A793400853BEE /* CinderAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderAssert.h; sourceTree = "<group>"; };
@@ -691,8 +691,6 @@
 				119CD077184A793400853BEE /* cocoa */,
 				119CD087184A793400853BEE /* dsp */,
 				119CD09A184A793400853BEE /* msw */,
-				119CD072184A793400853BEE /* audio.cpp */,
-				119CD073184A793400853BEE /* audio.h */,
 				119CD074184A793400853BEE /* Buffer.h */,
 				119CD075184A793400853BEE /* CinderAssert.cpp */,
 				119CD076184A793400853BEE /* CinderAssert.h */,
@@ -721,6 +719,8 @@
 				119CD0B2184A793400853BEE /* Scope.cpp */,
 				119CD0B3184A793400853BEE /* Scope.h */,
 				119CD139184A7E5E00853BEE /* Utilities.h */,
+				119CD072184A793400853BEE /* Voice.cpp */,
+				119CD073184A793400853BEE /* Voice.h */,
 			);
 			path = audio2;
 			sourceTree = "<group>";
@@ -807,7 +807,7 @@
 				119CD0F6184A793400853BEE /* Exception.h in Headers */,
 				119CD137184A7A1200853BEE /* fftsg.h in Headers */,
 				1115501518026C9100D415BC /* ogg.h in Headers */,
-				119CD0B6184A793400853BEE /* audio.h in Headers */,
+				119CD0B6184A793400853BEE /* Voice.h in Headers */,
 				114FE997180371F100C5841B /* r8bbase.h in Headers */,
 				114FE8CF18032BF100C5841B /* codebook.h in Headers */,
 				114FE8EF18032BF100C5841B /* masking.h in Headers */,
@@ -899,7 +899,7 @@
 				119CD0F7184A793400853BEE /* Exception.h in Headers */,
 				119CD138184A7A1200853BEE /* fftsg.h in Headers */,
 				1115501618026C9100D415BC /* ogg.h in Headers */,
-				119CD0B7184A793400853BEE /* audio.h in Headers */,
+				119CD0B7184A793400853BEE /* Voice.h in Headers */,
 				114FE998180371F100C5841B /* r8bbase.h in Headers */,
 				114FE8D018032BF100C5841B /* codebook.h in Headers */,
 				114FE8F018032BF100C5841B /* masking.h in Headers */,
@@ -1071,7 +1071,7 @@
 				119CD0F8184A793400853BEE /* File.cpp in Sources */,
 				119CD0BA184A793400853BEE /* CinderAssert.cpp in Sources */,
 				114FE8B718032BF100C5841B /* framing.c in Sources */,
-				119CD0B4184A793400853BEE /* audio.cpp in Sources */,
+				119CD0B4184A793400853BEE /* Voice.cpp in Sources */,
 				119CD0BE184A793400853BEE /* CinderCoreAudio.cpp in Sources */,
 				119CD0E0184A793400853BEE /* Converter.cpp in Sources */,
 				114FE8F118032BF100C5841B /* mdct.c in Sources */,
@@ -1126,7 +1126,7 @@
 				119CD0BB184A793400853BEE /* CinderAssert.cpp in Sources */,
 				119CD0C7184A793400853BEE /* DeviceManagerAudioSession.cpp in Sources */,
 				114FE8B818032BF100C5841B /* framing.c in Sources */,
-				119CD0B5184A793400853BEE /* audio.cpp in Sources */,
+				119CD0B5184A793400853BEE /* Voice.cpp in Sources */,
 				119CD0BF184A793400853BEE /* CinderCoreAudio.cpp in Sources */,
 				119CD0E1184A793400853BEE /* Converter.cpp in Sources */,
 				114FE8F218032BF100C5841B /* mdct.c in Sources */,
