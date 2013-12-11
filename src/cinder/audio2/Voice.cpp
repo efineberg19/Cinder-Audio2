@@ -32,8 +32,13 @@ using namespace ci;
 
 namespace cinder { namespace audio2 {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - MixerImpl
+// ----------------------------------------------------------------------------------------------------
+
 // TODO: replace this private Mixer, which composits a Gain + NodePan per voice, into a NodeMixer
 // that has a custom pullInputs and performs that gain / pan as a post-processing step
+
 class MixerImpl {
 public:
 
@@ -136,6 +141,26 @@ float MixerImpl::getBusPan( size_t busId )
 	return 0.0f;
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Voice
+// ----------------------------------------------------------------------------------------------------
+
+VoiceRef Voice::create( CallbackProcessorFn callbackFn )
+{
+	VoiceRef result( new VoiceCallbackProcessor( callbackFn ) );
+	MixerImpl::get()->addVoice( result );
+
+	return result;
+}
+
+VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )
+{
+	VoiceSamplePlayerRef result( new VoiceSamplePlayer( dataSource ) );
+	MixerImpl::get()->addVoice( result );
+
+	return result;
+}
+
 void Voice::setVolume( float volume )
 {
 	MixerImpl::get()->setBusVolume( mBusId, volume );
@@ -145,6 +170,15 @@ void Voice::setPan( float pan )
 {
 	MixerImpl::get()->setBusPan( mBusId, pan );
 }
+
+void play( const VoiceRef &source )
+{
+	source->getNode()->start();
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - VoiceSamplePlayer
+// ----------------------------------------------------------------------------------------------------
 
 VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 {
@@ -161,6 +195,10 @@ VoiceSamplePlayer::VoiceSamplePlayer( const DataSourceRef &dataSource )
 		mNode = Context::master()->makeNode( new FilePlayer( sourceFile ) );
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - VoiceCallbackProcessor
+// ----------------------------------------------------------------------------------------------------
+
 // TODO: how best to specify channel count?
 VoiceCallbackProcessor::VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn )
 {
@@ -168,25 +206,5 @@ VoiceCallbackProcessor::VoiceCallbackProcessor( const CallbackProcessorFn &callb
 //	mNode = Context::master()->makeNode( new CallbackProcessor( callbackFn, Node::Format().channels( 2 ) ) );
 }
 
-VoiceSamplePlayerRef Voice::create( const DataSourceRef &dataSource )
-{
-	VoiceSamplePlayerRef result( new VoiceSamplePlayer( dataSource ) );
-	MixerImpl::get()->addVoice( result );
-
-	return result;
-}
-
-VoiceRef Voice::create( CallbackProcessorFn callbackFn )
-{
-	VoiceRef result( new VoiceCallbackProcessor( callbackFn ) );
-	MixerImpl::get()->addVoice( result );
-
-	return result;
-}
-
-void play( const VoiceRef &source )
-{
-	source->getNode()->start();
-}
 
 } } // namespace cinder::audio2
