@@ -79,8 +79,8 @@ void FileNodeTestApp::setup()
 	mSourceFile = audio2::load( dataSource );
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 
-//	setupBufferPlayer();
-	setupFilePlayer();
+	setupBufferPlayer();
+//	setupFilePlayer();
 
 	setupUI();
 
@@ -92,10 +92,10 @@ void FileNodeTestApp::setup()
 	ctx->printGraph();
 }
 
-// TODO: need to adjust output format
 void FileNodeTestApp::setupBufferPlayer()
 {
 	auto ctx = audio2::Context::master();
+	mSourceFile->setOutputFormat( ctx->getSampleRate() );
 	audio2::BufferRef audioBuffer = mSourceFile->loadBuffer();
 
 	LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
@@ -244,6 +244,7 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 
 	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
 	if( bufferPlayer ) {
+		mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
 		bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
 		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
 	}
