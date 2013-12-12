@@ -36,12 +36,13 @@ namespace cinder { namespace audio2 {
 
 class SourceFileImplOggVorbis : public SourceFile {
   public:
-	SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels );
+	SourceFileImplOggVorbis( const DataSourceRef &dataSource );
 	virtual ~SourceFileImplOggVorbis();
 
-	size_t		read( Buffer *buffer ) override;
-	BufferRef	loadBuffer() override;
-	void		seek( size_t readPositionFrames ) override;
+	void		outputFormatUpdated()				override;
+	size_t		read( Buffer *buffer )				override;
+	BufferRef	loadBuffer()						override;
+	void		seek( size_t readPositionFrames )	override;
 
   private:
 	::OggVorbis_File	mOggVorbisFile;

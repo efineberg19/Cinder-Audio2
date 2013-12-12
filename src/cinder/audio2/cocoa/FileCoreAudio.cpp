@@ -58,8 +58,8 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // MARK: - SourceFileImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
-	: SourceFile( dataSource, sampleRate, numChannels ), mReadPos( 0 )
+SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSource )
+	: SourceFile( dataSource ), mReadPos( 0 )
 {
 //	printExtensions();
 
@@ -82,8 +82,8 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
     status = ::ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileDataFormat, &propSize, &fileFormat );
 	CI_ASSERT( status == noErr );
 
-    mFileNumChannels = fileFormat.mChannelsPerFrame;
-	mFileSampleRate = fileFormat.mSampleRate;
+    mNumChannels = fileFormat.mChannelsPerFrame;
+	mSampleRate = fileFormat.mSampleRate;
 
     SInt64 numFrames;
     propSize = sizeof( numFrames );
@@ -91,29 +91,34 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
 	CI_ASSERT( status == noErr );
 	mNumFrames = static_cast<size_t>( numFrames );
 
-	if( ! mNumChannels )
-		mNumChannels = mFileNumChannels;
-	if( ! mSampleRate )
-		mSampleRate = mFileSampleRate;
+	if( ! mOutputNumChannels )
+		mOutputNumChannels = mNumChannels;
+	if( ! mOutputSampleRate )
+		mOutputSampleRate = mSampleRate;
 
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mSampleRate, mNumChannels );
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mOutputSampleRate, mOutputNumChannels );
 	status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
 	CI_ASSERT( status == noErr );
 
 	// numFrames will be updated at read time
-	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
+	mBufferList = createNonInterleavedBufferListShallow( mOutputNumChannels );
+}
+
+void SourceFileImplCoreAudio::outputFormatUpdated()
+{
+	// TODO: move channel num file and friends here
 }
 
 size_t SourceFileImplCoreAudio::read( Buffer *buffer )
 {
-	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
+	CI_ASSERT( buffer->getNumChannels() == mOutputNumChannels );
 
 	if( mReadPos >= mNumFrames )
 		return 0;
 
 	UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
 
-	for( int i = 0; i < mNumChannels; i++ ) {
+	for( int i = 0; i < mOutputNumChannels; i++ ) {
 		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
 		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
 	}
@@ -130,12 +135,12 @@ BufferRef SourceFileImplCoreAudio::loadBuffer()
 	if( mReadPos != 0 )
 		seek( 0 );
 	
-	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
+	BufferRef result( new Buffer( mNumFrames, mOutputNumChannels ) );
 
 	while( mReadPos < mNumFrames ) {
 		UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, mMaxFramesPerRead );
 
-        for( int ch = 0; ch < mNumChannels; ch++ ) {
+        for( int ch = 0; ch < mOutputNumChannels; ch++ ) {
             mBufferList->mBuffers[ch].mDataByteSize = frameCount * sizeof( float );
             mBufferList->mBuffers[ch].mData = &result->getChannel( ch )[mReadPos];
         }

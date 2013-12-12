@@ -84,16 +84,16 @@ SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataS
 	initReader( dataSource );
 
 	if( ! mNumChannels )
-		mNumChannels = mFileNumChannels;
+		mNumChannels = mNumChannels;
 	if( ! mSampleRate )
-		mSampleRate = mFileSampleRate;
+		mSampleRate = mSampleRate;
 
 	// TODO: need a converter here if there's a channel or samplerate mismatch
 
-	CI_ASSERT( mFileNumChannels == mNumChannels );
-	CI_ASSERT( mSampleRate == mFileSampleRate );
+	CI_ASSERT( mNumChannels == mNumChannels );
+	CI_ASSERT( mSampleRate == mSampleRate );
 
-	mNumFrames = static_cast<size_t>( mSeconds * mSampleRate  / mFileNumChannels );
+	mNumFrames = static_cast<size_t>( mSeconds * mSampleRate  / mNumChannels );
 
 	LOG_V( "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek );
 }
@@ -230,10 +230,10 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 		outputSubType = MFAudioFormat_Float;
 	}
 
-	mFileNumChannels = fileFormat->nChannels;
-	mFileSampleRate = fileFormat->nSamplesPerSec;
+	mNumChannels = fileFormat->nChannels;
+	mSampleRate = fileFormat->nSamplesPerSec;
 
-	LOG_V( "file channels: " << mFileNumChannels << ", samplerate: " << mFileSampleRate );
+	LOG_V( "file channels: " << mNumChannels << ", samplerate: " << mSampleRate );
 
 	::CoTaskMemFree( fileFormat );
 
@@ -315,35 +315,35 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	hr = samplePtr->ConvertToContiguousBuffer( &mediaBuffer );
 	hr = mediaBuffer->Lock( &audioData, NULL, &audioDataLength );
 
-	size_t numFramesRead = audioDataLength / ( mBytesPerSample * mFileNumChannels );
+	size_t numFramesRead = audioDataLength / ( mBytesPerSample * mNumChannels );
 
 	// FIXME: I don't know why num channels needs to be divided through twice, indicating he square needs to be used above.
 	// - this is probably wrong and may break with more channels.
-	numFramesRead /= mFileNumChannels;
+	numFramesRead /= mNumChannels;
 
 	resizeReadBufferIfNecessary( numFramesRead );
 
 	if( mSampleFormat == Format::FLOAT_32 ) {
 		float *floatSamples = (float *)audioData;
-		if( mFileNumChannels == 1) {
+		if( mNumChannels == 1) {
 			memcpy( mReadBuffer.data(), floatSamples, numFramesRead * sizeof( float ) );
 		} else {
-			for( size_t ch = 0; ch < mFileNumChannels; ch++ ) {
+			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
 				for( size_t i = 0; i < numFramesRead; i++ )
-					mReadBuffer[ch * numFramesRead + i] = floatSamples[mFileNumChannels * i + ch];
+					mReadBuffer[ch * numFramesRead + i] = floatSamples[mNumChannels * i + ch];
 			}
 		}
 	}
 	else if( mSampleFormat == Format::INT_16 ) {
 		INT16 *signedIntSamples = (INT16 *)audioData;
-		if( mFileNumChannels == 1 ) {
+		if( mNumChannels == 1 ) {
 			for( size_t i = 0; i < numFramesRead; ++i )
 				mReadBuffer[i] = (float)signedIntSamples[i] / 32768.0f;
 		}
 		else {
-			for( size_t ch = 0; ch < mFileNumChannels; ch++ ) {
+			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
 				for( size_t i = 0; i < numFramesRead; i++ ) {
-					mReadBuffer[ch * numFramesRead + i] = (float)signedIntSamples[mFileNumChannels * i + ch] / 32768.0f;
+					mReadBuffer[ch * numFramesRead + i] = (float)signedIntSamples[mNumChannels * i + ch] / 32768.0f;
 				}
 			}
 		}
@@ -363,7 +363,7 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 void SourceFileMediaFoundation::resizeReadBufferIfNecessary( size_t requiredFrames )
 {
-	size_t requiredSize = requiredFrames * mFileNumChannels;
+	size_t requiredSize = requiredFrames * mNumChannels;
 	if( requiredSize > mReadBuffer.size() ) {
 		LOG_V( "RESIZE buffer to " << requiredSize );
 		mReadBuffer.resize( requiredSize );

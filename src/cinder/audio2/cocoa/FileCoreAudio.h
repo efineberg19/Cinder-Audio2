@@ -32,12 +32,13 @@ namespace cinder { namespace audio2 { namespace cocoa {
 
 class SourceFileImplCoreAudio : public SourceFile {
   public:
-	SourceFileImplCoreAudio( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels );
+	SourceFileImplCoreAudio( const DataSourceRef &dataSource );
 	virtual ~SourceFileImplCoreAudio() {}
 
-	size_t		read( Buffer *buffer ) override;
-	BufferRef	loadBuffer() override;
-	void		seek( size_t readPositionFrames ) override;
+	void		outputFormatUpdated()				override;
+	size_t		read( Buffer *buffer )				override;
+	BufferRef	loadBuffer()						override;
+	void		seek( size_t readPositionFrames )	override;
 
   private:	
 	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;

@@ -28,8 +28,6 @@
 #include "cinder/DataSource.h"
 #include "cinder/DataTarget.h"
 
-// TODO: consider FileParams that describes input or output format, instead of passing in many size_t params
-
 namespace cinder { namespace audio2 {
 	
 typedef std::shared_ptr<class Source>			SourceRef;
@@ -38,52 +36,61 @@ typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 
 class Source {
   public:
-	virtual size_t	getSampleRate() const				{ return mSampleRate; }
-	virtual size_t	getNumChannels() const				{ return mNumChannels; }
+	//! Returns the true samplerate of the Source. \note Actual output samplerate may differ. \see getOutputSampleRate()
+	size_t	getSampleRate() const				{ return mSampleRate; }
+	//! Returns the true number of channels of the Source. \note Actual output num channels may differ. \see getOutputNumChannels()
+	size_t	getNumChannels() const				{ return mNumChannels; }
+	//! Returns the output samplerate (the samplerate of frames read).
+	size_t	getOutputSampleRate() const			{ return mOutputSampleRate; }
+	//! Returns the output number of channels (the num channnels of frames read).
+	size_t	getOutputNumChannels() const		{ return mOutputNumChannels; }
+	//! Returns the maximum number of frames that can be read in one chunk.
+	size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
+	//! Sets the maximum number of frames that can be read in one chunk.
+	virtual void	setMaxFramesPerRead( size_t count )		{ mMaxFramesPerRead = count; }
 
-	virtual void	setMaxFramesPerRead( size_t count )	{ mMaxFramesPerRead = count; }
-	virtual size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
-
-	//! \brief loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
+	//! Sets the output format options \a outputSampleRate and optionally \a outputNumChannels (default will use the Source's num channels),
+	//	allowing output samplerate and channel count to be different from the actual Source.
+	void setOutputFormat( size_t outputSampleRate, size_t outputNumChannels = 0 );
+	//! Loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
 	virtual size_t read( Buffer *buffer ) = 0;
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;
 	//! Seek to read position \a readPositionSeconds
-	virtual void seekToTime( double readPositionSeconds ) = 0;
+	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getSampleRate() ) ); }
 
   protected:
-	Source( size_t sampleRate, size_t numChannels )
-		: mSampleRate( sampleRate ), mNumChannels( numChannels ), mMaxFramesPerRead( 4096 )
+	Source() : mSampleRate( 0 ), mNumChannels( 0 ), mOutputSampleRate( 0 ), mOutputNumChannels( 0 ), mMaxFramesPerRead( 4096 )
 	{}
 
-	size_t mSampleRate, mNumChannels, mMaxFramesPerRead;
+	//! Called at the end of setOutputFormat(). Subclasses must implement this to account for samplerate or channel conversions, if needed.
+	virtual void outputFormatUpdated() = 0;
+
+	size_t mSampleRate, mNumChannels, mOutputSampleRate, mOutputNumChannels, mMaxFramesPerRead;
 };
 
 class SourceFile : public Source {
   public:
 	//! Creates a new SourceFile from \a dataSource, without optional output \a sampleRate and \a numChannels.
-	//! Default \a sampleRate (0) means infer from the Context::master()'s sampleRate.  Default \a numChannels (0) means infer from the file.
-	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource, size_t sampleRate = 0, size_t numChannels = 0 );
-	virtual ~SourceFile() {}
 
-	virtual size_t	getFileSampleRate() const				{ return mFileSampleRate; }
-	virtual size_t	getFileNumChannels() const				{ return mFileNumChannels; }
+	//! Default \a sampleRate (0) means infer from the Context::master()'s sampleRate.  Default \a numChannels (0) means infer from the file.
+
+	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource );
+	virtual ~SourceFile() {}
 
 	virtual size_t	getNumFrames() const					{ return mNumFrames; }
 
 	//! Returns the length in seconds when played back at the specified samplerate.
-	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
-
-		virtual void seekToTime( double readPositionSeconds ) override	{ return seek( size_t( readPositionSeconds * (double)getFileSampleRate() ) ); }
+	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mOutputSampleRate; }
 
 	virtual BufferRef loadBuffer() = 0;
 
   protected:
-	SourceFile( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
-		: Source( sampleRate, numChannels ), mFileSampleRate( 0 ), mFileNumChannels( 0 ), mNumFrames( 0 )
+	SourceFile( const DataSourceRef &dataSource )
+		: Source(), mNumFrames( 0 )
 	{}
 
-	size_t mNumFrames, mFileSampleRate, mFileNumChannels;
+	size_t mNumFrames;
 };
 
 // TODO: support sample formats other than float
@@ -106,6 +113,6 @@ class TargetFile {
 };
 
 //! Convenience method for loading a SourceFile from \a dataSource. \see SourceFile::create()
-inline std::unique_ptr<SourceFile>	load( const DataSourceRef &dataSource, size_t sampleRate = 0, size_t numChannels = 0 )	{ return SourceFile::create( dataSource, sampleRate, numChannels ); }
+inline std::unique_ptr<SourceFile>	load( const DataSourceRef &dataSource )	{ return SourceFile::create( dataSource ); }
 
 } } // namespace cinder::audio2

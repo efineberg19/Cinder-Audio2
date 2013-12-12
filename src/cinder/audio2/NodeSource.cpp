@@ -192,7 +192,7 @@ FilePlayer::FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, c
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
-	setNumChannels( mSourceFile->getNumChannels() );
+	setNumChannels( mSourceFile->getOutputNumChannels() );
 	mNumFrames = mSourceFile->getNumFrames();
 }
 
@@ -263,8 +263,8 @@ void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 	if( mEnabled )
 		stop();
 
-	if( mNumChannels != sourceFile->getNumChannels() ) {
-		setNumChannels( sourceFile->getNumChannels() );
+	if( mNumChannels != sourceFile->getOutputNumChannels() ) {
+		setNumChannels( sourceFile->getOutputNumChannels() );
 		configureConnections();
 	}
 

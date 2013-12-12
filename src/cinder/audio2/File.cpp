@@ -22,7 +22,6 @@
 */
 
 #include "cinder/audio2/File.h"
-#include "cinder/audio2/Context.h"
 
 #include "cinder/Cinder.h"
 #include "cinder/Utilities.h"
@@ -37,20 +36,33 @@
 
 namespace cinder { namespace audio2 {
 
+void Source::setOutputFormat( size_t outputSampleRate, size_t outputNumChannels )
+{
+	bool updated = false;
+	if( mOutputSampleRate != outputSampleRate ) {
+		updated = true;
+		mOutputSampleRate = outputSampleRate;
+	}
+	if( outputNumChannels && mOutputNumChannels != outputNumChannels ) {
+		updated = true;
+		mOutputNumChannels = outputNumChannels;
+	}
+
+	if( updated )
+		outputFormatUpdated();
+}
+
 // TODO: these should be replaced with a generic registrar derived from the ImageIo stuff.
 
-std::unique_ptr<SourceFile> SourceFile::create( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
+std::unique_ptr<SourceFile> SourceFile::create( const DataSourceRef &dataSource )
 {
-	if( ! sampleRate )
-		sampleRate = Context::master()->getSampleRate();
-
 	if( getPathExtension( dataSource->getFilePathHint() ) == "ogg" )
-		return std::unique_ptr<SourceFile>( new SourceFileImplOggVorbis( dataSource, sampleRate, numChannels ) );
+		return std::unique_ptr<SourceFile>( new SourceFileImplOggVorbis( dataSource ) );
 
 #if defined( CINDER_COCOA )
-	return std::unique_ptr<SourceFile>( new cocoa::SourceFileImplCoreAudio( dataSource, sampleRate, numChannels ) );
+	return std::unique_ptr<SourceFile>( new cocoa::SourceFileImplCoreAudio( dataSource ) );
 #elif defined( CINDER_MSW )
-	return std::unique_ptr<SourceFile>( new msw::SourceFileMediaFoundation( dataSource, sampleRate, numChannels ) );
+	return std::unique_ptr<SourceFile>( new msw::SourceFileMediaFoundation( dataSource ) );
 #endif
 }
 

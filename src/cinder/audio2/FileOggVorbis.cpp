@@ -29,8 +29,8 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
-	: SourceFile( dataSource, sampleRate, numChannels )
+SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource )
+	: SourceFile( dataSource )
 {
 	int status = ov_fopen( dataSource->getFilePath().string().c_str(), &mOggVorbisFile );
 	if( status )
@@ -44,11 +44,11 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
 		app::console() << *comment++ << endl;
 
 	vorbis_info *info = ov_info( &mOggVorbisFile, -1 );
-    mNumChannels = info->channels;
-    mSampleRate = info->rate;
+    mOutputNumChannels = info->channels;
+    mOutputSampleRate = info->rate;
 
 	app::console() << "\tversion: " << info->version << endl;
-	app::console() << "\tBitstream is " << mNumChannels << " channel, " << mSampleRate << "Hz" << endl;
+	app::console() << "\tBitstream is " << mOutputNumChannels << " channel, " << mOutputSampleRate << "Hz" << endl;
 	app::console() << "\tEncoded by: " << ov_comment( &mOggVorbisFile, -1 )->vendor << endl;
 
 	ogg_int64_t totalFrames = ov_pcm_total( &mOggVorbisFile, -1 );
@@ -61,9 +61,14 @@ SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
 	ov_clear( &mOggVorbisFile );
 }
 
+void SourceFileImplOggVorbis::outputFormatUpdated()
+{
+	// TODO
+}
+
 size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 {
-	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
+	CI_ASSERT( buffer->getNumChannels() == mOutputNumChannels );
 
 	if( mReadPos >= mNumFrames )
 		return 0;
@@ -81,7 +86,7 @@ size_t SourceFileImplOggVorbis::read( Buffer *buffer )
             break;
 		}
 
-		for( int ch = 0; ch < mNumChannels; ch++ ) {
+		for( int ch = 0; ch < mOutputNumChannels; ch++ ) {
 			float *channel = outChannels[ch];
 			copy( channel, channel + outNumFrames, buffer->getChannel( ch ) + numFramesRead );
 		}
@@ -98,7 +103,7 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 	if( mReadPos != 0 )
 		seek( 0 );
 
-	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
+	BufferRef result( new Buffer( mNumFrames, mOutputNumChannels ) );
 
 	while( true ) {
         float **outChannels;
@@ -110,7 +115,7 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
             break;
 		}
         else {
-            for( int ch = 0; ch < mNumChannels; ch++ ) {
+            for( int ch = 0; ch < mOutputNumChannels; ch++ ) {
 				float *channel = outChannels[ch];
 				copy( channel, channel + outNumFrames, result->getChannel( ch ) + mReadPos );
             }

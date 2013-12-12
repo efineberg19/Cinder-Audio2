@@ -79,7 +79,8 @@ void FileNodeTestApp::setup()
 	mSourceFile = audio2::load( dataSource );
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 
-	LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
+	LOG_V( "context samplerate: " << ctx->getSampleRate() );
+	LOG_V( "output samplerate: " << mSourceFile->getOutputSampleRate() );
 
 //	setupBufferPlayer();
 	setupFilePlayer();
@@ -92,6 +93,7 @@ void FileNodeTestApp::setup()
 	ctx->printGraph();
 }
 
+// TODO: need to adjust output format
 void FileNodeTestApp::setupBufferPlayer()
 {
 	auto ctx = audio2::Context::master();
@@ -239,7 +241,7 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 
 	DataSourceRef dataSource = loadFile( filePath );
 	mSourceFile = audio2::load( dataSource );
-	 LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
+	 LOG_V( "output samplerate: " << mSourceFile->getOutputSampleRate() );
 
 	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
 	if( bufferPlayer ) {
@@ -253,7 +255,7 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 		filePlayer->setSourceFile( mSourceFile );
 	}
 
-	LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
+	LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getOutputNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
 	audio2::Context::master()->printGraph();
 
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
@@ -307,7 +309,7 @@ void FileNodeTestApp::testConverter()
 	size_t destSampleRate = 48000;
 	size_t destChannels = 1;
 	size_t sourceMaxFramesPerBlock = 512;
-	auto converter = audio2::dsp::Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceMaxFramesPerBlock );
+	auto converter = audio2::dsp::Converter::create( mSourceFile->getOutputSampleRate(), destSampleRate, mSourceFile->getOutputNumChannels(), destChannels, sourceMaxFramesPerBlock );
 
 	 LOG_V( "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceMaxFramesPerBlock() );
 	 LOG_V( "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << converter->getDestMaxFramesPerBlock() );
@@ -349,9 +351,9 @@ void FileNodeTestApp::testWrite()
 {
 	audio2::BufferRef audioBuffer = mSourceFile->loadBuffer();
 
-	audio2::TargetFileRef target = audio2::TargetFile::create( "out.wav", mSourceFile->getSampleRate(), mSourceFile->getNumChannels() );
+	audio2::TargetFileRef target = audio2::TargetFile::create( "out.wav", mSourceFile->getOutputSampleRate(), mSourceFile->getOutputNumChannels() );
 
-	 LOG_V( "writing " << audioBuffer->getNumFrames() << " frames at samplerate: " << mSourceFile->getSampleRate() << ", num channels: " << mSourceFile->getNumChannels() );
+	 LOG_V( "writing " << audioBuffer->getNumFrames() << " frames at samplerate: " << mSourceFile->getOutputSampleRate() << ", num channels: " << mSourceFile->getOutputNumChannels() );
 	target->write( audioBuffer.get() );
 	 LOG_V( "...complete." );
 
