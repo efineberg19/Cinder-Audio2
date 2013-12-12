@@ -9,7 +9,7 @@
 #include "cinder/audio2/dsp/Dsp.h"
 
 #include "../../common/AudioTestGui.h"
-#include "../../../samples/common/AudioPlotUtils.h"
+#include "../../../samples/common/AudioDrawUtils.h"
 #include "Resources.h"
 
 //#define SOUND_FILE "tone440.wav"

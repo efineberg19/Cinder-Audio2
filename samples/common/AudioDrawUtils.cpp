@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "AudioPlotUtils.h"
+#include "AudioDrawUtils.h"
 
 #include "cinder/audio2/Utilities.h"
 

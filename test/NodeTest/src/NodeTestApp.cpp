@@ -9,7 +9,7 @@
 #include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
-#include "../../../samples/common/AudioPlotUtils.h"
+#include "../../../samples/common/AudioDrawUtils.h"
 
 // TODO: implement cycle detection and add test for it that catches exception
 
