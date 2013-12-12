@@ -3,8 +3,7 @@
 #include "cinder/Timeline.h"
 #include "cinder/Timer.h"
 
-#include "cinder/audio2/audio.h"
-#include "cinder/audio2/Converter.h"
+#include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/NodeSource.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"
@@ -13,7 +12,7 @@
 #include "Resources.h"
 
 #include "../../common/AudioTestGui.h"
-#include "../../../samples/common/AudioPlotUtils.h"
+#include "../../../samples/common/AudioDrawUtils.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -42,20 +41,19 @@ class FileNodeTestApp : public AppNative {
 	void testConverter();
 	void testWrite();
 
-	Context* mContext;
-	SamplePlayerRef mSamplePlayer;
-	SourceFileRef mSourceFile;
-	WaveformPlot mWaveformPlot;
-	ScopeRef mScope;
-	GainRef mGain;
-	Pan2dRef mPan;
+	audio2::SamplePlayerRef		mSamplePlayer;
+	audio2::SourceFileRef		mSourceFile;
+	audio2::ScopeRef			mScope;
+	audio2::GainRef				mGain;
+	audio2::Pan2dRef			mPan;
 
-	vector<TestWidget *> mWidgets;
-	Button mEnableGraphButton, mStartPlaybackButton, mLoopButton;
-	HSlider					mGainSlider, mPanSlider;
+	WaveformPlot				mWaveformPlot;
+	vector<TestWidget *>		mWidgets;
+	Button						mEnableGraphButton, mStartPlaybackButton, mLoopButton;
+	HSlider						mGainSlider, mPanSlider;
 
-	Anim<float> mUnderrunFade, mOverrunFade;
-	Rectf mUnderrunRect, mOverrunRect;
+	Anim<float>					mUnderrunFade, mOverrunFade;
+	Rectf						mUnderrunRect, mOverrunRect;
 };
 
 void FileNodeTestApp::prepareSettings( Settings *settings )
@@ -67,63 +65,67 @@ void FileNodeTestApp::setup()
 {
 	mUnderrunFade = mOverrunFade = 0.0f;
 
-	mContext = Context::master();
+	auto ctx = audio2::Context::master();
 	
 //	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
 	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
-	mPan = mContext->makeNode( new Pan2d() );
+	mPan = ctx->makeNode( new audio2::Pan2d() );
 	mPan->enableMonoInputMode( false );
-	mGain = mContext->makeNode( new Gain() );
+	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	mSourceFile = SourceFile::create( dataSource, mContext->getSampleRate(), 0 );
+	mSourceFile = audio2::load( dataSource );
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 
-	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
+	LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
 
 //	setupBufferPlayer();
 	setupFilePlayer();
 
 	setupUI();
 
-	mContext->start();
+	ctx->start();
 	mEnableGraphButton.setEnabled( true );
 
-	mContext->printGraph();
+	ctx->printGraph();
 }
 
 void FileNodeTestApp::setupBufferPlayer()
 {
-	BufferRef audioBuffer = mSourceFile->loadBuffer();
+	auto ctx = audio2::Context::master();
+	audio2::BufferRef audioBuffer = mSourceFile->loadBuffer();
 
-	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
+	LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
 
 	mWaveformPlot.load( audioBuffer, getWindowBounds() );
 
-	mSamplePlayer = mContext->makeNode( new BufferPlayer( audioBuffer ) );
-	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mSamplePlayer = ctx->makeNode( new audio2::BufferPlayer( audioBuffer ) );
+	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
 }
 
 void FileNodeTestApp::setupFilePlayer()
 {
+	auto ctx = audio2::Context::master();
+
 //	mSourceFile->setMaxFramesPerRead( 8192 );
 
-	mSamplePlayer = mContext->makeNode( new FilePlayer( mSourceFile ) );
+	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile ) );
 //	mSamplePlayer = mContext->makeNode( new FilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
-	mScope = mContext->makeNode( new Scope( Scope::Format().windowSize( 1024 ) ) );
+	mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
 
 	// connect scope in sequence
-	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( mContext->getTarget() );
+//	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( ctx->getTarget() );
 
 	// or connect in series (it is added to the 'auto pulled list'
-	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mContext->getTarget() );
+	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
 	mPan->addConnection( mScope );
 
 	// this call blows the current pan -> target connection, so nothing gets to the speakers
 	// FIXME: what's going on here, static_assert failing in default constructor, at shut-down???
+	// - check again, I think its fixed
 //	mPan->connect( mScope );
 }
 
@@ -189,7 +191,7 @@ void FileNodeTestApp::processDrag( Vec2i pos )
 void FileNodeTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
+		audio2::Context::master()->setEnabled( ! audio2::Context::master()->isEnabled() );
 	else if( mStartPlaybackButton.hitTest( pos ) )
 		mSamplePlayer->start();
 	else if( mLoopButton.hitTest( pos ) )
@@ -209,7 +211,7 @@ void FileNodeTestApp::mouseDown( MouseEvent event )
 
 //	size_t step = mBuffer.getNumFrames() / getWindowWidth();
 //    size_t xLoc = event.getX() * step;
-//    LOG_V << "samples starting at " << xLoc << ":\n";
+//     LOG_V( "samples starting at " << xLoc << ":" );
 //    for( int i = 0; i < 100; i++ ) {
 //        if( mNumChannels == 1 ) {
 //            console() << mBuffer.getChannel( 0 )[xLoc + i] << ", ";
@@ -233,26 +235,26 @@ void FileNodeTestApp::keyDown( KeyEvent event )
 void FileNodeTestApp::fileDrop( FileDropEvent event )
 {
 	const fs::path &filePath = event.getFile( 0 );
-	LOG_V << "File dropped: " << filePath << endl;
+	 LOG_V( "File dropped: " << filePath );
 
 	DataSourceRef dataSource = loadFile( filePath );
-	mSourceFile = SourceFile::create( dataSource, 0, mContext->getSampleRate() );
-	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
+	mSourceFile = audio2::load( dataSource );
+	 LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
 
-	auto bufferPlayer = dynamic_pointer_cast<BufferPlayer>( mSamplePlayer );
+	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
 	if( bufferPlayer ) {
 		bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
 		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
 	}
 	else {
-		auto filePlayer = dynamic_pointer_cast<FilePlayer>( mSamplePlayer );
+		auto filePlayer = dynamic_pointer_cast<audio2::FilePlayer>( mSamplePlayer );
 		CI_ASSERT_MSG( filePlayer, "expected sample player to be either BufferPlayer or FilePlayer" );
 
 		filePlayer->setSourceFile( mSourceFile );
 	}
 
-	LOG_V << "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() << endl;
-	mContext->printGraph();
+	LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
+	audio2::Context::master()->printGraph();
 
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 }
@@ -262,7 +264,7 @@ void FileNodeTestApp::update()
 {
 	const float xrunFadeTime = 1.3f;
 
-	auto filePlayer = dynamic_pointer_cast<FilePlayer>( mSamplePlayer );
+	auto filePlayer = dynamic_pointer_cast<audio2::FilePlayer>( mSamplePlayer );
 	if( filePlayer ) {
 		if( filePlayer->getLastUnderrun() )
 			timeline().apply( &mUnderrunFade, 1.0f, 0.0f, xrunFadeTime );
@@ -300,20 +302,20 @@ void FileNodeTestApp::draw()
 
 void FileNodeTestApp::testConverter()
 {
-	BufferRef audioBuffer = mSourceFile->loadBuffer();
+	audio2::BufferRef audioBuffer = mSourceFile->loadBuffer();
 
 	size_t destSampleRate = 48000;
 	size_t destChannels = 1;
 	size_t sourceMaxFramesPerBlock = 512;
-	auto converter = Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceMaxFramesPerBlock );
+	auto converter = audio2::dsp::Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceMaxFramesPerBlock );
 
-	LOG_V << "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceMaxFramesPerBlock() << endl;
-	LOG_V << "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << converter->getDestMaxFramesPerBlock() << endl;
+	 LOG_V( "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceMaxFramesPerBlock() );
+	 LOG_V( "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << converter->getDestMaxFramesPerBlock() );
 
 	audio2::BufferDynamic sourceBuffer( converter->getSourceMaxFramesPerBlock(), converter->getSourceNumChannels() );
 	audio2::Buffer destBuffer( converter->getDestMaxFramesPerBlock(), converter->getDestNumChannels() );
 
-	TargetFileRef target = TargetFile::create( "resampled.wav", converter->getDestSampleRate(), converter->getDestNumChannels() );
+	audio2::TargetFileRef target = audio2::TargetFile::create( "resampled.wav", converter->getDestSampleRate(), converter->getDestNumChannels() );
 
 	size_t numFramesConverted = 0;
 
@@ -340,18 +342,18 @@ void FileNodeTestApp::testConverter()
 		target->write( &destBuffer, 0, result.second );
 	}
 
-	LOG_V << "seconds: " << timer.getSeconds() << endl;
+	 LOG_V( "seconds: " << timer.getSeconds() );
 }
 
 void FileNodeTestApp::testWrite()
 {
-	BufferRef audioBuffer = mSourceFile->loadBuffer();
+	audio2::BufferRef audioBuffer = mSourceFile->loadBuffer();
 
-	TargetFileRef target = TargetFile::create( "out.wav", mSourceFile->getSampleRate(), mSourceFile->getNumChannels() );
+	audio2::TargetFileRef target = audio2::TargetFile::create( "out.wav", mSourceFile->getSampleRate(), mSourceFile->getNumChannels() );
 
-	LOG_V << "writing " << audioBuffer->getNumFrames() << " frames at samplerate: " << mSourceFile->getSampleRate() << ", num channels: " << mSourceFile->getNumChannels() << endl;
+	 LOG_V( "writing " << audioBuffer->getNumFrames() << " frames at samplerate: " << mSourceFile->getSampleRate() << ", num channels: " << mSourceFile->getNumChannels() );
 	target->write( audioBuffer.get() );
-	LOG_V << "...complete." << endl;
+	 LOG_V( "...complete." );
 
 //	size_t writeCount = 0;
 //	while( numFramesConverted < audioBuffer->getNumFrames() ) {
