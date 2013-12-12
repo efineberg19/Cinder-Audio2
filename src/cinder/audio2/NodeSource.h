@@ -135,6 +135,7 @@ protected:
 class FilePlayer : public SamplePlayer {
 public:
 	FilePlayer( const Format &format = Format() );
+	//! \note \a sourceFile's samplerate is forced to match this Node's Context.
 	FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
 	virtual ~FilePlayer();
 
@@ -150,6 +151,7 @@ public:
 
 	bool isMultiThreaded() const	{ return mMultiThreaded; }
 
+	//! \note \a sourceFile's samplerate is forced to match this Node's Context.
 	void setSourceFile( const SourceFileRef &sourceFile );
 	const SourceFileRef& getSourceFile() const	{ return mSourceFile; }
 

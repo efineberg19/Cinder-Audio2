@@ -79,9 +79,6 @@ void FileNodeTestApp::setup()
 	mSourceFile = audio2::load( dataSource );
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 
-	LOG_V( "context samplerate: " << ctx->getSampleRate() );
-	LOG_V( "output samplerate: " << mSourceFile->getOutputSampleRate() );
-
 //	setupBufferPlayer();
 	setupFilePlayer();
 
@@ -90,6 +87,8 @@ void FileNodeTestApp::setup()
 	ctx->start();
 	mEnableGraphButton.setEnabled( true );
 
+	LOG_V( "context samplerate: " << ctx->getSampleRate() );
+	LOG_V( "output samplerate: " << mSourceFile->getOutputSampleRate() );
 	ctx->printGraph();
 }
 

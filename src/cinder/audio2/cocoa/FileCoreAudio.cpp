@@ -82,8 +82,8 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
     status = ::ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileDataFormat, &propSize, &fileFormat );
 	CI_ASSERT( status == noErr );
 
-    mNumChannels = fileFormat.mChannelsPerFrame;
-	mSampleRate = fileFormat.mSampleRate;
+	mSampleRate = mOutputSampleRate = fileFormat.mSampleRate;
+    mNumChannels = mOutputNumChannels = fileFormat.mChannelsPerFrame;
 
     SInt64 numFrames;
     propSize = sizeof( numFrames );
@@ -91,22 +91,19 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
 	CI_ASSERT( status == noErr );
 	mNumFrames = static_cast<size_t>( numFrames );
 
-	if( ! mOutputNumChannels )
-		mOutputNumChannels = mNumChannels;
-	if( ! mOutputSampleRate )
-		mOutputSampleRate = mSampleRate;
-
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mOutputSampleRate, mOutputNumChannels );
-	status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
-	CI_ASSERT( status == noErr );
-
-	// numFrames will be updated at read time
-	mBufferList = createNonInterleavedBufferListShallow( mOutputNumChannels );
+	outputFormatUpdated();
 }
 
 void SourceFileImplCoreAudio::outputFormatUpdated()
 {
-	// TODO: move channel num file and friends here
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mOutputSampleRate, mOutputNumChannels );
+	OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
+	CI_ASSERT( status == noErr );
+
+	// numFrames will be updated at read time
+	mBufferList = createNonInterleavedBufferListShallow( mOutputNumChannels );
+
+	LOG_V( "output samplerate: " << mOutputSampleRate << ", channels: " << mOutputNumChannels );
 }
 
 size_t SourceFileImplCoreAudio::read( Buffer *buffer )

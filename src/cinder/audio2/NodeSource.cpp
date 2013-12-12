@@ -202,6 +202,9 @@ FilePlayer::~FilePlayer()
 
 void FilePlayer::initialize()
 {
+	if( mSourceFile )
+		mSourceFile->setOutputFormat( getContext()->getSampleRate() );
+	
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
 	for( size_t i = 0; i < mNumChannels; i++ )
@@ -257,6 +260,10 @@ void FilePlayer::seek( size_t readPositionFrames )
 
 void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 {
+	// update source's samplerate to match context
+	// TODO: what if file is referenced from someone expecting the old samplerate?
+	sourceFile->setOutputFormat( getContext()->getSampleRate() );
+
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	bool enabled = mEnabled;
