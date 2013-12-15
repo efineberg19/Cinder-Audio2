@@ -192,7 +192,7 @@ FilePlayer::FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, c
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
-	setNumChannels( mSourceFile->getOutputNumChannels() );
+	setNumChannels( mSourceFile->getNumChannels() );
 	mNumFrames = mSourceFile->getNumFrames();
 }
 
@@ -261,8 +261,7 @@ void FilePlayer::seek( size_t readPositionFrames )
 void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 {
 	// update source's samplerate to match context
-	// TODO: what if file is referenced from someone expecting the old samplerate?
-	sourceFile->setOutputFormat( getContext()->getSampleRate() );
+	sourceFile->setOutputFormat( getContext()->getSampleRate(), sourceFile->getNumChannels() );
 
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
@@ -270,8 +269,8 @@ void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 	if( mEnabled )
 		stop();
 
-	if( mNumChannels != sourceFile->getOutputNumChannels() ) {
-		setNumChannels( sourceFile->getOutputNumChannels() );
+	if( mNumChannels != sourceFile->getNumChannels() ) {
+		setNumChannels( sourceFile->getNumChannels() );
 		configureConnections();
 	}
 

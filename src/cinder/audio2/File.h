@@ -36,37 +36,38 @@ typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 
 class Source {
   public:
-	//! Returns the true samplerate of the Source. \note Actual output samplerate may differ. \see getOutputSampleRate()
-	size_t	getSampleRate() const				{ return mSampleRate; }
-	//! Returns the true number of channels of the Source. \note Actual output num channels may differ. \see getOutputNumChannels()
-	size_t	getNumChannels() const				{ return mNumChannels; }
 	//! Returns the output samplerate (the samplerate of frames read).
-	size_t	getOutputSampleRate() const			{ return mOutputSampleRate; }
+	size_t	getSampleRate() const				{ return mSampleRate; }
 	//! Returns the output number of channels (the num channnels of frames read).
-	size_t	getOutputNumChannels() const		{ return mOutputNumChannels; }
+	size_t	getNumChannels() const				{ return mNumChannels; }
+	//! Returns the true samplerate of the Source. \note Actual output samplerate may differ. \see getSampleRate()
+	size_t	getNativeSampleRate() const			{ return mNativeSampleRate; }
+	//! Returns the true number of channels of the Source. \note Actual output num channels may differ. \see getNumChannels()
+	size_t	getNativeNumChannels() const		{ return mNativeNumChannels; }
 	//! Returns the maximum number of frames that can be read in one chunk.
 	size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
 	//! Sets the maximum number of frames that can be read in one chunk.
 	virtual void	setMaxFramesPerRead( size_t count )		{ mMaxFramesPerRead = count; }
 
 	//! Sets the output format options \a outputSampleRate and optionally \a outputNumChannels (default will use the Source's num channels),
-	//	allowing output samplerate and channel count to be different from the actual Source.
+	//!	allowing output samplerate and channel count to be different from the actual Source.
+	//! \note All objects referencing this Source will be effected, so users should create a copy of the Source for each context or situation where it needs to control the format.
 	void setOutputFormat( size_t outputSampleRate, size_t outputNumChannels = 0 );
 	//! Loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
 	virtual size_t read( Buffer *buffer ) = 0;
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;
 	//! Seek to read position \a readPositionSeconds
-	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getSampleRate() ) ); }
+	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getNativeSampleRate() ) ); }
 
   protected:
-	Source() : mSampleRate( 0 ), mNumChannels( 0 ), mOutputSampleRate( 0 ), mOutputNumChannels( 0 ), mMaxFramesPerRead( 4096 )
+	Source() : mNativeSampleRate( 0 ), mNativeNumChannels( 0 ), mSampleRate( 0 ), mNumChannels( 0 ), mMaxFramesPerRead( 4096 )
 	{}
 
 	//! Called at the end of setOutputFormat(). Subclasses must implement this to account for samplerate or channel conversions, if needed.
 	virtual void outputFormatUpdated() = 0;
 
-	size_t mSampleRate, mNumChannels, mOutputSampleRate, mOutputNumChannels, mMaxFramesPerRead;
+	size_t mNativeSampleRate, mNativeNumChannels, mSampleRate, mNumChannels, mMaxFramesPerRead;
 };
 
 class SourceFile : public Source {
@@ -81,7 +82,7 @@ class SourceFile : public Source {
 	virtual size_t	getNumFrames() const					{ return mNumFrames; }
 
 	//! Returns the length in seconds when played back at the specified samplerate.
-	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mOutputSampleRate; }
+	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
 
 	virtual BufferRef loadBuffer() = 0;
 

@@ -82,8 +82,8 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
     status = ::ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileDataFormat, &propSize, &fileFormat );
 	CI_ASSERT( status == noErr );
 
-	mSampleRate = mOutputSampleRate = fileFormat.mSampleRate;
-    mNumChannels = mOutputNumChannels = fileFormat.mChannelsPerFrame;
+	mNativeSampleRate = mSampleRate = fileFormat.mSampleRate;
+    mNativeNumChannels = mNumChannels = fileFormat.mChannelsPerFrame;
 
     SInt64 numFrames;
     propSize = sizeof( numFrames );
@@ -96,26 +96,26 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
 
 void SourceFileImplCoreAudio::outputFormatUpdated()
 {
-	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mOutputSampleRate, mOutputNumChannels );
+	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mSampleRate, mNumChannels );
 	OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
 	CI_ASSERT( status == noErr );
 
 	// numFrames will be updated at read time
-	mBufferList = createNonInterleavedBufferListShallow( mOutputNumChannels );
+	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 
-	LOG_V( "output samplerate: " << mOutputSampleRate << ", channels: " << mOutputNumChannels );
+	LOG_V( "output samplerate: " << mSampleRate << ", channels: " << mNumChannels );
 }
 
 size_t SourceFileImplCoreAudio::read( Buffer *buffer )
 {
-	CI_ASSERT( buffer->getNumChannels() == mOutputNumChannels );
+	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
 
 	if( mReadPos >= mNumFrames )
 		return 0;
 
 	UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
 
-	for( int i = 0; i < mOutputNumChannels; i++ ) {
+	for( int i = 0; i < mNumChannels; i++ ) {
 		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
 		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
 	}
@@ -132,12 +132,12 @@ BufferRef SourceFileImplCoreAudio::loadBuffer()
 	if( mReadPos != 0 )
 		seek( 0 );
 	
-	BufferRef result( new Buffer( mNumFrames, mOutputNumChannels ) );
+	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
 	while( mReadPos < mNumFrames ) {
 		UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, mMaxFramesPerRead );
 
-        for( int ch = 0; ch < mOutputNumChannels; ch++ ) {
+        for( int ch = 0; ch < mNumChannels; ch++ ) {
             mBufferList->mBuffers[ch].mDataByteSize = frameCount * sizeof( float );
             mBufferList->mBuffers[ch].mData = &result->getChannel( ch )[mReadPos];
         }

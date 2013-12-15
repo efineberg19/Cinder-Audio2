@@ -39,13 +39,13 @@ namespace cinder { namespace audio2 {
 void Source::setOutputFormat( size_t outputSampleRate, size_t outputNumChannels )
 {
 	bool updated = false;
-	if( mOutputSampleRate != outputSampleRate ) {
+	if( mSampleRate != outputSampleRate ) {
 		updated = true;
-		mOutputSampleRate = outputSampleRate;
+		mSampleRate = outputSampleRate;
 	}
-	if( outputNumChannels && mOutputNumChannels != outputNumChannels ) {
+	if( outputNumChannels && mNumChannels != outputNumChannels ) {
 		updated = true;
-		mOutputNumChannels = outputNumChannels;
+		mNumChannels = outputNumChannels;
 	}
 
 	if( updated )

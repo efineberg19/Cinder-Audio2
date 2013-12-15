@@ -176,8 +176,8 @@ public:
 	
 	std::atomic<uint64_t>						mLastUnderrun, mLastOverrun;
 
-	std::mutex				mIoMutex;
-	std::condition_variable	mNeedMoreSamplesCond;
+	std::mutex									mIoMutex;
+	std::condition_variable						mNeedMoreSamplesCond;
 };
 
 class CallbackProcessor : public NodeSource {
