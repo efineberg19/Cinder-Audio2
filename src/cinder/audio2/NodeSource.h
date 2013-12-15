@@ -60,7 +60,7 @@ class NodeSource : public Node {
 };
 
 class LineIn : public NodeSource {
-public:
+  public:
 	virtual ~LineIn();
 
 	std::string virtual getName() override			{ return "LineIn"; }
@@ -72,7 +72,7 @@ public:
 	//! Returns the frame of the last buffer overrun or 0 if none since the last time this method was called.
 	virtual uint64_t getLastOverrun() = 0;
 
-protected:
+  protected:
 	LineIn( const DeviceRef &device, const Format &format );
 
 	DeviceRef	mDevice;
@@ -83,7 +83,7 @@ protected:
 //! \see BufferPlayer
 //! \see FilePlayer
 class SamplePlayer : public NodeSource {
-public:
+  public:
 	std::string virtual getName() override			{ return "SamplePlayer"; }
 
 	//! Seek the read position to \a readPositionFrames
@@ -100,7 +100,7 @@ public:
 
 	virtual size_t getNumFrames() const	{ return mNumFrames; }
 
-protected:
+  protected:
 	SamplePlayer( const Format &format = Format() ) : NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
 	virtual ~SamplePlayer() {}
 
@@ -111,7 +111,7 @@ protected:
 
 //! Buffer-based sample player.
 class BufferPlayer : public SamplePlayer {
-public:
+  public:
 	//! Constructs a BufferPlayer without a buffer, with the assumption one will be set later. \note Format::channels() can still be used to allocate the expected channel count ahead of time.
 	BufferPlayer( const Format &format = Format() );
 	//! Constructs a BufferPlayer \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
@@ -128,12 +128,12 @@ public:
 	void setBuffer( const BufferRef &buffer );
 	const BufferRef& getBuffer() const	{ return mBuffer; }
 
-protected:
+  protected:
 	BufferRef mBuffer;
 };
 
 class FilePlayer : public SamplePlayer {
-public:
+  public:
 	FilePlayer( const Format &format = Format() );
 	//! \note \a sourceFile's samplerate is forced to match this Node's Context.
 	FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded = true, const Format &format = Node::Format() );
@@ -222,7 +222,7 @@ class GenNoise : public Gen {
 };
 
 class GenPhasor : public Gen {
-public:
+  public:
 	GenPhasor( const Format &format = Format() ) : Gen( format )
 	{}
 
