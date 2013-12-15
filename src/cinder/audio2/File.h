@@ -55,10 +55,6 @@ class Source {
 	void setOutputFormat( size_t outputSampleRate, size_t outputNumChannels = 0 );
 	//! Loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
 	virtual size_t read( Buffer *buffer ) = 0;
-	//! Seek the read position to \a readPositionFrames
-	virtual void seek( size_t readPositionFrames ) = 0;
-	//! Seek to read position \a readPositionSeconds
-	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getNativeSampleRate() ) ); }
 
   protected:
 	Source() : mNativeSampleRate( 0 ), mNativeNumChannels( 0 ), mSampleRate( 0 ), mNumChannels( 0 ), mMaxFramesPerRead( 4096 )
@@ -85,6 +81,10 @@ class SourceFile : public Source {
 	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
 
 	virtual BufferRef loadBuffer() = 0;
+	//! Seek the read position to \a readPositionFrames
+	virtual void seek( size_t readPositionFrames ) = 0;
+	//! Seek to read position \a readPositionSeconds
+	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getNativeSampleRate() ) ); }
 
   protected:
 	SourceFile( const DataSourceRef &dataSource )
