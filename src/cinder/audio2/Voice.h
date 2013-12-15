@@ -37,15 +37,31 @@ typedef std::shared_ptr<class VoiceSamplePlayer> VoiceSamplePlayerRef;
 class Voice {
   public:
 
+	struct Options {
+		Options() : mChannels( 0 ), mMaxFramesForBufferPlayback( 96000 ) {}
+
+		Options& channels( size_t ch )							{ mChannels = ch; return *this; }
+		Options& maxFramesForBufferPlayback( size_t frames )	{ mMaxFramesForBufferPlayback = frames; return *this; }
+
+		size_t			getChannels() const						{ return mChannels; }
+		size_t			getMaxFramesForBufferPlayback() const	{ return mMaxFramesForBufferPlayback; }
+
+	protected:
+		size_t			mChannels, mMaxFramesForBufferPlayback;
+	};
+
 	//! Creates a Voice that manages sample playback of an audio file pointed at with \a sourceFile.
-	static VoiceSamplePlayerRef create( const SourceFileRef &sourceFile );
+	static VoiceSamplePlayerRef create( const SourceFileRef &sourceFile, const Options &options = Options() );
 	//! Creates a Voice that continously calls \a callbackFn to process a Buffer of samples.
-	static VoiceRef create( CallbackProcessorFn callbackFn );
+	static VoiceRef create( CallbackProcessorFn callbackFn, const Options &options = Options() );
 
 	virtual NodeRef getNode() const = 0;
 
 	void setVolume( float volume );
 	void setPan( float pos );
+
+	float getVolume() const;
+	float getPan() const;
 
   protected:
 	Voice() : mBusId( 0 ) {}
@@ -58,11 +74,11 @@ class Voice {
 class VoiceSamplePlayer : public Voice {
   public:
 
-	NodeRef getNode() const override				{ return mNode; }
+	NodeRef getNode() const override			{ return mNode; }
 	SamplePlayerRef getSamplePlayer() const		{ return mNode; }
 
   protected:
-	VoiceSamplePlayer( const SourceFileRef &sourceFile );
+	VoiceSamplePlayer( const SourceFileRef &sourceFile, const Options &options );
 	SamplePlayerRef mNode;
 
 	friend class Voice;
@@ -73,13 +89,14 @@ class VoiceCallbackProcessor : public Voice {
 	NodeRef getNode() const override				{ return mNode; }
 
   protected:
-	VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn );
+	VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn, const Options &options );
 
 	CallbackProcessorRef mNode;
 	friend class Voice;
 };
 
 // TODO: remove this in favor of Voice->play() ?
+//	- or even Voice->start() / Voice->stop()
 void play( const VoiceRef &voice );
 
 } } // namespace cinder::audio2

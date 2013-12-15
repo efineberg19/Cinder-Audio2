@@ -52,7 +52,7 @@ public:
 
 	void	addVoice( const VoiceRef &source );
 
-	BufferRef loadSourceFile( const SourceFileRef &sourceFile );
+	BufferRef loadBuffer( const SourceFileRef &sourceFile, size_t numChannels );
 
 private:
 	MixerImpl();
@@ -64,7 +64,7 @@ private:
 	};
 
 	std::vector<Bus> mBusses;
-	std::map<SourceFileRef, BufferRef> mBufferCache;
+	std::map<std::pair<SourceFileRef, size_t>, BufferRef> mBufferCache;		// key is [shared_ptr, num channels]
 
 	GainRef mMasterGain;
 };
@@ -103,14 +103,15 @@ void MixerImpl::addVoice( const VoiceRef &source )
 	source->getNode()->connect( bus.mGain )->connect( bus.mPan )->connect( mMasterGain );
 }
 
-BufferRef MixerImpl::loadSourceFile( const SourceFileRef &sourceFile )
+BufferRef MixerImpl::loadBuffer( const SourceFileRef &sourceFile, size_t numChannels )
 {
-	auto cached = mBufferCache.find( sourceFile );
+	auto key = make_pair( sourceFile, numChannels );
+	auto cached = mBufferCache.find( key );
 	if( cached != mBufferCache.end() )
 		return cached->second;
 	else {
 		BufferRef result = sourceFile->loadBuffer();
-		mBufferCache.insert( make_pair( sourceFile, result ) );
+		mBufferCache.insert( make_pair( key, result ) );
 		return result;
 	}
 }
@@ -145,20 +146,30 @@ float MixerImpl::getBusPan( size_t busId )
 // MARK: - Voice
 // ----------------------------------------------------------------------------------------------------
 
-VoiceRef Voice::create( CallbackProcessorFn callbackFn )
+VoiceRef Voice::create( CallbackProcessorFn callbackFn, const Options &options )
 {
-	VoiceRef result( new VoiceCallbackProcessor( callbackFn ) );
+	VoiceRef result( new VoiceCallbackProcessor( callbackFn, options ) );
 	MixerImpl::get()->addVoice( result );
 
 	return result;
 }
 
-VoiceSamplePlayerRef Voice::create( const SourceFileRef &sourceFile )
+VoiceSamplePlayerRef Voice::create( const SourceFileRef &sourceFile, const Options &options )
 {
-	VoiceSamplePlayerRef result( new VoiceSamplePlayer( sourceFile ) );
+	VoiceSamplePlayerRef result( new VoiceSamplePlayer( sourceFile, options ) );
 	MixerImpl::get()->addVoice( result );
 
 	return result;
+}
+
+float Voice::getVolume() const
+{
+	return MixerImpl::get()->getBusVolume( mBusId );
+}
+
+float Voice::getPan() const
+{
+	return MixerImpl::get()->getBusPan( mBusId );
 }
 
 void Voice::setVolume( float volume )
@@ -180,13 +191,12 @@ void play( const VoiceRef &source )
 // MARK: - VoiceSamplePlayer
 // ----------------------------------------------------------------------------------------------------
 
-VoiceSamplePlayer::VoiceSamplePlayer( const SourceFileRef &sourceFile )
+VoiceSamplePlayer::VoiceSamplePlayer( const SourceFileRef &sourceFile, const Options &options )
 {
-	// maximum samples for default buffer playback is 1 second stereo at 48k samplerate
-	const size_t kMaxFramesForBufferPlayback = 48000 * 2;
+	sourceFile->setOutputFormat( audio2::Context::master()->getSampleRate(), options.getChannels() );
 
-	if( sourceFile->getNumFrames() < kMaxFramesForBufferPlayback ) {
-		BufferRef buffer = MixerImpl::get()->loadSourceFile( sourceFile ); // TODO: cache buffer
+	if( sourceFile->getNumFrames() <= options.getMaxFramesForBufferPlayback() ) {
+		BufferRef buffer = MixerImpl::get()->loadBuffer( sourceFile, options.getChannels() );
 		mNode = Context::master()->makeNode( new BufferPlayer( buffer ) );
 	} else
 		mNode = Context::master()->makeNode( new FilePlayer( sourceFile ) );
@@ -196,12 +206,9 @@ VoiceSamplePlayer::VoiceSamplePlayer( const SourceFileRef &sourceFile )
 // MARK: - VoiceCallbackProcessor
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: how best to specify channel count?
-VoiceCallbackProcessor::VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn )
+VoiceCallbackProcessor::VoiceCallbackProcessor( const CallbackProcessorFn &callbackFn, const Options &options )
 {
-	mNode = Context::master()->makeNode( new CallbackProcessor( callbackFn ) );
-//	mNode = Context::master()->makeNode( new CallbackProcessor( callbackFn, Node::Format().channels( 2 ) ) );
+	mNode = Context::master()->makeNode( new CallbackProcessor( callbackFn, Node::Format().channels( options.getChannels() ) ) );
 }
-
 
 } } // namespace cinder::audio2
