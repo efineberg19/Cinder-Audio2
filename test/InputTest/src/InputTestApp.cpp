@@ -3,7 +3,7 @@
 #include "cinder/Timeline.h"
 
 #include "cinder/audio2/Context.h"
-#include "cinder/audio2/audio.h"
+
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"
 #include "cinder/audio2/dsp/Dsp.h"

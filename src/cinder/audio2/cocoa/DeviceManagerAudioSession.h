@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "cinder/audio2/audio.h"
+
 #include "cinder/audio2/Device.h"
 
 #if defined( __OBJC__ )

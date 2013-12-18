@@ -25,7 +25,7 @@
 #include "cinder/audio2/msw/LineInWasapi.h"
 #include "cinder/audio2/msw/ContextXAudio.h"
 #include "cinder/audio2/msw/util.h"
-#include "cinder/audio2/audio.h"
+
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 

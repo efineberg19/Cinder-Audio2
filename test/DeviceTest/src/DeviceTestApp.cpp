@@ -2,7 +2,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Timeline.h"
 
-#include "cinder/audio2/audio.h"
+
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"

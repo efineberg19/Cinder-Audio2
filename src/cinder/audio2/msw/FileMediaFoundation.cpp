@@ -22,7 +22,7 @@
 */
 
 #include "cinder/audio2/msw/FileMediaFoundation.h"
-#include "cinder/audio2/audio.h"
+
 #include "cinder/audio2/Debug.h"
 
 #include <mfidl.h>
