@@ -96,7 +96,7 @@ pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer,
 	}
 }
 
-std::pair<size_t,size_t> ConverterImplCoreAudio::convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t,size_t> ConverterImplCoreAudio::convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	mSourceBuffer = sourceBuffer;
 	mNumSourceBufferFramesUsed = 0;

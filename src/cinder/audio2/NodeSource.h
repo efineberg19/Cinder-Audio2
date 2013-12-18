@@ -78,10 +78,9 @@ class LineIn : public NodeSource {
 	DeviceRef	mDevice;
 };
 
-//! \brief Base Node class for sampled audio playback
+//! \brief Base Node class for sampled audio playback. Can do operations like seek and loop.
 //! \note SamplePlayer itself doesn't process any audio, but contains the common interface for Node's that do.
-//! \see BufferPlayer
-//! \see FilePlayer
+//! \see BufferPlayer, FilePlayer
 class SamplePlayer : public NodeSource {
   public:
 	std::string virtual getName() override			{ return "SamplePlayer"; }
@@ -109,7 +108,7 @@ class SamplePlayer : public NodeSource {
 	std::atomic<bool>	mLoop;
 };
 
-//! Buffer-based sample player.
+//! Buffer-based sample player. In other words, all samples are loaded into memory before playback.
 class BufferPlayer : public SamplePlayer {
   public:
 	//! Constructs a BufferPlayer without a buffer, with the assumption one will be set later. \note Format::channels() can still be used to allocate the expected channel count ahead of time.

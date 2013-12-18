@@ -36,6 +36,7 @@ typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 
 class Source {
   public:
+	virtual ~Source();
 	//! Returns the output samplerate (the samplerate of frames read).
 	size_t	getSampleRate() const				{ return mSampleRate; }
 	//! Returns the output number of channels (the num channnels of frames read).
@@ -57,8 +58,7 @@ class Source {
 	virtual size_t read( Buffer *buffer ) = 0;
 
   protected:
-	Source() : mNativeSampleRate( 0 ), mNativeNumChannels( 0 ), mSampleRate( 0 ), mNumChannels( 0 ), mMaxFramesPerRead( 4096 )
-	{}
+	Source();
 
 	//! Called at the end of setOutputFormat(). Subclasses must implement this to account for samplerate or channel conversions, if needed.
 	virtual void outputFormatUpdated() = 0;
@@ -68,12 +68,9 @@ class Source {
 
 class SourceFile : public Source {
   public:
-	//! Creates a new SourceFile from \a dataSource, without optional output \a sampleRate and \a numChannels.
-
-	//! Default \a sampleRate (0) means infer from the Context::master()'s sampleRate.  Default \a numChannels (0) means infer from the file.
-
+	//! Creates a new SourceFile from \a dataSource, setting the samplerate and num channels to match the native values.
 	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource );
-	virtual ~SourceFile() {}
+	virtual ~SourceFile()	{}
 
 	virtual size_t	getNumFrames() const					{ return mNumFrames; }
 
@@ -87,8 +84,7 @@ class SourceFile : public Source {
 	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getNativeSampleRate() ) ); }
 
   protected:
-	SourceFile( const DataSourceRef &dataSource )
-		: Source(), mNumFrames( 0 )
+	SourceFile( const DataSourceRef &dataSource ) : Source(), mNumFrames( 0 )
 	{}
 
 	size_t mNumFrames;

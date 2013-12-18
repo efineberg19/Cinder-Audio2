@@ -82,8 +82,8 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
     status = ::ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileDataFormat, &propSize, &fileFormat );
 	CI_ASSERT( status == noErr );
 
-	mNativeSampleRate = mSampleRate = fileFormat.mSampleRate;
-    mNativeNumChannels = mNumChannels = fileFormat.mChannelsPerFrame;
+	mSampleRate = mNativeSampleRate = fileFormat.mSampleRate;
+    mNumChannels = mNativeNumChannels = fileFormat.mChannelsPerFrame;
 
     SInt64 numFrames;
     propSize = sizeof( numFrames );

@@ -27,14 +27,23 @@
 #include "cinder/Utilities.h"
 
 #if defined( CINDER_COCOA )
-#include "cinder/audio2/cocoa/FileCoreAudio.h"
+	#include "cinder/audio2/cocoa/FileCoreAudio.h"
 #elif defined( CINDER_MSW )
-#include "cinder/audio2/msw/FileMediaFoundation.h"
+	#include "cinder/audio2/msw/FileMediaFoundation.h"
 #endif
 
 #include "cinder/audio2/FileOggVorbis.h"
 
 namespace cinder { namespace audio2 {
+
+Source::~Source()
+{
+}
+
+Source::Source()
+	: mNativeSampleRate( 0 ), mNativeNumChannels( 0 ), mSampleRate( 0 ), mNumChannels( 0 ), mMaxFramesPerRead( 4096 )
+{
+}
 
 void Source::setOutputFormat( size_t outputSampleRate, size_t outputNumChannels )
 {

@@ -22,6 +22,7 @@
  */
 
 #include "cinder/audio2/FileOggVorbis.h"
+#include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Exception.h"
 #include "cinder/audio2/Debug.h"
 
@@ -30,7 +31,7 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource )
-	: SourceFile( dataSource )
+	: SourceFile( dataSource ), mReadPos( 0 )
 {
 	int status = ov_fopen( dataSource->getFilePath().string().c_str(), &mOggVorbisFile );
 	if( status )
@@ -39,20 +40,21 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
 
 	LOG_V( "open success, ogg file info: " );
 	// print comments plus a few lines about the bitstream we're decoding
+	// TODO: move to public method, or provide a getMeta() method?
 	char **comment = ov_comment( &mOggVorbisFile, -1 )->user_comments;
 	while( *comment )
 		app::console() << *comment++ << endl;
 
 	vorbis_info *info = ov_info( &mOggVorbisFile, -1 );
-    mNumChannels = info->channels;
-    mSampleRate = info->rate;
+    mSampleRate = mNativeSampleRate = info->rate;
+    mNumChannels = mNativeNumChannels = info->channels;
 
 	app::console() << "\tversion: " << info->version << endl;
 	app::console() << "\tBitstream is " << mNumChannels << " channel, " << mSampleRate << "Hz" << endl;
 	app::console() << "\tEncoded by: " << ov_comment( &mOggVorbisFile, -1 )->vendor << endl;
 
 	ogg_int64_t totalFrames = ov_pcm_total( &mOggVorbisFile, -1 );
-    mNumFrames = static_cast<uint32_t>( totalFrames );
+    mNumFrames = mNativeNumFrames = static_cast<uint32_t>( totalFrames );
 	app::console() << "\tframes: " << mNumFrames << endl;
 }
 
@@ -63,7 +65,14 @@ SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
 
 void SourceFileImplOggVorbis::outputFormatUpdated()
 {
-	// TODO
+	if( mSampleRate != mNativeSampleRate || mNumChannels != mNativeNumChannels ) {
+		mConverter = audio2::dsp::Converter::create( mNativeSampleRate, mSampleRate, mNativeNumChannels, mNumChannels, mMaxFramesPerRead );
+		mNumFrames = std::ceil( (float)mNativeNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
+
+		LOG_V( "created conveter for samplerate: " << mNativeSampleRate << " -> " << mSampleRate << ", channels: " << mNativeNumChannels << " -> " << mNumChannels << ", output num frames: " << mNumFrames );
+	}
+	else
+		mConverter.reset();
 }
 
 size_t SourceFileImplOggVorbis::read( Buffer *buffer )
@@ -103,6 +112,14 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 	if( mReadPos != 0 )
 		seek( 0 );
 
+	if( mConverter )
+		return loadBufferImplConvert();
+	else
+		return loadBufferImpl();
+}
+
+BufferRef SourceFileImplOggVorbis::loadBufferImpl()
+{
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
 	while( true ) {
@@ -126,10 +143,51 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 	return result;
 }
 
+// TODO: need BufferView's in order to reduce number of copies
+BufferRef SourceFileImplOggVorbis::loadBufferImplConvert()
+{
+	BufferDynamic sourceBuffer( mMaxFramesPerRead, mNativeNumChannels );
+	BufferRef destBuffer( new Buffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels ) );
+	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
+
+	while( true ) {
+        float **outChannels;
+		int section;
+        long outNumFrames = ov_read_float( &mOggVorbisFile, &outChannels, (int)mMaxFramesPerRead, &section );
+        if( outNumFrames <= 0 ) {
+			if( outNumFrames < 0 )
+				LOG_E( "stream error." );
+            break;
+		}
+        else {
+            for( int ch = 0; ch < mNumChannels; ch++ ) {
+				float *channel = outChannels[ch];
+				copy( channel, channel + outNumFrames, sourceBuffer.getChannel( ch ) );
+            }
+
+			if( outNumFrames != sourceBuffer.getNumFrames() )
+				sourceBuffer.setNumFrames( outNumFrames );
+			
+			pair<size_t, size_t> count = mConverter->convert( &sourceBuffer, destBuffer.get() );
+
+            for( int ch = 0; ch < mNumChannels; ch++ ) {
+				float *channel = destBuffer->getChannel( ch );
+				copy( channel, channel + count.second, result->getChannel( ch ) + mReadPos );
+            }
+
+            mReadPos += count.second;
+		}
+	}
+
+	return result;
+}
+
 void SourceFileImplOggVorbis::seek( size_t readPositionFrames )
 {
 	if( readPositionFrames >= mNumFrames )
 		return;
+
+	// TODO: convert to native read pos if necessary
 
 	int status = ov_pcm_seek( &mOggVorbisFile, (ogg_int64_t)readPositionFrames );
 	CI_ASSERT( ! status );

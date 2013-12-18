@@ -34,6 +34,10 @@
 
 namespace cinder { namespace audio2 {
 
+namespace dsp {
+	class Converter;
+}
+
 class SourceFileImplOggVorbis : public SourceFile {
   public:
 	SourceFileImplOggVorbis( const DataSourceRef &dataSource );
@@ -45,8 +49,13 @@ class SourceFileImplOggVorbis : public SourceFile {
 	void		seek( size_t readPositionFrames )	override;
 
   private:
+	BufferRef	loadBufferImpl();
+	BufferRef	loadBufferImplConvert();
+
 	::OggVorbis_File	mOggVorbisFile;
-	size_t				mReadPos;
+	size_t				mReadPos, mNativeNumFrames;
+
+	std::unique_ptr<dsp::Converter>		mConverter;
 };
 
 //class TargetFileImplOggVorbis : public TargetFile {

@@ -150,8 +150,8 @@ public:
 
 };
 
-//! BufferDynamicT is a resizable, reshapeable BufferT. It's internally alloceted buffer will grow as needed,
-//!  but will not shrink unless shrinkToFit() is called.
+//! BufferDynamicT is a resizable, reshapeable BufferT. The internally alloceted buffer will grow as needed,
+//! but it will not shrink unless shrinkToFit() is called.
 //! TODO: enable move operator to convert BufferT to this
 template <typename T>
 class BufferDynamicT : public BufferT<T> {

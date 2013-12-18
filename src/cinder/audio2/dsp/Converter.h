@@ -31,7 +31,6 @@ namespace cinder { namespace audio2 { namespace dsp {
 
 class Converter {
 public:
-
 	//! If \a destSampleRate is 0, it is set to match \a sourceSampleRate. If \a destNumChannels is 0, it is set to match \a sourceNumChannels.
 	static std::unique_ptr<Converter> create( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
 
@@ -39,6 +38,8 @@ public:
 
 	//! Returns a \a std::pair<num source frames used, num dest frames written>
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
+
+	// TODO: consider moving these static methods to standalone functions in the dsp namespace
 
 	//! Mixes \a sourceBuffer to \a destBuffer's layout, replacing its content. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
 	static void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ mixBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
@@ -50,12 +51,12 @@ public:
 	//! Sums \a numFrames frames of \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary.
 	static void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
 
-	size_t getSourceSampleRate() const			{ return mSourceSampleRate; }
-	size_t getDestSampleRate() const			{ return mDestSampleRate; }
-	size_t getSourceNumChannels() const			{ return mSourceNumChannels; }
-	size_t getDestNumChannels() const			{ return mDestNumChannels; }
-	size_t getSourceMaxFramesPerBlock() const	{ return mSourceMaxFramesPerBlock; }
-	size_t getDestMaxFramesPerBlock() const		{ return mDestMaxFramesPerBlock; }
+	size_t getSourceSampleRate()		const		{ return mSourceSampleRate; }
+	size_t getDestSampleRate()			const		{ return mDestSampleRate; }
+	size_t getSourceNumChannels()		const		{ return mSourceNumChannels; }
+	size_t getDestNumChannels()			const		{ return mDestNumChannels; }
+	size_t getSourceMaxFramesPerBlock()	const		{ return mSourceMaxFramesPerBlock; }
+	size_t getDestMaxFramesPerBlock()	const		{ return mDestMaxFramesPerBlock; }
 
 protected:
 	Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
