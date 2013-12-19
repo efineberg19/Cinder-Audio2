@@ -49,6 +49,9 @@ class SourceFileImplOggVorbis : public SourceFile {
 	void		seek( size_t readPositionFrames )	override;
 
   private:
+	size_t readImpl( Buffer *buffer );
+	size_t readImplConvert( Buffer *buffer );
+
 	BufferRef	loadBufferImpl();
 	BufferRef	loadBufferImplConvert();
 

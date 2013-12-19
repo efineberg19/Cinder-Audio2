@@ -78,11 +78,29 @@ void SourceFileImplOggVorbis::outputFormatUpdated()
 size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
+	CI_ASSERT( mReadPos < mNumFrames ); // FIXME: this failed while seeking and no conversion, synchronious I/O
 
-	if( mReadPos >= mNumFrames )
-		return 0;
+	if( mConverter )
+		return readImplConvert( buffer );
 
-	int numFramesToRead = (int)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
+	return readImpl( buffer );
+}
+
+BufferRef SourceFileImplOggVorbis::loadBuffer()
+{
+	if( mReadPos != 0 )
+		seek( 0 );
+
+	if( mConverter )
+		return loadBufferImplConvert();
+
+	return loadBufferImpl();
+}
+
+size_t SourceFileImplOggVorbis::readImpl( Buffer *buffer )
+{
+	size_t framesLeft = mNumFrames - mReadPos;
+	int numFramesToRead = (int)std::min( framesLeft, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
 	int numFramesRead = 0;
 
 	while( numFramesRead < numFramesToRead ) {
@@ -101,21 +119,51 @@ size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 		}
 
 		numFramesRead += outNumFrames;
-		mReadPos += outNumFrames;
 	}
 
+	mReadPos += numFramesRead;
 	return numFramesRead;
 }
 
-BufferRef SourceFileImplOggVorbis::loadBuffer()
+size_t SourceFileImplOggVorbis::readImplConvert( Buffer *buffer )
 {
-	if( mReadPos != 0 )
-		seek( 0 );
+	size_t sourceBufFrames = buffer->getNumFrames() * (float)mNativeSampleRate / (float)mSampleRate;
+	int numFramesToRead = (int)std::min( mNativeNumFrames - mReadPos, std::min( mMaxFramesPerRead, sourceBufFrames ) );
 
-	if( mConverter )
-		return loadBufferImplConvert();
-	else
-		return loadBufferImpl();
+	int numFramesRead = 0;
+
+	BufferDynamic sourceBuffer( mMaxFramesPerRead, mNativeNumChannels );
+
+	while( numFramesRead < numFramesToRead ) {
+		float **outChannels;
+		int section;
+		long outNumFrames = ov_read_float( &mOggVorbisFile, &outChannels, numFramesToRead - numFramesRead, &section );
+        if( outNumFrames <= 0 ) {
+			if( outNumFrames < 0 )
+				LOG_E( "stream error." );
+            break;
+		}
+
+		for( int ch = 0; ch < mNumChannels; ch++ ) {
+			float *channel = outChannels[ch];
+			copy( channel, channel + outNumFrames, sourceBuffer.getChannel( ch ) + numFramesRead );
+		}
+
+		numFramesRead += outNumFrames;
+	}
+
+	if( numFramesToRead != sourceBuffer.getNumFrames() )
+		sourceBuffer.setNumFrames( numFramesToRead );
+
+	pair<size_t, size_t> count = mConverter->convert( &sourceBuffer, buffer );
+
+	for( int ch = 0; ch < mNumChannels; ch++ ) {
+		float *channel = buffer->getChannel( ch );
+		copy( channel, channel + count.second, buffer->getChannel( ch ) );
+	}
+
+	mReadPos += count.second;
+	return count.second;
 }
 
 BufferRef SourceFileImplOggVorbis::loadBufferImpl()
@@ -146,7 +194,7 @@ BufferRef SourceFileImplOggVorbis::loadBufferImpl()
 // TODO: need BufferView's in order to reduce number of copies
 BufferRef SourceFileImplOggVorbis::loadBufferImplConvert()
 {
-	BufferDynamic sourceBuffer( mMaxFramesPerRead, mNativeNumChannels );
+	BufferDynamic sourceBuffer( mMaxFramesPerRead, mNativeNumChannels ); // TODO: move this to ivar? it is used in read() as well, when there is a converter
 	BufferRef destBuffer( new Buffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels ) );
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
