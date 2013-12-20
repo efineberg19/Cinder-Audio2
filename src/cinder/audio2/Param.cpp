@@ -170,7 +170,7 @@ pair<float, float> Param::findEndTimeAndValue() const
 	lock_guard<mutex> lock( ctx->getMutex() );
 
 	if( mRamps.empty() )
-		return make_pair( (float)ctx->getNumProcessedSeconds(), mValue );
+		return make_pair( (float)ctx->getNumProcessedSeconds(), mValue.load() );
 	else {
 		const RampRef &ramp = mRamps.back();
 		return make_pair( ramp->mTimeEnd, ramp->mValueEnd );

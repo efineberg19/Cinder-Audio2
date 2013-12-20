@@ -64,7 +64,7 @@ class Ramp {
 
 	float				mTimeBegin, mTimeEnd, mDuration;
 	float				mValueBegin, mValueEnd;
-	std::atomic_bool	mIsComplete, mIsCanceled;
+	std::atomic<bool>	mIsComplete, mIsCanceled;
 	RampFn	mRampFn;
 
 	friend class Param;
@@ -87,7 +87,7 @@ class Param {
 		//! Returns the ramping function that will be used during evaluation.
 		const RampFn&	getRampFn() const	{ return mRampFn; }
 
-	private:
+	  private:
 		float mDelay;
 		RampFn	mRampFn;
 	};
@@ -141,9 +141,9 @@ class Param {
 	ContextRef	getContext() const;
 
 	std::list<RampRef>	mRamps;
+	std::atomic<float>	mValue;
 	Node*				mParentNode;
 	NodeRef				mModulator;
-	float				mValue;
 	BufferDynamic		mInternalBuffer;
 };
 
