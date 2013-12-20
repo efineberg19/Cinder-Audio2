@@ -30,9 +30,9 @@
 
 namespace cinder { namespace audio2 { namespace dsp {
 
-//! Other than minor modifications, this ringbuffer is a direct copy of Tim Blechmann's fine work,
-//! found as the base structure of boost::lockfree::spsc_queue (ringbuffer_base). Whereas the boost::lockfree
-//! data structures are meant for a wide range of applications, this version specifically caters to audio processing.
+//! Other than minor modifications, this ringbuffer is a copy of Tim Blechmann's fine work, found as the base
+//! structure of boost::lockfree::spsc_queue (ringbuffer_base). Whereas the boost::lockfree data structures
+//! are meant for a wide range of applications / archs, this version specifically caters to audio processing.
 //!
 //! The implementation remains lock-free and thread-safe within a single write thread / single read thread context.
 //!
@@ -61,7 +61,7 @@ public:
 			free( mData );
 	}
 
-	//! Resizes the container to contain \a count maximum elements. \note Invalidates internal buffer and resets read / write indices to 0.
+	//! Resizes the container to contain \a count maximum elements. Invalidates the internal buffer and resets read / write indices to 0.
 	void resize( size_t count )
 	{
 		size_t allocatedSize = count + 1; // one bin is used to distinguish between the read and write indices when full.
