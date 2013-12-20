@@ -51,6 +51,8 @@ class SourceFileImplOggVorbis : public SourceFile {
 	std::string getMetaData() const					override;
 
   private:
+	long readIntoBufferImpl( Buffer *buffer, size_t offset, size_t length );
+
 	size_t readImpl( Buffer *buffer );
 	size_t readImplConvert( Buffer *buffer );
 
