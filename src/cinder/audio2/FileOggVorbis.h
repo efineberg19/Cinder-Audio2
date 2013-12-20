@@ -48,6 +48,8 @@ class SourceFileImplOggVorbis : public SourceFile {
 	BufferRef	loadBuffer()						override;
 	void		seek( size_t readPositionFrames )	override;
 
+	std::string getMetaData() const					override;
+
   private:
 	size_t readImpl( Buffer *buffer );
 	size_t readImplConvert( Buffer *buffer );

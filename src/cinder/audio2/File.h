@@ -57,6 +57,8 @@ class Source {
 	//! Loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
 	virtual size_t read( Buffer *buffer ) = 0;
 
+	virtual std::string getMetaData() const	{ return std::string(); }
+
   protected:
 	Source();
 

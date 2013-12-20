@@ -31,6 +31,7 @@ class FileNodeTestApp : public AppNative {
 
 	void setupBufferPlayer();
 	void setupFilePlayer();
+	void setSourceFile( const DataSourceRef &dataSource );
 
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -63,7 +64,7 @@ void FileNodeTestApp::prepareSettings( Settings *settings )
 
 void FileNodeTestApp::setup()
 {
-	mUnderrunFade = mOverrunFade = 0.0f;
+	mUnderrunFade = mOverrunFade = 0;
 
 	auto ctx = audio2::Context::master();
 	
@@ -77,11 +78,10 @@ void FileNodeTestApp::setup()
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	mSourceFile = audio2::load( dataSource );
-	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
+	setSourceFile( dataSource );
 
-	setupBufferPlayer();
-//	setupFilePlayer();
+//	setupBufferPlayer();
+	setupFilePlayer();
 
 	setupUI();
 
@@ -89,7 +89,6 @@ void FileNodeTestApp::setup()
 	mEnableGraphButton.setEnabled( true );
 
 	LOG_V( "context samplerate: " << ctx->getSampleRate() );
-	LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
 	ctx->printGraph();
 }
 
@@ -113,8 +112,8 @@ void FileNodeTestApp::setupFilePlayer()
 
 //	mSourceFile->setMaxFramesPerRead( 8192 );
 
-	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile ) );
-//	mSamplePlayer = mContext->makeNode( new FilePlayer( mSourceFile, false ) ); // synchronous file i/o
+//	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile ) );
+	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
 	mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
 
@@ -129,6 +128,19 @@ void FileNodeTestApp::setupFilePlayer()
 	// FIXME: what's going on here, static_assert failing in default constructor, at shut-down???
 	// - check again, I think its fixed
 //	mPan->connect( mScope );
+}
+
+void FileNodeTestApp::setSourceFile( const DataSourceRef &dataSource )
+{
+	mSourceFile = audio2::load( dataSource );
+
+	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
+
+	LOG_V( "SourceFile info: " );
+	console() << "samplerate: " << mSourceFile->getSampleRate() << endl;
+	console() << "channels: " << mSourceFile->getNumChannels() << endl;
+	console() << "frames: " << mSourceFile->getNumFrames() << endl;
+	console() << "metadata:\n" << mSourceFile->getMetaData() << endl;
 }
 
 void FileNodeTestApp::setupUI()
@@ -239,8 +251,8 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 	const fs::path &filePath = event.getFile( 0 );
 	LOG_V( "File dropped: " << filePath );
 
-	DataSourceRef dataSource = loadFile( filePath );
-	mSourceFile = audio2::load( dataSource );
+	setSourceFile( loadFile( filePath ) );
+
 	LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
 
 	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
@@ -258,8 +270,6 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 
 	LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
 	audio2::Context::master()->printGraph();
-
-	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 }
 
 

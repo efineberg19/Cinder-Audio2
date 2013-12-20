@@ -26,6 +26,8 @@
 #include "cinder/audio2/Exception.h"
 #include "cinder/audio2/Debug.h"
 
+#include <sstream>
+
 using namespace std;
 
 namespace cinder { namespace audio2 {
@@ -37,25 +39,12 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
 	if( status )
 		throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
 
-
-	LOG_V( "open success, ogg file info: " );
-	// print comments plus a few lines about the bitstream we're decoding
-	// TODO: move to public method, or provide a getMeta() method?
-	char **comment = ov_comment( &mOggVorbisFile, -1 )->user_comments;
-	while( *comment )
-		app::console() << *comment++ << endl;
-
 	vorbis_info *info = ov_info( &mOggVorbisFile, -1 );
     mSampleRate = mNativeSampleRate = info->rate;
     mNumChannels = mNativeNumChannels = info->channels;
 
-	app::console() << "\tversion: " << info->version << endl;
-	app::console() << "\tBitstream is " << mNumChannels << " channel, " << mSampleRate << "Hz" << endl;
-	app::console() << "\tEncoded by: " << ov_comment( &mOggVorbisFile, -1 )->vendor << endl;
-
 	ogg_int64_t totalFrames = ov_pcm_total( &mOggVorbisFile, -1 );
     mNumFrames = mNativeNumFrames = static_cast<uint32_t>( totalFrames );
-	app::console() << "\tframes: " << mNumFrames << endl;
 }
 
 SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
@@ -241,6 +230,20 @@ void SourceFileImplOggVorbis::seek( size_t readPositionFrames )
 	CI_ASSERT( ! status );
 
 	mReadPos = readPositionFrames;
+}
+
+string SourceFileImplOggVorbis::getMetaData() const
+{
+	ostringstream str;
+	const auto vf = const_cast<OggVorbis_File *>( &mOggVorbisFile );
+
+	str << "encoded by: " << ov_comment( vf, -1 )->vendor << endl;
+	str << "comments: " << endl;
+	char **comment = ov_comment( vf, -1 )->user_comments;
+	while( *comment )
+		str << *comment++ << endl;
+
+	return str.str();
 }
 
 } } // namespace cinder::audio2
