@@ -60,7 +60,7 @@ class SourceFileImplOggVorbis : public SourceFile {
 	BufferRef	loadBufferImplConvert();
 
 	::OggVorbis_File	mOggVorbisFile;
-	size_t				mReadPos, mNativeNumFrames;
+	size_t				mReadPos, mFileNumFrames;
 
 	std::unique_ptr<dsp::Converter>		mConverter;
 };

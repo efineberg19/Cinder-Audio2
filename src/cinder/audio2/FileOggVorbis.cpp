@@ -44,7 +44,7 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
     mNumChannels = mNativeNumChannels = info->channels;
 
 	ogg_int64_t totalFrames = ov_pcm_total( &mOggVorbisFile, -1 );
-    mNumFrames = mNativeNumFrames = static_cast<uint32_t>( totalFrames );
+    mNumFrames = mFileNumFrames = static_cast<uint32_t>( totalFrames );
 }
 
 SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
@@ -56,12 +56,14 @@ void SourceFileImplOggVorbis::outputFormatUpdated()
 {
 	if( mSampleRate != mNativeSampleRate || mNumChannels != mNativeNumChannels ) {
 		mConverter = audio2::dsp::Converter::create( mNativeSampleRate, mSampleRate, mNativeNumChannels, mNumChannels, mMaxFramesPerRead );
-		mNumFrames = std::ceil( (float)mNativeNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
+		mNumFrames = std::ceil( (float)mFileNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
 
 		LOG_V( "created conveter for samplerate: " << mNativeSampleRate << " -> " << mSampleRate << ", channels: " << mNativeNumChannels << " -> " << mNumChannels << ", output num frames: " << mNumFrames );
 	}
-	else
+	else {
+		mNumFrames = mFileNumFrames;
 		mConverter.reset();
+	}
 }
 
 size_t SourceFileImplOggVorbis::read( Buffer *buffer )
@@ -124,7 +126,7 @@ size_t SourceFileImplOggVorbis::readImpl( Buffer *buffer )
 size_t SourceFileImplOggVorbis::readImplConvert( Buffer *buffer )
 {
 	size_t sourceBufFrames = buffer->getNumFrames() * (float)mNativeSampleRate / (float)mSampleRate;
-	int numReadFramesNeeded = (int)std::min( mNativeNumFrames - mReadPos, std::min( mMaxFramesPerRead, sourceBufFrames ) );
+	int numReadFramesNeeded = (int)std::min( mFileNumFrames - mReadPos, std::min( mMaxFramesPerRead, sourceBufFrames ) );
 
 	int readCount = 0;
 

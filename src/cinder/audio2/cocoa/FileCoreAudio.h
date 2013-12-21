@@ -43,7 +43,7 @@ class SourceFileImplCoreAudio : public SourceFile {
   private:	
 	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
 	AudioBufferListShallowPtr mBufferList;
-	size_t mReadPos, mNativeNumFrames;
+	size_t mReadPos, mFileNumFrames;
 };
 
 class TargetFileImplCoreAudio : public TargetFile {

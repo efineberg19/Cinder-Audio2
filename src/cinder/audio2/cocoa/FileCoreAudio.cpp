@@ -89,7 +89,7 @@ SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSourc
     propSize = sizeof( numFrames );
     status = ::ExtAudioFileGetProperty( audioFile, kExtAudioFileProperty_FileLengthFrames, &propSize, &numFrames );
 	CI_ASSERT( status == noErr );
-	mNumFrames = mNativeNumFrames = static_cast<size_t>( numFrames );
+	mNumFrames = mFileNumFrames = static_cast<size_t>( numFrames );
 
 	outputFormatUpdated();
 }
@@ -103,7 +103,7 @@ void SourceFileImplCoreAudio::outputFormatUpdated()
 	// numFrames will be updated at read time
 	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 
-	mNumFrames = std::ceil( (float)mNativeNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
+	mNumFrames = std::ceil( (float)mFileNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
 
 	LOG_V( "output samplerate: " << mSampleRate << ", channels: " << mNumChannels );
 }
