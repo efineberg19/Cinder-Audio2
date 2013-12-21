@@ -14,6 +14,11 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
+// TODO NEXT: test channel conversions with ogg reader
+//		- right channel seems to be off
+// TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
+// TODO: fix split in right channel of waveform draw
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -70,8 +75,8 @@ void FileNodeTestApp::setup()
 	
 //	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
 //	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
-	DataSourceRef dataSource = loadResource( RES_TONE440_OGG );
-//	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
+//	DataSourceRef dataSource = loadResource( RES_TONE440_OGG );
+	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
 
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 	mPan->enableMonoInputMode( false );
@@ -120,7 +125,7 @@ void FileNodeTestApp::setupFilePlayer()
 	// connect scope in sequence
 //	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( ctx->getTarget() );
 
-	// or connect in series (it is added to the 'auto pulled list'
+	// or connect in series (it is added to the Context's 'auto pulled list')
 	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
 	mPan->addConnection( mScope );
 
@@ -139,6 +144,8 @@ void FileNodeTestApp::setSourceFile( const DataSourceRef &dataSource )
 	LOG_V( "SourceFile info: " );
 	console() << "samplerate: " << mSourceFile->getSampleRate() << endl;
 	console() << "channels: " << mSourceFile->getNumChannels() << endl;
+	console() << "native samplerate: " << mSourceFile->getNativeSampleRate() << endl;
+	console() << "native channels: " << mSourceFile->getNativeNumChannels() << endl;
 	console() << "frames: " << mSourceFile->getNumFrames() << endl;
 	console() << "metadata:\n" << mSourceFile->getMetaData() << endl;
 }

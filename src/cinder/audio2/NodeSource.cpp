@@ -193,7 +193,7 @@ FilePlayer::FilePlayer( const SourceFileRef &sourceFile, bool isMultiThreaded, c
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( mSourceFile->getNumChannels() );
-	mNumFrames = mSourceFile->getNumFrames();
+	mNumFrames = 0; // will be updated once SourceFile's output samplerate is set
 }
 
 FilePlayer::~FilePlayer()
@@ -202,8 +202,10 @@ FilePlayer::~FilePlayer()
 
 void FilePlayer::initialize()
 {
-	if( mSourceFile )
+	if( mSourceFile ) {
 		mSourceFile->setOutputFormat( getContext()->getSampleRate() );
+		mNumFrames = mSourceFile->getNumFrames();
+	}
 	
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 

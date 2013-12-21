@@ -106,7 +106,6 @@ void EffectNodeTestApp::setupUI()
 	mLowPassFreqSlider.mBounds = sliderRect;
 	mLowPassFreqSlider.mTitle = "LowPass Freq";
 	mLowPassFreqSlider.mMax = 1000.0f;
-//	mLowPassFreqSlider.mMax = 10000.0f;
 	mLowPassFreqSlider.set( mLowPass->getCutoffFreq() );
 	mWidgets.push_back( &mLowPassFreqSlider );
 

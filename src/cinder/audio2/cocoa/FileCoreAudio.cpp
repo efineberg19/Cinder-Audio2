@@ -111,9 +111,7 @@ void SourceFileImplCoreAudio::outputFormatUpdated()
 size_t SourceFileImplCoreAudio::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
-
-	if( mReadPos >= mNumFrames )
-		return 0;
+	CI_ASSERT( mReadPos < mNumFrames );
 
 	UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
 
@@ -131,8 +129,7 @@ size_t SourceFileImplCoreAudio::read( Buffer *buffer )
 
 BufferRef SourceFileImplCoreAudio::loadBuffer()
 {
-	if( mReadPos != 0 )
-		seek( 0 );
+	seek( 0 );
 	
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
@@ -149,12 +146,13 @@ BufferRef SourceFileImplCoreAudio::loadBuffer()
 
         mReadPos += frameCount;
 	}
+
 	return result;
 }
 
 void SourceFileImplCoreAudio::seek( size_t readPositionFrames )
 {
-	if( readPositionFrames >= mNumFrames )
+	if( readPositionFrames == mReadPos || readPositionFrames >= mNumFrames )
 		return;
 
 	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPositionFrames );
