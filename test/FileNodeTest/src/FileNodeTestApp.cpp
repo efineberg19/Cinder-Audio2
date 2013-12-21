@@ -19,6 +19,8 @@
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: fix split in right channel of waveform draw
 
+// FIXME: seek with fileplayback / cash mp3 seems to be broken
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;

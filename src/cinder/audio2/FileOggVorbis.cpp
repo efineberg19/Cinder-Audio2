@@ -32,7 +32,7 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource )
+SourceFileOggVorbis::SourceFileOggVorbis( const DataSourceRef &dataSource )
 	: SourceFile( dataSource ), mReadPos( 0 )
 {
 	int status = ov_fopen( dataSource->getFilePath().string().c_str(), &mOggVorbisFile );
@@ -47,12 +47,12 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSourc
     mNumFrames = mFileNumFrames = static_cast<uint32_t>( totalFrames );
 }
 
-SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
+SourceFileOggVorbis::~SourceFileOggVorbis()
 {
 	ov_clear( &mOggVorbisFile );
 }
 
-void SourceFileImplOggVorbis::outputFormatUpdated()
+void SourceFileOggVorbis::outputFormatUpdated()
 {
 	if( mSampleRate != mNativeSampleRate || mNumChannels != mNativeNumChannels ) {
 		mConverter = audio2::dsp::Converter::create( mNativeSampleRate, mSampleRate, mNativeNumChannels, mNumChannels, mMaxFramesPerRead );
@@ -66,7 +66,7 @@ void SourceFileImplOggVorbis::outputFormatUpdated()
 	}
 }
 
-size_t SourceFileImplOggVorbis::read( Buffer *buffer )
+size_t SourceFileOggVorbis::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
 	CI_ASSERT( mReadPos < mNumFrames ); // FIXME: this failed while seeking and no conversion, synchronious I/O
@@ -77,7 +77,7 @@ size_t SourceFileImplOggVorbis::read( Buffer *buffer )
 	return readImpl( buffer );
 }
 
-BufferRef SourceFileImplOggVorbis::loadBuffer()
+BufferRef SourceFileOggVorbis::loadBuffer()
 {
 	if( mReadPos != 0 )
 		seek( 0 );
@@ -88,7 +88,7 @@ BufferRef SourceFileImplOggVorbis::loadBuffer()
 	return loadBufferImpl();
 }
 
-long SourceFileImplOggVorbis::readIntoBufferImpl( Buffer *buffer, size_t offset, size_t length )
+long SourceFileOggVorbis::readIntoBufferImpl( Buffer *buffer, size_t offset, size_t length )
 {
 	float **outChannels;
 	int section;
@@ -105,7 +105,7 @@ long SourceFileImplOggVorbis::readIntoBufferImpl( Buffer *buffer, size_t offset,
 	return outNumFrames;
 }
 
-size_t SourceFileImplOggVorbis::readImpl( Buffer *buffer )
+size_t SourceFileOggVorbis::readImpl( Buffer *buffer )
 {
 	size_t framesLeft = mNumFrames - mReadPos;
 	int numReadFramesNeeded = (int)std::min( framesLeft, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
@@ -123,7 +123,7 @@ size_t SourceFileImplOggVorbis::readImpl( Buffer *buffer )
 	return readCount;
 }
 
-size_t SourceFileImplOggVorbis::readImplConvert( Buffer *buffer )
+size_t SourceFileOggVorbis::readImplConvert( Buffer *buffer )
 {
 	size_t sourceBufFrames = buffer->getNumFrames() * (float)mNativeSampleRate / (float)mSampleRate;
 	int numReadFramesNeeded = (int)std::min( mFileNumFrames - mReadPos, std::min( mMaxFramesPerRead, sourceBufFrames ) );
@@ -154,7 +154,7 @@ size_t SourceFileImplOggVorbis::readImplConvert( Buffer *buffer )
 	return count.second;
 }
 
-BufferRef SourceFileImplOggVorbis::loadBufferImpl()
+BufferRef SourceFileOggVorbis::loadBufferImpl()
 {
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
@@ -180,7 +180,7 @@ BufferRef SourceFileImplOggVorbis::loadBufferImpl()
 }
 
 // TODO: need BufferView's in order to reduce number of copies
-BufferRef SourceFileImplOggVorbis::loadBufferImplConvert()
+BufferRef SourceFileOggVorbis::loadBufferImplConvert()
 {
 	BufferDynamic sourceBuffer( mMaxFramesPerRead, mNativeNumChannels ); // TODO: move this to ivar? it is used in read() as well, when there is a converter
 	BufferRef destBuffer( new Buffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels ) );
@@ -218,7 +218,7 @@ BufferRef SourceFileImplOggVorbis::loadBufferImplConvert()
 	return result;
 }
 
-void SourceFileImplOggVorbis::seek( size_t readPositionFrames )
+void SourceFileOggVorbis::seek( size_t readPositionFrames )
 {
 	if( readPositionFrames >= mNumFrames )
 		return;
@@ -231,7 +231,7 @@ void SourceFileImplOggVorbis::seek( size_t readPositionFrames )
 	mReadPos = readPositionFrames;
 }
 
-string SourceFileImplOggVorbis::getMetaData() const
+string SourceFileOggVorbis::getMetaData() const
 {
 	ostringstream str;
 	const auto vf = const_cast<OggVorbis_File *>( &mOggVorbisFile );

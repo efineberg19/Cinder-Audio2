@@ -38,10 +38,10 @@ namespace dsp {
 	class Converter;
 }
 
-class SourceFileImplOggVorbis : public SourceFile {
+class SourceFileOggVorbis : public SourceFile {
   public:
-	SourceFileImplOggVorbis( const DataSourceRef &dataSource );
-	virtual ~SourceFileImplOggVorbis();
+	SourceFileOggVorbis( const DataSourceRef &dataSource );
+	virtual ~SourceFileOggVorbis();
 
 	void		outputFormatUpdated()				override;
 	size_t		read( Buffer *buffer )				override;

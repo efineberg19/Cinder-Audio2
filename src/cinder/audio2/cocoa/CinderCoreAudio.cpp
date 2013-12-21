@@ -46,10 +46,10 @@ PropT getAudioConverterProperty( ::AudioConverterRef audioConverter, ::AudioConv
 } // anonymous namespace
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - ConverterImplCoreAudio
+// MARK: - ConverterCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
+ConverterCoreAudio::ConverterCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
 : Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ), mAudioConverter( nullptr )
 {
 	::AudioStreamBasicDescription sourceAsbd = createFloatAsbd( mSourceSampleRate, mSourceNumChannels );
@@ -74,7 +74,7 @@ ConverterImplCoreAudio::ConverterImplCoreAudio( size_t sourceSampleRate, size_t 
 	mOutputBufferList = createNonInterleavedBufferListShallow( mDestNumChannels );
 }
 
-ConverterImplCoreAudio::~ConverterImplCoreAudio()
+ConverterCoreAudio::~ConverterCoreAudio()
 {
 	if( mAudioConverter ) {
 		OSStatus status = ::AudioConverterDispose( mAudioConverter );
@@ -82,7 +82,7 @@ ConverterImplCoreAudio::~ConverterImplCoreAudio()
 	}
 }
 
-pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t,size_t> ConverterCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
 	CI_ASSERT( sourceBuffer->getNumFrames() <= mSourceMaxFramesPerBlock && destBuffer->getNumFrames() <= mDestMaxFramesPerBlock );
@@ -96,7 +96,7 @@ pair<size_t,size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer,
 	}
 }
 
-pair<size_t,size_t> ConverterImplCoreAudio::convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t,size_t> ConverterCoreAudio::convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	mSourceBuffer = sourceBuffer;
 	mNumSourceBufferFramesUsed = 0;
@@ -107,17 +107,17 @@ pair<size_t,size_t> ConverterImplCoreAudio::convertComplexImpl( const Buffer *so
 	}
 
 	UInt32 numOutputFrames = (UInt32)destBuffer->getNumFrames();
-	OSStatus status = ::AudioConverterFillComplexBuffer( mAudioConverter, ConverterImplCoreAudio::converterCallback, this, &numOutputFrames, mOutputBufferList.get(), NULL );
+	OSStatus status = ::AudioConverterFillComplexBuffer( mAudioConverter, ConverterCoreAudio::converterCallback, this, &numOutputFrames, mOutputBufferList.get(), NULL );
 	CI_ASSERT( status == noErr || status == kErrorNotEnoughEnoughSourceFrames );
 
 	return make_pair( mNumSourceBufferFramesUsed, (size_t)numOutputFrames );
 }
 
-OSStatus ConverterImplCoreAudio::converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData )
+OSStatus ConverterCoreAudio::converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData )
 {
 	CI_ASSERT( ! outDataPacketDescription ); // VBR not handled
 
-	ConverterImplCoreAudio *converter = (ConverterImplCoreAudio *)inUserData;
+	ConverterCoreAudio *converter = (ConverterCoreAudio *)inUserData;
 	const Buffer *sourceBuffer = converter->mSourceBuffer;
 	size_t sourceNumFrames = sourceBuffer->getNumFrames();
 

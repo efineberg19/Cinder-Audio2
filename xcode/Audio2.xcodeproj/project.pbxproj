@@ -215,10 +215,10 @@
 		119CD0E1184A793400853BEE /* Converter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD08A184A793400853BEE /* Converter.cpp */; };
 		119CD0E2184A793400853BEE /* Converter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD08B184A793400853BEE /* Converter.h */; };
 		119CD0E3184A793400853BEE /* Converter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD08B184A793400853BEE /* Converter.h */; };
-		119CD0E4184A793400853BEE /* ConverterImplR8brain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD08C184A793400853BEE /* ConverterImplR8brain.cpp */; };
-		119CD0E5184A793400853BEE /* ConverterImplR8brain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD08C184A793400853BEE /* ConverterImplR8brain.cpp */; };
-		119CD0E6184A793400853BEE /* ConverterImplR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD08D184A793400853BEE /* ConverterImplR8brain.h */; };
-		119CD0E7184A793400853BEE /* ConverterImplR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD08D184A793400853BEE /* ConverterImplR8brain.h */; };
+		119CD0E4184A793400853BEE /* ConverterR8brain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD08C184A793400853BEE /* ConverterR8brain.cpp */; };
+		119CD0E5184A793400853BEE /* ConverterR8brain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD08C184A793400853BEE /* ConverterR8brain.cpp */; };
+		119CD0E6184A793400853BEE /* ConverterR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD08D184A793400853BEE /* ConverterR8brain.h */; };
+		119CD0E7184A793400853BEE /* ConverterR8brain.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD08D184A793400853BEE /* ConverterR8brain.h */; };
 		119CD0E8184A793400853BEE /* Dsp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD08E184A793400853BEE /* Dsp.cpp */; };
 		119CD0E9184A793400853BEE /* Dsp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD08E184A793400853BEE /* Dsp.cpp */; };
 		119CD0EA184A793400853BEE /* Dsp.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD08F184A793400853BEE /* Dsp.h */; };
@@ -384,8 +384,8 @@
 		119CD089184A793400853BEE /* Biquad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Biquad.h; sourceTree = "<group>"; };
 		119CD08A184A793400853BEE /* Converter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Converter.cpp; sourceTree = "<group>"; };
 		119CD08B184A793400853BEE /* Converter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Converter.h; sourceTree = "<group>"; };
-		119CD08C184A793400853BEE /* ConverterImplR8brain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConverterImplR8brain.cpp; sourceTree = "<group>"; };
-		119CD08D184A793400853BEE /* ConverterImplR8brain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConverterImplR8brain.h; sourceTree = "<group>"; };
+		119CD08C184A793400853BEE /* ConverterR8brain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConverterR8brain.cpp; sourceTree = "<group>"; };
+		119CD08D184A793400853BEE /* ConverterR8brain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConverterR8brain.h; sourceTree = "<group>"; };
 		119CD08E184A793400853BEE /* Dsp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Dsp.cpp; sourceTree = "<group>"; };
 		119CD08F184A793400853BEE /* Dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dsp.h; sourceTree = "<group>"; };
 		119CD090184A793400853BEE /* Fft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Fft.cpp; sourceTree = "<group>"; };
@@ -750,8 +750,8 @@
 				119CD089184A793400853BEE /* Biquad.h */,
 				119CD08A184A793400853BEE /* Converter.cpp */,
 				119CD08B184A793400853BEE /* Converter.h */,
-				119CD08C184A793400853BEE /* ConverterImplR8brain.cpp */,
-				119CD08D184A793400853BEE /* ConverterImplR8brain.h */,
+				119CD08C184A793400853BEE /* ConverterR8brain.cpp */,
+				119CD08D184A793400853BEE /* ConverterR8brain.h */,
 				119CD08E184A793400853BEE /* Dsp.cpp */,
 				119CD08F184A793400853BEE /* Dsp.h */,
 				119CD090184A793400853BEE /* Fft.cpp */,
@@ -829,7 +829,7 @@
 				114FE8F518032BF100C5841B /* misc.h in Headers */,
 				114FE91D18032BF100C5841B /* os.h in Headers */,
 				119CD0FA184A793400853BEE /* File.h in Headers */,
-				119CD0E6184A793400853BEE /* ConverterImplR8brain.h in Headers */,
+				119CD0E6184A793400853BEE /* ConverterR8brain.h in Headers */,
 				114FE93D18032BF100C5841B /* window.h in Headers */,
 				114FE98B180371F100C5841B /* CDSPRealFFT.h in Headers */,
 				119CD118184A793400853BEE /* Node.h in Headers */,
@@ -921,7 +921,7 @@
 				114FE8F618032BF100C5841B /* misc.h in Headers */,
 				114FE91E18032BF100C5841B /* os.h in Headers */,
 				119CD0FB184A793400853BEE /* File.h in Headers */,
-				119CD0E7184A793400853BEE /* ConverterImplR8brain.h in Headers */,
+				119CD0E7184A793400853BEE /* ConverterR8brain.h in Headers */,
 				114FE93E18032BF100C5841B /* window.h in Headers */,
 				114FE98C180371F100C5841B /* CDSPRealFFT.h in Headers */,
 				119CD119184A793400853BEE /* Node.h in Headers */,
@@ -1057,7 +1057,7 @@
 				114FE92518032BF100C5841B /* registry.c in Sources */,
 				119CD0FC184A793400853BEE /* FileOggVorbis.cpp in Sources */,
 				119CD0C2184A793400853BEE /* ContextAudioUnit.cpp in Sources */,
-				119CD0E4184A793400853BEE /* ConverterImplR8brain.cpp in Sources */,
+				119CD0E4184A793400853BEE /* ConverterR8brain.cpp in Sources */,
 				114FE8CD18032BF100C5841B /* codebook.c in Sources */,
 				119CD116184A793400853BEE /* Node.cpp in Sources */,
 				114FE93718032BF100C5841B /* vorbisenc.c in Sources */,
@@ -1111,7 +1111,7 @@
 				114FE92618032BF100C5841B /* registry.c in Sources */,
 				119CD0FD184A793400853BEE /* FileOggVorbis.cpp in Sources */,
 				119CD0C3184A793400853BEE /* ContextAudioUnit.cpp in Sources */,
-				119CD0E5184A793400853BEE /* ConverterImplR8brain.cpp in Sources */,
+				119CD0E5184A793400853BEE /* ConverterR8brain.cpp in Sources */,
 				114FE8CE18032BF100C5841B /* codebook.c in Sources */,
 				119CD117184A793400853BEE /* Node.cpp in Sources */,
 				114FE93818032BF100C5841B /* vorbisenc.c in Sources */,

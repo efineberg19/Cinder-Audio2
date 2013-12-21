@@ -22,7 +22,7 @@
  */
 
 #include "cinder/audio2/dsp/Converter.h"
-#include "cinder/audio2/dsp/ConverterImplR8brain.h"
+#include "cinder/audio2/dsp/ConverterR8brain.h"
 #include "cinder/audio2/CinderAssert.h"
 
 #if defined( CINDER_COCOA )
@@ -39,9 +39,9 @@ namespace cinder { namespace audio2 { namespace dsp {
 unique_ptr<Converter> Converter::create( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
 {
 #if defined( CINDER_COCOA )
-	return unique_ptr<Converter>( new cocoa::ConverterImplCoreAudio( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ) );
+	return unique_ptr<Converter>( new cocoa::ConverterCoreAudio( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ) );
 #else
-	return unique_ptr<Converter>( new ConverterImplR8brain( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ) );
+	return unique_ptr<Converter>( new ConverterR8brain( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock ) );
 #endif
 }
 

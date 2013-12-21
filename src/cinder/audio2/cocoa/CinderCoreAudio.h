@@ -83,13 +83,13 @@ inline void zeroBufferList( const ::AudioBufferList *bufferList )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - ConverterImplCoreAudio
+// MARK: - ConverterCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-class ConverterImplCoreAudio : public dsp::Converter {
+class ConverterCoreAudio : public dsp::Converter {
   public:
-	ConverterImplCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
-	virtual ~ConverterImplCoreAudio();
+	ConverterCoreAudio( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
+	virtual ~ConverterCoreAudio();
 
 	virtual std::pair<size_t,size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 

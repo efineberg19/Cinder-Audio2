@@ -66,10 +66,10 @@ void Source::setOutputFormat( size_t outputSampleRate, size_t outputNumChannels 
 std::unique_ptr<SourceFile> SourceFile::create( const DataSourceRef &dataSource )
 {
 	if( getPathExtension( dataSource->getFilePathHint() ) == "ogg" )
-		return std::unique_ptr<SourceFile>( new SourceFileImplOggVorbis( dataSource ) );
+		return std::unique_ptr<SourceFile>( new SourceFileOggVorbis( dataSource ) );
 
 #if defined( CINDER_COCOA )
-	return std::unique_ptr<SourceFile>( new cocoa::SourceFileImplCoreAudio( dataSource ) );
+	return std::unique_ptr<SourceFile>( new cocoa::SourceFileCoreAudio( dataSource ) );
 #elif defined( CINDER_MSW )
 	return std::unique_ptr<SourceFile>( new msw::SourceFileMediaFoundation( dataSource ) );
 #endif
@@ -80,7 +80,7 @@ std::unique_ptr<TargetFile> TargetFile::create( const DataTargetRef &dataTarget,
 	std::string ext = ( ! extension.empty() ? extension : getPathExtension( dataTarget->getFilePathHint() ) );
 
 #if defined( CINDER_COCOA )
-	return std::unique_ptr<TargetFile>( new cocoa::TargetFileImplCoreAudio( dataTarget, sampleRate, numChannels, ext ) );
+	return std::unique_ptr<TargetFile>( new cocoa::TargetFileCoreAudio( dataTarget, sampleRate, numChannels, ext ) );
 #elif defined( CINDER_MSW )
 	return std::unique_ptr<TargetFile>(); // TODO
 //	return std::unique_ptr<TargetFile>( new msw::TargetFileMediaFoundation( dataTarget, sampleRate, numChannels, ext ) );

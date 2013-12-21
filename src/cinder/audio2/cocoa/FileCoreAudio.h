@@ -30,10 +30,10 @@
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
-class SourceFileImplCoreAudio : public SourceFile {
+class SourceFileCoreAudio : public SourceFile {
   public:
-	SourceFileImplCoreAudio( const DataSourceRef &dataSource );
-	virtual ~SourceFileImplCoreAudio() {}
+	SourceFileCoreAudio( const DataSourceRef &dataSource );
+	virtual ~SourceFileCoreAudio() {}
 
 	void		outputFormatUpdated()				override;
 	size_t		read( Buffer *buffer )				override;
@@ -46,10 +46,10 @@ class SourceFileImplCoreAudio : public SourceFile {
 	size_t mReadPos, mFileNumFrames;
 };
 
-class TargetFileImplCoreAudio : public TargetFile {
+class TargetFileCoreAudio : public TargetFile {
   public:
-	TargetFileImplCoreAudio( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension );
-	virtual ~TargetFileImplCoreAudio() {}
+	TargetFileCoreAudio( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension );
+	virtual ~TargetFileCoreAudio() {}
 
 	void write( const Buffer *buffer, size_t frameOffset, size_t numFrames ) override;
 

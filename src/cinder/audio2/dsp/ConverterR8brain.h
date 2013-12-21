@@ -34,11 +34,11 @@ namespace r8b {
 
 namespace cinder { namespace audio2 { namespace dsp {
 
-class ConverterImplR8brain : public Converter {
+class ConverterR8brain : public Converter {
   public:
 
-	ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
-	virtual ~ConverterImplR8brain();
+	ConverterR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock );
+	virtual ~ConverterR8brain();
 
 	std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
