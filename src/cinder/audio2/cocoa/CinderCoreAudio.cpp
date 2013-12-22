@@ -85,7 +85,12 @@ ConverterCoreAudio::~ConverterCoreAudio()
 pair<size_t,size_t> ConverterCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
-	CI_ASSERT( sourceBuffer->getNumFrames() <= mSourceMaxFramesPerBlock && destBuffer->getNumFrames() <= mDestMaxFramesPerBlock );
+
+	// this is needed in converterCallback
+	mNumReadFramesNeeded = min( sourceBuffer->getNumFrames(), mSourceMaxFramesPerBlock );
+
+	// debug ensure that destBuffer is large enough
+	CI_ASSERT( destBuffer->getNumFrames() >= ( mNumReadFramesNeeded * (float)mDestSampleRate / (float)mSourceSampleRate ) );
 
 	if( mSourceNumChannels <= mDestNumChannels )
 		return convertComplexImpl( sourceBuffer, destBuffer );
@@ -101,12 +106,14 @@ pair<size_t,size_t> ConverterCoreAudio::convertComplexImpl( const Buffer *source
 	mSourceBuffer = sourceBuffer;
 	mNumSourceBufferFramesUsed = 0;
 
+	// On input, numOutputFrames represents the max number of available frames.  On output, AudioConverterFillComplexBuffer writes how many were actually used to this variable.
+	UInt32 numOutputFrames = (UInt32)max( destBuffer->getNumFrames(), mDestMaxFramesPerBlock );
+
 	for( int ch = 0; ch < mDestNumChannels; ch++ ) {
-		mOutputBufferList->mBuffers[ch].mDataByteSize = (UInt32)destBuffer->getSize() * sizeof( float );
+		mOutputBufferList->mBuffers[ch].mDataByteSize = UInt32( numOutputFrames * mDestNumChannels * sizeof( float ) );
 		mOutputBufferList->mBuffers[ch].mData = (void *)destBuffer->getChannel( ch );
 	}
 
-	UInt32 numOutputFrames = (UInt32)destBuffer->getNumFrames();
 	OSStatus status = ::AudioConverterFillComplexBuffer( mAudioConverter, ConverterCoreAudio::converterCallback, this, &numOutputFrames, mOutputBufferList.get(), NULL );
 	CI_ASSERT( status == noErr || status == kErrorNotEnoughEnoughSourceFrames );
 
@@ -115,24 +122,25 @@ pair<size_t,size_t> ConverterCoreAudio::convertComplexImpl( const Buffer *source
 
 OSStatus ConverterCoreAudio::converterCallback( ::AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, ::AudioBufferList *ioData, ::AudioStreamPacketDescription **outDataPacketDescription, void *inUserData )
 {
-	CI_ASSERT( ! outDataPacketDescription ); // VBR not handled
+	CI_ASSERT_MSG( ! outDataPacketDescription, "VBR not handled" );
 
 	ConverterCoreAudio *converter = (ConverterCoreAudio *)inUserData;
 	const Buffer *sourceBuffer = converter->mSourceBuffer;
-	size_t sourceNumFrames = sourceBuffer->getNumFrames();
+	const size_t numFramesNeeded = converter->mNumReadFramesNeeded;
+	const size_t numSourceBufferFramesUsed = converter->mNumSourceBufferFramesUsed;
 
-	if( converter->mNumSourceBufferFramesUsed == sourceNumFrames ) {
+	if( converter->mNumSourceBufferFramesUsed == numFramesNeeded ) {
 		// no more source samples left this time around, inform converter by returning custom error code
 		*ioNumberDataPackets = 0;
 		return kErrorNotEnoughEnoughSourceFrames;
 	}
 
 	UInt32 numPacketsToConvert = *ioNumberDataPackets;
-	numPacketsToConvert = std::min( numPacketsToConvert, (UInt32)( sourceBuffer->getNumFrames() - converter->mNumSourceBufferFramesUsed ) );
+	numPacketsToConvert = std::min( numPacketsToConvert, (UInt32)( numFramesNeeded - numSourceBufferFramesUsed ) );
 
-	for( int ch = 0; ch < ioData->mNumberBuffers; ch++ ) {
+	for( UInt32 ch = 0; ch < ioData->mNumberBuffers; ch++ ) {
 		ioData->mBuffers[ch].mDataByteSize = numPacketsToConvert * sizeof( float );
-		ioData->mBuffers[ch].mData = (void *)( sourceBuffer->getChannel( ch ) + converter->mNumSourceBufferFramesUsed );
+		ioData->mBuffers[ch].mData = (void *)( sourceBuffer->getChannel( ch ) + numSourceBufferFramesUsed );
 	}
 
 	*ioNumberDataPackets = numPacketsToConvert;

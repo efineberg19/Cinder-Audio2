@@ -36,7 +36,8 @@ public:
 
 	virtual ~Converter() {}
 
-	//! Returns a \a std::pair<num source frames used, num dest frames written>
+	//! Converts up to getSourceMaxFramesPerBlock() frames of audio data from \a sourceBuffer into \a destBuffer. Returns a \a std::pair<num source frames used, num dest frames written>
+	//! \note destBuffer must be large enough to complete the conversion, which is calculated as: \code minNumDestFrames = min( sourceBuffer->getNumFrames, getSourceMaxFramesPerBlock() ) * getDestSampleRate() * getSourceSampleRate() \endcode
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
 	// TODO: consider moving these static methods to standalone functions in the dsp namespace

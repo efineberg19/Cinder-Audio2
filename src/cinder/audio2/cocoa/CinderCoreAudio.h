@@ -99,7 +99,7 @@ class ConverterCoreAudio : public dsp::Converter {
 
 	Buffer mMixingBuffer;
 	const Buffer *mSourceBuffer;
-	size_t mNumSourceBufferFramesUsed;
+	size_t mNumReadFramesNeeded, mNumSourceBufferFramesUsed;
 
 	AudioBufferListShallowPtr mOutputBufferList;
 	::AudioConverterRef mAudioConverter;
