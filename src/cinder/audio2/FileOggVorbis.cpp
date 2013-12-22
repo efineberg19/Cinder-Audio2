@@ -97,7 +97,7 @@ long SourceFileOggVorbis::readIntoBufferImpl( Buffer *buffer, size_t offset, siz
 	if( outNumFrames < 0 )
 		throw AudioFileExc( "ov_read_float error", (int32_t)outNumFrames );
 
-	for( int ch = 0; ch < mNumChannels; ch++ ) {
+	for( int ch = 0; ch < mNativeNumChannels; ch++ ) {
 		float *channel = outChannels[ch];
 		copy( channel, channel + outNumFrames, buffer->getChannel( ch ) + offset );
 	}
