@@ -16,10 +16,20 @@
 
 // TODO NEXT: test channel conversions with ogg reader
 //		- right channel seems to be off
+// TODO: add dynamic switching between buffer and file players
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: fix split in right channel of waveform draw
+//		- seems to only be an issue when there is samplerate conversion
+// TODO: move usage of Converter to base Source class, as much as possible
 
 // FIXME: seek with fileplayback / cash mp3 seems to be broken
+// FIXME: support system samplerate change while app is running
+
+//#define INITIAL_AUDIO_RES	RES_TONE440_WAV
+//#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
+//#define INITIAL_AUDIO_RES	RES_TONE440_OGG
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+//#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;
 using namespace ci::app;
@@ -62,6 +72,7 @@ class FileNodeTestApp : public AppNative {
 
 	Anim<float>					mUnderrunFade, mOverrunFade;
 	Rectf						mUnderrunRect, mOverrunRect;
+	bool						mSamplePlayerEnabledState;
 };
 
 void FileNodeTestApp::prepareSettings( Settings *settings )
@@ -72,20 +83,16 @@ void FileNodeTestApp::prepareSettings( Settings *settings )
 void FileNodeTestApp::setup()
 {
 	mUnderrunFade = mOverrunFade = 0;
+	mSamplePlayerEnabledState = false;
 
 	auto ctx = audio2::Context::master();
 	
-//	DataSourceRef dataSource = loadResource( RES_TONE440_WAV );
-//	DataSourceRef dataSource = loadResource( RES_TONE440L220R_WAV );
-//	DataSourceRef dataSource = loadResource( RES_TONE440_OGG );
-	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
-
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 	mPan->enableMonoInputMode( false );
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	setSourceFile( dataSource );
+	setSourceFile( loadResource( INITIAL_AUDIO_RES ) );
 
 //	setupBufferPlayer();
 	setupFilePlayer();
@@ -284,14 +291,21 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 
 void FileNodeTestApp::update()
 {
+	// light up rects if an xrun was detected
 	const float xrunFadeTime = 1.3f;
-
 	auto filePlayer = dynamic_pointer_cast<audio2::FilePlayer>( mSamplePlayer );
 	if( filePlayer ) {
 		if( filePlayer->getLastUnderrun() )
 			timeline().apply( &mUnderrunFade, 1.0f, 0.0f, xrunFadeTime );
 		if( filePlayer->getLastOverrun() )
 			timeline().apply( &mOverrunFade, 1.0f, 0.0f, xrunFadeTime );
+	}
+
+	// print SamplePlayer start / stop times
+	if( mSamplePlayerEnabledState != mSamplePlayer->isEnabled() ) {
+		mSamplePlayerEnabledState = mSamplePlayer->isEnabled();
+		string stateStr = mSamplePlayerEnabledState ? "started" : "stopped";
+		LOG_V( "mSamplePlayer " << stateStr << " at " << to_string( getElapsedSeconds() ) );
 	}
 }
 

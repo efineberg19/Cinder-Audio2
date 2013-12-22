@@ -140,6 +140,7 @@ uint64_t LineOutAudioUnit::getLastClip()
 	return result;
 }
 
+// TODO: move to LineOut ?
 bool LineOutAudioUnit::checkNotClipping()
 {
 	float *buf = mInternalBuffer.getData();
