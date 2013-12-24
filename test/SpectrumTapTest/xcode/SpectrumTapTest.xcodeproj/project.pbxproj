@@ -15,6 +15,7 @@
 		0933A883BD734B5DAC509302 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 34CDAC9EB02A41D9B9683341 /* CinderApp.icns */; };
 		09E646E16F4D41999837B36A /* SpectrumTapTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D57A454C16451CB8A6608A /* SpectrumTapTestApp.cpp */; };
 		113D06C11772A0F00095AA35 /* cash_satisfied_mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */; };
+		11424EBE186985D90034704D /* AudioDrawUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11424EBC186985D90034704D /* AudioDrawUtils.cpp */; };
 		11B92E8517A0B9AF003D6346 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B92E8017A0B9A4003D6346 /* libAudio2.a */; };
 		11F978EE176E965F00E2C7D0 /* tone440.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978ED176E965E00E2C7D0 /* tone440.wav */; };
 		11F978F0176E966700E2C7D0 /* tone440L220R.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11F978EF176E966700E2C7D0 /* tone440L220R.wav */; };
@@ -57,6 +58,8 @@
 		0C116A5339F74C6BA288F2C0 /* SpectrumTapTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = SpectrumTapTest_Prefix.pch; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		113D06C01772A0F00095AA35 /* cash_satisfied_mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = cash_satisfied_mind.mp3; path = ../../../assets/cash_satisfied_mind.mp3; sourceTree = "<group>"; };
+		11424EBC186985D90034704D /* AudioDrawUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AudioDrawUtils.cpp; path = ../../../samples/common/AudioDrawUtils.cpp; sourceTree = "<group>"; };
+		11424EBD186985D90034704D /* AudioDrawUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AudioDrawUtils.h; path = ../../../samples/common/AudioDrawUtils.h; sourceTree = "<group>"; };
 		11B92E7A17A0B9A3003D6346 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
 		11F978ED176E965E00E2C7D0 /* tone440.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440.wav; path = ../../../assets/tone440.wav; sourceTree = "<group>"; };
 		11F978EF176E966700E2C7D0 /* tone440L220R.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440L220R.wav; path = ../../../assets/tone440L220R.wav; sourceTree = "<group>"; };
@@ -96,6 +99,8 @@
 			isa = PBXGroup;
 			children = (
 				E9D57A454C16451CB8A6608A /* SpectrumTapTestApp.cpp */,
+				11424EBC186985D90034704D /* AudioDrawUtils.cpp */,
+				11424EBD186985D90034704D /* AudioDrawUtils.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -276,6 +281,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11424EBE186985D90034704D /* AudioDrawUtils.cpp in Sources */,
 				09E646E16F4D41999837B36A /* SpectrumTapTestApp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

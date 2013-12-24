@@ -15,20 +15,19 @@
 #include "../../../samples/common/AudioDrawUtils.h"
 
 // TODO NEXT: test channel conversions with ogg reader
-//		- right channel seems to be off
-// TODO: add dynamic switching between buffer and file players
+//		- right channel is garbage when reading RES_TONE440L220R_OGG
+// TODO: move usage of Converter to base Source class, as much as possible
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: fix split in right channel of waveform draw
 //		- seems to only be an issue when there is samplerate conversion
-// TODO: move usage of Converter to base Source class, as much as possible
 
 // FIXME: seek with fileplayback / cash mp3 seems to be broken
 // FIXME: support system samplerate change while app is running
 
-//#define INITIAL_AUDIO_RES	RES_TONE440_WAV
+#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;
@@ -68,6 +67,7 @@ class FileNodeTestApp : public AppNative {
 	WaveformPlot				mWaveformPlot;
 	vector<TestWidget *>		mWidgets;
 	Button						mEnableGraphButton, mStartPlaybackButton, mLoopButton;
+	VSelector					mTestSelector;
 	HSlider						mGainSlider, mPanSlider;
 
 	Anim<float>					mUnderrunFade, mOverrunFade;
@@ -94,8 +94,8 @@ void FileNodeTestApp::setup()
 
 	setSourceFile( loadResource( INITIAL_AUDIO_RES ) );
 
-//	setupBufferPlayer();
-	setupFilePlayer();
+	setupBufferPlayer();
+//	setupFilePlayer();
 
 	setupUI();
 
@@ -161,41 +161,49 @@ void FileNodeTestApp::setSourceFile( const DataSourceRef &dataSource )
 
 void FileNodeTestApp::setupUI()
 {
-	const float kPadding = 10.0f;
+	const float padding = 10.0f;
 
 	mEnableGraphButton.mIsToggle = true;
 	mEnableGraphButton.mTitleNormal = "graph off";
 	mEnableGraphButton.mTitleEnabled = "graph on";
-	mEnableGraphButton.mBounds = Rectf( kPadding, kPadding, 200, 60 );
+	mEnableGraphButton.mBounds = Rectf( padding, padding, 200, 60 );
 	mWidgets.push_back( &mEnableGraphButton );
 
 	mStartPlaybackButton.mIsToggle = false;
 	mStartPlaybackButton.mTitleNormal = "sample playing";
 	mStartPlaybackButton.mTitleEnabled = "sample stopped";
-	mStartPlaybackButton.mBounds = mEnableGraphButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + kPadding, 0.0f );
+	mStartPlaybackButton.mBounds = mEnableGraphButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + padding, 0.0f );
 	mWidgets.push_back( &mStartPlaybackButton );
 
 	mLoopButton.mIsToggle = true;
 	mLoopButton.mTitleNormal = "loop off";
 	mLoopButton.mTitleEnabled = "loop on";
-	mLoopButton.mBounds = mStartPlaybackButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + kPadding, 0.0f );
+	mLoopButton.mBounds = mStartPlaybackButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + padding, 0.0f );
 	mWidgets.push_back( &mLoopButton );
 
-	Rectf sliderRect( getWindowWidth() - 200.0f, kPadding, getWindowWidth(), 50.0f );
+	Vec2f sliderSize( 200.0f, 30.0f );
+	Rectf selectorRect( getWindowWidth() - sliderSize.x - padding, padding, getWindowWidth() - padding, sliderSize.y * 2 + padding );
+	mTestSelector.mSegments.push_back( "BufferPlayer" );
+	mTestSelector.mSegments.push_back( "FilePlayer" );
+	mTestSelector.mBounds = selectorRect;
+	mWidgets.push_back( &mTestSelector );
+
+	Rectf sliderRect( selectorRect.x1, selectorRect.y2 + padding, selectorRect.x2, selectorRect.y2 + padding + sliderSize.y );
+//	Rectf sliderRect( getWindowWidth() - 200.0f, kPadding, getWindowWidth(), 50.0f );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
 	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
-	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + kPadding );
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + padding );
 	mPanSlider.mBounds = sliderRect;
 	mPanSlider.mTitle = "Pan";
 	mPanSlider.set( mPan->getPos() );
 	mWidgets.push_back( &mPanSlider );
 
 	Vec2f xrunSize( 80.0f, 26.0f );
-	mUnderrunRect = Rectf( kPadding, getWindowHeight() - xrunSize.y - kPadding, xrunSize.x + kPadding, getWindowHeight() - kPadding );
-	mOverrunRect = mUnderrunRect + Vec2f( xrunSize.x + kPadding, 0.0f );
+	mUnderrunRect = Rectf( padding, getWindowHeight() - xrunSize.y - padding, xrunSize.x + padding, getWindowHeight() - padding );
+	mOverrunRect = mUnderrunRect + Vec2f( xrunSize.x + padding, 0.0f );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -228,6 +236,19 @@ void FileNodeTestApp::processTap( Vec2i pos )
 		mSamplePlayer->setLoop( ! mSamplePlayer->getLoop() );
 	else if( pos.y > getWindowCenter().y )
 		seek( pos.x );
+
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
+	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
+		string currentTest = mTestSelector.currentSection();
+		LOG_V( "selected: " << currentTest );
+
+		if( currentTest == "BufferPlayer" )
+			setupBufferPlayer();
+		if( currentTest == "FilePlayer" )
+			setupFilePlayer();
+
+		audio2::Context::master()->printGraph();
+	}
 }
 
 void FileNodeTestApp::seek( size_t xPos )
@@ -312,23 +333,24 @@ void FileNodeTestApp::update()
 void FileNodeTestApp::draw()
 {
 	gl::clear();
-	mWaveformPlot.draw();
 
-	float readPos = (float)getWindowWidth() * mSamplePlayer->getReadPosition() / mSamplePlayer->getNumFrames();
-
-	gl::color( ColorA( 0.0f, 1.0f, 0.0f, 0.7f ) );
-	gl::drawSolidRoundedRect( Rectf( readPos - 2.0f, 0, readPos + 2.0f, getWindowHeight() ), 2 );
-
-	if( mScope && mScope->isInitialized() )
+	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
+	if( bufferPlayer )
+		mWaveformPlot.draw();
+	else if( mScope && mScope->isInitialized() )
 		drawAudioBuffer( mScope->getBuffer(), getWindowBounds() );
 
+	float readPos = (float)getWindowWidth() * mSamplePlayer->getReadPosition() / mSamplePlayer->getNumFrames();
+	gl::color( ColorA( 0, 1, 0, 0.7f ) );
+	gl::drawSolidRoundedRect( Rectf( readPos - 2, 0, readPos + 2, getWindowHeight() ), 2 );
+
 	if( mUnderrunFade > 0.0001f ) {
-		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
+		gl::color( ColorA( 1, 0.5f, 0, mUnderrunFade ) );
 		gl::drawSolidRect( mUnderrunRect );
 		gl::drawStringCentered( "underrun", mUnderrunRect.getCenter(), Color::black() );
 	}
 	if( mOverrunFade > 0.0001f ) {
-		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
+		gl::color( ColorA( 1, 0.5f, 0, mOverrunFade ) );
 		gl::drawSolidRect( mOverrunRect );
 		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
 	}

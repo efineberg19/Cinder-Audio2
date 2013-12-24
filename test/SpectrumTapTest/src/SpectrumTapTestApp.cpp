@@ -20,7 +20,7 @@
 // TODO NEXT: the goal is for all of these to be runtime configurable
 #define FFT_SIZE 2048
 #define WINDOW_SIZE 1024
-#define WINDOW_TYPE WindowType::BLACKMAN
+#define WINDOW_TYPE audio2::dsp::WindowType::BLACKMAN
 
 using namespace ci;
 using namespace ci::app;
@@ -44,11 +44,10 @@ class SpectrumScopeTestApp : public AppNative {
 	void printBinFreq( size_t xPos );
 
 
-	Context							*mContext;
-	NodeBufferPlayerRef				mPlayerNode;
-	shared_ptr<GenSine>			mSine;
-	ScopeSpectralRef				mSpectrumScope;
-	SourceFileRef					mSourceFile;
+	audio2::BufferPlayerRef			mPlayerNode;
+	shared_ptr<audio2::GenSine>		mSine;
+	audio2::ScopeSpectralRef		mSpectrumScope;
+	audio2::SourceFileRef			mSourceFile;
 
 	vector<TestWidget *>			mWidgets;
 	Button							mEnableGraphButton, mPlaybackButton, mLoopButton, mScaleDecibelsButton;
@@ -68,25 +67,24 @@ void SpectrumScopeTestApp::setup()
 {
 	mSpectroMargin = 40.0f;
 
-	mContext = Context::master();
+	auto ctx = audio2::Context::master();
 
-	mSpectrumScope = mContext->makeNode( new ScopeSpectral( ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
+	mSpectrumScope = ctx->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 	mSpectrumScope->setAutoEnabled();
 
-	mSine = mContext->makeNode( new GenSine() );
+	mSine = ctx->makeNode( new audio2::GenSine() );
 	mSine->setFreq( 440.0f );
 
 #if ! defined( CINDER_MSW )
 	// FIXME: audio decoding on msw not ready
 
-	DataSourceRef dataSource = loadResource( RES_CASH_MP3 );
-	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
-	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
+	mSourceFile = audio2::load( loadResource( RES_CASH_MP3 ) );
+	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
 
 	auto audioBuffer = mSourceFile->loadBuffer();
-	LOG_V << "loaded source buffer, frames: " << audioBuffer->getNumFrames() << endl;
+	LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
 
-	mPlayerNode = mContext->makeNode( new NodeBufferPlayer( audioBuffer ) );
+	mPlayerNode = ctx->makeNode( new audio2::BufferPlayer( audioBuffer ) );
 
 #endif
 
@@ -94,17 +92,17 @@ void SpectrumScopeTestApp::setup()
 
 	setupUI();
 
-	mContext->start();
+	ctx->start();
 	mEnableGraphButton.setEnabled( true );
 
 	mScaleDecibelsButton.setEnabled( mSpectrumPlot.getScaleDecibels() );
 
-	mContext->printGraph();
+	ctx->printGraph();
 }
 
 void SpectrumScopeTestApp::setupSine()
 {
-	mSine->connect( mSpectrumScope )->connect( mContext->getTarget() );
+	mSine->connect( mSpectrumScope )->connect( audio2::Context::master()->getTarget() );
 	if( mPlaybackButton.mEnabled )
 		mSine->start();
 }
@@ -118,7 +116,7 @@ void SpectrumScopeTestApp::setupSineNoOutput()
 
 void SpectrumScopeTestApp::setupSample()
 {
-	mPlayerNode->connect( mSpectrumScope )->connect( mContext->getTarget() );
+	mPlayerNode->connect( mSpectrumScope )->connect( audio2::Context::master()->getTarget() );
 	if( mPlaybackButton.mEnabled )
 		mPlayerNode->start();
 }
@@ -201,17 +199,18 @@ void SpectrumScopeTestApp::printBinFreq( size_t xPos )
 	size_t numBins = mSpectrumScope->getFftSize() / 2;
 	size_t spectroWidth = getWindowWidth() - mSpectroMargin * 2;
 	size_t bin = ( numBins * ( xPos - mSpectroMargin ) ) / spectroWidth;
-	float freq = bin * mContext->getSampleRate() / float( mSpectrumScope->getFftSize() );
+	float freq = bin * audio2::Context::master()->getSampleRate() / float( mSpectrumScope->getFftSize() );
 
-	LOG_V << "bin: " << bin << ", freq: " << freq << endl;
+	LOG_V( "bin: " << bin << ", freq: " << freq );
 }
 
 // TODO: currently makes sense to enable processor + tap together - consider making these enabled together.
 // - possible solution: add a silent flag that is settable by client
 void SpectrumScopeTestApp::processTap( Vec2i pos )
 {
+	auto ctx = audio2::Context::master();
 	if( mEnableGraphButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
+		ctx->setEnabled( ! ctx->isEnabled() );
 	else if( mPlaybackButton.hitTest( pos ) ) {
 		if( mTestSelector.currentSection() == "sine" || mTestSelector.currentSection() == "sine (no output)" )
 			mSine->setEnabled( ! mSine->isEnabled() );
@@ -228,10 +227,10 @@ void SpectrumScopeTestApp::processTap( Vec2i pos )
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V << "selected: " << currentTest << endl;
+		LOG_V( "selected: " << currentTest );
 
-		bool enabled = mContext->isEnabled();
-		mContext->disconnectAllNodes();
+		bool enabled = ctx->isEnabled();
+		ctx->disconnectAllNodes();
 
 		if( currentTest == "sine" )
 			setupSine();
@@ -240,7 +239,7 @@ void SpectrumScopeTestApp::processTap( Vec2i pos )
 		if( currentTest == "sample" )
 			setupSample();
 
-		mContext->setEnabled( enabled );
+		ctx->setEnabled( enabled );
 	}
 
 }
@@ -256,15 +255,14 @@ void SpectrumScopeTestApp::processDrag( Vec2i pos )
 void SpectrumScopeTestApp::fileDrop( FileDropEvent event )
 {
 	const fs::path &filePath = event.getFile( 0 );
-	LOG_V << "File dropped: " << filePath << endl;
+	LOG_V( "File dropped: " << filePath );
 
-	DataSourceRef dataSource = loadFile( filePath );
-	mSourceFile = SourceFile::create( dataSource, 0, 44100 );
-	LOG_V << "output samplerate: " << mSourceFile->getSampleRate() << endl;
+	mSourceFile = audio2::load( loadFile( filePath ) );
+	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
 
 	mPlayerNode->setBuffer( mSourceFile->loadBuffer() );
 
-	LOG_V << "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() << endl;
+	LOG_V( "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() );
 }
 
 void SpectrumScopeTestApp::update()

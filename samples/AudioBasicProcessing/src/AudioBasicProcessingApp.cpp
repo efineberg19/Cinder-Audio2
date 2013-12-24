@@ -70,7 +70,8 @@ void AudioBasicProcessingApp::handleMove( Vec2f pos )
 
 void AudioBasicProcessingApp::draw()
 {
-	gl::clear();
+	Color backgroundColor( 0, mVoice->getVolume(), mFreq / (float)getWindowWidth() );
+	gl::clear( backgroundColor );
 }
 
 CINDER_APP_NATIVE( AudioBasicProcessingApp, RendererGl )
