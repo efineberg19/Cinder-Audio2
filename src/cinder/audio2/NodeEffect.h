@@ -85,8 +85,8 @@ class Pan2d : public NodeEffect {
 	//! Gets the current
 	float getPos() const	{ return mPos; }
 
-	void enableMonoInputMode( bool enable )	{ mMonoInputMode = enable; }
-	bool isMonoInputModeEnabled() const		{ return mMonoInputMode; }
+	void enableMonoInputMode( bool enable = true )	{ mMonoInputMode = enable; }
+	bool isMonoInputModeEnabled() const				{ return mMonoInputMode; }
 
   private:
 	std::atomic<float>	mPos;

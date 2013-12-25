@@ -375,8 +375,6 @@ void FilePlayer::readFile()
 			return;
 		}
 	}
-
-//	LOG_V( "availableWrite: " << availableWrite << ", numFramesToRead: " << numFramesToRead << ", numRead: " << numRead );
 }
 
 void FilePlayer::destroyIoThread()

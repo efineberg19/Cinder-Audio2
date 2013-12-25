@@ -45,7 +45,7 @@ class Source {
 	size_t	getNativeSampleRate() const			{ return mNativeSampleRate; }
 	//! Returns the true number of channels of the Source. \note Actual output num channels may differ. \see getNumChannels()
 	size_t	getNativeNumChannels() const		{ return mNativeNumChannels; }
-	//! Returns the maximum number of frames that can be read in one chunk.
+	//! Returns the maximum number of frames that can be read with one call to read().
 	size_t	getMaxFramesPerRead() const			{ return mMaxFramesPerRead; }
 	//! Sets the maximum number of frames that can be read in one chunk.
 	virtual void	setMaxFramesPerRead( size_t count )		{ mMaxFramesPerRead = count; }
