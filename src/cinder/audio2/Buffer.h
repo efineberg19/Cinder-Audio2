@@ -69,16 +69,6 @@ class BufferBaseT {
 		return mData[n];
 	}
 
-	// FIXME: this breaks when sizes don't match
-	//	- also use std::copy
-	template <typename OtherT>
-	void copy( const BufferBaseT<OtherT> &other )
-	{
-		size_t count = std::min( getSize(), other.getSize() );
-		for( size_t i = 0; i < count; i++ )
-			mData[i] = other.getData()[i];
-	}
-
 	void zero()
 	{
 		std::memset( mData.data(), 0, mData.size() * sizeof( T ) );
@@ -114,6 +104,19 @@ class BufferT : public BufferBaseT<T> {
 		CI_ASSERT( startFrame + numFrames <= this->mNumFrames );
 		for( size_t ch = 0; ch < this->mNumChannels; ch++ )
 			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
+	}
+
+	//! Copies min( this, other ) channels and frames from \a other to internal storage.
+	template <typename OtherT>
+	void copyFrom( const BufferT<OtherT> &other )
+	{
+		size_t numFrames = std::min( this->getNumFrames(), other.getNumFrames() );
+		size_t numChannels = std::min( this->getNumChannels(), other.getNumChannels() );
+
+		for( size_t ch = 0; ch < numChannels; ch++ ) {
+			const OtherT *otherChannel = other.getChannel( ch );
+			std::copy( otherChannel, otherChannel + numFrames, this->getChannel( ch ) );
+		}
 	}
 };
 

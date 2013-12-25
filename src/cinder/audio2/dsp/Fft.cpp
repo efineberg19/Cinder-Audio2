@@ -112,7 +112,7 @@ void Fft::forward( const Buffer *waveform, BufferSpectral *spectral )
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	mBufferCopy.copy( *waveform );
+	mBufferCopy.copyFrom( *waveform );
 
 	float *a = mBufferCopy.getData();
 	float *real = spectral->getReal();
@@ -134,7 +134,7 @@ void Fft::inverse( const BufferSpectral *spectral, Buffer *waveform )
 	CI_ASSERT( waveform->getNumFrames() == mSize );
 	CI_ASSERT( spectral->getNumFrames() == mSizeOverTwo );
 
-	mBufferCopy.copy( *spectral );
+	mBufferCopy.copyFrom( *spectral );
 
 	float *real = mBufferCopy.getData();
 	float *imag = &mBufferCopy.getData()[mSizeOverTwo];
