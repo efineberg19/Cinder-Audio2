@@ -14,14 +14,14 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
+// FIXME: seek with fileplayback / cash mp3 seems to be broken
+// FIXME: support system samplerate change while app is running
+
 // TODO: move usage of Converter to base Source class, as much as possible
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: fix split in right channel of waveform draw
 //		- seems to only be an issue when there is samplerate conversion
 
-// FIXME: seek with fileplayback / cash mp3 seems to be broken
-// FIXME: support system samplerate change while app is running
-// FIXME: ConverterR8brain + RES_TONE440L220R_OGG only gives audio to left channel, ConverterCoreAudio works okay (using BufferPlayer + WaveformPlot)
 
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV

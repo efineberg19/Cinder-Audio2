@@ -175,7 +175,7 @@ BufferRef SourceFileOggVorbis::loadBufferImpl()
 BufferRef SourceFileOggVorbis::loadBufferImplConvert()
 {
 	BufferDynamic sourceBuffer( mMaxFramesPerRead, mNativeNumChannels ); // TODO: move this to ivar? it is used in read() as well, when there is a converter
-	BufferRef destBuffer( new Buffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels ) );
+	Buffer destBuffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels );
 	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
 
 	while( true ) {
@@ -188,18 +188,19 @@ BufferRef SourceFileOggVorbis::loadBufferImplConvert()
             break;
 		}
         else {
+			// make sourceBuffer num frames match outNumFrames so that Converter doesn't think it has more
+			if( outNumFrames != sourceBuffer.getNumFrames() )
+				sourceBuffer.setNumFrames( outNumFrames );
+
             for( int ch = 0; ch < mNumChannels; ch++ ) {
 				float *channel = outChannels[ch];
 				copy( channel, channel + outNumFrames, sourceBuffer.getChannel( ch ) );
             }
 
-			if( outNumFrames != sourceBuffer.getNumFrames() )
-				sourceBuffer.setNumFrames( outNumFrames );
-			
-			pair<size_t, size_t> count = mConverter->convert( &sourceBuffer, destBuffer.get() );
+			pair<size_t, size_t> count = mConverter->convert( &sourceBuffer, &destBuffer );
 
             for( int ch = 0; ch < mNumChannels; ch++ ) {
-				float *channel = destBuffer->getChannel( ch );
+				float *channel = destBuffer.getChannel( ch );
 				copy( channel, channel + count.second, result->getChannel( ch ) + mReadPos );
             }
 
