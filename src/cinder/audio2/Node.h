@@ -150,7 +150,8 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	//! Only Node subclasses can specify num channels directly - users specify via Format at construction time
 	void setNumChannels( size_t numChannels );
-	bool checkInput( const NodeRef &input );
+	//! Returns whether it is possible to connect to \a input, example reasons of failure would be this == Node, or Node is already an input.
+	bool canConnectToInput( const NodeRef &input );
 	size_t getFirstAvailableOutputBus();
 	size_t getFirstAvailableInputBus();
 

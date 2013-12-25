@@ -130,6 +130,8 @@ void FileNodeTestApp::setupFilePlayer()
 
 	mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
 
+	// when these connections are called, some (Gain and Pan) will already be connected, but this is okay, they should silently no-op.
+
 	// connect scope in sequence
 //	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( ctx->getTarget() );
 

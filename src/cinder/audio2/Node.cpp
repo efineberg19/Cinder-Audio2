@@ -59,10 +59,8 @@ Node::~Node()
 
 const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
 {
-	if( ! dest->checkInput( shared_from_this() ) ) {
-		LOG_E( "could not make connection." );
+	if( ! dest->canConnectToInput( shared_from_this() ) )
 		return dest;
-	}
 
 	// make a reference to ourselves so that we aren't deallocated in the case of the last owner
 	// disconnecting us, which we'll need later anyway
@@ -316,7 +314,7 @@ void Node::notifyConnectionsDidChange()
 	getContext()->connectionsDidChange( shared_from_this() );
 }
 
-bool Node::checkInput( const NodeRef &input )
+bool Node::canConnectToInput( const NodeRef &input )
 {
 	if( ! input || input == shared_from_this() )
 		return false;
