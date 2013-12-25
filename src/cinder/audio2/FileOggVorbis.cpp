@@ -130,7 +130,7 @@ size_t SourceFileOggVorbis::readImplConvert( Buffer *buffer )
 
 	int readCount = 0;
 
-	BufferDynamic sourceBuffer( mMaxFramesPerRead, mNativeNumChannels );
+	Buffer sourceBuffer( numReadFramesNeeded, mNativeNumChannels );
 
 	while( readCount < numReadFramesNeeded ) {
 		long outNumFrames = readIntoBufferImpl( &sourceBuffer, readCount, numReadFramesNeeded - readCount );
@@ -140,15 +140,7 @@ size_t SourceFileOggVorbis::readImplConvert( Buffer *buffer )
 		readCount += outNumFrames;
 	}
 
-	if( numReadFramesNeeded != sourceBuffer.getNumFrames() )
-		sourceBuffer.setNumFrames( numReadFramesNeeded );
-
 	pair<size_t, size_t> count = mConverter->convert( &sourceBuffer, buffer );
-
-	for( int ch = 0; ch < mNumChannels; ch++ ) {
-		float *channel = buffer->getChannel( ch );
-		copy( channel, channel + count.second, buffer->getChannel( ch ) );
-	}
 
 	mReadPos += count.second;
 	return count.second;

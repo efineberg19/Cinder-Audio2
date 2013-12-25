@@ -14,8 +14,6 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// TODO NEXT: test channel conversions with ogg reader
-//		- right channel is garbage when reading RES_TONE440L220R_OGG
 // TODO: move usage of Converter to base Source class, as much as possible
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: fix split in right channel of waveform draw
@@ -23,11 +21,12 @@
 
 // FIXME: seek with fileplayback / cash mp3 seems to be broken
 // FIXME: support system samplerate change while app is running
+// FIXME: ConverterR8brain + RES_TONE440L220R_OGG only gives audio to left channel, ConverterCoreAudio works okay (using BufferPlayer + WaveformPlot)
 
-#define INITIAL_AUDIO_RES	RES_TONE440_WAV
+//#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;
@@ -88,7 +87,7 @@ void FileNodeTestApp::setup()
 	auto ctx = audio2::Context::master();
 	
 	mPan = ctx->makeNode( new audio2::Pan2d() );
-	mPan->enableMonoInputMode( false );
+//	mPan->enableMonoInputMode( false );
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
