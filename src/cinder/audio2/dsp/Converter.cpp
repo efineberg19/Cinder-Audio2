@@ -31,8 +31,8 @@
 
 #include <algorithm>
 
-using namespace std;
 using namespace ci;
+using namespace std;
 
 namespace cinder { namespace audio2 { namespace dsp {
 
@@ -55,7 +55,7 @@ Converter::Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sou
 	if( ! mDestNumChannels )
 		mDestNumChannels = mSourceNumChannels;
 
-	mDestMaxFramesPerBlock = std::ceil( (float)mSourceMaxFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
+	mDestMaxFramesPerBlock = ceil( (float)mSourceMaxFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
 }
 
 void Converter::mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )

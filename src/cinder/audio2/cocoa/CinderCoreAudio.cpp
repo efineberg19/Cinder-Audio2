@@ -82,7 +82,7 @@ ConverterCoreAudio::~ConverterCoreAudio()
 	}
 }
 
-pair<size_t,size_t> ConverterCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t, size_t> ConverterCoreAudio::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
 
@@ -101,7 +101,7 @@ pair<size_t,size_t> ConverterCoreAudio::convert( const Buffer *sourceBuffer, Buf
 	}
 }
 
-pair<size_t,size_t> ConverterCoreAudio::convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t, size_t> ConverterCoreAudio::convertComplexImpl( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	mSourceBuffer = sourceBuffer;
 	mNumSourceBufferFramesUsed = 0;

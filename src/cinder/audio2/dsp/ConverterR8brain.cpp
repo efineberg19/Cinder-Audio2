@@ -69,12 +69,14 @@ ConverterR8brain::~ConverterR8brain()
 }
 
 // note that in the following methods, sourceBuffer may have less frames than mBufferd, which is common at EOF. Its okay, but make sure readCount reflects this
-std::pair<size_t, size_t> ConverterR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t, size_t> ConverterR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
-	CI_ASSERT( sourceBuffer->getNumFrames() <= mSourceMaxFramesPerBlock && destBuffer->getNumFrames() <= mDestMaxFramesPerBlock );
 
-	int readCount = (int)sourceBuffer->getNumFrames();
+	int readCount = (int)min( sourceBuffer->getNumFrames(), mSourceMaxFramesPerBlock );
+
+	// debug ensure that destBuffer is large enough
+	CI_ASSERT( destBuffer->getNumFrames() >= ( readCount * (float)mDestSampleRate / (float)mSourceSampleRate ) );
 
 	if( mSourceSampleRate == mDestSampleRate ) {
 		mixBuffers( sourceBuffer, destBuffer, readCount );
@@ -88,7 +90,7 @@ std::pair<size_t, size_t> ConverterR8brain::convert( const Buffer *sourceBuffer,
 	return convertImplUpMixing( sourceBuffer, destBuffer, readCount );
 }
 
-std::pair<size_t, size_t> ConverterR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
+pair<size_t, size_t> ConverterR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mBufferd.copy( *sourceBuffer );
 
@@ -102,7 +104,7 @@ std::pair<size_t, size_t> ConverterR8brain::convertImpl( const Buffer *sourceBuf
 	return make_pair( readCount, (size_t)outCount );
 }
 
-std::pair<size_t, size_t> ConverterR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
+pair<size_t, size_t> ConverterR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mixBuffers( sourceBuffer, &mMixingBuffer );
 	mBufferd.copy( mMixingBuffer );
@@ -117,7 +119,7 @@ std::pair<size_t, size_t> ConverterR8brain::convertImplDownMixing( const Buffer 
 	return make_pair( readCount, (size_t)outCount );
 }
 
-std::pair<size_t, size_t> ConverterR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
+pair<size_t, size_t> ConverterR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mBufferd.copy( *sourceBuffer );
 
