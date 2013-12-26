@@ -65,7 +65,9 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Called by \a node when it's connections have changed, default implementation is empty.
 	virtual void connectionsDidChange( const NodeRef &node ) {} 
 
+	//! Returns the samplerate of this Context, which is governed by the current NodeTarget.
 	size_t		getSampleRate()				{ return getTarget()->getSampleRate(); }
+	//! Returns the number of frames processed in one block by this Node, which is governed by the current NodeTarget.
 	size_t		getFramesPerBlock()			{ return getTarget()->getFramesPerBlock(); }
 
 	uint64_t	getNumProcessedFrames()		{ return getTarget()->getNumProcessedFrames(); }
@@ -89,7 +91,7 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	//! Calls Node::pullInputs() for any Node's that have registered with addAutoPulledNode()
 	//! \note Expected to be called on the audio thread by a LineOut implementation at the end of its render loop.
-	void autoPullNodesIfNecessary();
+	void processAutoPulledNodes();
 
 	//! Prints the Node graph to console()
 	void printGraph();
@@ -105,7 +107,7 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	const std::vector<Node *>& getAutoPulledNodes(); // called if there are any nodes besides target that need to be pulled
 
-	NodeTargetRef			mTarget;				// the 'heart-beat'
+	NodeTargetRef			mTarget;				// the 'heartbeat'
 
 	// other nodes that don't have any outputs and need to be explictly pulled
 	std::set<NodeRef>		mAutoPulledNodes;

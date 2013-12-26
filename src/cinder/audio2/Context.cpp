@@ -202,7 +202,7 @@ void Context::removeAutoPulledNode( const NodeRef &node )
 		mAutoPullRequired = false;
 }
 
-void Context::autoPullNodesIfNecessary()
+void Context::processAutoPulledNodes()
 {
 	if( ! mAutoPullRequired )
 		return;
