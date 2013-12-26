@@ -69,7 +69,7 @@ void SourceFileOggVorbis::outputFormatUpdated()
 size_t SourceFileOggVorbis::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
-	CI_ASSERT( mReadPos < mNumFrames ); // FIXME: this failed while seeking and no conversion, synchronious I/O
+	CI_ASSERT( mReadPos < mNumFrames );
 
 	if( mConverter )
 		return readImplConvert( buffer );
@@ -216,7 +216,9 @@ void SourceFileOggVorbis::seek( size_t readPositionFrames )
 	if( readPositionFrames >= mNumFrames )
 		return;
 
-	// TODO: convert to native read pos if necessary
+	// adjust read pos for samplerate conversion so that it is relative to native num frames
+	if( mSampleRate != mNativeSampleRate )
+		readPositionFrames *= (float)mFileNumFrames / (float)mNumFrames;
 
 	int status = ov_pcm_seek( &mOggVorbisFile, (ogg_int64_t)readPositionFrames );
 	CI_ASSERT( ! status );

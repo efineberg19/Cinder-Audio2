@@ -257,7 +257,8 @@ void FilePlayer::seek( size_t readPositionFrames )
 	unique_lock<mutex> lock( mIoMutex );
 
 	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
-	mSourceFile->seekToTime( mReadPos );
+
+	mSourceFile->seek( mReadPos );
 }
 
 void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )

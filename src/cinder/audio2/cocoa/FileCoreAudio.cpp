@@ -111,19 +111,23 @@ void SourceFileCoreAudio::outputFormatUpdated()
 size_t SourceFileCoreAudio::read( Buffer *buffer )
 {
 	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
-	CI_ASSERT( mReadPos < mNumFrames );
 
+	// get the number of frames needed for read
 	UInt32 frameCount = (UInt32)std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
+	if( frameCount == 0 )
+		return 0;
 
-	for( int i = 0; i < mNumChannels; i++ ) {
-		mBufferList->mBuffers[i].mDataByteSize = frameCount * sizeof( float );
-		mBufferList->mBuffers[i].mData = &buffer->getChannel( i )[0];
+	for( int ch = 0; ch < mNumChannels; ch++ ) {
+		mBufferList->mBuffers[ch].mDataByteSize = frameCount * sizeof( float );
+		mBufferList->mBuffers[ch].mData = buffer->getChannel( ch );
 	}
 
 	OSStatus status = ::ExtAudioFileRead( mExtAudioFile.get(), &frameCount, mBufferList.get() );
 	CI_ASSERT( status == noErr );
 
+	// now, frameCount represents the number of frames read into mBufferList
 	mReadPos += frameCount;
+
 	return frameCount;
 }
 
@@ -154,6 +158,12 @@ void SourceFileCoreAudio::seek( size_t readPositionFrames )
 {
 	if( readPositionFrames == mReadPos || readPositionFrames >= mNumFrames )
 		return;
+
+	// adjust read pos for samplerate conversion so that it is relative to native num frames
+	if( mSampleRate != mNativeSampleRate )
+		readPositionFrames *= (float)mFileNumFrames / (float)mNumFrames;
+
+	CI_ASSERT( readPositionFrames < mFileNumFrames );
 
 	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPositionFrames );
 	CI_ASSERT( status == noErr );

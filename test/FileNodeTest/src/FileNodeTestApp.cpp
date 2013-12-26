@@ -14,18 +14,16 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// FIXME: seek with fileplayback / cash mp3 seems to be broken
-//			- fixed it a bit, although continues to crash in SourceFileCoreAudio::read() with continuous seeks
 // FIXME: failure on switching tests as:  buffer player -> file player -> buffer player
 
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: move usage of Converter to base Source class, as much as possible
 
-#define INITIAL_AUDIO_RES	RES_TONE440_WAV
+//#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
-//#define INITIAL_AUDIO_RES	RES_CASH_MP3
+#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;
 using namespace ci::app;
@@ -94,8 +92,8 @@ void FileNodeTestApp::setup()
 
 	mGain->connect( mPan )->connect( ctx->getTarget() );
 
-	setupBufferPlayer();
-//	setupFilePlayer();
+//	setupBufferPlayer();
+	setupFilePlayer();
 
 	setupUI();
 

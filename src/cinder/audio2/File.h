@@ -83,7 +83,7 @@ class SourceFile : public Source {
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;
 	//! Seek to read position \a readPositionSeconds
-	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getNativeSampleRate() ) ); }
+	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getSampleRate() ) ); }
 
   protected:
 	SourceFile( const DataSourceRef &dataSource ) : Source(), mNumFrames( 0 )
