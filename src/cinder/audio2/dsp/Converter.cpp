@@ -58,7 +58,7 @@ Converter::Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sou
 	mDestMaxFramesPerBlock = ceil( (float)mSourceMaxFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
 }
 
-void Converter::mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
+void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
 {
 	size_t sourceChannels = sourceBuffer->getNumChannels();
 	size_t destChannels = destBuffer->getNumChannels();
@@ -75,17 +75,17 @@ void Converter::mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size
 	}
 	else if( destChannels == 1 ) {
 		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
-		const float kDownMixNormalizer = 1.0f / std::sqrt( 2.0f );
+		const float downMixNormalizer = 1.0f / std::sqrt( 2.0f );
 		float *destChannel0 = destBuffer->getChannel( 0 );
 		destBuffer->zero();
 		for( size_t c = 0; c < sourceChannels; c++ )
-			addMul( destChannel0, sourceBuffer->getChannel( c ), kDownMixNormalizer, destChannel0, numFrames );
+			addMul( destChannel0, sourceBuffer->getChannel( c ), downMixNormalizer, destChannel0, numFrames );
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );
 }
 
-void Converter::sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
+void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
 {
 	size_t sourceChannels = sourceBuffer->getNumChannels();
 	size_t destChannels = destBuffer->getNumChannels();
@@ -102,10 +102,10 @@ void Converter::sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size
 	}
 	else if( destChannels == 1 ) {
 		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
-		const float kDownMixNormalizer = 1.0f / std::sqrt( 2.0f );
+		const float downMixNormalizer = 1.0f / std::sqrt( 2.0f );
 		float *destChannel0 = destBuffer->getChannel( 0 );
 		for( size_t c = 0; c < sourceChannels; c++ )
-			addMul( destChannel0, sourceBuffer->getChannel( c ), kDownMixNormalizer, destChannel0, numFrames );
+			addMul( destChannel0, sourceBuffer->getChannel( c ), downMixNormalizer, destChannel0, numFrames );
 	}
 	else
 		CI_ASSERT( 0 && "unhandled" );

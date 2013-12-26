@@ -26,7 +26,6 @@
 #include "cinder/audio2/CinderAssert.h"
 
 #include "cinder/Cinder.h"
-//#include "cinder/Rand.h"
 
 #if defined( CINDER_COCOA )
 	#define CINDER_AUDIO_VDSP

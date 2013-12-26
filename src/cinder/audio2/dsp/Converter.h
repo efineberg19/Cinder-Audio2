@@ -40,18 +40,6 @@ public:
 	//! \note destBuffer must be large enough to complete the conversion, which is calculated as: \code minNumDestFrames = min( sourceBuffer->getNumFrames, getSourceMaxFramesPerBlock() ) * getDestSampleRate() * getSourceSampleRate() \endcode
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
-	// TODO: consider moving these static methods to standalone functions in the dsp namespace
-
-	//! Mixes \a sourceBuffer to \a destBuffer's layout, replacing its content. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
-	static void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ mixBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
-	//! Mixes \a numFrames frames of \a sourceBuffer to \a destBuffer's layout, replacing its content. Channel up or down mixing is applied if necessary.
-	static void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
-
-	//! Sums \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
-	static void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ sumBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
-	//! Sums \a numFrames frames of \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary.
-	static void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
-
 	size_t getSourceSampleRate()		const		{ return mSourceSampleRate; }
 	size_t getDestSampleRate()			const		{ return mDestSampleRate; }
 	size_t getSourceNumChannels()		const		{ return mSourceNumChannels; }
@@ -64,5 +52,15 @@ protected:
 
 	size_t mSourceSampleRate, mDestSampleRate, mSourceNumChannels, mDestNumChannels, mSourceMaxFramesPerBlock, mDestMaxFramesPerBlock;
 };
+
+//! Mixes \a numFrames frames of \a sourceBuffer to \a destBuffer's layout, replacing its content. Channel up or down mixing is applied if necessary.
+void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
+//! Mixes \a sourceBuffer to \a destBuffer's layout, replacing its content. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
+inline void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ mixBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
+
+//! Sums \a numFrames frames of \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary.
+void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames );
+//! Sums \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
+inline void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ sumBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
 
 } } } // namespace cinder::audio2::dsp

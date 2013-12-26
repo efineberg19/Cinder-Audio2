@@ -169,16 +169,16 @@ void Node::pullInputs( Buffer *destBuffer )
 
 				input->pullInputs( &mInternalBuffer );
 				if( input->getProcessInPlace() )
-					dsp::Converter::sumBuffers( &mInternalBuffer, &mSummingBuffer );
+					dsp::sumBuffers( &mInternalBuffer, &mSummingBuffer );
 				else
-					dsp::Converter::sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
+					dsp::sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
 			}
 
 			if( mEnabled )
 				process( &mSummingBuffer );
 		}
 
-		dsp::Converter::mixBuffers( &mSummingBuffer, destBuffer );
+		dsp::mixBuffers( &mSummingBuffer, destBuffer );
 	}
 }
 
