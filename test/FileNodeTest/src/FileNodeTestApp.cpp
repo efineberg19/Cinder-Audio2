@@ -15,18 +15,16 @@
 #include "../../../samples/common/AudioDrawUtils.h"
 
 // FIXME: seek with fileplayback / cash mp3 seems to be broken
-// FIXME: support system samplerate change while app is running
+//			- fixed it a bit, although continues to crash in SourceFileCoreAudio::read() with continuous seeks
+// FIXME: failure on switching tests as:  buffer player -> file player -> buffer player
 
-// TODO: move usage of Converter to base Source class, as much as possible
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
-// TODO: fix split in right channel of waveform draw
-//		- seems to only be an issue when there is samplerate conversion
+// TODO: move usage of Converter to base Source class, as much as possible
 
-
-//#define INITIAL_AUDIO_RES	RES_TONE440_WAV
+#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;
@@ -84,14 +82,17 @@ void FileNodeTestApp::setup()
 	mUnderrunFade = mOverrunFade = 0;
 	mSamplePlayerEnabledState = false;
 
+	setSourceFile( loadResource( INITIAL_AUDIO_RES ) );
+
 	auto ctx = audio2::Context::master();
-	
+
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 //	mPan->enableMonoInputMode( false );
+
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	setSourceFile( loadResource( INITIAL_AUDIO_RES ) );
+	mGain->connect( mPan )->connect( ctx->getTarget() );
 
 	setupBufferPlayer();
 //	setupFilePlayer();

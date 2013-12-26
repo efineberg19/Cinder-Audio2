@@ -33,6 +33,8 @@ namespace cinder { namespace audio2 { namespace cocoa {
 
 class DeviceManagerCoreAudio : public DeviceManager {
   public:
+	DeviceManagerCoreAudio();
+
 	const std::vector<DeviceRef>& getDevices()									override;
 	DeviceRef getDefaultOutput()												override;
 	DeviceRef getDefaultInput()													override;
@@ -62,9 +64,13 @@ class DeviceManagerCoreAudio : public DeviceManager {
 
 	static std::string keyForDeviceId( ::AudioDeviceID deviceId );
 
-	std::map<DeviceRef,::AudioDeviceID>		mDeviceIds;
+	std::map<DeviceRef, ::AudioDeviceID>	mDeviceIds;
 	DeviceRef								mCurrentOutputDevice, mCurrentInputDevice;
 	::AudioObjectPropertyListenerBlock		mOutputDeviceListenerBlock, mInputDeviceListenerBlock;
+
+	bool									mUserHasModifiedFormat; // flag that indicates the user has modified device format, rather than a system update.
+
+	friend class Context;
 };
 
 } } } // namespace cinder::audio2::cocoa

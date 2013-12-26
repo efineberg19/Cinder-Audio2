@@ -132,6 +132,11 @@ vector<PropT> getAudioObjectPropertyVector( ::AudioObjectID objectId, ::AudioObj
 // MARK: - DeviceManagerCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
+DeviceManagerCoreAudio::DeviceManagerCoreAudio()
+	: mUserHasModifiedFormat( false )
+{
+}
+
 DeviceRef DeviceManagerCoreAudio::getDefaultOutput()
 {
 	::AudioObjectPropertyAddress propertyAddress = getAudioObjectPropertyAddress( kAudioHardwarePropertyDefaultOutputDevice );
@@ -183,6 +188,8 @@ void DeviceManagerCoreAudio::setSampleRate( const DeviceRef &device, size_t samp
 	if( find( acceptable.begin(), acceptable.end(), sampleRate ) == acceptable.end() )
 		throw AudioDeviceExc( "Invalid samplerate." );
 
+	mUserHasModifiedFormat = true;
+
 	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyNominalSampleRate );
 	Float64 data = static_cast<Float64>( sampleRate );
 	setAudioObjectProperty( deviceId, property, data );
@@ -204,6 +211,8 @@ void DeviceManagerCoreAudio::setFramesPerBlock( const DeviceRef &device, size_t 
 	auto range = getAcceptableFramesPerBlockRange( deviceId );
 	if( framesPerBlock < range.first || framesPerBlock > range.second )
 		throw AudioDeviceExc( "Invalid frames per block." );
+
+	mUserHasModifiedFormat = true;
 
 	::AudioObjectPropertyAddress property = getAudioObjectPropertyAddress( kAudioDevicePropertyBufferFrameSize );
 	UInt32 data = static_cast<UInt32>( framesPerBlock );
@@ -286,8 +295,17 @@ void DeviceManagerCoreAudio::registerPropertyListeners( const DeviceRef &device,
 		}
 
 		// only output device gets update signals
-		if( isOutput && paramsUpdated )
+		if( isOutput && paramsUpdated ) {
+
+			// if the change was system wide, we need to first call the will-changle signal so everything is properly uninitialized
+			if( ! mUserHasModifiedFormat )
+				emitParamsWillChange( device );
+
 			emitParamsDidChange( device );
+		}
+
+		// reset user-modified flag after params-changed signals have been emitted
+		mUserHasModifiedFormat = false;
     };
 
 	dispatch_queue_t currentQueue = dispatch_get_current_queue();

@@ -136,20 +136,22 @@ void Device::updateFormat( const Format &format )
 	if( mSampleRate == sampleRate && mFramesPerBlock == framesPerBlock )
 		return;
 
+	auto deviceMgr = Context::deviceManager();
+
 	mSignalParamsWillChange();
 
 	if( sampleRate && sampleRate != mSampleRate ) {
-		// set the samplerate to 0, forcing it to refresh on next get
+		// set the samplerate to 0, forcing it to refresh on next get.
 		mSampleRate = 0;
-		Context::deviceManager()->setSampleRate( shared_from_this(), sampleRate );
+		deviceMgr->setSampleRate( shared_from_this(), sampleRate );
 	}
 	if( framesPerBlock && framesPerBlock != mFramesPerBlock ) {
 		// set the frames per block to 0, forcing it to refresh on next get
 		mFramesPerBlock = 0;
-		Context::deviceManager()->setFramesPerBlock( shared_from_this(), framesPerBlock );
+		deviceMgr->setFramesPerBlock( shared_from_this(), framesPerBlock );
 	}
 
-	if( ! Context::deviceManager()->isFormatUpdatedAsync() )
+	if( ! deviceMgr->isFormatUpdatedAsync() )
 		mSignalParamsDidChange();
 }
 
@@ -202,8 +204,17 @@ DeviceRef DeviceManager::addDevice( const string &key )
 	return mDevices.back();
 }
 
+void DeviceManager::emitParamsWillChange( const DeviceRef &device )
+{
+	device->mSignalParamsWillChange();
+}
+
 void DeviceManager::emitParamsDidChange( const DeviceRef &device )
 {
+	// clear param caching, will be updated the next time Device is queried
+	device->mSampleRate = 0;
+	device->mFramesPerBlock = 0;
+
 	device->mSignalParamsDidChange();
 }
 } } // namespace cinder::audio2

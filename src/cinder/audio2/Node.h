@@ -69,16 +69,10 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	virtual ~Node();
 
-	std::string virtual getName()				{ return "Node"; }
-
 	//! Called before audio buffers need to be used. There is always a valid Context at this point.
 	virtual void initialize()	{}
 	//! Called once the contents of initialize are no longer relevant, i.e. destruction or the connections have changed
 	virtual void uninitialize()	{}
-
-	//! Returns the \a Context associated with this \a Node. \note Cannot be called from within a \a Node's constructor. Use initialize instead.
-	ContextRef getContext() const				{ return mContext.lock(); }
-
 	//! Enables this Node for processing. Same as setEnabled( true ).
 	virtual void start()		{ mEnabled = true; }
 	//! Disables this Node for processing. Same as setEnabled( false ).
@@ -103,6 +97,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Returns the number of outputs this Node is connected to.
 	size_t getNumConnectedOutputs() const;
 
+	//! Returns the \a Context associated with this \a Node. \note Cannot be called from within a \a Node's constructor. Use initialize instead.
+	ContextRef	getContext() const				{ return mContext.lock(); }
 	//! Returns the number of channels this Node will process.
 	size_t		getNumChannels() const			{ return mNumChannels; }
 	//! Returns the channel mode. \see ChannelMode.
@@ -134,6 +130,9 @@ class Node : public std::enable_shared_from_this<Node> {
 	// TODO: make this protected if possible (or better yet, not-accessible)
 //	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
 	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
+
+	//! Returns a string representing the name of this Node type. TODO: use typeid + abi de-mangling to ease the burden on sub-classes
+	std::string virtual getName()				{ return "Node"; }
 
   protected:
 	Node( const Format &format );

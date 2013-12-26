@@ -119,6 +119,7 @@ class DeviceManager : public boost::noncopyable {
 
 	DeviceRef	addDevice( const std::string &key );
 
+	void emitParamsWillChange( const DeviceRef &device );
 	void emitParamsDidChange( const DeviceRef &device );
 
 	std::vector<DeviceRef> mDevices;
