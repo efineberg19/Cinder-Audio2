@@ -28,6 +28,8 @@
 
 #include <vector>
 
+// rename file to Filter.h/cpp
+
 // TODO: add api for setting biquad with arbitrary set of coefficients, ala pd's [biquad~]
 
 namespace cinder { namespace audio2 {

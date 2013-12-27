@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cinder/audio2/NodeFilter.h"
+#include "cinder/audio2/Filter.h"
 
 using namespace std;
 

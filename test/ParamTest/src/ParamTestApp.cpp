@@ -5,7 +5,7 @@
 
 #include "cinder/audio2/NodeSource.h"
 #include "cinder/audio2/NodeEffect.h"
-#include "cinder/audio2/NodeFilter.h"
+#include "cinder/audio2/Filter.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 

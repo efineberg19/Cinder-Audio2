@@ -251,10 +251,10 @@
 		119CD11B184A793400853BEE /* NodeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0A8184A793400853BEE /* NodeEffect.cpp */; };
 		119CD11C184A793400853BEE /* NodeEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0A9184A793400853BEE /* NodeEffect.h */; };
 		119CD11D184A793400853BEE /* NodeEffect.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0A9184A793400853BEE /* NodeEffect.h */; };
-		119CD11E184A793400853BEE /* NodeFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AA184A793400853BEE /* NodeFilter.cpp */; };
-		119CD11F184A793400853BEE /* NodeFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AA184A793400853BEE /* NodeFilter.cpp */; };
-		119CD120184A793400853BEE /* NodeFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AB184A793400853BEE /* NodeFilter.h */; };
-		119CD121184A793400853BEE /* NodeFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AB184A793400853BEE /* NodeFilter.h */; };
+		119CD11E184A793400853BEE /* Filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AA184A793400853BEE /* Filter.cpp */; };
+		119CD11F184A793400853BEE /* Filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AA184A793400853BEE /* Filter.cpp */; };
+		119CD120184A793400853BEE /* Filter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AB184A793400853BEE /* Filter.h */; };
+		119CD121184A793400853BEE /* Filter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AB184A793400853BEE /* Filter.h */; };
 		119CD122184A793400853BEE /* NodeSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AC184A793400853BEE /* NodeSource.cpp */; };
 		119CD123184A793400853BEE /* NodeSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AC184A793400853BEE /* NodeSource.cpp */; };
 		119CD124184A793400853BEE /* NodeSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AD184A793400853BEE /* NodeSource.h */; };
@@ -415,8 +415,8 @@
 		119CD0A7184A793400853BEE /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
 		119CD0A8184A793400853BEE /* NodeEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeEffect.cpp; sourceTree = "<group>"; };
 		119CD0A9184A793400853BEE /* NodeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeEffect.h; sourceTree = "<group>"; };
-		119CD0AA184A793400853BEE /* NodeFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeFilter.cpp; sourceTree = "<group>"; };
-		119CD0AB184A793400853BEE /* NodeFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeFilter.h; sourceTree = "<group>"; };
+		119CD0AA184A793400853BEE /* Filter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Filter.cpp; sourceTree = "<group>"; };
+		119CD0AB184A793400853BEE /* Filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Filter.h; sourceTree = "<group>"; };
 		119CD0AC184A793400853BEE /* NodeSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeSource.cpp; sourceTree = "<group>"; };
 		119CD0AD184A793400853BEE /* NodeSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeSource.h; sourceTree = "<group>"; };
 		119CD0AE184A793400853BEE /* NodeTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeTarget.cpp; sourceTree = "<group>"; };
@@ -714,8 +714,8 @@
 				119CD0A7184A793400853BEE /* Node.h */,
 				119CD0A8184A793400853BEE /* NodeEffect.cpp */,
 				119CD0A9184A793400853BEE /* NodeEffect.h */,
-				119CD0AA184A793400853BEE /* NodeFilter.cpp */,
-				119CD0AB184A793400853BEE /* NodeFilter.h */,
+				119CD0AA184A793400853BEE /* Filter.cpp */,
+				119CD0AB184A793400853BEE /* Filter.h */,
 				119CD0AC184A793400853BEE /* NodeSource.cpp */,
 				119CD0AD184A793400853BEE /* NodeSource.h */,
 				119CD0AE184A793400853BEE /* NodeTarget.cpp */,
@@ -883,7 +883,7 @@
 				1115502118026C9100D415BC /* vorbisfile.h in Headers */,
 				114FE8C118032BF100C5841B /* bitrate.h in Headers */,
 				114FE92B18032BF100C5841B /* scales.h in Headers */,
-				119CD120184A793400853BEE /* NodeFilter.h in Headers */,
+				119CD120184A793400853BEE /* Filter.h in Headers */,
 				119CD0C0184A793400853BEE /* CinderCoreAudio.h in Headers */,
 				114FE8BB18032BF100C5841B /* backends.h in Headers */,
 				114FE8C918032BF100C5841B /* floor_books.h in Headers */,
@@ -976,7 +976,7 @@
 				1115502218026C9100D415BC /* vorbisfile.h in Headers */,
 				114FE8C218032BF100C5841B /* bitrate.h in Headers */,
 				114FE92C18032BF100C5841B /* scales.h in Headers */,
-				119CD121184A793400853BEE /* NodeFilter.h in Headers */,
+				119CD121184A793400853BEE /* Filter.h in Headers */,
 				119CD0C1184A793400853BEE /* CinderCoreAudio.h in Headers */,
 				114FE8BC18032BF100C5841B /* backends.h in Headers */,
 				114FE8CA18032BF100C5841B /* floor_books.h in Headers */,
@@ -1056,7 +1056,7 @@
 			files = (
 				119CD126184A793400853BEE /* NodeTarget.cpp in Sources */,
 				119CD0D2184A793400853BEE /* Context.cpp in Sources */,
-				119CD11E184A793400853BEE /* NodeFilter.cpp in Sources */,
+				119CD11E184A793400853BEE /* Filter.cpp in Sources */,
 				114FE92F18032BF100C5841B /* smallft.c in Sources */,
 				119CD12E184A793400853BEE /* Scope.cpp in Sources */,
 				114FE92918032BF100C5841B /* res0.c in Sources */,
@@ -1112,7 +1112,7 @@
 			files = (
 				119CD127184A793400853BEE /* NodeTarget.cpp in Sources */,
 				119CD0D3184A793400853BEE /* Context.cpp in Sources */,
-				119CD11F184A793400853BEE /* NodeFilter.cpp in Sources */,
+				119CD11F184A793400853BEE /* Filter.cpp in Sources */,
 				114FE93018032BF100C5841B /* smallft.c in Sources */,
 				119CD12F184A793400853BEE /* Scope.cpp in Sources */,
 				114FE92A18032BF100C5841B /* res0.c in Sources */,
