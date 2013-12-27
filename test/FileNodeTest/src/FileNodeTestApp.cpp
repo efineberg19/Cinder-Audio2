@@ -14,9 +14,6 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// FIXME: failure on switching tests as: buffer player -> file player -> buffer player
-//		- doing this and then running, FilePlayer's readFile doesn't get any samples from SourceFileCoreAudio::read()
-
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: move usage of Converter to base Source class, as much as possible
 
@@ -24,9 +21,9 @@
 // TODO: add load raw buffer test
 
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
-#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
+//#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;

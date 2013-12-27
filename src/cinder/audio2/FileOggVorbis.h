@@ -40,6 +40,7 @@ namespace dsp {
 
 class SourceFileOggVorbis : public SourceFile {
   public:
+	SourceFileOggVorbis();
 	SourceFileOggVorbis( const DataSourceRef &dataSource );
 	virtual ~SourceFileOggVorbis();
 
@@ -53,6 +54,8 @@ class SourceFileOggVorbis : public SourceFile {
 	std::string getMetaData() const					override;
 
   private:
+	void initImpl();
+
 	long readIntoBufferImpl( Buffer *buffer, size_t offset, size_t length );
 
 	size_t readImpl( Buffer *buffer );
@@ -63,6 +66,7 @@ class SourceFileOggVorbis : public SourceFile {
 
 	::OggVorbis_File	mOggVorbisFile;
 	size_t				mReadPos, mFileNumFrames;
+	fs::path			mFilePath;
 
 	std::unique_ptr<dsp::Converter>		mConverter;
 };

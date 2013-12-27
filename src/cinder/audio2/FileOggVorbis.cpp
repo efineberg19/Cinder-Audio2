@@ -32,10 +32,35 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
+SourceFileOggVorbis::SourceFileOggVorbis()
+: SourceFile(), mReadPos( 0 )
+{}
+
 SourceFileOggVorbis::SourceFileOggVorbis( const DataSourceRef &dataSource )
-	: SourceFile( dataSource ), mReadPos( 0 )
+	: SourceFile(), mReadPos( 0 )
 {
-	int status = ov_fopen( dataSource->getFilePath().string().c_str(), &mOggVorbisFile );
+	mFilePath = dataSource->getFilePath();
+	initImpl();
+}
+
+SourceFileRef SourceFileOggVorbis::clone() const
+{
+	shared_ptr<SourceFileOggVorbis> result( new SourceFileOggVorbis );
+
+	result->mFilePath = mFilePath;
+	result->initImpl();
+
+	return result;
+}
+
+SourceFileOggVorbis::~SourceFileOggVorbis()
+{
+	ov_clear( &mOggVorbisFile );
+}
+
+void SourceFileOggVorbis::initImpl()
+{
+	int status = ov_fopen( mFilePath.string().c_str(), &mOggVorbisFile );
 	if( status )
 		throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
 
@@ -45,11 +70,6 @@ SourceFileOggVorbis::SourceFileOggVorbis( const DataSourceRef &dataSource )
 
 	ogg_int64_t totalFrames = ov_pcm_total( &mOggVorbisFile, -1 );
     mNumFrames = mFileNumFrames = static_cast<uint32_t>( totalFrames );
-}
-
-SourceFileOggVorbis::~SourceFileOggVorbis()
-{
-	ov_clear( &mOggVorbisFile );
 }
 
 void SourceFileOggVorbis::outputFormatUpdated()

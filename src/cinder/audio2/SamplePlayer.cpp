@@ -111,8 +111,8 @@ void BufferPlayer::setBuffer( const BufferRef &buffer )
 void BufferPlayer::loadBuffer( const SourceFileRef &sourceFile )
 {
 	auto sf = sourceFile->clone();
-	sf->setOutputFormat( getContext()->getSampleRate() );
 
+	sf->setOutputFormat( getContext()->getSampleRate() );
 	setBuffer( sf->loadBuffer() );
 }
 
