@@ -169,6 +169,10 @@
 		114FE998180371F100C5841B /* r8bbase.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE983180371F100C5841B /* r8bbase.h */; };
 		114FE999180371F100C5841B /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE984180371F100C5841B /* r8bconf.h */; };
 		114FE99A180371F100C5841B /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE984180371F100C5841B /* r8bconf.h */; };
+		1185786F186D1F0E00C4A290 /* SamplePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */; };
+		11857870186D1F0E00C4A290 /* SamplePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */; };
+		11857871186D1F0E00C4A290 /* SamplePlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1185786E186D1F0E00C4A290 /* SamplePlayer.h */; };
+		11857872186D1F0E00C4A290 /* SamplePlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1185786E186D1F0E00C4A290 /* SamplePlayer.h */; };
 		119CD0B4184A793400853BEE /* Voice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD072184A793400853BEE /* Voice.cpp */; };
 		119CD0B5184A793400853BEE /* Voice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD072184A793400853BEE /* Voice.cpp */; };
 		119CD0B6184A793400853BEE /* Voice.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD073184A793400853BEE /* Voice.h */; };
@@ -360,6 +364,8 @@
 		114FE982180371F100C5841B /* r8bbase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = r8bbase.cpp; sourceTree = "<group>"; };
 		114FE983180371F100C5841B /* r8bbase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r8bbase.h; sourceTree = "<group>"; };
 		114FE984180371F100C5841B /* r8bconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r8bconf.h; sourceTree = "<group>"; };
+		1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SamplePlayer.cpp; sourceTree = "<group>"; };
+		1185786E186D1F0E00C4A290 /* SamplePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SamplePlayer.h; sourceTree = "<group>"; };
 		119CD072184A793400853BEE /* Voice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Voice.cpp; sourceTree = "<group>"; };
 		119CD073184A793400853BEE /* Voice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Voice.h; sourceTree = "<group>"; };
 		119CD074184A793400853BEE /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
@@ -716,6 +722,8 @@
 				119CD0AF184A793400853BEE /* NodeTarget.h */,
 				119CD0B0184A793400853BEE /* Param.cpp */,
 				119CD0B1184A793400853BEE /* Param.h */,
+				1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */,
+				1185786E186D1F0E00C4A290 /* SamplePlayer.h */,
 				119CD0B2184A793400853BEE /* Scope.cpp */,
 				119CD0B3184A793400853BEE /* Scope.h */,
 				119CD139184A7E5E00853BEE /* Utilities.h */,
@@ -826,6 +834,7 @@
 				114FE999180371F100C5841B /* r8bconf.h in Headers */,
 				114FE91318032BF100C5841B /* setup_44.h in Headers */,
 				114FE90B18032BF100C5841B /* setup_11.h in Headers */,
+				11857871186D1F0E00C4A290 /* SamplePlayer.h in Headers */,
 				114FE8F518032BF100C5841B /* misc.h in Headers */,
 				114FE91D18032BF100C5841B /* os.h in Headers */,
 				119CD0FA184A793400853BEE /* File.h in Headers */,
@@ -918,6 +927,7 @@
 				114FE99A180371F100C5841B /* r8bconf.h in Headers */,
 				114FE91418032BF100C5841B /* setup_44.h in Headers */,
 				114FE90C18032BF100C5841B /* setup_11.h in Headers */,
+				11857872186D1F0E00C4A290 /* SamplePlayer.h in Headers */,
 				114FE8F618032BF100C5841B /* misc.h in Headers */,
 				114FE91E18032BF100C5841B /* os.h in Headers */,
 				119CD0FB184A793400853BEE /* File.h in Headers */,
@@ -1063,6 +1073,7 @@
 				114FE93718032BF100C5841B /* vorbisenc.c in Sources */,
 				114FE8B518032BF100C5841B /* bitwise.c in Sources */,
 				114FE93318032BF100C5841B /* synthesis.c in Sources */,
+				1185786F186D1F0E00C4A290 /* SamplePlayer.cpp in Sources */,
 				114FE8DD18032BF100C5841B /* info.c in Sources */,
 				114FE8C318032BF100C5841B /* block.c in Sources */,
 				114FE8BF18032BF100C5841B /* bitrate.c in Sources */,
@@ -1118,6 +1129,7 @@
 				114FE8B618032BF100C5841B /* bitwise.c in Sources */,
 				114FE93418032BF100C5841B /* synthesis.c in Sources */,
 				114FE8DE18032BF100C5841B /* info.c in Sources */,
+				11857870186D1F0E00C4A290 /* SamplePlayer.cpp in Sources */,
 				114FE8C418032BF100C5841B /* block.c in Sources */,
 				114FE8C018032BF100C5841B /* bitrate.c in Sources */,
 				119CD0D9184A793400853BEE /* Device.cpp in Sources */,

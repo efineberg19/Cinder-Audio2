@@ -4,7 +4,7 @@
 
 
 #include "cinder/audio2/Scope.h"
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/SamplePlayer.h"
 #include "cinder/audio2/Debug.h"
 #include "cinder/audio2/dsp/Dsp.h"
 

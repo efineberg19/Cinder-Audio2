@@ -4,7 +4,7 @@
 #include "cinder/Timer.h"
 
 #include "cinder/audio2/dsp/Converter.h"
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/SamplePlayer.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"
 #include "cinder/audio2/Debug.h"

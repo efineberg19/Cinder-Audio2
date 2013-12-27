@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "cinder/DataSource.h"
 #include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/SamplePlayer.h"
 #include "cinder/audio2/File.h"
 
 #include <memory>
