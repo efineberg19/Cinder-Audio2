@@ -37,6 +37,7 @@ typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 class Source {
   public:
 	virtual ~Source();
+
 	//! Returns the output samplerate (the samplerate of frames read).
 	size_t	getSampleRate() const				{ return mSampleRate; }
 	//! Returns the output number of channels (the num channnels of frames read).
@@ -74,10 +75,8 @@ class SourceFile : public Source {
 	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource );
 	virtual ~SourceFile()	{}
 
-	virtual size_t	getNumFrames() const					{ return mNumFrames; }
-
-	//! Returns the length in seconds when played back at the specified samplerate.
-	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
+	//! Returns a clone of this Source.
+	virtual SourceFileRef clone() const = 0;
 
 	virtual BufferRef loadBuffer() = 0;
 	//! Seek the read position to \a readPositionFrames
@@ -85,9 +84,13 @@ class SourceFile : public Source {
 	//! Seek to read position \a readPositionSeconds
 	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getSampleRate() ) ); }
 
+	//! Returns the length in seconds.
+	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
+	//! Returns the length in frames.
+	virtual size_t	getNumFrames() const					{ return mNumFrames; }
+
   protected:
-	SourceFile( const DataSourceRef &dataSource ) : Source(), mNumFrames( 0 )
-	{}
+	SourceFile() : Source(), mNumFrames( 0 )	{}
 
 	size_t mNumFrames;
 };

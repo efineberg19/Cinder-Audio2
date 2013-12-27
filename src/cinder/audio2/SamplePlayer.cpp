@@ -51,11 +51,6 @@ double SamplePlayer::getReadPositionTime() const
 BufferPlayer::BufferPlayer( const Format &format )
 : SamplePlayer( format )
 {
-	// If the Format doesn't specify num channels, set to one until further notice.
-	if( ! mChannelMode == ChannelMode::SPECIFIED ) {
-		mChannelMode = ChannelMode::SPECIFIED;
-		mNumChannels = mBuffer->getNumChannels();
-	}
 }
 
 BufferPlayer::BufferPlayer( const BufferRef &buffer, const Format &format )
@@ -111,6 +106,14 @@ void BufferPlayer::setBuffer( const BufferRef &buffer )
 
 	if( enabled )
 		start();
+}
+
+void BufferPlayer::loadBuffer( const SourceFileRef &sourceFile )
+{
+	auto sf = sourceFile->clone();
+	sf->setOutputFormat( getContext()->getSampleRate() );
+
+	setBuffer( sf->loadBuffer() );
 }
 
 void BufferPlayer::process( Buffer *buffer )

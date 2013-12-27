@@ -20,12 +20,13 @@
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: move usage of Converter to base Source class, as much as possible
 
-// TODO: add async buffer loading test via toggle
+// TODO: add async buffer loading test
+// TODO: add load raw buffer test
 
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
-//#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;
@@ -111,21 +112,14 @@ void FileNodeTestApp::setupBufferPlayer()
 {
 	auto ctx = audio2::Context::master();
 
-	// FIXME: There is a change the FilePlayer is reading from mSourceFile on a background thread at the same time we access this here.
-	// - temp workaround is making source the current sampleplayer is stopped before doing anything with mSourceFile,
-	//	 but this is obviously a sore spot and one that is sure to cause frustration.
-	if( mSamplePlayer )
-		mSamplePlayer->stop();
+	auto bufferPlayer = ctx->makeNode( new audio2::BufferPlayer() );
+	bufferPlayer->loadBuffer( mSourceFile );
+	mSamplePlayer = bufferPlayer;
 
-	mSourceFile->setOutputFormat( ctx->getSampleRate() );
-	audio2::BufferRef audioBuffer = mSourceFile->loadBuffer();
-
-	LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
-
-	mWaveformPlot.load( audioBuffer, getWindowBounds() );
-
-	mSamplePlayer = ctx->makeNode( new audio2::BufferPlayer( audioBuffer ) );
 	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
+
+	mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
+	LOG_V( "loaded source buffer, frames: " << bufferPlayer->getBuffer()->getNumFrames() );
 }
 
 void FileNodeTestApp::setupFilePlayer()
@@ -309,8 +303,7 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 
 	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
 	if( bufferPlayer ) {
-		mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
-		bufferPlayer->setBuffer( mSourceFile->loadBuffer() );
+		bufferPlayer->loadBuffer( mSourceFile );
 		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
 	}
 	else {

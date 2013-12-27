@@ -43,6 +43,8 @@ class SourceFileOggVorbis : public SourceFile {
 	SourceFileOggVorbis( const DataSourceRef &dataSource );
 	virtual ~SourceFileOggVorbis();
 
+	SourceFileRef	clone() const override;
+
 	void		outputFormatUpdated()				override;
 	size_t		read( Buffer *buffer )				override;
 	BufferRef	loadBuffer()						override;

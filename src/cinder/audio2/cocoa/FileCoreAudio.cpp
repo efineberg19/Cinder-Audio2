@@ -58,8 +58,12 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // MARK: - SourceFileCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
+SourceFileCoreAudio::SourceFileCoreAudio()
+	: SourceFile(), mReadPos( 0 )
+{}
+
 SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource )
-	: SourceFile( dataSource ), mReadPos( 0 )
+	: SourceFile(), mReadPos( 0 )
 {
 //	printExtensions();
 
@@ -67,14 +71,34 @@ SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource )
 	// - wouldn't stream, but would at least load the file as expected
 	CI_ASSERT_MSG( dataSource->isFilePath(), "at present only data source type supported is file" );
 
-	::CFURLRef sourceUrl = ci::cocoa::createCfUrl( Url( dataSource->getFilePath().string() ) );
+	mFilePath = dataSource->getFilePath();
+	initImpl();
+}
 
+SourceFileRef SourceFileCoreAudio::clone() const
+{
+	shared_ptr<SourceFileCoreAudio> result( new SourceFileCoreAudio );
+
+	result->mFilePath = mFilePath;
+	result->initImpl();
+
+	return result;
+}
+
+SourceFileCoreAudio::~SourceFileCoreAudio()
+{
+}
+
+void SourceFileCoreAudio::initImpl()
+{
+	::CFURLRef fileUrl = ci::cocoa::createCfUrl( Url( mFilePath.string() ) );
 	::ExtAudioFileRef audioFile;
-	OSStatus status = ::ExtAudioFileOpenURL( sourceUrl, &audioFile );
-	if( status != noErr )
-		throw AudioFileExc( string( "could not open audio source file: " ) + dataSource->getFilePath().string(), (int32_t)status );
+	OSStatus status = ::ExtAudioFileOpenURL( fileUrl, &audioFile );
+	if( status != noErr ) {
+		string urlString = ci::cocoa::convertCfString( CFURLGetString( fileUrl ) );
+		throw AudioFileExc( string( "could not open audio source file: " ) + urlString, (int32_t)status );
+	}
 
-	::CFRelease( sourceUrl );
 	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
 
 	::AudioStreamBasicDescription fileFormat;

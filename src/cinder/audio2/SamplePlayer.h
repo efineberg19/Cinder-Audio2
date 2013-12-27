@@ -74,6 +74,7 @@ public:
 	BufferPlayer( const Format &format = Format() );
 	//! Constructs a BufferPlayer \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
 	BufferPlayer( const BufferRef &buffer, const Format &format = Format() );
+
 	virtual ~BufferPlayer() {}
 
 	std::string virtual getName() override			{ return "BufferPlayer"; }
@@ -82,6 +83,9 @@ public:
 	virtual void stop() override;
 	virtual void seek( size_t readPositionFrames ) override;
 	virtual void process( Buffer *buffer ) override;
+
+	//! Loads and stores a reference to a Buffer created from the entire contents of \a sourceFile.
+	void loadBuffer( const SourceFileRef &sourceFile );
 
 	void setBuffer( const BufferRef &buffer );
 	const BufferRef& getBuffer() const	{ return mBuffer; }
