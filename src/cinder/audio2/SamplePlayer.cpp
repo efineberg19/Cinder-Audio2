@@ -166,6 +166,8 @@ void FilePlayer::initialize()
 		mNumFrames = mSourceFile->getNumFrames();
 	}
 
+	seekImpl( 0 );
+
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
 	for( size_t i = 0; i < mNumChannels; i++ )

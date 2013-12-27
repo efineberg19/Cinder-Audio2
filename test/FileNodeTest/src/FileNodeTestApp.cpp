@@ -20,6 +20,8 @@
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: move usage of Converter to base Source class, as much as possible
 
+// TODO: add async buffer loading test via toggle
+
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
@@ -135,11 +137,9 @@ void FileNodeTestApp::setupFilePlayer()
 //	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile ) );
 	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
-	// TEMP: this should be done already in FilePlayer's initialize function, but need a version that doesn't lock with Context mutex
-	mSourceFile->seek( 0 );
-
 	// TODO: it is pretty surprising when you recreate mScope here without checking if there has already been one added.
 	//	- user will no longer see the old mScope, but the context still owns a reference to it, so another gets added each time we call this method.
+	//		- this is also because it uses 'addConnection', instead of connect with default bus numbers.
 	if( ! mScope )
 		mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
 
