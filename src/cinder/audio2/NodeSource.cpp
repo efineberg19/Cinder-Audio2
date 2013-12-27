@@ -234,7 +234,6 @@ void FilePlayer::start()
 		return;
 	}
 
-	seek( 0 );
 	mEnabled = true;
 
 	LOG_V( "started" );
@@ -254,11 +253,12 @@ void FilePlayer::seek( size_t readPositionFrames )
 		return;
 	}
 
-	unique_lock<mutex> lock( mIoMutex );
+	// Synchronize with the mutex that protects the read thread, which is different depending on if
+	// read is async or sync (done on audio thread)
+	mutex &m = mMultiThreaded ? mIoMutex : getContext()->getMutex();
+	lock_guard<mutex> lock( m );
 
-	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
-
-	mSourceFile->seek( mReadPos );
+	seekImpl( readPositionFrames );
 }
 
 void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
@@ -327,11 +327,12 @@ void FilePlayer::process( Buffer *buffer )
 		// check if end of file
 		if( readPos + readCount >= mNumFrames ) {
 			if( mLoop ) {
-				seek( 0 ); // FIXME: instead of zeroing above, should fill with samples from the beginning of file
-				return;
+				// TODO: instead of zeroing above, should fill with samples from the beginning of file
+				// - these should also already be in the ringbuffer, since a seek is done there as well.  Maybe this path is just off.
+				seekImpl( 0 );
 			}
-
-			mEnabled = false;
+			else
+				mEnabled = false;
 		}
 	}
 }
@@ -376,6 +377,12 @@ void FilePlayer::readFile()
 			return;
 		}
 	}
+}
+
+void FilePlayer::seekImpl( size_t readPos )
+{
+	mReadPos = math<size_t>::clamp( readPos, 0, mNumFrames );
+	mSourceFile->seek( mReadPos );
 }
 
 void FilePlayer::destroyIoThread()

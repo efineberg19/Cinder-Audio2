@@ -14,7 +14,8 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// FIXME: failure on switching tests as:  buffer player -> file player -> buffer player
+// FIXME: failure on switching tests as: buffer player -> file player -> buffer player
+//		- doing this and then running, FilePlayer's readFile doesn't get any samples from SourceFileCoreAudio::read()
 
 // TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: move usage of Converter to base Source class, as much as possible
@@ -22,8 +23,8 @@
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
-#define INITIAL_AUDIO_RES	RES_CASH_MP3
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+//#define INITIAL_AUDIO_RES	RES_CASH_MP3
 
 using namespace ci;
 using namespace ci::app;
@@ -92,8 +93,8 @@ void FileNodeTestApp::setup()
 
 	mGain->connect( mPan )->connect( ctx->getTarget() );
 
-//	setupBufferPlayer();
-	setupFilePlayer();
+	setupBufferPlayer();
+//	setupFilePlayer();
 
 	setupUI();
 
@@ -107,6 +108,13 @@ void FileNodeTestApp::setup()
 void FileNodeTestApp::setupBufferPlayer()
 {
 	auto ctx = audio2::Context::master();
+
+	// FIXME: There is a change the FilePlayer is reading from mSourceFile on a background thread at the same time we access this here.
+	// - temp workaround is making source the current sampleplayer is stopped before doing anything with mSourceFile,
+	//	 but this is obviously a sore spot and one that is sure to cause frustration.
+	if( mSamplePlayer )
+		mSamplePlayer->stop();
+
 	mSourceFile->setOutputFormat( ctx->getSampleRate() );
 	audio2::BufferRef audioBuffer = mSourceFile->loadBuffer();
 
@@ -127,7 +135,13 @@ void FileNodeTestApp::setupFilePlayer()
 //	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile ) );
 	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile, false ) ); // synchronous file i/o
 
-	mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
+	// TEMP: this should be done already in FilePlayer's initialize function, but need a version that doesn't lock with Context mutex
+	mSourceFile->seek( 0 );
+
+	// TODO: it is pretty surprising when you recreate mScope here without checking if there has already been one added.
+	//	- user will no longer see the old mScope, but the context still owns a reference to it, so another gets added each time we call this method.
+	if( ! mScope )
+		mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
 
 	// when these connections are called, some (Gain and Pan) will already be connected, but this is okay, they should silently no-op.
 
@@ -142,6 +156,7 @@ void FileNodeTestApp::setupFilePlayer()
 	// FIXME: what's going on here, static_assert failing in default constructor, at shut-down???
 	// - check again, I think its fixed
 //	mPan->connect( mScope );
+
 }
 
 void FileNodeTestApp::setSourceFile( const DataSourceRef &dataSource )

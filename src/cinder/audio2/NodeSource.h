@@ -165,6 +165,8 @@ class FilePlayer : public SamplePlayer {
 	void readFile();
 	void destroyIoThread();
 
+	void seekImpl( size_t readPos );
+
 	std::unique_ptr<std::thread>				mReadThread;
 	std::vector<dsp::RingBuffer>				mRingBuffers;	// used to transfer samples from io to audio thread, one ring buffer per channel
 	BufferDynamic								mIoBuffer;		// used to read samples from the file on io thread, resizeable so the ringbuffer can be filled
