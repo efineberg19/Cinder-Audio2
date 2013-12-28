@@ -34,6 +34,11 @@ namespace cinder { namespace audio2 {
 // MARK: - SamplePlayer
 // ----------------------------------------------------------------------------------------------------
 
+SamplePlayer::SamplePlayer( const Format &format )
+: NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ), mStartAtBeginning( true )
+{
+}
+
 void SamplePlayer::seekToTime( double readPositionSeconds )
 {
 	return seek( size_t( readPositionSeconds * (double)getContext()->getSampleRate() ) );
@@ -70,7 +75,9 @@ void BufferPlayer::start()
 		return;
 	}
 
-	mReadPos = 0;
+	if( mStartAtBeginning )
+		mReadPos = 0;
+
 	mEnabled = true;
 
 	LOG_V( "started" );
@@ -171,8 +178,6 @@ void FilePlayer::initialize()
 		mNumFrames = mSourceFile->getNumFrames();
 	}
 
-	seekImpl( 0 );
-
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
 	for( size_t i = 0; i < mNumChannels; i++ )
@@ -195,10 +200,13 @@ void FilePlayer::uninitialize()
 
 void FilePlayer::start()
 {
-	if( ! mSourceFile ) {
+	if( mEnabled || ! mSourceFile ) {
 		LOG_E( "no source file, returning." );
 		return;
 	}
+
+	if( mStartAtBeginning )
+		seekImpl( 0 );
 
 	mEnabled = true;
 

@@ -42,10 +42,9 @@ typedef std::shared_ptr<class FilePlayer>				FilePlayerRef;
 //! \see BufferPlayer, FilePlayer
 class SamplePlayer : public NodeSource {
 public:
-	std::string virtual getName() override			{ return "SamplePlayer"; }
-
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;
+
 	//! Seek to read position \a readPositionSeconds
 	void seekToTime( double readPositionSeconds );
 	//! Gets the current read position in frames
@@ -53,18 +52,27 @@ public:
 	//! Gets the current read position in seconds.
 	double getReadPositionTime() const;
 
-	virtual void setLoop( bool b = true )	{ mLoop = b; }
-	virtual bool getLoop() const			{ return mLoop; }
+	//! Sets whether playing continues from beginning after the end is reached (default = false)
+	void setLoop( bool b = true )	{ mLoop = b; }
+	//! Gets whether playing continues from beginning after the end is reached (default = false)
+	bool getLoop() const			{ return mLoop; }
+	//! Sets whether start() resets the read position to zero (default = true).
+	void setStartAtBeginning( bool b = true )	{ mStartAtBeginning = b; }
+	//! Gets whether start() resets the read position to zero (default = true).
+	bool getStartAtBeginning() const			{ return mStartAtBeginning; }
+	//! Returns the total number of frames this SamplePlayer will play from beginning to end.
+	size_t getNumFrames() const	{ return mNumFrames; }
 
-	virtual size_t getNumFrames() const	{ return mNumFrames; }
+	std::string virtual getName() override			{ return "SamplePlayer"; }
 
 protected:
-	SamplePlayer( const Format &format = Format() ) : NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ) {}
+	SamplePlayer( const Format &format = Format() );
 	virtual ~SamplePlayer() {}
 
 	size_t mNumFrames;
 	std::atomic<size_t> mReadPos;
 	std::atomic<bool>	mLoop;
+	bool				mStartAtBeginning;
 };
 
 //! Buffer-based sample player. In other words, all samples are loaded into memory before playback.
