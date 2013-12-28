@@ -65,6 +65,8 @@ class WaveformPlot {
 
 	void draw();
 
+	void clear()	{ 	mWaveforms.clear(); }
+
 private:
 	std::vector<Waveform> mWaveforms;
 	ci::Rectf mBounds;

@@ -10,4 +10,5 @@
 #define RES_CASH_MP3					CINDER_RESOURCE( ../../../assets/, cash_satisfied_mind.mp3, 134, SOUND )
 
 #define RES_TONE440_OGG					CINDER_RESOURCE( ../../../assets/, tone440.ogg, 135, SOUND )
-#define RES_TONE440L220R_OGG			CINDER_RESOURCE( ../../../assets/, tone440L220R.ogg, 133, SOUND )
+#define RES_TONE440L220R_OGG			CINDER_RESOURCE( ../../../assets/, tone440L220R.ogg, 136, SOUND )
+#define RES_RADIOHEAD_OGG				CINDER_RESOURCE( ../../../assets/, Radiohead_-_Pyramid_Song_(sample).ogg, 137, SOUND )

@@ -67,7 +67,7 @@ SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource )
 {
 //	printExtensions();
 
-	// TODO: If a url is passed here, can still succeed by calling dataSource->getBuffer.
+	// TODO: If a url i s passed here, can still succeed by calling dataSource->getBuffer.
 	// - wouldn't stream, but would at least load the file as expected
 	CI_ASSERT_MSG( dataSource->isFilePath(), "at present only data source type supported is file" );
 

@@ -14,17 +14,14 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// TODO: test the differences in sound / performance for r8brain and core audio when upsampling ogg
 // TODO: move usage of Converter to base Source class, as much as possible
-
-// TODO: add async buffer loading test
-// TODO: add load raw buffer test
 
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
-//#define INITIAL_AUDIO_RES	RES_CASH_MP3
+//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+#define INITIAL_AUDIO_RES	RES_CASH_MP3
+//#define INITIAL_AUDIO_RES	RES_RADIOHEAD_OGG
 
 using namespace ci;
 using namespace ci::app;
@@ -42,6 +39,7 @@ class FileNodeTestApp : public AppNative {
 	void draw();
 
 	void setupBufferPlayer();
+	void setupBufferPlayerRaw();
 	void setupFilePlayer();
 	void setSourceFile( const DataSourceRef &dataSource );
 
@@ -62,13 +60,14 @@ class FileNodeTestApp : public AppNative {
 
 	WaveformPlot				mWaveformPlot;
 	vector<TestWidget *>		mWidgets;
-	Button						mEnableGraphButton, mStartPlaybackButton, mLoopButton;
+	Button						mEnableGraphButton, mStartPlaybackButton, mLoopButton, mAsyncButton;
 	VSelector					mTestSelector;
 	HSlider						mGainSlider, mPanSlider;
 
 	Anim<float>					mUnderrunFade, mOverrunFade;
 	Rectf						mUnderrunRect, mOverrunRect;
 	bool						mSamplePlayerEnabledState;
+	std::future<void>			mAsyncLoadFuture;
 };
 
 void FileNodeTestApp::prepareSettings( Settings *settings )
@@ -102,21 +101,39 @@ void FileNodeTestApp::setup()
 	mEnableGraphButton.setEnabled( true );
 
 	LOG_V( "context samplerate: " << ctx->getSampleRate() );
-	ctx->printGraph();
 }
 
 void FileNodeTestApp::setupBufferPlayer()
 {
-	auto ctx = audio2::Context::master();
+	auto bufferPlayer = audio2::Context::master()->makeNode( new audio2::BufferPlayer() );
 
-	auto bufferPlayer = ctx->makeNode( new audio2::BufferPlayer() );
-	bufferPlayer->loadBuffer( mSourceFile );
-	mSamplePlayer = bufferPlayer;
+	auto loadFn = [bufferPlayer, this] {
+		bufferPlayer->loadBuffer( mSourceFile );
+		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
+		LOG_V( "loaded source buffer, frames: " << bufferPlayer->getBuffer()->getNumFrames() );
+	};
 
-	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
+	auto connectFn = [bufferPlayer, this] {
+		mSamplePlayer = bufferPlayer;
+		mSamplePlayer->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
+		audio2::Context::master()->printGraph();
+	};
 
-	mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
-	LOG_V( "loaded source buffer, frames: " << bufferPlayer->getBuffer()->getNumFrames() );
+	bool asyncLoad = mAsyncButton.mEnabled;
+	LOG_V( "async load: " << asyncLoad );
+	if( asyncLoad ) {
+		mWaveformPlot.clear();
+		mAsyncLoadFuture = std::async( [=] {
+			loadFn();
+			dispatchAsync( [=] {
+				connectFn();
+			} );
+		} );
+	}
+	else {
+		loadFn();
+		connectFn();
+	}
 }
 
 void FileNodeTestApp::setupFilePlayer()
@@ -125,8 +142,9 @@ void FileNodeTestApp::setupFilePlayer()
 
 //	mSourceFile->setMaxFramesPerRead( 8192 );
 
-//	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile ) );
-	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile, false ) ); // synchronous file i/o
+	bool asyncRead = mAsyncButton.mEnabled;
+	LOG_V( "async read: " << asyncRead );
+	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile, asyncRead ) );
 
 	// TODO: it is pretty surprising when you recreate mScope here without checking if there has already been one added.
 	//	- user will no longer see the old mScope, but the context still owns a reference to it, so another gets added each time we call this method.
@@ -141,13 +159,12 @@ void FileNodeTestApp::setupFilePlayer()
 
 	// or connect in series (it is added to the Context's 'auto pulled list')
 	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
-	mPan->addConnection( mScope );
+//	mPan->addConnection( mScope );
 
 	// this call blows the current pan -> target connection, so nothing gets to the speakers
-	// FIXME: what's going on here, static_assert failing in default constructor, at shut-down???
-	// - check again, I think its fixed
 //	mPan->connect( mScope );
 
+	audio2::Context::master()->printGraph();
 }
 
 void FileNodeTestApp::setSourceFile( const DataSourceRef &dataSource )
@@ -169,23 +186,34 @@ void FileNodeTestApp::setupUI()
 {
 	const float padding = 10.0f;
 
+	auto buttonRect = Rectf( padding, padding, 200, 60 );
 	mEnableGraphButton.mIsToggle = true;
 	mEnableGraphButton.mTitleNormal = "graph off";
 	mEnableGraphButton.mTitleEnabled = "graph on";
-	mEnableGraphButton.mBounds = Rectf( padding, padding, 200, 60 );
+	mEnableGraphButton.mBounds = buttonRect;
 	mWidgets.push_back( &mEnableGraphButton );
 
+	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0 );
 	mStartPlaybackButton.mIsToggle = false;
 	mStartPlaybackButton.mTitleNormal = "sample playing";
 	mStartPlaybackButton.mTitleEnabled = "sample stopped";
-	mStartPlaybackButton.mBounds = mEnableGraphButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + padding, 0.0f );
+	mStartPlaybackButton.mBounds = buttonRect;
 	mWidgets.push_back( &mStartPlaybackButton );
 
+	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0 );
+	buttonRect.x2 -= 30;
 	mLoopButton.mIsToggle = true;
 	mLoopButton.mTitleNormal = "loop off";
 	mLoopButton.mTitleEnabled = "loop on";
-	mLoopButton.mBounds = mStartPlaybackButton.mBounds + Vec2f( mEnableGraphButton.mBounds.getWidth() + padding, 0.0f );
+	mLoopButton.mBounds = buttonRect;
 	mWidgets.push_back( &mLoopButton );
+
+	buttonRect += Vec2f( buttonRect.getWidth() + padding, 0 );
+	mAsyncButton.mIsToggle = true;
+	mAsyncButton.mTitleNormal = "async off";
+	mAsyncButton.mTitleEnabled = "async on";
+	mAsyncButton.mBounds = buttonRect;
+	mWidgets.push_back( &mAsyncButton );
 
 	Vec2f sliderSize( 200.0f, 30.0f );
 	Rectf selectorRect( getWindowWidth() - sliderSize.x - padding, padding, getWindowWidth() - padding, sliderSize.y * 2 + padding );
@@ -240,6 +268,8 @@ void FileNodeTestApp::processTap( Vec2i pos )
 		mSamplePlayer->start();
 	else if( mLoopButton.hitTest( pos ) )
 		mSamplePlayer->setLoop( ! mSamplePlayer->getLoop() );
+	else if( mAsyncButton.hitTest( pos ) )
+		;
 	else if( pos.y > getWindowCenter().y )
 		seek( pos.x );
 
@@ -252,8 +282,6 @@ void FileNodeTestApp::processTap( Vec2i pos )
 			setupBufferPlayer();
 		if( currentTest == "FilePlayer" )
 			setupFilePlayer();
-
-		audio2::Context::master()->printGraph();
 	}
 }
 

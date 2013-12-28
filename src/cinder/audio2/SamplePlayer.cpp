@@ -270,8 +270,6 @@ void FilePlayer::process( Buffer *buffer )
 	size_t readPos = mReadPos;
 	size_t numReadAvail = mRingBuffers[0].getAvailableRead();
 
-	//	LOG_V( "numReadAvail: " << numReadAvail );
-
 	if( numReadAvail < mBufferFramesThreshold ) {
 		if( mIsReadAsync )
 			mIssueAsyncReadCond.notify_one();
@@ -294,7 +292,7 @@ void FilePlayer::process( Buffer *buffer )
 		if( readPos + readCount >= mNumFrames ) {
 			if( mLoop ) {
 				// TODO: instead of zeroing above, should fill with samples from the beginning of file
-				// - these should also already be in the ringbuffer, since a seek is done there as well.  Maybe this path is just off.
+				// - these should also already be in the ringbuffer, since a seek is done there as well. Rethink this path.
 				seekImpl( 0 );
 			}
 			else
