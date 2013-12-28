@@ -19,8 +19,8 @@
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
-#define INITIAL_AUDIO_RES	RES_CASH_MP3
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+//#define INITIAL_AUDIO_RES	RES_CASH_MP3
 //#define INITIAL_AUDIO_RES	RES_RADIOHEAD_OGG
 
 using namespace ci;
@@ -159,7 +159,7 @@ void FileNodeTestApp::setupFilePlayer()
 
 	// or connect in series (it is added to the Context's 'auto pulled list')
 	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
-//	mPan->addConnection( mScope );
+	mPan->addConnection( mScope );
 
 	// this call blows the current pan -> target connection, so nothing gets to the speakers
 //	mPan->connect( mScope );

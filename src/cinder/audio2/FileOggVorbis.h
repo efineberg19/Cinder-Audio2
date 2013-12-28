@@ -56,7 +56,7 @@ class SourceFileOggVorbis : public SourceFile {
   private:
 	void initImpl();
 
-	long readIntoBufferImpl( Buffer *buffer, size_t offset, size_t length );
+	size_t readIntoBufferImpl( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded );
 
 	size_t readImpl( Buffer *buffer );
 	size_t readImplConvert( Buffer *buffer );
