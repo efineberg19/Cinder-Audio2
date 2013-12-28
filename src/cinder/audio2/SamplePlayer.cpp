@@ -160,6 +160,8 @@ FilePlayer::FilePlayer( const SourceFileRef &sourceFile, bool isReadAsync, const
 
 FilePlayer::~FilePlayer()
 {
+	if( mInitialized )
+		destroyReadThreadImpl();
 }
 
 void FilePlayer::initialize()

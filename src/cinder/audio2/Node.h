@@ -71,7 +71,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
 	//! Called before audio buffers need to be used. There is always a valid Context at this point.
 	virtual void initialize()	{}
-	//! Called once the contents of initialize are no longer relevant, i.e. destruction or the connections have changed
+	//! Called once the contents of initialize are no longer relevant, i.e. connections have changed. \note Not guaranteed to be called at Node destruction.
 	virtual void uninitialize()	{}
 	//! Enables this Node for processing. Same as setEnabled( true ).
 	virtual void start()		{ mEnabled = true; }
