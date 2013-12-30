@@ -46,6 +46,8 @@ class SourceFileCoreAudio : public SourceFile {
   private:
 	void initImpl();
 
+	size_t performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded );
+
 	std::shared_ptr<::OpaqueExtAudioFile>	mExtAudioFile;
 	AudioBufferListShallowPtr				mBufferList;
 	fs::path								mFilePath;
