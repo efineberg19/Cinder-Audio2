@@ -99,7 +99,7 @@ void SourceFileCoreAudio::initImpl()
 		throw AudioFileExc( string( "could not open audio source file: " ) + urlString, (int32_t)status );
 	}
 
-	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
+	mExtAudioFile = ExtAudioFilePtr( audioFile );
 
 	::AudioStreamBasicDescription fileFormat;
 	UInt32 propSize = sizeof( fileFormat );
@@ -166,7 +166,8 @@ TargetFileCoreAudio::TargetFileCoreAudio( const DataTargetRef &dataTarget, size_
 		throw AudioFileExc( string( "could not open audio target file: " ) + dataTarget->getFilePath().string(), (int32_t)status );
 
 	::CFRelease( targetUrl );
-	mExtAudioFile = shared_ptr<::OpaqueExtAudioFile>( audioFile, ::ExtAudioFileDispose );
+	mExtAudioFile = ExtAudioFilePtr( audioFile );
+
 
 	status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( clientAsbd ), &clientAsbd );
 	CI_ASSERT( status == noErr );

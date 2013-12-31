@@ -30,6 +30,15 @@
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
+struct ExtAudioFileDeleter {
+	void operator()( ::OpaqueExtAudioFile *audioFile )
+	{
+		::ExtAudioFileDispose( audioFile );
+	}
+};
+
+typedef std::unique_ptr<::OpaqueExtAudioFile, ExtAudioFileDeleter>	ExtAudioFilePtr;
+
 class SourceFileCoreAudio : public SourceFile {
   public:
 	SourceFileCoreAudio();
@@ -46,9 +55,9 @@ class SourceFileCoreAudio : public SourceFile {
 	bool		supportsConversion()						override	{ return true; }
 	void		outputFormatUpdated()						override;
 
-	std::shared_ptr<::OpaqueExtAudioFile>	mExtAudioFile; // TODO: use unique_ptr here and in TargetFileCoreAudio
-	AudioBufferListShallowPtr				mBufferList;
-	fs::path								mFilePath;
+	ExtAudioFilePtr					mExtAudioFile;
+	AudioBufferListShallowPtr		mBufferList;
+	fs::path						mFilePath;
 };
 
 class TargetFileCoreAudio : public TargetFile {
@@ -61,8 +70,8 @@ class TargetFileCoreAudio : public TargetFile {
   private:
 	static ::AudioFileTypeID getFileTypeIdFromExtension( const std::string &ext );
 
-	std::shared_ptr<::OpaqueExtAudioFile> mExtAudioFile;
-	AudioBufferListShallowPtr mBufferList;
+	ExtAudioFilePtr				mExtAudioFile;
+	AudioBufferListShallowPtr	mBufferList;
 };
 
 } } } // namespace cinder::audio2::cocoa
