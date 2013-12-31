@@ -24,7 +24,7 @@
     <ClCompile Include="..\src\NodeTestApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\samples\common\AudioPlotUtils.cpp">
+    <ClCompile Include="..\..\..\samples\common\AudioDrawUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,7 +32,7 @@
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\samples\common\AudioPlotUtils.h">
+    <ClInclude Include="..\..\..\samples\common\AudioDrawUtils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

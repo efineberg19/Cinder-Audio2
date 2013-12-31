@@ -38,12 +38,14 @@ class SourceFileMediaFoundation : public SourceFile {
   public:
 	enum Format { INT_16, FLOAT_32 }; // TODO: remove
 
-	SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t numChannels = 0, size_t sampleRate = 0 );
+	SourceFileMediaFoundation();
+	SourceFileMediaFoundation( const DataSourceRef &dataSource );
 	virtual ~SourceFileMediaFoundation();
 
-	size_t		read( Buffer *buffer ) override;
-	BufferRef	loadBuffer() override;
-	void		seek( size_t readPositionFrames ) override;
+	SourceFileRef	clone() const	override;
+
+	size_t		performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded ) override;
+	void		performSeek( size_t readPositionFrames ) override;
 
   private:
 	void initMediaFoundation();
@@ -57,7 +59,6 @@ class SourceFileMediaFoundation : public SourceFile {
 	size_t mBytesPerSample;
 	Format mSampleFormat;
 
-	size_t mReadPos; // TODO: remove if not needed
 	float mSeconds;
 	bool mCanSeek;
 	std::vector<float> mReadBuffer;

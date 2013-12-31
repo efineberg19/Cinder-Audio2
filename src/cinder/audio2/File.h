@@ -67,7 +67,7 @@ class Source {
   protected:
 	Source();
 
-	//! Called from base class when an implementation specific read is needed. Implementations should read \numFramesNeeded frames into \a buffer starting at offset \a bufferFrameOffset
+	//! Implement to perform read of \numFramesNeeded frames into \a buffer starting at offset \a bufferFrameOffset
 	//! \return the actual number of frames read.
 	virtual size_t performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded ) = 0;
 	//! Called from base class at the end of setOutputFormat(). Implementations can use this to account for samplerate or channel conversions, if needed.
@@ -107,6 +107,7 @@ class SourceFile : public Source {
   protected:
 	SourceFile();
 
+	//! Implement to perform seek. \a readPositionFrames is in native file units.
 	virtual void performSeek( size_t readPositionFrames ) = 0;
 
 	size_t mNumFrames, mFileNumFrames, mReadPos;

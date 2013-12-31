@@ -77,25 +77,32 @@ struct MfInitializer {
 // MARK: - SourceFileMediaFoundation
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource, size_t sampleRate, size_t numChannels )
-: SourceFile( dataSource, sampleRate, numChannels ), mReadPos( 0 ), mCanSeek( false ), mSeconds( 0.0f )
+SourceFileMediaFoundation::SourceFileMediaFoundation()
+	: SourceFile()
+{
+}
+
+SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource )
+: SourceFile(), mCanSeek( false ), mSeconds( 0 )
 {
 	initMediaFoundation();
 	initReader( dataSource );
 
-	if( ! mNumChannels )
-		mNumChannels = mNumChannels;
-	if( ! mSampleRate )
-		mSampleRate = mSampleRate;
-
-	// TODO: need a converter here if there's a channel or samplerate mismatch
-
-	CI_ASSERT( mNumChannels == mNumChannels );
-	CI_ASSERT( mSampleRate == mSampleRate );
-
-	mNumFrames = static_cast<size_t>( mSeconds * mSampleRate  / mNumChannels );
-
 	LOG_V( "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek );
+}
+
+SourceFileRef SourceFileMediaFoundation::clone() const
+{
+	shared_ptr<SourceFileMediaFoundation> result( new SourceFileMediaFoundation );
+
+	// TODO NEXT: need to call initReader() with dataSource originally passed in
+	// - doesn't look like I can just use the file path, since that doesn't support win resources
+	//result->mFilePath = mFilePath;
+	//result->initImpl();
+
+	CI_ASSERT( 0 && "not finished" );
+
+	return result;
 }
 
 SourceFileMediaFoundation::~SourceFileMediaFoundation()
@@ -103,17 +110,19 @@ SourceFileMediaFoundation::~SourceFileMediaFoundation()
 	mSourceReader.reset(); // needs to be released before MfInitializer goes out of scope
 }
 
+// TODO: what is this for?
 inline bool readWasSuccessful( HRESULT hr, DWORD streamFlags )
 {
 
 }
 
-size_t SourceFileMediaFoundation::read( Buffer *buffer )
+size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
 {
 	CI_ASSERT( 0 && "not implemented" );
 	return 0;
 }
 
+#if 0
 BufferRef SourceFileMediaFoundation::loadBuffer()
 {
 	//if( mReadPos != 0 )
@@ -145,13 +154,10 @@ BufferRef SourceFileMediaFoundation::loadBuffer()
 	return result;
 }
 
-void SourceFileMediaFoundation::seek( size_t readPositionFrames )
+#endif
+
+void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
 {
-	//if( readPositionFrames >= mNumFrames )
-	//	return;
-
-	//mReadPos = readPosition;
-
 	if( ! mCanSeek ) {
 		LOG_E( "cannot seek." );
 		return;

@@ -136,9 +136,6 @@
     <ClCompile Include="..\src\r8brain\r8bbase.cpp">
       <Filter>Source Files\r8brain</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\audio2\audio.cpp">
-      <Filter>Source Files\cinder\audio2</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cinder\audio2\CinderAssert.cpp">
       <Filter>Source Files\cinder\audio2</Filter>
     </ClCompile>
@@ -160,9 +157,6 @@
     <ClCompile Include="..\src\cinder\audio2\NodeEffect.cpp">
       <Filter>Source Files\cinder\audio2</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\audio2\NodeFilter.cpp">
-      <Filter>Source Files\cinder\audio2</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cinder\audio2\NodeSource.cpp">
       <Filter>Source Files\cinder\audio2</Filter>
     </ClCompile>
@@ -174,9 +168,6 @@
     </ClCompile>
     <ClCompile Include="..\src\cinder\audio2\Scope.cpp">
       <Filter>Source Files\cinder\audio2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cinder\audio2\dsp\ConverterImplR8brain.cpp">
-      <Filter>Source Files\cinder\audio2\dsp</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\audio2\dsp\Dsp.cpp">
       <Filter>Source Files\cinder\audio2\dsp</Filter>
@@ -207,6 +198,18 @@
     </ClCompile>
     <ClCompile Include="..\src\cinder\audio2\msw\LineInWasapi.cpp">
       <Filter>Source Files\cinder\audio2\msw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\audio2\SamplePlayer.cpp">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\audio2\Voice.cpp">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\audio2\Filter.cpp">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\audio2\dsp\ConverterR8brain.cpp">
+      <Filter>Source Files\cinder\audio2\dsp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -363,9 +366,6 @@
     <ClInclude Include="..\src\r8brain\r8bconf.h">
       <Filter>Source Files\r8brain</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cinder\audio2\audio.h">
-      <Filter>Source Files\cinder\audio2</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cinder\audio2\Buffer.h">
       <Filter>Source Files\cinder\audio2</Filter>
     </ClInclude>
@@ -396,9 +396,6 @@
     <ClInclude Include="..\src\cinder\audio2\NodeEffect.h">
       <Filter>Source Files\cinder\audio2</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cinder\audio2\NodeFilter.h">
-      <Filter>Source Files\cinder\audio2</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cinder\audio2\NodeSource.h">
       <Filter>Source Files\cinder\audio2</Filter>
     </ClInclude>
@@ -415,9 +412,6 @@
       <Filter>Source Files\cinder\audio2</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cinder\audio2\dsp\Converter.h">
-      <Filter>Source Files\cinder\audio2\dsp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cinder\audio2\dsp\ConverterImplR8brain.h">
       <Filter>Source Files\cinder\audio2\dsp</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cinder\audio2\dsp\Dsp.h">
@@ -467,6 +461,18 @@
     </ClInclude>
     <ClInclude Include="..\include\oggvorbis\vorbis\vorbisfile.h">
       <Filter>Header Files\oggvorbis\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cinder\audio2\SamplePlayer.h">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cinder\audio2\Voice.h">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cinder\audio2\Filter.h">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cinder\audio2\dsp\ConverterR8brain.h">
+      <Filter>Source Files\cinder\audio2\dsp</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -117,11 +117,11 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\samples\common\AudioPlotUtils.cpp" />
+    <ClCompile Include="..\..\..\samples\common\AudioDrawUtils.cpp" />
     <ClCompile Include="..\src\NodeTestApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\samples\common\AudioPlotUtils.h" />
+    <ClInclude Include="..\..\..\samples\common\AudioDrawUtils.h" />
     <ClInclude Include="..\include\Resources.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
