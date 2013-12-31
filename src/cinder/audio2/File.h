@@ -34,6 +34,10 @@ typedef std::shared_ptr<class Source>			SourceRef;
 typedef std::shared_ptr<class SourceFile>		SourceFileRef;
 typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 
+namespace dsp {
+	class Converter;
+}
+
 class Source {
   public:
 	virtual ~Source();
@@ -54,8 +58,8 @@ class Source {
 	//! Sets the output format options \a outputSampleRate and optionally \a outputNumChannels (default will use the Source's num channels),
 	//!	allowing output samplerate and channel count to be different from the actual Source.
 	//! \note All objects referencing this Source will be effected, so users should create a copy of the Source for each context or situation where it needs to control the format.
-	void setOutputFormat( size_t outputSampleRate, size_t outputNumChannels = 0 );
-	//! Loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames loaded.
+	virtual void setOutputFormat( size_t outputSampleRate, size_t outputNumChannels = 0 ) = 0;
+	//! Loads either as many frames as \t buffer can hold, or as many as there are left. \return number of frames read into \a buffer.
 	virtual size_t read( Buffer *buffer ) = 0;
 
 	virtual std::string getMetaData() const	{ return std::string(); }
@@ -63,10 +67,17 @@ class Source {
   protected:
 	Source();
 
-	//! Called at the end of setOutputFormat(). Subclasses must implement this to account for samplerate or channel conversions, if needed.
-	virtual void outputFormatUpdated() = 0;
+	//! Called from base class when an implementation specific read is needed. Implementations should read \numFramesNeeded frames into \a buffer starting at offset \a bufferFrameOffset
+	//! \return the actual number of frames read.
+	virtual size_t performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded ) = 0;
+	//! Called from base class at the end of setOutputFormat(). Implementations can use this to account for samplerate or channel conversions, if needed.
+	virtual void outputFormatUpdated()	{}
+	//! Implementations should override and return true if they can provide samplerate and channel conversion.  If false (default), a Converter will be used if needed.
+	virtual bool supportsConversion()	{ return false; }
 
 	size_t mNativeSampleRate, mNativeNumChannels, mSampleRate, mNumChannels, mMaxFramesPerRead;
+	std::unique_ptr<dsp::Converter>		mConverter;
+	BufferDynamic						mConverterReadBuffer;
 };
 
 class SourceFile : public Source {
@@ -75,24 +86,30 @@ class SourceFile : public Source {
 	static std::unique_ptr<SourceFile> create( const DataSourceRef &dataSource );
 	virtual ~SourceFile()	{}
 
+	size_t	read( Buffer *buffer ) override;
+	void	setOutputFormat( size_t outputSampleRate, size_t outputNumChannels = 0 ) override;
+
 	//! Returns a clone of this Source.
 	virtual SourceFileRef clone() const = 0;
 
-	virtual BufferRef loadBuffer() = 0;
+	//! Loads and returns the entire contents of this SourceFile. \return a BufferRef containing the file contents.
+	BufferRef loadBuffer();
 	//! Seek the read position to \a readPositionFrames
-	virtual void seek( size_t readPositionFrames ) = 0;
+	void seek( size_t readPositionFrames );
 	//! Seek to read position \a readPositionSeconds
-	virtual void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getSampleRate() ) ); }
+	void seekToTime( double readPositionSeconds )	{ return seek( size_t( readPositionSeconds * (double)getSampleRate() ) ); }
 
 	//! Returns the length in seconds.
-	double getNumSeconds() const	{ return (double)getNumFrames() / (double)mSampleRate; }
+	double getNumSeconds() const					{ return (double)mNumFrames / (double)mSampleRate; }
 	//! Returns the length in frames.
-	virtual size_t	getNumFrames() const					{ return mNumFrames; }
+	size_t	getNumFrames() const					{ return mNumFrames; }
 
   protected:
-	SourceFile() : Source(), mNumFrames( 0 )	{}
+	SourceFile();
 
-	size_t mNumFrames;
+	virtual void performSeek( size_t readPositionFrames ) = 0;
+
+	size_t mNumFrames, mFileNumFrames, mReadPos;
 };
 
 // TODO: support sample formats other than float

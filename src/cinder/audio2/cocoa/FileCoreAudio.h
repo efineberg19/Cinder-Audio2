@@ -38,20 +38,17 @@ class SourceFileCoreAudio : public SourceFile {
 
 	SourceFileRef	clone() const					override;
 
-	void		outputFormatUpdated()				override;
-	size_t		read( Buffer *buffer )				override;
-	BufferRef	loadBuffer()						override;
-	void		seek( size_t readPositionFrames )	override;
-
   private:
 	void initImpl();
 
-	size_t performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded );
+	size_t		performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded ) override;
+	void		performSeek( size_t readPositionFrames )	override;
+	bool		supportsConversion()						override	{ return true; }
+	void		outputFormatUpdated()						override;
 
-	std::shared_ptr<::OpaqueExtAudioFile>	mExtAudioFile;
+	std::shared_ptr<::OpaqueExtAudioFile>	mExtAudioFile; // TODO: use unique_ptr here and in TargetFileCoreAudio
 	AudioBufferListShallowPtr				mBufferList;
 	fs::path								mFilePath;
-	size_t									mReadPos, mFileNumFrames;
 };
 
 class TargetFileCoreAudio : public TargetFile {

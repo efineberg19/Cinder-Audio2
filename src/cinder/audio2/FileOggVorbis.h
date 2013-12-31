@@ -44,31 +44,17 @@ class SourceFileOggVorbis : public SourceFile {
 	SourceFileOggVorbis( const DataSourceRef &dataSource );
 	virtual ~SourceFileOggVorbis();
 
-	SourceFileRef	clone() const override;
+	SourceFileRef	clone() const	override;
 
-	void		outputFormatUpdated()				override;
-	size_t		read( Buffer *buffer )				override;
-	BufferRef	loadBuffer()						override;
-	void		seek( size_t readPositionFrames )	override;
-
-	std::string getMetaData() const					override;
+	size_t		performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )		override;
+	void		performSeek( size_t readPositionFrames )											override;
+	std::string getMetaData() const																	override;
 
   private:
 	void initImpl();
 
-	size_t readIntoBufferImpl( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded );
-
-	size_t readImpl( Buffer *buffer );
-	size_t readImplConvert( Buffer *buffer );
-
-	BufferRef	loadBufferImpl();
-	BufferRef	loadBufferImplConvert();
-
 	::OggVorbis_File	mOggVorbisFile;
-	size_t				mReadPos, mFileNumFrames;
 	fs::path			mFilePath;
-
-	std::unique_ptr<dsp::Converter>		mConverter;
 };
 
 //class TargetFileImplOggVorbis : public TargetFile {

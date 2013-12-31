@@ -14,8 +14,6 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// TODO: move usage of Converter to base Source class, as much as possible
-
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
@@ -323,6 +321,7 @@ void FileNodeTestApp::fileDrop( FileDropEvent event )
 	LOG_V( "File dropped: " << filePath );
 
 	setSourceFile( loadFile( filePath ) );
+	mSamplePlayer->seek( 0 );
 
 	LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
 

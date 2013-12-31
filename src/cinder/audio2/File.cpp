@@ -22,6 +22,9 @@
 */
 
 #include "cinder/audio2/File.h"
+#include "cinder/audio2/dsp/Converter.h"
+#include "cinder/audio2/FileOggVorbis.h"
+#include "cinder/audio2/Debug.h"
 
 #include "cinder/Cinder.h"
 #include "cinder/Utilities.h"
@@ -32,20 +35,24 @@
 	#include "cinder/audio2/msw/FileMediaFoundation.h"
 #endif
 
-#include "cinder/audio2/FileOggVorbis.h"
+using namespace std;
 
 namespace cinder { namespace audio2 {
-
-Source::~Source()
-{
-}
 
 Source::Source()
 	: mNativeSampleRate( 0 ), mNativeNumChannels( 0 ), mSampleRate( 0 ), mNumChannels( 0 ), mMaxFramesPerRead( 4096 )
 {
 }
 
-void Source::setOutputFormat( size_t outputSampleRate, size_t outputNumChannels )
+Source::~Source()
+{
+}
+
+SourceFile::SourceFile() : Source(), mNumFrames( 0 ), mFileNumFrames( 0 ), mReadPos( 0 )
+{
+}
+
+void SourceFile::setOutputFormat( size_t outputSampleRate, size_t outputNumChannels )
 {
 	bool updated = false;
 	if( mSampleRate != outputSampleRate ) {
@@ -57,8 +64,103 @@ void Source::setOutputFormat( size_t outputSampleRate, size_t outputNumChannels 
 		mNumChannels = outputNumChannels;
 	}
 
-	if( updated )
+	if( updated ) {
+		if( mSampleRate != mNativeSampleRate || mNumChannels != mNativeNumChannels ) {
+			if( ! supportsConversion() ) {
+				mConverter = audio2::dsp::Converter::create( mNativeSampleRate, mSampleRate, mNativeNumChannels, mNumChannels, mMaxFramesPerRead );
+				mConverterReadBuffer.setSize( mMaxFramesPerRead, mNativeNumChannels );
+				LOG_V( "created Converter for samplerate: " << mNativeSampleRate << " -> " << mSampleRate << ", channels: " << mNativeNumChannels << " -> " << mNumChannels << ", output num frames: " << mNumFrames );
+			}
+
+			mNumFrames = std::ceil( (float)mFileNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
+		}
+		else {
+			mNumFrames = mFileNumFrames;
+			mConverter.reset();
+		}
+
 		outputFormatUpdated();
+	}
+}
+
+size_t SourceFile::read( Buffer *buffer )
+{
+	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
+	CI_ASSERT( mReadPos < mNumFrames );
+
+	size_t numRead;
+
+	if( mConverter ) {
+		size_t sourceBufFrames = buffer->getNumFrames() * (float)mNativeSampleRate / (float)mSampleRate;
+		size_t numFramesNeeded = std::min( mFileNumFrames - mReadPos, std::min( mMaxFramesPerRead, sourceBufFrames ) );
+
+		mConverterReadBuffer.setNumFrames( numFramesNeeded );
+		performRead( &mConverterReadBuffer, 0, numFramesNeeded );
+		pair<size_t, size_t> count = mConverter->convert( &mConverterReadBuffer, buffer );
+		numRead = count.second;
+	}
+	else {
+		size_t numFramesNeeded = std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
+		numRead = performRead( buffer, 0, numFramesNeeded );
+	}
+
+	mReadPos += numRead;
+	return numRead;
+}
+
+BufferRef SourceFile::loadBuffer()
+{
+	seek( 0 );
+
+	BufferRef result = make_shared<Buffer>( mNumFrames, mNumChannels );
+
+	if( mConverter ) {
+		// TODO: need BufferView's in order to reduce number of copies
+		Buffer destBuffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels );
+		size_t readCount = 0;
+		while( true ) {
+			size_t framesNeeded = min( mMaxFramesPerRead, mFileNumFrames - readCount );
+			if( framesNeeded == 0 )
+				break;
+
+			// make sourceBuffer num frames match outNumFrames so that Converter doesn't think it has more
+			if( framesNeeded < mConverterReadBuffer.getNumFrames() )
+				mConverterReadBuffer.setNumFrames( framesNeeded );
+
+			size_t outNumFrames = performRead( &mConverterReadBuffer, 0, framesNeeded );
+			CI_ASSERT( outNumFrames == framesNeeded );
+
+			pair<size_t, size_t> count = mConverter->convert( &mConverterReadBuffer, &destBuffer );
+
+			for( int ch = 0; ch < mNumChannels; ch++ ) {
+				float *channel = destBuffer.getChannel( ch );
+				copy( channel, channel + count.second, result->getChannel( ch ) + mReadPos );
+			}
+
+			readCount += outNumFrames;
+			mReadPos += count.second;
+		}
+	}
+	else {
+		size_t readCount = performRead( result.get(), 0, mNumFrames );
+		mReadPos = readCount;
+	}
+
+	return result;
+}
+
+void SourceFile::seek( size_t readPositionFrames )
+{
+	if( readPositionFrames >= mNumFrames )
+		return;
+
+	// adjust read pos for samplerate conversion so that it is relative to file num frames
+	size_t fileReadPos = readPositionFrames;
+	if( mSampleRate != mNativeSampleRate )
+		fileReadPos *= (float)mFileNumFrames / (float)mNumFrames;
+
+	performSeek( fileReadPos );
+	mReadPos = readPositionFrames;
 }
 
 // TODO: these should be replaced with a generic registrar derived from the ImageIo stuff.

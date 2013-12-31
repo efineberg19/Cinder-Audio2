@@ -59,11 +59,11 @@ namespace cinder { namespace audio2 { namespace cocoa {
 // ----------------------------------------------------------------------------------------------------
 
 SourceFileCoreAudio::SourceFileCoreAudio()
-	: SourceFile(), mReadPos( 0 )
+	: SourceFile()
 {}
 
 SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource )
-	: SourceFile(), mReadPos( 0 )
+	: SourceFile()
 {
 //	printExtensions();
 
@@ -126,44 +126,6 @@ void SourceFileCoreAudio::outputFormatUpdated()
 
 	// numFrames will be updated at read time
 	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
-
-	mNumFrames = std::ceil( (float)mFileNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
-
-	LOG_V( "output samplerate: " << mSampleRate << ", channels: " << mNumChannels );
-}
-
-size_t SourceFileCoreAudio::read( Buffer *buffer )
-{
-	CI_ASSERT( buffer->getNumChannels() == mNumChannels );
-
-	// get the number of frames needed for read
-	size_t numFramesNeeded = std::min( mNumFrames - mReadPos, std::min( mMaxFramesPerRead, buffer->getNumFrames() ) );
-	if( numFramesNeeded == 0 )
-		return 0;
-
-	size_t numFramesRead = performRead( buffer, 0, numFramesNeeded );
-
-	// now, frameCount represents the number of frames read into mBufferList
-	// FIXME: shouldn't this be added to file read pos and then read pos takes into account samplerate conversion?
-	mReadPos += numFramesRead;
-
-	return numFramesRead;
-}
-
-BufferRef SourceFileCoreAudio::loadBuffer()
-{
-	seek( 0 );
-	
-	BufferRef result( new Buffer( mNumFrames, mNumChannels ) );
-
-	while( mReadPos < mNumFrames ) {
-		size_t numFramesNeeded = std::min( mNumFrames - mReadPos, mMaxFramesPerRead );
-
-		size_t numFramesRead = performRead( result.get(), mReadPos, numFramesNeeded );
-        mReadPos += numFramesRead;
-	}
-
-	return result;
 }
 
 size_t SourceFileCoreAudio::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
@@ -180,21 +142,10 @@ size_t SourceFileCoreAudio::performRead( Buffer *buffer, size_t bufferFrameOffse
 	return (size_t)frameCount;
 }
 
-void SourceFileCoreAudio::seek( size_t readPositionFrames )
+void SourceFileCoreAudio::performSeek( size_t readPositionFrames )
 {
-	if( readPositionFrames == mReadPos || readPositionFrames >= mNumFrames )
-		return;
-
-	// adjust read pos for samplerate conversion so that it is relative to native num frames
-	if( mSampleRate != mNativeSampleRate )
-		readPositionFrames *= (float)mFileNumFrames / (float)mNumFrames;
-
-	CI_ASSERT( readPositionFrames < mFileNumFrames );
-
 	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPositionFrames );
 	CI_ASSERT( status == noErr );
-
-	mReadPos = readPositionFrames;
 }
 
 // ----------------------------------------------------------------------------------------------------
