@@ -23,8 +23,6 @@
 
 #pragma once
 
-#include "cinder/audio2/Device.h"
-#include "cinder/audio2/Exception.h"
 #include "cinder/audio2/Buffer.h"
 
 #include <boost/logic/tribool.hpp>

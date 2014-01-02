@@ -24,11 +24,12 @@
 #pragma once
 
 #include "cinder/audio2/Node.h"
+#include "cinder/audio2/Device.h"
 
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeTarget>		NodeTargetRef;
-typedef std::shared_ptr<class LineOut>		LineOutRef;
+typedef std::shared_ptr<class LineOut>			LineOutRef;
 
 class NodeTarget : public Node {
   public:
