@@ -41,8 +41,8 @@ LineOut::LineOut( const DeviceRef &device, const Format &format )
 {
 	CI_ASSERT( mDevice );
 
-	mDevice->getSignalParamsWillChange().connect( bind( &LineOut::deviceParamsWillChange, this ) );
-	mDevice->getSignalParamsDidChange().connect( bind( &LineOut::deviceParamsDidChange, this ) );
+	mWillChangeConn = mDevice->getSignalParamsWillChange().connect( bind( &LineOut::deviceParamsWillChange, this ) );
+	mDidChangeConn = mDevice->getSignalParamsDidChange().connect( bind( &LineOut::deviceParamsDidChange, this ) );
 
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;

@@ -73,6 +73,8 @@ class LineOut : public NodeTarget {
 
 	bool	mWasEnabledBeforeParamsChange, mClipDetectionEnabled;
 	float	mClipThreshold;
+
+	signals::scoped_connection mWillChangeConn, mDidChangeConn;
 };
 
 } } // namespace cinder::audio2
