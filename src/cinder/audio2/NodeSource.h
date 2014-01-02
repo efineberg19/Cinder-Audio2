@@ -25,6 +25,7 @@
 
 #include "cinder/audio2/Node.h"
 #include "cinder/audio2/Param.h"
+#include "cinder/audio2/Device.h"
 
 namespace cinder { namespace audio2 {
 
