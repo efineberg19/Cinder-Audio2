@@ -372,7 +372,7 @@ vector<size_t> DeviceManagerCoreAudio::getAcceptableSampleRates( ::AudioDeviceID
 	vector<::AudioValueRange> nsr = getAudioObjectPropertyVector<::AudioValueRange>( deviceId, kAudioDevicePropertyAvailableNominalSampleRates );
 	vector<size_t> result;
 	for( auto valueRange : nsr ) {
-		CI_ASSERT_MSG( valueRange.mMinimum == valueRange.mMaximum, "exptected min and max range to be equal" );
+		CI_ASSERT_MSG( valueRange.mMinimum == valueRange.mMaximum, "expected min and max range to be equal" );
 		result.push_back( valueRange.mMinimum );
 	}
 

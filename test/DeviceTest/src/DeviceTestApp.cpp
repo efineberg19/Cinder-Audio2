@@ -79,8 +79,8 @@ void DeviceTestApp::setup()
 
 	mGain->connect( mScope )->connect( mLineOut );
 
-//	setupSine();
-	setupIOClean();
+	setupSine();
+//	setupIOClean();
 
 	ctx->printGraph();
 	setupUI();
@@ -98,9 +98,13 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
 	ctx->uninitializeAllNodes();
 
 	mLineOut = ctx->createLineOut( device );
-	mScope->connect( mLineOut );
 
+	// TODO: if this call is moved to after the mScope->connect(), there is a chance that initialization can
+	// take place with samplerate / frames-per-block derived from the default NodeTarget (ses default Device)
+	// Double check this doesn't effect anyone, if it does then setTarget may need to do more work to update Nodes.
 	ctx->setTarget( mLineOut );
+
+	mScope->connect( mLineOut );
 
 	ctx->initializeAllNodes();
 
