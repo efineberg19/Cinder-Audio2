@@ -190,8 +190,6 @@ void NodeXAudioSourceVoice::start()
 	CI_ASSERT( mSourceVoice );
 	mEnabled = true;
 	mSourceVoice->Start();
-
-	LOG_V( "started." );
 }
 
 void NodeXAudioSourceVoice::stop()
@@ -202,12 +200,15 @@ void NodeXAudioSourceVoice::stop()
 	CI_ASSERT( mSourceVoice );
 	mEnabled = false;
 	mSourceVoice->Stop();
-	LOG_V( "stopped." );
 }
 
 void NodeXAudioSourceVoice::submitNextBuffer()
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
+
+	// verify context still exists, since its destructor may have been holding the lock
+	if( ! getContext() )
+		return;
 
 	mInternalBuffer.zero();
 	pullInputs( &mInternalBuffer );
