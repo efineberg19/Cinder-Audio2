@@ -146,7 +146,7 @@ void DeviceTestApp::setupSine()
 	sineGen->setFreq( 440.0f );
 	mSourceNode = sineGen;
 
-	mSourceNode->connect( mGain, 0 );
+	mSourceNode->connect( mGain );
 	mSourceNode->start();
 }
 
@@ -155,13 +155,13 @@ void DeviceTestApp::setupNoise()
 	auto noiseGen = audio2::Context::master()->makeNode( new audio2::GenNoise() );
 	mSourceNode = noiseGen;
 
-	mSourceNode->connect( mGain, 0 );
+	mSourceNode->connect( mGain );
 	mSourceNode->start();
 }
 
 void DeviceTestApp::setupIOClean()
 {
-	mLineIn->connect( mGain, 0 );
+	mLineIn->connect( mGain );
 	mLineIn->start();
 }
 
@@ -174,7 +174,8 @@ void DeviceTestApp::setupIOProcessed()
 	auto ringMod = audio2::Context::master()->makeNode( new audio2::Gain );
 	ringMod->getParam()->setModulator( mod );
 
-	mLineIn->connect( ringMod )->connect( mGain, 0 );
+	// FIXME: second time around mLineIn has a dead pointer in its first slot, the connect tries to use it
+	mLineIn->connect( ringMod )->connect( mGain );
 
 	mLineIn->start();
 }
