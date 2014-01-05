@@ -22,10 +22,14 @@
  */
 
 #include "cinder/audio2/Utilities.h"
+#include "cinder/Cinder.h"
 
 #include <cstdlib>
 #include <memory>
-#include <cxxabi.h>
+
+#if defined( CINDER_COCOA )
+	#include <cxxabi.h>
+#endif
 
 using namespace std;
 
@@ -33,6 +37,7 @@ namespace cinder { namespace audio2 {
 
 string demangledTypeName( const char *mangledName )
 {
+#if defined( CINDER_COCOA )
 	int status = 0;
 
 	std::unique_ptr<char, void(*)(void*)> result {
@@ -41,6 +46,9 @@ string demangledTypeName( const char *mangledName )
     };
 
 	return ( status == 0 ) ? result.get() : mangledName;
+#else
+	return mangledName;
+#endif;
 }
 
 } } // namespace cinder::audio2
