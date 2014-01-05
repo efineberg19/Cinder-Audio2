@@ -35,6 +35,7 @@
     <ClCompile Include="..\src\cinder\audio2\Param.cpp" />
     <ClCompile Include="..\src\cinder\audio2\SamplePlayer.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Scope.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Utilities.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Voice.cpp" />
     <ClCompile Include="..\src\oggvorbis\ogg\bitwise.c" />
     <ClCompile Include="..\src\oggvorbis\ogg\framing.c" />

@@ -27,6 +27,7 @@
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Debug.h"
 #include "cinder/audio2/CinderAssert.h"
+#include "cinder/audio2/Utilities.h"
 
 #include "cinder/Utilities.h"
 
@@ -353,6 +354,11 @@ size_t Node::getFirstAvailableInputBus()
 	}
 
 	return result;
+}
+
+std::string Node::getName()
+{
+	return demangledTypeName( typeid( *this ).name() );
 }
 
 // ----------------------------------------------------------------------------------------------------

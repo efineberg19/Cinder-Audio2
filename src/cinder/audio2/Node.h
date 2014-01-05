@@ -130,7 +130,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
 
 	//! Returns a string representing the name of this Node type. TODO: use typeid + abi de-mangling to ease the burden on sub-classes
-	std::string virtual getName()				{ return "Node"; }
+	virtual std::string getName();
 
   protected:
 	Node( const Format &format );

@@ -25,6 +25,8 @@
 
 #include "cinder/CinderMath.h"
 
+#include <string>
+
 namespace cinder { namespace audio2 {
 
 // TODO: decide on decibel convensions
@@ -87,5 +89,8 @@ inline bool isPowerOf2( size_t val )
 {
 	return ( val & ( val - 1 ) ) == 0;
 }
+
+//! Returns a demangled string from the result of typeid( someType ).name()
+std::string demangledTypeName( const char *mangledName );
 
 } } // namespace cinder::audio2

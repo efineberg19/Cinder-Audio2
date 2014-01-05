@@ -38,7 +38,6 @@ typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
 
 class NodeSource : public Node {
   public:
-	std::string virtual getName() override			{ return "NodeSource"; }
 	virtual ~NodeSource();
 
   protected:
@@ -51,8 +50,6 @@ class NodeSource : public Node {
 class LineIn : public NodeSource {
   public:
 	virtual ~LineIn();
-
-	std::string virtual getName() override			{ return "LineIn"; }
 
 	//! Returns the associated \a Device.
 	virtual const DeviceRef& getDevice() const		{ return mDevice; }
@@ -72,8 +69,6 @@ class CallbackProcessor : public NodeSource {
 	CallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeSource( format ), mCallbackFn( callbackFn ) {}
 	virtual ~CallbackProcessor() {}
 
-	std::string virtual getName() override			{ return "CallbackProcessor"; }
-
 	void process( Buffer *buffer ) override;
 
   private:
@@ -85,8 +80,6 @@ class Gen : public NodeSource {
 	Gen( const Format &format = Format() );
 
 	void initialize() override;
-
-	std::string virtual getName() override			{ return "Gen"; }
 
 	void setFreq( float freq )		{ mFreq.setValue( freq ); }
 	float getFreq() const			{ return mFreq.getValue(); }

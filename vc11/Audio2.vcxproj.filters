@@ -211,6 +211,9 @@
     <ClCompile Include="..\src\cinder\audio2\dsp\ConverterR8brain.cpp">
       <Filter>Source Files\cinder\audio2\dsp</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cinder\audio2\Utilities.cpp">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\oggvorbis\vorbis\backends.h">
