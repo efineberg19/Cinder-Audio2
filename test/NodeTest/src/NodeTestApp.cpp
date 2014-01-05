@@ -82,7 +82,7 @@ void NodeTestApp::setup()
 
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
-//	mGain->setValue( 0.0f );
+	mGain->setValue( 0.5f );
 
 	mGain->connect( ctx->getTarget() );
 
@@ -107,8 +107,6 @@ void NodeTestApp::setupGen()
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
-
-	mGain->getParam()->applyRamp( 1.0f, 1.0f );
 }
 
 void NodeTestApp::setup2to1()
