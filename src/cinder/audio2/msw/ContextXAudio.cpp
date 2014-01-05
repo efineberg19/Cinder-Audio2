@@ -25,11 +25,10 @@
 #include "cinder/audio2/msw/LineInWasapi.h"
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/msw/xaudio.h"
-
-
+#include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/Exception.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
-#include "cinder/audio2/dsp/Dsp.h"
 
 #include "cinder/Utilities.h"
 
@@ -319,7 +318,6 @@ void LineOutXAudio::start()
 
 	HRESULT hr = mXAudio->StartEngine();
 	CI_ASSERT( hr ==S_OK );
-	LOG_V( "started" );
 }
 
 void LineOutXAudio::stop()
@@ -329,7 +327,6 @@ void LineOutXAudio::stop()
 
 	mEnabled = false;
 	mXAudio->StopEngine();
-	LOG_V( "stopped" );
 }
 
 uint64_t LineOutXAudio::getLastClip()

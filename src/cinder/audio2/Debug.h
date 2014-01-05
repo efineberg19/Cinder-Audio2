@@ -21,23 +21,23 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+// note: this file will be removed post alpha stages
+
 #pragma once
 
 #include "cinder/audio2/CinderAssert.h"
 #include <boost/current_function.hpp>
 
-// note: this file will be removed post alpha stages
+#if DEBUG || defined( _DEBUG )
 
 #include "cinder/app/App.h"
 
-#if DEBUG
-
-#define LOG_V( stream )			{ ci::app::console() << BOOST_CURRENT_FUNCTION << " | " << stream << std::endl; }
-#define LOG_E( errorStream )	{ LOG_V( __LINE__ << " | ERROR | " << errorStream ); }
+#define LOG_V( stream )			do{ ci::app::console() << BOOST_CURRENT_FUNCTION << " | " << stream << std::endl; } while( 0 )
+#define LOG_E( errorStream )	do{ LOG_V( __LINE__ << " | ERROR | " << errorStream ); } while( 0 )
 
 #else
 
-#define LOG_V( stream )
-#define LOG_E( errorStream )
+#define LOG_V( stream )			do{} while( 0 )
+#define LOG_E( errorStream )	do{} while( 0 )
 
 #endif // DEBUG

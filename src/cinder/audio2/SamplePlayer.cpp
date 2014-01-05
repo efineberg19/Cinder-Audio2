@@ -24,6 +24,7 @@
 #include "cinder/audio2/SamplePlayer.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/Debug.h"
+#include "cinder/CinderMath.h"
 
 using namespace ci;
 using namespace std;

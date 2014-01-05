@@ -35,6 +35,8 @@
 	#include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #endif
 
+#include "cinder/app/App.h"		// for app::console()
+
 using namespace std;
 
 namespace cinder { namespace audio2 {

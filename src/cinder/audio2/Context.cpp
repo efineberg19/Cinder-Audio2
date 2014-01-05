@@ -28,6 +28,8 @@
 
 #include "cinder/Cinder.h"
 
+#include "cinder/app/App.h"		// for app::console()
+
 #if defined( CINDER_COCOA )
 	#include "cinder/audio2/cocoa/ContextAudioUnit.h"
 	#if defined( CINDER_MAC )

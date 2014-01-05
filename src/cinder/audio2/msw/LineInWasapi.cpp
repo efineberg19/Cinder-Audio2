@@ -27,6 +27,7 @@
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/dsp/RingBuffer.h"
 #include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/Exception.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 
