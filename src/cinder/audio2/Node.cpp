@@ -66,9 +66,12 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inpu
 	// disconnecting us, which we'll need later anyway
 	NodeRef thisRef = shared_from_this();
 
-	auto currentOutput = mOutputs.find( outputBus );
-	if( currentOutput != mOutputs.end() )
-		currentOutput->second.lock()->disconnectInput( thisRef );
+	auto outIt = mOutputs.find( outputBus );
+	if( outIt != mOutputs.end() ) {
+		NodeRef outRef = outIt->second.lock();
+		CI_ASSERT( outRef );
+		outRef->disconnectInput( thisRef );
+	}
 
 	mOutputs[outputBus] = dest; // set output bus first, so that it is visible in configureConnections()
 	dest->connectInput( thisRef, inputBus );
