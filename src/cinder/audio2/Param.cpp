@@ -199,12 +199,13 @@ bool Param::eval()
 bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate )
 {
 	size_t samplesWritten = 0;
-	const float samplePeriod = 1.0f / sampleRate;
+	const float samplePeriod = 1.0f / (float)sampleRate;
 
-	for( RampRef &ramp : mRamps ) {
+	for( auto rampIt = mRamps.begin(); rampIt != mRamps.end(); /* */ ) {
+		RampRef &ramp = *rampIt;
 		// first remove dead ramps
 		if( ramp->mTimeEnd < timeBegin || ramp->mIsCanceled ) {
-			mRamps.pop_front();
+			rampIt = mRamps.erase( rampIt );
 			continue;
 		}
 
@@ -231,12 +232,14 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 			if( endIndex < arrayLength ) {
 				ramp->mIsComplete = true;
 				mValue = ramp->mValueEnd;
-				mRamps.pop_front();
+				rampIt = mRamps.erase( rampIt );
 			}
 			else if( samplesWritten == arrayLength ) {
 				mValue = array[arrayLength - 1];
 				break;
 			}
+			else
+				++rampIt;
 		}
 	}
 
