@@ -47,7 +47,7 @@ NodeEffect::NodeEffect( const Format &format )
 // ----------------------------------------------------------------------------------------------------
 
 Gain::Gain( const Format &format )
-	: NodeEffect( format ), mGain( this, 1.0f ), mMin( 0.0f ), mMax( 1.0f )
+	: NodeEffect( format ), mGain( this, 1 ), mMin( 0 ), mMax( 1 )
 {
 }
 
@@ -140,21 +140,20 @@ void Pan2d::process( Buffer *buffer )
 	float *channel0 = buffer->getChannel( 0 );
 	float *channel1 = buffer->getChannel( 1 );
 
-	float posRadians = pos * M_PI / 2.0f;
-	float leftGain = std::cos( posRadians );
-	float rightGain = std::sin( posRadians );
+	float posRadians = pos * float( M_PI / 2.0 );
+	float leftGain = math<float>::cos( posRadians );
+	float rightGain = math<float>::sin( posRadians );
 
 	if( mMonoInputMode ) {
 		dsp::mul( channel0, leftGain, channel0, buffer->getNumFrames() );
 		dsp::mul( channel1, rightGain, channel1, buffer->getNumFrames() );
 	}
 	else {
-
 		// suitable impl for stereo panning an already-stereo input...
 
-		static const float kCenterGain = std::cos( M_PI / 4.0f );
-
+		static const float kCenterGain = math<float>::cos( float( M_PI / 4.0 ) );
 		size_t n = buffer->getNumFrames();
+
 		if( pos < 0.5f ) {
 			for( size_t i = 0; i < n; i++ ) {
 				channel0[i] = channel0[i] * leftGain + channel1[i] * ( leftGain - kCenterGain );
