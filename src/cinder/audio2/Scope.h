@@ -55,8 +55,6 @@ class Scope : public NodeAutoPullable {
 	Scope( const Format &format = Format() );
 	virtual ~Scope();
 
-	std::string virtual getName() override			{ return "Scope"; }
-
 	const Buffer& getBuffer();
 
 	//! Compute the average (RMS) volume across all channels
@@ -99,8 +97,6 @@ class ScopeSpectral : public Scope {
 
 	ScopeSpectral( const Format &format = Format() );
 	virtual ~ScopeSpectral();
-
-	std::string virtual getName() override			{ return "ScopeSpectral"; }
 
 	virtual void initialize() override;
 

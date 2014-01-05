@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		110BF1F91879327800D7C54E /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 110BF1F81879327800D7C54E /* Utilities.cpp */; };
+		110BF1FA1879327800D7C54E /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 110BF1F81879327800D7C54E /* Utilities.cpp */; };
 		1115501518026C9100D415BC /* ogg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115500D18026C9100D415BC /* ogg.h */; };
 		1115501618026C9100D415BC /* ogg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115500D18026C9100D415BC /* ogg.h */; };
 		1115501718026C9100D415BC /* os_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 1115500E18026C9100D415BC /* os_types.h */; };
@@ -283,6 +285,7 @@
 		1104F3C917753F10003EAA2B /* libAudio2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAudio2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1104F3CC17753F10003EAA2B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		1104F3CF17753F10003EAA2B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		110BF1F81879327800D7C54E /* Utilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Utilities.cpp; sourceTree = "<group>"; };
 		1115500D18026C9100D415BC /* ogg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ogg.h; sourceTree = "<group>"; };
 		1115500E18026C9100D415BC /* os_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = os_types.h; sourceTree = "<group>"; };
 		1115501218026C9100D415BC /* codec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codec.h; sourceTree = "<group>"; };
@@ -727,6 +730,7 @@
 				119CD0B2184A793400853BEE /* Scope.cpp */,
 				119CD0B3184A793400853BEE /* Scope.h */,
 				119CD139184A7E5E00853BEE /* Utilities.h */,
+				110BF1F81879327800D7C54E /* Utilities.cpp */,
 				119CD072184A793400853BEE /* Voice.cpp */,
 				119CD073184A793400853BEE /* Voice.h */,
 			);
@@ -1098,6 +1102,7 @@
 				114FE92D18032BF100C5841B /* sharedbook.c in Sources */,
 				114FE8ED18032BF100C5841B /* mapping0.c in Sources */,
 				119CD135184A7A1200853BEE /* fftsg.cpp in Sources */,
+				110BF1F91879327800D7C54E /* Utilities.cpp in Sources */,
 				119CD12A184A793400853BEE /* Param.cpp in Sources */,
 				119CD0DC184A793400853BEE /* Biquad.cpp in Sources */,
 				119CD0CE184A793400853BEE /* FileCoreAudio.cpp in Sources */,
@@ -1154,6 +1159,7 @@
 				114FE92E18032BF100C5841B /* sharedbook.c in Sources */,
 				114FE8EE18032BF100C5841B /* mapping0.c in Sources */,
 				119CD136184A7A1200853BEE /* fftsg.cpp in Sources */,
+				110BF1FA1879327800D7C54E /* Utilities.cpp in Sources */,
 				119CD12B184A793400853BEE /* Param.cpp in Sources */,
 				119CD0DD184A793400853BEE /* Biquad.cpp in Sources */,
 				119CD0CF184A793400853BEE /* FileCoreAudio.cpp in Sources */,

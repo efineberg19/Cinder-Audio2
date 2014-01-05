@@ -25,8 +25,6 @@ struct InterleavedPassThruNode : public audio2::Node {
 		setNumChannels( 2 );
 	}
 
-	std::string virtual getName() override			{ return "InterleavedPassThruNode"; }
-
 	virtual void initialize() override
 	{
 		mBufferInterleaved = audio2::BufferInterleaved( getContext()->getFramesPerBlock(), 2 );

@@ -45,8 +45,6 @@ class Gain : public NodeEffect {
 	Gain( const Format &format = Format() );
 	virtual ~Gain() {}
 
-	std::string virtual getName() override			{ return "Gain"; }
-
 	void process( Buffer *buffer ) override;
 
 	void setValue( float linear )	{ mGain.setValue( ci::math<float>::clamp( linear, mMin, mMax ) ); }
@@ -70,8 +68,6 @@ class Pan2d : public NodeEffect {
 	//! Constructs a Pan2d. \note Format::channel() and Format::channelMode() are ignored and number of output channels is always 2.
 	Pan2d( const Format &format = Format() );
 	virtual ~Pan2d() {}
-
-	std::string virtual getName() override			{ return "Pan2d"; }
 
 //	//! Overridden to handle mono input without upmixing
 //	bool supportsInputNumChannels( size_t numChannels ) override;

@@ -63,8 +63,6 @@ public:
 	//! Returns the total number of frames this SamplePlayer will play from beginning to end.
 	size_t getNumFrames() const	{ return mNumFrames; }
 
-	std::string virtual getName() override			{ return "SamplePlayer"; }
-
 protected:
 	SamplePlayer( const Format &format = Format() );
 	virtual ~SamplePlayer() {}
@@ -84,8 +82,6 @@ public:
 	BufferPlayer( const BufferRef &buffer, const Format &format = Format() );
 
 	virtual ~BufferPlayer() {}
-
-	std::string virtual getName() override			{ return "BufferPlayer"; }
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -108,8 +104,6 @@ public:
 	//! \note \a sourceFile's samplerate is forced to match this Node's Context.
 	FilePlayer( const SourceFileRef &sourceFile, bool isReadAsync = true, const Format &format = Node::Format() );
 	virtual ~FilePlayer();
-
-	std::string virtual getName() override			{ return "FilePlayer"; }
 
 	void initialize() override;
 	void uninitialize() override;
