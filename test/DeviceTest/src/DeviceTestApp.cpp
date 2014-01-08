@@ -72,17 +72,22 @@ void DeviceTestApp::setup()
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
+	mGain->connect( mScope );
+
 	setOutputDevice( audio2::Device::getDefaultOutput() );
 	setInputDevice( audio2::Device::getDefaultInput() );
 
+	// TODO: this should be set in setOutputDevice()
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
 
-	mGain->connect( mScope )->connect( mLineOut );
 
 	setupSine();
 //	setupIOClean();
+//	setupIOProcessed();
+
 
 	ctx->printGraph();
+
 	setupUI();
 
 	LOG_V( "Context samplerate: " << ctx->getSampleRate() );
@@ -169,7 +174,7 @@ void DeviceTestApp::setupIOProcessed()
 {
 	auto ctx = audio2::Context::master();
 	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
-	mod->setFreq( 2 );
+	mod->setFreq( 200 );
 
 	auto ringMod = audio2::Context::master()->makeNode( new audio2::Gain );
 	ringMod->getParam()->setModulator( mod );

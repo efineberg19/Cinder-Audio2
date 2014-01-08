@@ -203,13 +203,14 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 
 	for( auto rampIt = mRamps.begin(); rampIt != mRamps.end(); /* */ ) {
 		RampRef &ramp = *rampIt;
+
 		// first remove dead ramps
 		if( ramp->mTimeEnd < timeBegin || ramp->mIsCanceled ) {
 			rampIt = mRamps.erase( rampIt );
 			continue;
 		}
 
-		float timeEnd = timeBegin + arrayLength * samplePeriod;
+		const float timeEnd = timeBegin + arrayLength * samplePeriod;
 
 		if( ramp->mTimeBegin < timeEnd && ramp->mTimeEnd > timeBegin ) {
 			size_t startIndex = timeBegin >= ramp->mTimeBegin ? 0 : size_t( ( ramp->mTimeBegin - timeBegin ) * sampleRate );
