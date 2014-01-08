@@ -53,8 +53,12 @@ Gain::Gain( const Format &format )
 
 void Gain::process( Buffer *buffer )
 {
-	if( mGain.eval() )
-		dsp::mul( buffer->getData(), mGain.getValueArray(), buffer->getData(), buffer->getSize() );
+	if( mGain.eval() ) {
+		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+			float *channel = buffer->getChannel( ch );
+			dsp::mul( channel, mGain.getValueArray(), channel, buffer->getNumFrames() );
+		}
+	}
 	else
 		dsp::mul( buffer->getData(), mGain.getValue(), buffer->getData(), buffer->getSize() );
 }
