@@ -47,10 +47,10 @@ class Gain : public NodeEffect {
 
 	void process( Buffer *buffer ) override;
 
-	void setValue( float linear )	{ mGain.setValue( ci::math<float>::clamp( linear, mMin, mMax ) ); }
-	float getValue() const			{ return mGain.getValue(); }
+	void setValue( float linear )	{ mParam.setValue( ci::math<float>::clamp( linear, mMin, mMax ) ); }
+	float getValue() const			{ return mParam.getValue(); }
 
-	Param* getParam()			{ return &mGain; }
+	Param* getParam()				{ return &mParam; }
 
 	void setMin( float min )		{ mMin = min; }
 	float getMin() const			{ return mMin; }
@@ -58,7 +58,7 @@ class Gain : public NodeEffect {
 	float getMax() const			{ return mMax; }
 
   private:
-	Param				mGain;
+	Param				mParam;
 	std::atomic<float>	mMin, mMax;
 };
 

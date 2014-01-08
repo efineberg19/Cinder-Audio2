@@ -47,20 +47,20 @@ NodeEffect::NodeEffect( const Format &format )
 // ----------------------------------------------------------------------------------------------------
 
 Gain::Gain( const Format &format )
-	: NodeEffect( format ), mGain( this, 1 ), mMin( 0 ), mMax( 1 )
+	: NodeEffect( format ), mParam( this, 1 ), mMin( 0 ), mMax( 1 )
 {
 }
 
 void Gain::process( Buffer *buffer )
 {
-	if( mGain.eval() ) {
+	if( mParam.eval() ) {
 		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
 			float *channel = buffer->getChannel( ch );
-			dsp::mul( channel, mGain.getValueArray(), channel, buffer->getNumFrames() );
+			dsp::mul( channel, mParam.getValueArray(), channel, buffer->getNumFrames() );
 		}
 	}
 	else
-		dsp::mul( buffer->getData(), mGain.getValue(), buffer->getData(), buffer->getSize() );
+		dsp::mul( buffer->getData(), mParam.getValue(), buffer->getData(), buffer->getSize() );
 }
 
 // ----------------------------------------------------------------------------------------------------
