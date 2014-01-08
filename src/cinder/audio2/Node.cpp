@@ -70,8 +70,9 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inpu
 	auto outIt = mOutputs.find( outputBus );
 	if( outIt != mOutputs.end() ) {
 		NodeRef outRef = outIt->second.lock();
-		CI_ASSERT( outRef );
-		outRef->disconnectInput( thisRef );
+		// in some cases, an output may have lost all references and is no longer valid, so it is safe to overwrite without disconnecting.
+		if( outRef )
+			outRef->disconnectInput( thisRef );
 	}
 
 	mOutputs[outputBus] = dest; // set output bus first, so that it is visible in configureConnections()
@@ -109,7 +110,7 @@ void Node::disconnectAllOutputs()
 
 void Node::disconnectAllInputs()
 {
-	const NodeRef &thisRef = shared_from_this();
+	NodeRef thisRef = shared_from_this();
 	for( auto &in : mInputs )
 		in.second->disconnectOutput( thisRef );
 
