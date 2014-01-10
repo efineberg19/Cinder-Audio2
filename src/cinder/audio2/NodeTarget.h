@@ -38,15 +38,31 @@ class NodeTarget : public Node {
 	virtual size_t getSampleRate()				= 0;
 	virtual size_t getFramesPerBlock()			= 0;
 
+	//! Enables clip detection, so that values over \a threshold will be interpreted as a clip (enabled by default).
+	//! \note if a clip is detected, the internal buffer will be silenced in order to prevent speaker / ear damage.
+	void enableClipDetection( bool enable = true, float threshold = 2 );
+	//! Returns the frame of the last buffer clip or 0 if none since the last time this method was called.
+	uint64_t getLastClip();
+
 	//! Returns the total number of frames that have already been processed in the dsp loop.
-	virtual uint64_t getNumProcessedFrames()	= 0;
+	uint64_t getNumProcessedFrames() const		{ return mNumProcessedFrames; }
 
   protected:
-	NodeTarget( const Format &format = Format() ) : Node( format ) {}
+	NodeTarget( const Format &format = Format() );
+
+	//! Implementations should call this after each processing block to increment the processed frame count.
+	void incrementFrameCount()					{ mNumProcessedFrames += getFramesPerBlock(); }
+	//! Implementations may call this to detect if the internal audio buffer is clipping.
+	bool checkNotClipping();
 
   private:
 	// NodeTarget does not have outputs, overridden to assert this method isn't called
 	const NodeRef& connect( const NodeRef &dest, size_t outputBus, size_t inputBus ) override;
+
+	std::atomic<uint64_t>		mNumProcessedFrames, mLastClip;
+	bool						mClipDetectionEnabled;
+	float						mClipThreshold;
+
 };
 
 class LineOut : public NodeTarget {
@@ -58,11 +74,6 @@ class LineOut : public NodeTarget {
 	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
 	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
 
-	//! Enables clip detection, so that values over \a threshold will be interpreted as a clip (enabled by default). \note Implementations may silence the buffer to prevent speaker damage.
-	void enableClipDetection( bool enable = true, float threshold = 2.0f );
-	//! Returns the frame of the last buffer clip or 0 if none since the last time this method was called.
-	virtual uint64_t getLastClip() = 0;
-
 	virtual void deviceParamsWillChange();
 	virtual void deviceParamsDidChange();
 
@@ -71,8 +82,7 @@ class LineOut : public NodeTarget {
 
 	DeviceRef mDevice;
 
-	bool	mWasEnabledBeforeParamsChange, mClipDetectionEnabled;
-	float	mClipThreshold;
+	bool	mWasEnabledBeforeParamsChange;
 
 	signals::scoped_connection mWillChangeConn, mDidChangeConn;
 };

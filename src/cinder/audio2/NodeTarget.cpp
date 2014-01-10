@@ -30,14 +30,58 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - NodeTarget
+// ----------------------------------------------------------------------------------------------------
+
+NodeTarget::NodeTarget( const Format &format )
+	: Node( format ), mNumProcessedFrames( 0 ), mClipDetectionEnabled( true ), mClipThreshold( 2.0f ), mLastClip( 0 )
+{
+}
+
 const NodeRef& NodeTarget::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
 {
 	CI_ASSERT_MSG( 0, "NodeTarget does not support outputs" );
 	return dest;
 }
 
+uint64_t NodeTarget::getLastClip()
+{
+	uint64_t result = mLastClip;
+	mLastClip = 0;
+	return result;
+}
+
+void NodeTarget::enableClipDetection( bool enable, float threshold )
+{
+	lock_guard<mutex> lock( getContext()->getMutex() );
+
+	mClipDetectionEnabled = enable;
+	mClipThreshold = threshold;
+}
+
+bool NodeTarget::checkNotClipping()
+{
+	if( mClipDetectionEnabled ) {
+		float *buf = mInternalBuffer.getData();
+		size_t count = mInternalBuffer.getSize();
+		for( size_t t = 0; t < count; t++ ) {
+			if( fabs( buf[t] ) > mClipThreshold ) {
+				mLastClip = getNumProcessedFrames() + t % mInternalBuffer.getNumFrames(); // record the sample that clipped
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LineOut
+// ----------------------------------------------------------------------------------------------------
+
 LineOut::LineOut( const DeviceRef &device, const Format &format )
-	: NodeTarget( format ), mDevice( device ), mClipDetectionEnabled( true ), mClipThreshold( 2.0f )
+	: NodeTarget( format ), mDevice( device )
 {
 	CI_ASSERT( mDevice );
 
@@ -68,13 +112,6 @@ void LineOut::deviceParamsDidChange()
 	getContext()->initializeAllNodes();
 
 	getContext()->setEnabled( mWasEnabledBeforeParamsChange );
-}
-
-void LineOut::enableClipDetection( bool enable, float threshold )
-{
-	lock_guard<mutex> lock( getContext()->getMutex() );
-	mClipDetectionEnabled = enable;
-	mClipThreshold = threshold;
 }
 
 } } // namespace cinder::audio2

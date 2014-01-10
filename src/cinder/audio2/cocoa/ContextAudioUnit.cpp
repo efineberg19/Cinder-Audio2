@@ -69,7 +69,7 @@ void NodeAudioUnit::uninitAu()
 // ----------------------------------------------------------------------------------------------------
 
 LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
-: LineOut( device, format ), mProcessedFrames( 0 ), mLastClip( 0 ), mSynchronousIO( false )
+: LineOut( device, format ), mSynchronousIO( false )
 {
 	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 }
@@ -133,27 +133,6 @@ void LineOutAudioUnit::stop()
 	LOG_V( "stopped: " << mDevice->getName() );
 }
 
-uint64_t LineOutAudioUnit::getLastClip()
-{
-	uint64_t result = mLastClip;
-	mLastClip = 0;
-	return result;
-}
-
-// TODO: move to LineOut ?
-bool LineOutAudioUnit::checkNotClipping()
-{
-	float *buf = mInternalBuffer.getData();
-	size_t count = mInternalBuffer.getSize();
-	for( size_t t = 0; t < count; t++ ) {
-		if( fabs( buf[t] ) > mClipThreshold ) {
-			mLastClip = mProcessedFrames + t % mInternalBuffer.getNumFrames(); // record the sample that clipped
-			return true;
-		}
-	}
-	return false;
-}
-
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
@@ -171,14 +150,14 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 	lineOut->pullInputs( &lineOut->mInternalBuffer );
 
 	// if clip detection is enabled and buffer clipped, silence it
-	if( lineOut->mClipDetectionEnabled && lineOut->checkNotClipping() )
+	if( lineOut->checkNotClipping() )
 		zeroBufferList( bufferList );
 	else
 		copyToBufferList( bufferList, &lineOut->mInternalBuffer );
 
 	renderData->context->processAutoPulledNodes();
+	lineOut->incrementFrameCount();
 
-	lineOut->mProcessedFrames += lineOut->getFramesPerBlock();
 	return noErr;
 }
 
