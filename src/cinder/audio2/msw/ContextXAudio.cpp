@@ -79,20 +79,20 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 };
 
 struct EngineCallbackImpl : public IXAudio2EngineCallback {
-	EngineCallbackImpl( LineOutXAudio *lineOut ) : mLineOut( lineOut ), mFramesPerBlock( lineOut->getFramesPerBlock() ) {}
+	EngineCallbackImpl( LineOutXAudio *lineOut ) : mLineOut( lineOut )	{}
 
 	void _stdcall OnProcessingPassStart() {}
 	void _stdcall OnProcessingPassEnd ()
 	{
-		mLineOut->mProcessedFrames += mFramesPerBlock;
+		mLineOut->incrementFrameCount();
 	}
+
 	void _stdcall OnCriticalError( HRESULT Error )
 	{
 		LOG_E( "error: " << Error );
 	}
 
 	LineOutXAudio *mLineOut;
-	uint64_t mFramesPerBlock;
 };
 
 // ----------------------------------------------------------------------------------------------------
@@ -207,11 +207,13 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	// verify context still exists, since its destructor may have been holding the lock
-	if( ! getContext() )
+	auto ctx = getContext();
+	if( ! ctx )
 		return;
 
 	mInternalBuffer.zero();
 	pullInputs( &mInternalBuffer );
+	ctx->processAutoPulledNodes(); // TODO: make sure this is only done once per process block
 
 	if( getNumChannels() == 2 )
 		interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
@@ -225,7 +227,7 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 // ----------------------------------------------------------------------------------------------------
 
 LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
-: LineOut( device, format ), mProcessedFrames( 0 ), mEngineCallback( new EngineCallbackImpl( this ) )
+: LineOut( device, format ), mEngineCallback( new EngineCallbackImpl( this ) )
 {
 #if defined( CINDER_XAUDIO_2_7 )
 	LOG_V( "CINDER_XAUDIO_2_7, toolset: v110_xp" );
@@ -328,11 +330,6 @@ void LineOutXAudio::stop()
 
 	mEnabled = false;
 	mXAudio->StopEngine();
-}
-
-uint64_t LineOutXAudio::getLastClip()
-{
-	return 0; // TODO: set clip frame from source nodes
 }
 
 bool LineOutXAudio::supportsInputNumChannels( size_t numChannels )

@@ -95,9 +95,6 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
-	uint64_t getNumProcessedFrames() override	{ return mProcessedFrames; }
-	uint64_t getLastClip() override;
-
 	bool supportsInputNumChannels( size_t numChannels ) override;
 
 	::IXAudio2* getXAudio() const	{ return mXAudio; }
@@ -105,7 +102,6 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
   private:
 	::IXAudio2					*mXAudio;
 	::IXAudio2MasteringVoice	*mMasteringVoice;
-	std::atomic<uint64_t>		mProcessedFrames;
 
 	std::unique_ptr<EngineCallbackImpl> mEngineCallback;
 

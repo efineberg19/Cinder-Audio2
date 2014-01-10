@@ -43,7 +43,6 @@ class NodeTarget : public Node {
 	void enableClipDetection( bool enable = true, float threshold = 2 );
 	//! Returns the frame of the last buffer clip or 0 if none since the last time this method was called.
 	uint64_t getLastClip();
-
 	//! Returns the total number of frames that have already been processed in the dsp loop.
 	uint64_t getNumProcessedFrames() const		{ return mNumProcessedFrames; }
 
