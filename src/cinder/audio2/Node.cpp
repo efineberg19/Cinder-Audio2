@@ -73,6 +73,8 @@ const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inpu
 		// in some cases, an output may have lost all references and is no longer valid, so it is safe to overwrite without disconnecting.
 		if( outRef )
 			outRef->disconnectInput( thisRef );
+		else
+			mOutputs.erase( outIt );
 	}
 
 	mOutputs[outputBus] = dest; // set output bus first, so that it is visible in configureConnections()
