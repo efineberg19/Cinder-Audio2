@@ -74,8 +74,8 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\cinder-dev\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder_d.lib;audio2_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\lib\msw;$(CINDER_PATH)\lib;$(CINDER_PATH)\lib\msw;$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder-$(PlatformToolset)_d.lib;audio2_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\lib\msw;$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -101,7 +101,7 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\cinder-dev\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder.lib;audio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cinder-$(PlatformToolset).lib;audio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\lib\msw;..\..\..\..\..\cinder-dev\lib;..\..\..\..\..\cinder-dev\lib\msw</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
