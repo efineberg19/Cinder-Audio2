@@ -90,10 +90,9 @@ void NodeTestApp::setup()
 	mGen->setFreq( 440.0f );
 
 	setupGen();
-
-	setupUI();
-
 	ctx->printGraph();
+	
+	setupUI();
 }
 
 void NodeTestApp::setupGen()
@@ -150,6 +149,7 @@ void NodeTestApp::setupInterleavedPassThru()
 
 	auto interleaved = audio2::Context::master()->makeNode( new InterleavedPassThruNode() );
 	mGen->connect( interleaved )->connect( mGain );
+	mGen->start();
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );

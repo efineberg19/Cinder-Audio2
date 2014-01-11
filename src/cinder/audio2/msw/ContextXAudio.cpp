@@ -505,7 +505,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 			shared_ptr<NodeXAudioSourceVoice> sourceVoice = findFirstDownstreamNode<NodeXAudioSourceVoice>( input );
 			if( ! sourceVoice ) {
 				// see if there is already an upstream source voice
-				sourceVoice = findFirstUpstreamNode<NodeXAudioSourceVoice>( input );
+				sourceVoice = findFirstUpstreamNode<NodeXAudioSourceVoice>( node );
 				if( sourceVoice ) {
 					LOG_V( "detected upstream source node, shuffling." );
 					// TODO: account account for multiple inputs in both input and sourceVoice
@@ -519,6 +519,12 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 				else if( findFirstUpstreamNode<NodeXAudio>( input ) )
 					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 				else {
+					// if node isn't connected to a LineOutXAudio, no need to connect a SourceVoiceXAudio yet
+					if( node != getTarget() && ! findFirstDownstreamNode<LineOutXAudio>( node ) )
+						continue;
+					
+					// a SourceVoiceXAudio is needed
+
 					LOG_V( "implicit connection: " << input->getName() << " -> SourceVoiceXAudio -> " << node->getName() );
 
 					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
