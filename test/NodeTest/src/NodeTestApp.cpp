@@ -131,6 +131,8 @@ void NodeTestApp::setup1to2()
 //	mGain->disconnectAllInputs();
 	mNoise->disconnect();
 
+	// TODO: this wants to connect at bus 0, but what if mGen is already connected at a different bus?
+	// - output bus should be updated to reflect the newly specified index
 	mGen->connect( mGain );
 	mGen->start();
 

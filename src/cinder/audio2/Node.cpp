@@ -60,12 +60,12 @@ Node::~Node()
 
 const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
 {
-	if( ! dest->canConnectToInput( shared_from_this() ) )
-		return dest;
-
 	// make a reference to ourselves so that we aren't deallocated in the case of the last owner
-	// disconnecting us, which we'll need later anyway
+	// disconnecting us, which we may need later anyway
 	NodeRef thisRef = shared_from_this();
+
+	if( ! dest->canConnectToInput( thisRef ) )
+		return dest;
 
 	auto outIt = mOutputs.find( outputBus );
 	if( outIt != mOutputs.end() ) {

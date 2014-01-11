@@ -489,13 +489,16 @@ void ContextXAudio::setTarget( const NodeTargetRef &target )
 	Context::setTarget( target );
 }
 
+// Recurse through inputs (this is only called when an input is set, not output).
+// Because a node connections may change, we can't use iterators. So first retrieve all bus indices and iterate over those.
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
 {
-	// recurse through inputs (this is only called when an input is set, not out)
-	for( size_t i = 0; i < node->getInputs().size(); i++ ) {
-		NodeRef input = node->getInputs()[i];
-		if( ! input )
-			continue;
+	vector<size_t> inputBusses;
+	for( const auto &in : node->getInputs() )
+		inputBusses.push_back( in.first );
+
+	for( size_t bus : inputBusses ) {
+		NodeRef input = node->getInputs()[bus];
 
 		// if input is generic, it needs a SourceXAudio so add one implicitly
 		if( ! isNodeNativeXAudio( input ) ) {
@@ -509,14 +512,9 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					NodeRef sourceInput = sourceVoice->getInputs()[0];
 					sourceVoice->disconnect();
 
-					//node->setInput( sourceVoice, i );
-					//sourceVoice->setInput( input, 0 );
-					//input->setInput( sourceInput, 0 );
-
 					sourceInput->connect( input );
 					input->connect( sourceVoice );
-					sourceVoice->connect( node, 0, i );
-
+					sourceVoice->connect( node, 0, bus );
 				}
 				else if( findFirstUpstreamNode<NodeXAudio>( input ) )
 					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
@@ -525,11 +523,8 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 
 					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
 
-					//node->setInput( sourceVoice, i );
-					//sourceVoice->setInput( input );
-
 					input->connect( sourceVoice );
-					sourceVoice->connect( node, 0, i );
+					sourceVoice->connect( node, 0, bus );
 
 					sourceVoice->start();
 				}
