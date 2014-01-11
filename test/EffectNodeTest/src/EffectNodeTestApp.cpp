@@ -1,7 +1,6 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-
 #include "cinder/audio2/NodeSource.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Filter.h"
@@ -86,33 +85,33 @@ void EffectNodeTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "one" );
 	mTestSelector.mSegments.push_back( "force stereo" );
 	mTestSelector.mSegments.push_back( "down-mix" );
-	mTestSelector.mBounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
 	mWidgets.push_back( &mTestSelector );
 
-	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
-	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
+	float width = std::min( (float)getWindowWidth() - 20,  440.0f );
+	Rectf sliderRect( getWindowCenter().x - width / 2, 200, getWindowCenter().x + width / 2, 250 );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
 	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
-	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mPanSlider.mBounds = sliderRect;
 	mPanSlider.mTitle = "Pan";
 	mPanSlider.set( mPan->getPos() );
 	mWidgets.push_back( &mPanSlider );
 
-	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mLowPassFreqSlider.mBounds = sliderRect;
 	mLowPassFreqSlider.mTitle = "LowPass Freq";
-	mLowPassFreqSlider.mMax = 1000.0f;
+	mLowPassFreqSlider.mMax = 1000;
 	mLowPassFreqSlider.set( mLowPass->getCutoffFreq() );
 	mWidgets.push_back( &mLowPassFreqSlider );
 
-	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mFilterParam2Slider.mBounds = sliderRect;
 	mFilterParam2Slider.mTitle = "filter resonance";
-	mFilterParam2Slider.mMax = 50.0f;
+	mFilterParam2Slider.mMax = 50;
 	mFilterParam2Slider.set( mLowPass->getResonance() );
 	mWidgets.push_back( &mFilterParam2Slider );
 

@@ -51,6 +51,7 @@ public:
 	void setup2to1();
 	void setup1to2();
 	void setupInterleavedPassThru();
+	void printDefaultOutput();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -70,24 +71,16 @@ public:
 
 void NodeTestApp::setup()
 {
-	audio2::DeviceRef device = audio2::Device::getDefaultOutput();
-
-	LOG_V( "device name: " << device->getName() );
-	console() << "\t input channels: " << device->getNumInputChannels() << endl;
-	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
-	console() << "\t samplerate: " << device->getSampleRate() << endl;
-	console() << "\t frames per block: " << device->getFramesPerBlock() << endl;
-
+	printDefaultOutput();
+	
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.5f );
-
 	mGain->connect( ctx->getTarget() );
 
 	mNoise = ctx->makeNode( new audio2::GenNoise() );
-
 	mGen = ctx->makeNode( new audio2::GenTriangle() );
-	mGen->setFreq( 440.0f );
+	mGen->setFreq( 440 );
 
 	setupGen();
 	ctx->printGraph();
@@ -155,6 +148,17 @@ void NodeTestApp::setupInterleavedPassThru()
 	mEnableSineButton.setEnabled( true );
 }
 
+void NodeTestApp::printDefaultOutput()
+{
+	audio2::DeviceRef device = audio2::Device::getDefaultOutput();
+
+	LOG_V( "device name: " << device->getName() );
+	console() << "\t input channels: " << device->getNumInputChannels() << endl;
+	console() << "\t output channels: " << device->getNumOutputChannels() << endl;
+	console() << "\t samplerate: " << device->getSampleRate() << endl;
+	console() << "\t frames per block: " << device->getFramesPerBlock() << endl;
+}
+
 void NodeTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
@@ -165,14 +169,14 @@ void NodeTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "2 to 1" );
 	mTestSelector.mSegments.push_back( "1 to 2" );
 	mTestSelector.mSegments.push_back( "interleave pass-thru" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0.0f, (float)getWindowWidth(), 160.0f );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
 	mWidgets.push_back( &mTestSelector );
 
-	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
-	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
+	float width = std::min( (float)getWindowWidth() - 20,  440.0f );
+	Rectf sliderRect( getWindowCenter().x - width / 2, 200, getWindowCenter().x + width / 2, 250 );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
-	mGainSlider.mMax = 1.0f;
+	mGainSlider.mMax = 1;
 	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
@@ -185,7 +189,7 @@ void NodeTestApp::setupUI()
 	mEnableNoiseButton.mIsToggle = true;
 	mEnableNoiseButton.mTitleNormal = "noise disabled";
 	mEnableNoiseButton.mTitleEnabled = "noise enabled";
-	mEnableNoiseButton.mBounds = mEnableSineButton.mBounds + Vec2f( 0.0f, mEnableSineButton.mBounds.getHeight() + 10.0f );
+	mEnableNoiseButton.mBounds = mEnableSineButton.mBounds + Vec2f( 0, mEnableSineButton.mBounds.getHeight() + 10 );
 	mWidgets.push_back( &mEnableNoiseButton );
 
 
@@ -240,7 +244,7 @@ void NodeTestApp::draw()
 	gl::clear();
 
 	if( mScope && mScope->getNumConnectedInputs() )
-		drawAudioBuffer( mScope->getBuffer(), getWindowBounds(), Vec2f( 20.0f, 20.0f ), true );
+		drawAudioBuffer( mScope->getBuffer(), getWindowBounds(), Vec2f( 20, 20 ), true );
 
 	drawWidgets( mWidgets );
 }
