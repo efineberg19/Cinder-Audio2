@@ -51,7 +51,6 @@ class SourceFileMediaFoundation : public SourceFile {
 	void initMediaFoundation();
 	void initReader();
 	size_t processNextReadSample();
-	void resizeReadBufferIfNecessary( size_t requiredFrames );
 
 	std::unique_ptr<::IMFSourceReader, ComReleaser>		mSourceReader;
 	std::unique_ptr<ComIStream, ComReleaser>			mComIStream;
@@ -62,7 +61,7 @@ class SourceFileMediaFoundation : public SourceFile {
 
 	double mSeconds;
 	bool mCanSeek;
-	std::vector<float> mReadBuffer;
+	BufferDynamic mReadBuffer;
 };
 
 } } } // namespace cinder::audio2::msw

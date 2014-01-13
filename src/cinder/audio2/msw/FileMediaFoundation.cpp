@@ -110,7 +110,6 @@ inline bool readWasSuccessful( HRESULT hr, DWORD streamFlags )
 
 }
 
-// FIXME: looks like numFramesNeeded is 0 here because mNumFrames was never set.
 size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
 {
 	CI_ASSERT( buffer->getNumFrames() >= bufferFrameOffset + numFramesNeeded );
@@ -118,12 +117,17 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 	size_t readCount = 0;
 	while( readCount < numFramesNeeded ) {
 		size_t outNumFrames = processNextReadSample();
-		CI_ASSERT( outNumFrames && outNumFrames + readCount <= numFramesNeeded );
+		//CI_ASSERT( outNumFrames && outNumFrames + readCount <= numFramesNeeded );
+		// sigh... assert doesn't break in debug on windows right now.
+		if( ! outNumFrames || outNumFrames + readCount > numFramesNeeded ) {
+			LOG_E( "i hate windows.");
+		}
 
 		size_t offset = bufferFrameOffset + readCount;
 		for( size_t ch = 0; ch < mNativeNumChannels; ch++ ) {
-			float *channelData = buffer->getChannel( ch );
-			memcpy( channelData + readCount, mReadBuffer.data() + (ch * readCount), outNumFrames * sizeof( float ) );
+			float *readChannel = mReadBuffer.getChannel( ch );
+			float *resultChannel = buffer->getChannel( ch );
+			memcpy( resultChannel + readCount, readChannel, outNumFrames * sizeof( float ) );
 		}
 
 		readCount += outNumFrames;
@@ -255,6 +259,8 @@ void SourceFileMediaFoundation::initReader()
 
 	::CoTaskMemFree( fileFormat );
 
+	mReadBuffer.setSize( mMaxFramesPerRead, mNativeNumChannels );
+
 	// set output type, which loads the proper decoder:
 	::IMFMediaType *outputType;
 	hr = ::MFCreateMediaType( &outputType );
@@ -334,37 +340,40 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	hr = samplePtr->ConvertToContiguousBuffer( &mediaBuffer );
 	hr = mediaBuffer->Lock( &audioData, NULL, &audioDataLength );
 
-	size_t numFramesRead = audioDataLength / ( mBytesPerSample * mNumChannels );
+	size_t numChannels = mNativeNumChannels;
+	size_t numFramesRead = audioDataLength / ( mBytesPerSample * numChannels );
 
 	// FIXME: I don't know why num channels needs to be divided through twice, indicating the square needs to be used above.
 	// - this is probably wrong and may break with more channels.
-	numFramesRead /= mNumChannels;
+	//numFramesRead /= mNumChannels;
 
-	// TODO: make mReadBuffer a BufferDynamic
-	resizeReadBufferIfNecessary( numFramesRead );
+	mReadBuffer.setNumFrames( numFramesRead );
 
 	if( mSampleFormat == Format::FLOAT_32 ) {
 		float *floatSamples = (float *)audioData;
-		if( mNumChannels == 1) {
-			memcpy( mReadBuffer.data(), floatSamples, numFramesRead * sizeof( float ) );
-		} else {
-			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+		if( numChannels == 1) {
+			memcpy( mReadBuffer.getData(), floatSamples, numFramesRead * sizeof( float ) );
+		}
+		else {
+			for( size_t ch = 0; ch < numChannels; ch++ ) {
+				float *channel = mReadBuffer.getChannel( ch );
 				for( size_t i = 0; i < numFramesRead; i++ )
-					mReadBuffer[ch * numFramesRead + i] = floatSamples[mNumChannels * i + ch];
+					channel[i] = floatSamples[numChannels * i + ch];
 			}
 		}
 	}
 	else if( mSampleFormat == Format::INT_16 ) {
 		INT16 *signedIntSamples = (INT16 *)audioData;
-		if( mNumChannels == 1 ) {
+		if( numChannels == 1 ) {
+			float *data = mReadBuffer.getData();
 			for( size_t i = 0; i < numFramesRead; ++i )
-				mReadBuffer[i] = (float)signedIntSamples[i] / 32768.0f;
+				data[i] = (float)signedIntSamples[i] / 32768.0f;
 		}
 		else {
-			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-				for( size_t i = 0; i < numFramesRead; i++ ) {
-					mReadBuffer[ch * numFramesRead + i] = (float)signedIntSamples[mNumChannels * i + ch] / 32768.0f;
-				}
+			for( size_t ch = 0; ch < numChannels; ch++ ) {
+				float *channel = mReadBuffer.getChannel( ch );
+				for( size_t i = 0; i < numFramesRead; i++ )
+					channel[i] = (float)signedIntSamples[numChannels * i + ch] / 32768.0f;
 			}
 		}
 	}
@@ -379,15 +388,6 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	//LOG_V( "frames read: " << numFramesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" );
 
 	return numFramesRead;
-}
-
-void SourceFileMediaFoundation::resizeReadBufferIfNecessary( size_t requiredFrames )
-{
-	size_t requiredSize = requiredFrames * mNumChannels;
-	if( requiredSize > mReadBuffer.size() ) {
-		LOG_V( "RESIZE buffer to " << requiredSize );
-		mReadBuffer.resize( requiredSize );
-	}
 }
 
 } } } // namespace cinder::audio2::msw
