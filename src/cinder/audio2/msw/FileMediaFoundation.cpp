@@ -22,7 +22,6 @@
 */
 
 #include "cinder/audio2/msw/FileMediaFoundation.h"
-
 #include "cinder/audio2/Debug.h"
 
 #include <mfidl.h>
@@ -47,12 +46,12 @@ namespace cinder { namespace audio2 { namespace msw {
 
 namespace {
 
-inline float nanoSecondsToSeconds( LONGLONG ns )
+inline double nanoSecondsToSeconds( LONGLONG ns )
 {
-	return (float)ns / 10000000.0f;
+	return (double)ns / 10000000.0;
 } 
 
-inline LONGLONG secondsToNanoSeconds( float seconds )
+inline LONGLONG secondsToNanoSeconds( double seconds )
 {
 	return (LONGLONG)seconds * 10000000;
 }
@@ -78,15 +77,15 @@ struct MfInitializer {
 // ----------------------------------------------------------------------------------------------------
 
 SourceFileMediaFoundation::SourceFileMediaFoundation()
-	: SourceFile()
+	: SourceFile(), mCanSeek( false ), mSeconds( 0 )
 {
 }
 
 SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource )
-: SourceFile(), mCanSeek( false ), mSeconds( 0 )
+	: SourceFile(), mDataSource( dataSource )
 {
 	initMediaFoundation();
-	initReader( dataSource );
+	initReader();
 
 	LOG_V( "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek );
 }
@@ -94,13 +93,8 @@ SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataS
 SourceFileRef SourceFileMediaFoundation::clone() const
 {
 	shared_ptr<SourceFileMediaFoundation> result( new SourceFileMediaFoundation );
-
-	// TODO NEXT: need to call initReader() with dataSource originally passed in
-	// - doesn't look like I can just use the file path, since that doesn't support win resources
-	//result->mFilePath = mFilePath;
-	//result->initImpl();
-
-	CI_ASSERT( 0 && "not finished" );
+	result->mDataSource = mDataSource;
+	result->initReader();
 
 	return result;
 }
@@ -116,10 +110,26 @@ inline bool readWasSuccessful( HRESULT hr, DWORD streamFlags )
 
 }
 
+// FIXME: looks like numFramesNeeded is 0 here because mNumFrames was never set.
 size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
 {
-	CI_ASSERT( 0 && "not implemented" );
-	return 0;
+	CI_ASSERT( buffer->getNumFrames() >= bufferFrameOffset + numFramesNeeded );
+
+	size_t readCount = 0;
+	while( readCount < numFramesNeeded ) {
+		size_t outNumFrames = processNextReadSample();
+		CI_ASSERT( outNumFrames && outNumFrames + readCount <= numFramesNeeded );
+
+		size_t offset = bufferFrameOffset + readCount;
+		for( size_t ch = 0; ch < mNativeNumChannels; ch++ ) {
+			float *channelData = buffer->getChannel( ch );
+			memcpy( channelData + readCount, mReadBuffer.data() + (ch * readCount), outNumFrames * sizeof( float ) );
+		}
+
+		readCount += outNumFrames;
+	}
+
+	return readCount;
 }
 
 #if 0
@@ -163,7 +173,7 @@ void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
 		return;
 	}
 
-	float positionSeconds = (float)readPositionFrames / (float)mSampleRate;
+	double positionSeconds = (double)readPositionFrames / (double)mSampleRate;
 	if( positionSeconds > mSeconds ) {
 		LOG_E( "cannot seek beyond end of file (" << positionSeconds << "s)." );
 		return;
@@ -188,8 +198,10 @@ void SourceFileMediaFoundation::initMediaFoundation()
 }
 
 // TODO: test setting MF_LOW_LATENCY attribute
-void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
+void SourceFileMediaFoundation::initReader()
 {
+	CI_ASSERT( mDataSource );
+
 	::IMFAttributes *attributes;
 	HRESULT hr = ::MFCreateAttributes( &attributes, 1 );
 	CI_ASSERT( hr == S_OK );
@@ -197,12 +209,12 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 
 	::IMFSourceReader *sourceReader;
 
-	if( dataSource->isFilePath() ) {
-		hr = ::MFCreateSourceReaderFromURL( dataSource->getFilePath().wstring().c_str(), attributesPtr.get(), &sourceReader );
+	if( mDataSource->isFilePath() ) {
+		hr = ::MFCreateSourceReaderFromURL( mDataSource->getFilePath().wstring().c_str(), attributesPtr.get(), &sourceReader );
 		CI_ASSERT( hr == S_OK );
 	}
 	else {
-		mComIStream = makeComUnique( new ComIStream( dataSource->createStream() ) );
+		mComIStream = makeComUnique( new ComIStream( mDataSource->createStream() ) );
 		::IMFByteStream *byteStream;
 		hr = ::MFCreateMFByteStreamOnStream( mComIStream.get(), &byteStream );
 		CI_ASSERT( hr == S_OK );
@@ -236,8 +248,8 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 		outputSubType = MFAudioFormat_Float;
 	}
 
-	mNumChannels = fileFormat->nChannels;
-	mSampleRate = fileFormat->nSamplesPerSec;
+	mNumChannels = mNativeNumChannels = fileFormat->nChannels;
+	mSampleRate = mNativeSampleRate = fileFormat->nSamplesPerSec;
 
 	LOG_V( "file channels: " << mNumChannels << ", samplerate: " << mSampleRate );
 
@@ -274,6 +286,7 @@ void SourceFileMediaFoundation::initReader( const DataSourceRef &dataSource )
 	LONGLONG duration = durationProp.uhVal.QuadPart;
 	
 	mSeconds = nanoSecondsToSeconds( duration );
+	mNumFrames = mFileNumFrames = size_t( mSeconds * (double)mSampleRate );
 
 	::PROPVARIANT seekProp;
 	hr = mSourceReader->GetPresentationAttribute( MF_SOURCE_READER_MEDIASOURCE, MF_SOURCE_READER_MEDIASOURCE_CHARACTERISTICS, &seekProp );
@@ -323,10 +336,11 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 	size_t numFramesRead = audioDataLength / ( mBytesPerSample * mNumChannels );
 
-	// FIXME: I don't know why num channels needs to be divided through twice, indicating he square needs to be used above.
+	// FIXME: I don't know why num channels needs to be divided through twice, indicating the square needs to be used above.
 	// - this is probably wrong and may break with more channels.
 	numFramesRead /= mNumChannels;
 
+	// TODO: make mReadBuffer a BufferDynamic
 	resizeReadBufferIfNecessary( numFramesRead );
 
 	if( mSampleFormat == Format::FLOAT_32 ) {
@@ -362,7 +376,7 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 	mediaBuffer->Release();
 
-	LOG_V( "frames read: " << numFramesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" );
+	//LOG_V( "frames read: " << numFramesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" );
 
 	return numFramesRead;
 }

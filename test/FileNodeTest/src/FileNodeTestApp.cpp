@@ -15,9 +15,9 @@
 #include "../../../samples/common/AudioDrawUtils.h"
 
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
-//#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_CASH_MP3
 //#define INITIAL_AUDIO_RES	RES_RADIOHEAD_OGG
 
@@ -118,7 +118,7 @@ void FileNodeTestApp::setupBufferPlayer()
 	};
 
 	bool asyncLoad = mAsyncButton.mEnabled;
-	LOG_V( "async load: " << asyncLoad );
+	LOG_V( "async load: " << boolalpha << asyncLoad << dec );
 	if( asyncLoad ) {
 		mWaveformPlot.clear();
 		mAsyncLoadFuture = std::async( [=] {

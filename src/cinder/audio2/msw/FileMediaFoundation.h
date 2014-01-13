@@ -49,17 +49,18 @@ class SourceFileMediaFoundation : public SourceFile {
 
   private:
 	void initMediaFoundation();
-	void initReader( const DataSourceRef &dataSource );
+	void initReader();
 	size_t processNextReadSample();
 	void resizeReadBufferIfNecessary( size_t requiredFrames );
 
 	std::unique_ptr<::IMFSourceReader, ComReleaser>		mSourceReader;
 	std::unique_ptr<ComIStream, ComReleaser>			mComIStream;
 	std::unique_ptr<::IMFByteStream, ComReleaser>		mByteStream;
+	DataSourceRef										mDataSource; // stored so that clone() can tell if original data source is a file or windows resource
 	size_t mBytesPerSample;
 	Format mSampleFormat;
 
-	float mSeconds;
+	double mSeconds;
 	bool mCanSeek;
 	std::vector<float> mReadBuffer;
 };
