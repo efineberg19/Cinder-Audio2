@@ -104,12 +104,6 @@ SourceFileMediaFoundation::~SourceFileMediaFoundation()
 	mSourceReader.reset(); // needs to be released before MfInitializer goes out of scope
 }
 
-// TODO: what is this for?
-inline bool readWasSuccessful( HRESULT hr, DWORD streamFlags )
-{
-
-}
-
 size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
 {
 	CI_ASSERT( buffer->getNumFrames() >= bufferFrameOffset + numFramesNeeded );
@@ -117,11 +111,12 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 	size_t readCount = 0;
 	while( readCount < numFramesNeeded ) {
 		size_t outNumFrames = processNextReadSample();
-		//CI_ASSERT( outNumFrames && outNumFrames + readCount <= numFramesNeeded );
-		// sigh... assert doesn't break in debug on windows right now.
-		if( ! outNumFrames || outNumFrames + readCount > numFramesNeeded ) {
-			LOG_E( "i hate windows.");
-		}
+		CI_ASSERT( outNumFrames );
+
+		// seems that frame count with some file formats (like mp3) are completely inaccurate
+		// - so if we read more than expected, cut down to the provided buffer size
+		if( outNumFrames + readCount > numFramesNeeded )
+			outNumFrames = numFramesNeeded - readCount;
 
 		size_t offset = bufferFrameOffset + readCount;
 		for( size_t ch = 0; ch < mNativeNumChannels; ch++ ) {
@@ -135,40 +130,6 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 
 	return readCount;
 }
-
-#if 0
-BufferRef SourceFileMediaFoundation::loadBuffer()
-{
-	//if( mReadPos != 0 )
-	//	seek( 0 );
-
-	BufferDynamicRef result( new BufferDynamic( mNumFrames, mNumChannels ) );
-
-	size_t numFramesRead = 0;
-	while( numFramesRead != mNumFrames ) {
-		size_t readCount = processNextReadSample();
-		if( ! readCount )
-			break;
-
-
-		if( numFramesRead + readCount > mNumFrames ) {
-			LOG_V( "warning, buffer resize from: " << mNumFrames << " to: " << numFramesRead + readCount ); // TODO: should resize buffer if necessary
-			mNumFrames = numFramesRead + readCount;
-			result->setNumFrames( mNumFrames );
-		}
-
-		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-			float *channelData = result->getChannel( ch );
-			memcpy( channelData + numFramesRead, mReadBuffer.data() + (ch * readCount), readCount * sizeof( float ) );
-		}
-
-		numFramesRead += readCount;
-	}
-
-	return result;
-}
-
-#endif
 
 void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
 {
