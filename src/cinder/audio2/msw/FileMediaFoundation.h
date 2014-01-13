@@ -48,20 +48,21 @@ class SourceFileMediaFoundation : public SourceFile {
 	void		performSeek( size_t readPositionFrames ) override;
 
   private:
-	void initMediaFoundation();
-	void initReader();
-	size_t processNextReadSample();
+	void		initMediaFoundation();
+	void		initReader();
+	size_t		processNextReadSample();
 
 	std::unique_ptr<::IMFSourceReader, ComReleaser>		mSourceReader;
 	std::unique_ptr<ComIStream, ComReleaser>			mComIStream;
 	std::unique_ptr<::IMFByteStream, ComReleaser>		mByteStream;
 	DataSourceRef										mDataSource; // stored so that clone() can tell if original data source is a file or windows resource
-	size_t mBytesPerSample;
-	Format mSampleFormat;
-
-	double mSeconds;
-	bool mCanSeek;
-	BufferDynamic mReadBuffer;
+	
+	size_t			mBytesPerSample;
+	Format			mSampleFormat;
+	double			mSeconds;
+	bool			mCanSeek;
+	BufferDynamic	mReadBuffer;
+	size_t			mFramesRemainingInReadBuffer;
 };
 
 } } } // namespace cinder::audio2::msw

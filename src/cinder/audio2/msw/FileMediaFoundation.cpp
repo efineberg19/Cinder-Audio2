@@ -82,7 +82,7 @@ SourceFileMediaFoundation::SourceFileMediaFoundation()
 }
 
 SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource )
-	: SourceFile(), mDataSource( dataSource )
+	: SourceFile(), mDataSource( dataSource ), mCanSeek( false ), mSeconds( 0 )
 {
 	initMediaFoundation();
 	initReader();
@@ -110,13 +110,32 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 
 	size_t readCount = 0;
 	while( readCount < numFramesNeeded ) {
+
+		// first drain any frames that were previously read from an IMFSample
+		if( mFramesRemainingInReadBuffer ) {
+			size_t remainingToDrain = min( mFramesRemainingInReadBuffer, numFramesNeeded );
+
+			// TODO: can move this type of copy to Buffer.h? it is used all over the place
+			for( size_t ch = 0; ch < mNativeNumChannels; ch++ ) {
+				float *readChannel = mReadBuffer.getChannel( ch ) + mReadBuffer.getNumFrames() - remainingToDrain;
+				float *resultChannel = buffer->getChannel( ch );
+				memcpy( resultChannel + readCount, readChannel, remainingToDrain * sizeof( float ) );
+			}
+
+			mFramesRemainingInReadBuffer -= remainingToDrain;
+			readCount += remainingToDrain;
+			continue;
+		}
+
 		size_t outNumFrames = processNextReadSample();
 		CI_ASSERT( outNumFrames );
 
-		// seems that frame count with some file formats (like mp3) are completely inaccurate
-		// - so if we read more than expected, cut down to the provided buffer size
-		if( outNumFrames + readCount > numFramesNeeded )
+		// if the IMFSample num frames is over the specified buffer size, record how many samples are left over
+		// and use up what was asked for.
+		if( outNumFrames + readCount > numFramesNeeded ) {
+			mFramesRemainingInReadBuffer = outNumFrames + readCount - numFramesNeeded;
 			outNumFrames = numFramesNeeded - readCount;
+		}
 
 		size_t offset = bufferFrameOffset + readCount;
 		for( size_t ch = 0; ch < mNativeNumChannels; ch++ ) {
@@ -138,12 +157,13 @@ void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
 		return;
 	}
 
+	mFramesRemainingInReadBuffer = 0;
+
 	double positionSeconds = (double)readPositionFrames / (double)mSampleRate;
 	if( positionSeconds > mSeconds ) {
 		LOG_E( "cannot seek beyond end of file (" << positionSeconds << "s)." );
 		return;
 	}
-	//LOG_V( "seeking to: " << milliseconds );
 
 	LONGLONG position = secondsToNanoSeconds( positionSeconds );
 	PROPVARIANT seekVar;
@@ -166,6 +186,7 @@ void SourceFileMediaFoundation::initMediaFoundation()
 void SourceFileMediaFoundation::initReader()
 {
 	CI_ASSERT( mDataSource );
+	mFramesRemainingInReadBuffer = 0;
 
 	::IMFAttributes *attributes;
 	HRESULT hr = ::MFCreateAttributes( &attributes, 1 );
