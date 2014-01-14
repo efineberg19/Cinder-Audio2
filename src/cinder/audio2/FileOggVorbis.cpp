@@ -39,8 +39,14 @@ SourceFileOggVorbis::SourceFileOggVorbis()
 SourceFileOggVorbis::SourceFileOggVorbis( const DataSourceRef &dataSource )
 	: SourceFile()
 {
-	mFilePath = dataSource->getFilePath();
-	initImpl();
+	if( dataSource->isFilePath() ) {
+		mFilePath = dataSource->getFilePath();
+		initImpl();
+	}
+	else {
+		// TODO: to enable this, need to use ov_open_callbacks + ov_callbacks and cinders datasource streaming support
+		CI_ASSERT( 0 && "loading from win resource not implemented" );
+	}
 }
 
 SourceFileRef SourceFileOggVorbis::clone() const
