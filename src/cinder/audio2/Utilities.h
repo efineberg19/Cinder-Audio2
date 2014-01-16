@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "cinder/audio2/Buffer.h"
 #include "cinder/CinderMath.h"
 
 #include <string>
@@ -92,5 +93,7 @@ inline bool isPowerOf2( size_t val )
 
 //! Returns a demangled string from the result of typeid( someType ).name()
 std::string demangledTypeName( const char *mangledName );
+//! Checks if the absolute value of any sample in \a buffer is over \a threshold. Optionally provide \a recordFrame to record the frame index. \return true if one is found, false otherwise. 
+bool thresholdBuffer( const Buffer &buffer, float threshold, size_t *recordFrame = nullptr );
 
 } } // namespace cinder::audio2

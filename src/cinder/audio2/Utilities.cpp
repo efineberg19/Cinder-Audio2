@@ -51,4 +51,20 @@ string demangledTypeName( const char *mangledName )
 #endif;
 }
 
+bool thresholdBuffer( const Buffer &buffer, float threshold, size_t *recordFrame )
+{
+	const float *buf = buffer.getData();
+	size_t count = buffer.getSize();
+	for( size_t t = 0; t < count; t++ ) {
+		if( fabs( buf[t] ) > threshold ) {
+			if( recordFrame )
+				*recordFrame = t % buffer.getNumFrames();
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 } } // namespace cinder::audio2

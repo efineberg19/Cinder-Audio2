@@ -26,6 +26,7 @@
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/msw/xaudio.h"
 #include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/Utilities.h"
 #include "cinder/audio2/Exception.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
@@ -202,6 +203,19 @@ void NodeXAudioSourceVoice::stop()
 	mSourceVoice->Stop();
 }
 
+bool LineOutXAudio::checkNotClippingImpl( const Buffer &sourceVoiceBuffer )
+{
+	if( mClipDetectionEnabled ) {
+		size_t recordedFrame;
+		if( thresholdBuffer( sourceVoiceBuffer, mClipThreshold, &recordedFrame ) ) {
+			mLastClip = getNumProcessedFrames() + recordedFrame;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void NodeXAudioSourceVoice::submitNextBuffer()
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
@@ -213,7 +227,16 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 
 	mInternalBuffer.zero();
 	pullInputs( &mInternalBuffer );
-	ctx->processAutoPulledNodes(); // TODO: make sure this is only done once per process block
+
+	auto lineOutXAudio = dynamic_pointer_cast<LineOutXAudio>( getContext()->getTarget() );
+	CI_ASSERT( lineOutXAudio );
+
+	if( lineOutXAudio->checkNotClipping() )
+		mInternalBuffer.zero();
+
+	// TODO: make sure this is only done once per process block.
+	// - still works fine though, since they will not process due to timestamps, but it would prevent unnecessary traversals
+	ctx->processAutoPulledNodes();
 
 	if( getNumChannels() == 2 )
 		interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );

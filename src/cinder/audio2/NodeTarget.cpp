@@ -23,6 +23,7 @@
 
 #include "cinder/audio2/NodeTarget.h"
 #include "cinder/audio2/Context.h"
+#include "cinder/audio2/Utilities.h"
 #include "cinder/audio2/Exception.h"
 #include "cinder/audio2/Debug.h"
 
@@ -63,13 +64,10 @@ void NodeTarget::enableClipDetection( bool enable, float threshold )
 bool NodeTarget::checkNotClipping()
 {
 	if( mClipDetectionEnabled ) {
-		float *buf = mInternalBuffer.getData();
-		size_t count = mInternalBuffer.getSize();
-		for( size_t t = 0; t < count; t++ ) {
-			if( fabs( buf[t] ) > mClipThreshold ) {
-				mLastClip = getNumProcessedFrames() + t % mInternalBuffer.getNumFrames(); // record the sample that clipped
-				return true;
-			}
+		size_t recordedFrame;
+		if( thresholdBuffer( mInternalBuffer, mClipThreshold, &recordedFrame ) ) {
+			mLastClip = getNumProcessedFrames() + recordedFrame;
+			return true;
 		}
 	}
 

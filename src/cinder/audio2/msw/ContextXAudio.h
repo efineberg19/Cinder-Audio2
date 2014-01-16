@@ -70,7 +70,7 @@ private:
 
 	void submitNextBuffer();
 
-	::IXAudio2SourceVoice						*mSourceVoice;
+	::IXAudio2SourceVoice*						mSourceVoice;
 	::XAUDIO2_BUFFER							mXAudioBuffer;
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
 	BufferInterleaved							mBufferInterleaved;
@@ -100,12 +100,18 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	::IXAudio2* getXAudio() const	{ return mXAudio; }
 
   private:
+
+	// Because the last time we see output samples is when a NodeXAudioSourceVoice submits its buffer,
+	// NodeXAudioSourceVoice's call into this LineOut to check if its buffer is clipping.
+	bool checkNotClippingImpl( const Buffer &sourceVoiceBuffer );
+
 	::IXAudio2					*mXAudio;
 	::IXAudio2MasteringVoice	*mMasteringVoice;
 
 	std::unique_ptr<EngineCallbackImpl> mEngineCallback;
 
-	friend EngineCallbackImpl;
+	friend struct EngineCallbackImpl;
+	friend class NodeXAudioSourceVoice;
 };
 
 class NodeEffectXAudioXapo : public NodeEffect, public NodeXAudio {
