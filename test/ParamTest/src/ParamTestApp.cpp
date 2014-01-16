@@ -6,10 +6,13 @@
 #include "cinder/audio2/NodeSource.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Filter.h"
+#include "cinder/audio2/File.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
+
+// FIXME: delay test froze UI
 
 using namespace ci;
 using namespace ci::app;
@@ -58,7 +61,7 @@ void ParamTestApp::setup()
 
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
-	mGain->setValue( 0.8 );
+	mGain->setValue( 0.8f );
 
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 
@@ -145,7 +148,7 @@ void ParamTestApp::testAppendCancel()
 	timeline().add( [ramp] {
 		LOG_V( "canceling." );
 		ramp->cancel();
-	}, getElapsedSeconds() + 1 );
+	}, (float)getElapsedSeconds() + 1 );
 }
 
 void ParamTestApp::testModulator()
@@ -197,7 +200,7 @@ void ParamTestApp::setupUI()
 
 	mTestSelector.mSegments.push_back( "basic" );
 	mTestSelector.mSegments.push_back( "filter" );
-	mTestSelector.mBounds = Rectf( getWindowWidth() * 0.67f, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
@@ -325,7 +328,7 @@ void ParamTestApp::writeParamEval( audio2::Param *param )
 	float duration = param->findDuration();
 	float currTime = (float)ctx->getNumProcessedSeconds();
 	size_t sampleRate = ctx->getSampleRate();
-	audio2::Buffer audioBuffer( duration * sampleRate );
+	audio2::Buffer audioBuffer( (size_t)duration * sampleRate );
 
 	param->eval( currTime, audioBuffer.getData(), audioBuffer.getSize(), sampleRate );
 

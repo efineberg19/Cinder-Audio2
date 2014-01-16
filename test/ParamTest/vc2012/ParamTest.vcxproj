@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A4E4C761-C966-49BC-B393-7DB37AD2D367}</ProjectGuid>
+    <ProjectGuid>{A8EA7518-49AF-4238-B769-DB509F20342F}</ProjectGuid>
     <RootNamespace>ParamTest</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>ParamTest</ProjectName>
@@ -74,8 +74,8 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\cinder-dev\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder_d.lib;audio2_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\lib\msw;$(CINDER_PATH)\lib;$(CINDER_PATH)\lib\msw;$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder-$(PlatformToolset)_d.lib;audio2_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\lib\msw;$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -101,8 +101,8 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\cinder-dev\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder.lib;audio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\lib\msw;..\..\..\..\..\cinder-dev\lib;..\..\..\..\..\cinder-dev\lib\msw</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder-$(PlatformToolset).lib;audio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\lib\msw;$(CINDER_PATH)\lib\msw\$(PlatformTarget);$(DXSDK_DIR)\Lib\x86</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
@@ -114,13 +114,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resources.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\src\ParamTestApp.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\include\Resources.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
