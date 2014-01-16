@@ -62,7 +62,7 @@ class SourceFileMediaFoundation : public SourceFile {
 	double			mSeconds;
 	bool			mCanSeek;
 	BufferDynamic	mReadBuffer;
-	size_t			mFramesRemainingInReadBuffer;
+	size_t			mReadBufferPos, mFramesRemainingInReadBuffer;
 };
 
 } } } // namespace cinder::audio2::msw

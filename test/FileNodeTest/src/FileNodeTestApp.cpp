@@ -14,11 +14,13 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
+// TODO NEXT: test all paths that use Converter on windows 
+
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_MP3
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_MP3
-//#define INITIAL_AUDIO_RES	RES_CASH_MP3
+#define INITIAL_AUDIO_RES	RES_CASH_MP3
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_RADIOHEAD_OGG
@@ -48,6 +50,7 @@ class FileNodeTestApp : public AppNative {
 	void processTap( Vec2i pos );
 
 	void seek( size_t xPos );
+	void printBufferSamples( float xPos );
 
 	void testConverter();
 	void testWrite();
@@ -92,8 +95,8 @@ void FileNodeTestApp::setup()
 
 	mGain->connect( mPan )->connect( ctx->getTarget() );
 
-	setupBufferPlayer();
-//	setupFilePlayer();
+	//setupBufferPlayer();
+	setupFilePlayer();
 
 	setupUI();
 
@@ -290,21 +293,29 @@ void FileNodeTestApp::seek( size_t xPos )
 	mSamplePlayer->seek( mSamplePlayer->getNumFrames() * xPos / getWindowWidth() );
 }
 
+void FileNodeTestApp::printBufferSamples( float xPos )
+{
+	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
+	if( ! bufferPlayer )
+		return;
+
+	auto buffer = bufferPlayer->getBuffer();
+	size_t step = buffer->getNumFrames() / getWindowWidth();
+	size_t xScaled = xPos * step;
+	LOG_V( "samples starting at " << xScaled << ":" );
+	for( int i = 0; i < 100; i++ ) {
+		if( buffer->getNumChannels() == 1 )
+			console() << buffer->getChannel( 0 )[xScaled + i] << ", ";
+		else
+			console() << "[" << buffer->getChannel( 0 )[xScaled + i] << ", " << buffer->getChannel( 0 )[xScaled + i] << "], ";
+	}
+	console() << endl;
+
+}
+
 void FileNodeTestApp::mouseDown( MouseEvent event )
 {
-//	mSamplePlayer->start();
-
-//	size_t step = mBuffer.getNumFrames() / getWindowWidth();
-//    size_t xLoc = event.getX() * step;
-//     LOG_V( "samples starting at " << xLoc << ":" );
-//    for( int i = 0; i < 100; i++ ) {
-//        if( mNumChannels == 1 ) {
-//            console() << mBuffer.getChannel( 0 )[xLoc + i] << ", ";
-//        } else {
-//            console() << "[" << mBuffer.getChannel( 0 )[xLoc + i] << ", " << mBuffer.getChannel( 0 )[xLoc + i] << "], ";
-//        }
-//    }
-//    console() << endl;
+	printBufferSamples( event.getX() );
 }
 
 void FileNodeTestApp::keyDown( KeyEvent event )

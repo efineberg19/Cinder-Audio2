@@ -77,12 +77,12 @@ struct MfInitializer {
 // ----------------------------------------------------------------------------------------------------
 
 SourceFileMediaFoundation::SourceFileMediaFoundation()
-	: SourceFile(), mCanSeek( false ), mSeconds( 0 )
+	: SourceFile(), mCanSeek( false ), mSeconds( 0 ), mReadBufferPos( 0 ), mFramesRemainingInReadBuffer( 0 )
 {
 }
 
 SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource )
-	: SourceFile(), mDataSource( dataSource ), mCanSeek( false ), mSeconds( 0 )
+	: SourceFile(), mDataSource( dataSource ), mCanSeek( false ), mSeconds( 0 ), mReadBufferPos( 0 ), mFramesRemainingInReadBuffer( 0 )
 {
 	initMediaFoundation();
 	initReader();
@@ -117,21 +117,25 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 
 			// TODO: can move this type of copy to Buffer.h? it is used all over the place
 			for( size_t ch = 0; ch < mNativeNumChannels; ch++ ) {
-				float *readChannel = mReadBuffer.getChannel( ch ) + mReadBuffer.getNumFrames() - remainingToDrain;
+				float *readChannel = mReadBuffer.getChannel( ch ) + mReadBufferPos;
 				float *resultChannel = buffer->getChannel( ch );
 				memcpy( resultChannel + readCount, readChannel, remainingToDrain * sizeof( float ) );
 			}
 
+			mReadBufferPos += remainingToDrain;
 			mFramesRemainingInReadBuffer -= remainingToDrain;
 			readCount += remainingToDrain;
 			continue;
 		}
 
+		CI_ASSERT( ! mFramesRemainingInReadBuffer );
+
+		mReadBufferPos = 0;
 		size_t outNumFrames = processNextReadSample();
 		CI_ASSERT( outNumFrames );
 
-		// if the IMFSample num frames is over the specified buffer size, record how many samples are left over
-		// and use up what was asked for.
+		// if the IMFSample num frames is over the specified buffer size, 
+		// record how many samples are left over and use up what was asked for.
 		if( outNumFrames + readCount > numFramesNeeded ) {
 			mFramesRemainingInReadBuffer = outNumFrames + readCount - numFramesNeeded;
 			outNumFrames = numFramesNeeded - readCount;
@@ -144,6 +148,7 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 			memcpy( resultChannel + readCount, readChannel, outNumFrames * sizeof( float ) );
 		}
 
+		mReadBufferPos += outNumFrames;
 		readCount += outNumFrames;
 	}
 
@@ -157,7 +162,7 @@ void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
 		return;
 	}
 
-	mFramesRemainingInReadBuffer = 0;
+	mReadBufferPos = mFramesRemainingInReadBuffer = 0;
 
 	double positionSeconds = (double)readPositionFrames / (double)mSampleRate;
 	if( positionSeconds > mSeconds ) {
@@ -324,10 +329,6 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 	size_t numChannels = mNativeNumChannels;
 	size_t numFramesRead = audioDataLength / ( mBytesPerSample * numChannels );
-
-	// FIXME: I don't know why num channels needs to be divided through twice, indicating the square needs to be used above.
-	// - this is probably wrong and may break with more channels.
-	//numFramesRead /= mNumChannels;
 
 	mReadBuffer.setNumFrames( numFramesRead );
 
