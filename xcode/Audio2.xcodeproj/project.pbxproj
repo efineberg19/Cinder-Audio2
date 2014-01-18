@@ -526,7 +526,7 @@
 				1115500E18026C9100D415BC /* os_types.h */,
 			);
 			name = ogg;
-			path = ../../include/oggvorbis/ogg;
+			path = ../include/oggvorbis/ogg;
 			sourceTree = "<group>";
 		};
 		1115501118026C9100D415BC /* vorbis */ = {
@@ -537,7 +537,7 @@
 				1115501418026C9100D415BC /* vorbisfile.h */,
 			);
 			name = vorbis;
-			path = ../../include/oggvorbis/vorbis;
+			path = ../include/oggvorbis/vorbis;
 			sourceTree = "<group>";
 		};
 		114FE86818032BF000C5841B /* oggvorbis */ = {
