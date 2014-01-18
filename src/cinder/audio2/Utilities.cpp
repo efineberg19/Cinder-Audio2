@@ -48,7 +48,7 @@ string demangledTypeName( const char *mangledName )
 	return ( status == 0 ) ? result.get() : mangledName;
 #else
 	return mangledName;
-#endif;
+#endif
 }
 
 bool thresholdBuffer( const Buffer &buffer, float threshold, size_t *recordFrame )
