@@ -46,35 +46,16 @@ namespace cinder { namespace audio2 { namespace msw {
 
 namespace {
 
-inline double nanoSecondsToSeconds( LONGLONG ns )
-{
-	return (double)ns / 10000000.0;
-} 
-
-inline LONGLONG secondsToNanoSeconds( double seconds )
-{
-	return (LONGLONG)seconds * 10000000;
-}
-
-struct MfInitializer {
-	MfInitializer()
-	{
-		HRESULT hr = ::MFStartup( MF_VERSION ); // TODO: try passing in MFSTARTUP_LITE (no sockets) and see if load is faster
-		CI_ASSERT( hr == S_OK );
-	}
-
-	~MfInitializer()
-	{
-		HRESULT hr = ::MFShutdown();
-		CI_ASSERT( hr == S_OK );
-	}
-};
+inline double	nanoSecondsToSeconds( LONGLONG ns )		{ return (double)ns / 10000000.0; } 
+inline LONGLONG secondsToNanoSeconds( double seconds )	{ return (LONGLONG)seconds * 10000000; }
 
 } // anonymous namespace
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - SourceFileMediaFoundation
 // ----------------------------------------------------------------------------------------------------
+
+bool SourceFileMediaFoundation::sIsMfInitialized = false;
 
 SourceFileMediaFoundation::SourceFileMediaFoundation()
 	: SourceFile(), mCanSeek( false ), mSeconds( 0 ), mReadBufferPos( 0 ), mFramesRemainingInReadBuffer( 0 )
@@ -101,7 +82,6 @@ SourceFileRef SourceFileMediaFoundation::clone() const
 
 SourceFileMediaFoundation::~SourceFileMediaFoundation()
 {
-	mSourceReader.reset(); // needs to be released before MfInitializer goes out of scope
 }
 
 size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
@@ -179,13 +159,6 @@ void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
 	CI_ASSERT( hr == S_OK );
 	hr = PropVariantClear( &seekVar );
 	CI_ASSERT( hr == S_OK );
-}
-
-void SourceFileMediaFoundation::initMediaFoundation()
-{
-	static unique_ptr<MfInitializer> sMfInitializer;
-	if( ! sMfInitializer )
-		sMfInitializer = unique_ptr<MfInitializer>( new MfInitializer() );
 }
 
 // TODO: test setting MF_LOW_LATENCY attribute
@@ -368,6 +341,27 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 	mediaBuffer->Release();
 	return numFramesRead;
+}
+
+
+// static
+void SourceFileMediaFoundation::initMediaFoundation()
+{
+	if( ! sIsMfInitialized ) {
+		sIsMfInitialized = true;
+		HRESULT hr = ::MFStartup( MF_VERSION ); // TODO: try passing in MFSTARTUP_LITE (no sockets) and see if load is faster
+		CI_ASSERT( hr == S_OK );
+	}
+}
+
+// static
+void SourceFileMediaFoundation::shutdownMediaFoundation()
+{
+	if( sIsMfInitialized ) {
+		sIsMfInitialized = false;
+		HRESULT hr = ::MFShutdown();
+		CI_ASSERT( hr == S_OK );
+	}
 }
 
 } } } // namespace cinder::audio2::msw

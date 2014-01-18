@@ -35,7 +35,7 @@ namespace cinder { namespace audio2 { namespace msw {
 
 struct ComReleaser {
 	template <typename T>
-	void operator()(T* ptr)	{ ptr->Release(); }
+	void operator()( T* ptr )	{ ptr->Release(); }
 };
 
 //! Creates a unique_ptr whose deleter will properly decrement the reference count of a COM object

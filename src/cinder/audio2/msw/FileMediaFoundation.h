@@ -47,8 +47,12 @@ class SourceFileMediaFoundation : public SourceFile {
 	size_t		performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded ) override;
 	void		performSeek( size_t readPositionFrames ) override;
 
+	//! Called automatically whenever a SourceFileMediaFoundation is constructed.
+	static void		initMediaFoundation();
+	//! This function is not called automatically, but users may if they wish to free up memory used by Media Foundation.
+	static void		shutdownMediaFoundation();
+
   private:
-	void		initMediaFoundation();
 	void		initReader();
 	size_t		processNextReadSample();
 
@@ -63,6 +67,8 @@ class SourceFileMediaFoundation : public SourceFile {
 	bool			mCanSeek;
 	BufferDynamic	mReadBuffer;
 	size_t			mReadBufferPos, mFramesRemainingInReadBuffer;
+
+	static bool sIsMfInitialized;
 };
 
 } } } // namespace cinder::audio2::msw
