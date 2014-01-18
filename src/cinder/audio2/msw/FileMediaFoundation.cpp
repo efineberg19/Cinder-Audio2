@@ -132,7 +132,8 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 
 		mReadBufferPos = 0;
 		size_t outNumFrames = processNextReadSample();
-		CI_ASSERT( outNumFrames );
+		if( ! outNumFrames )
+			break;
 
 		// if the IMFSample num frames is over the specified buffer size, 
 		// record how many samples are left over and use up what was asked for.
@@ -302,7 +303,6 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	}
 	if( streamFlags & MF_SOURCE_READERF_ENDOFSTREAM ) {
 		LOG_V( "end of file." );
-		//mFinished = true;
 		return 0;
 	}
 	if( ! mediaSample ) {
@@ -367,9 +367,6 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 	CI_ASSERT( hr == S_OK );
 
 	mediaBuffer->Release();
-
-	//LOG_V( "frames read: " << numFramesRead  << ", timestamp: " << nanoSecondsToSeconds( timeStamp ) << "s" );
-
 	return numFramesRead;
 }
 
