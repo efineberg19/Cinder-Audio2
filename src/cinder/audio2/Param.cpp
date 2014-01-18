@@ -242,6 +242,8 @@ bool Param::eval( float timeBegin, float *array, size_t arrayLength, size_t samp
 			else
 				++rampIt;
 		}
+		else
+			++rampIt;
 	}
 
 	// if after all ramps we still haven't written enough samples, fill with the final mValue, which was updated above to be the last ramp's mValueEnd.
