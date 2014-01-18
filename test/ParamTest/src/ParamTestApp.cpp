@@ -86,13 +86,13 @@ void ParamTestApp::setup()
 
 void ParamTestApp::setupBasic()
 {
-	mGen->connect( mGain )->connect( audio2::Context::master()->getTarget() );
+	mGen >> mGain >> audio2::Context::master()->getTarget();
 	mGen->start();
 }
 
 void ParamTestApp::setupFilter()
 {
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
+	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getTarget();
 	mGen->start();
 }
 

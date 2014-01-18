@@ -180,6 +180,11 @@ class Node : public std::enable_shared_from_this<Node> {
 	friend class Param;
 };
 
+inline const NodeRef& operator>>( const NodeRef &source, const NodeRef &dest )
+{
+	return source->connect( dest );
+}
+
 //! a Node that can be pulled without being connected to any outputs.
 class NodeAutoPullable : public Node {
   public:

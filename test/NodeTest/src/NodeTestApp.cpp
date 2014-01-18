@@ -92,7 +92,8 @@ void NodeTestApp::setupGen()
 {
 	mGain->disconnectAllInputs();
 
-	mGen->connect( mGain );
+	mGen >> mGain;
+
 	mGen->start();
 
 	mEnableNoiseButton.setEnabled( false );
