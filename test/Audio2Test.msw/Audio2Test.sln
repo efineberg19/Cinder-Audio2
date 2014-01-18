@@ -44,6 +44,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileNodeTest", "..\FileNode
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ParamTest", "..\ParamTest\vc2012\ParamTest.vcxproj", "{A8EA7518-49AF-4238-B769-DB509F20342F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6} = {F24F4074-AFCA-4AAD-9F6C-4CB69CB829B6}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
