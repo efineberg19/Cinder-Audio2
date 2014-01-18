@@ -95,7 +95,7 @@ class Param {
 	//! Constructs a Param with a pointer (weak reference) to the owning parent Node and an optional \a initialValue (default = 0).
 	Param( Node *parentNode, float initialValue = 0.0f );
 
-	//! Sets the value of the Param, blowing away any scheduled Event's or modulator. \note Must be called from a non-audio thread.
+	//! Sets the value of the Param, blowing away any scheduled Event's or processing Node. \note Must be called from a non-audio thread.
 	void	setValue( float value );
 	//! Returns the current value of the Param.
 	float	getValue() const	{ return mValue; }
@@ -103,28 +103,28 @@ class Param {
 	//! \note If not varying (eval() returns false), the returned pointer will be invalid.
 	float*	getValueArray();
 
-	//! Replaces any existing Ramp's with a Ramp from the current value to \a valueEnd over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
+	//! Replaces any existing Ramp's with a Ramp from the current value to \a valueEnd over \a rampSeconds, according to \a options. Any existing processing Node is disconnected.
 	RampRef applyRamp( float valueEnd, float rampSeconds, const Options &options = Options() );
-	//! Replaces any existing Ramp's with a Ramp from \a valueBegin to \a valueEnd over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
+	//! Replaces any existing Ramp's with a Ramp from \a valueBegin to \a valueEnd over \a rampSeconds, according to \a options. Any existing processing Node is disconnected.
 	RampRef applyRamp( float valueBegin, float valueEnd, float rampSeconds, const Options &options = Options() );
-	//! Appends a Ramp from the end of the last scheduled Param (or the current time) to \a valueEnd over \a rampSeconds, according to \a options. Any existing modulator is disconnected.
+	//! Appends a Ramp from the end of the last scheduled Param (or the current time) to \a valueEnd over \a rampSeconds, according to \a options. Any existing processing Node is disconnected.
 	RampRef appendRamp( float valueEnd, float rampSeconds, const Options &options = Options() );
 
 	//! Sets this Param's input to be the processing performed by \a node. Any existing Ramp's are discarded.
 	//! \note Forces \a node to be mono.
-	void setModulator( const NodeRef &node );
+	void setProcessor( const NodeRef &node );
 
-	//! Resets Param, blowing away any Ramps's or modulator. \note Must be called from a non-audio thread.
+	//! Resets Param, blowing away any Ramps's or processing Node. \note Must be called from a non-audio thread.
 	void reset();
 	//! Returns the number of Ramp's that are currently scheduled.
 	size_t getNumRamps() const;
 
 	//! Evaluates the Param for the current processing block, with current time determined from the parent Node's Context.
-	//! \return true if the Param is varying this block (there are Ramp's or a modulator) and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
+	//! \return true if the Param is varying this block (there are Ramp's or a processing Node) and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
 	//! \note Safe to call on the audio thread.
 	bool	eval();
 	//! Evaluates the Param from \a timeBegin for \a arrayLength samples at \a sampleRate.
-	//! \return true if the Param is varying this block (there are Ramp's or a modulator) and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
+	//! \return true if the Param is varying this block (there are Ramp's or a processing Node) and getValueArray() should be used, or false if the Param's value is constant for this block (use getValue()).
 	//! \note Safe to call on the audio thread.
 	bool	eval( float timeBegin, float *array, size_t arrayLength, size_t sampleRate );
 
@@ -143,7 +143,7 @@ class Param {
 	std::list<RampRef>	mRamps;
 	std::atomic<float>	mValue;
 	Node*				mParentNode;
-	NodeRef				mModulator;
+	NodeRef				mProcessor;
 	BufferDynamic		mInternalBuffer;
 };
 

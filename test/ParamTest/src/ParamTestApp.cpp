@@ -37,7 +37,7 @@ class ParamTestApp : public AppNative {
 	void testAppend();
 	void testDelay();
 	void testAppendCancel();
-	void testModulator();
+	void testProcessor();
 
 	void writeParamEval( audio2::Param *param );
 
@@ -47,14 +47,14 @@ class ParamTestApp : public AppNative {
 	audio2::FilterLowPassRef	mLowPass;
 
 	vector<TestWidget *>	mWidgets;
-	Button					mPlayButton, mApplyButton, mApplyAppendButton, mAppendButton, mDelayButton, mModulatorButton, mAppendCancelButton;
+	Button					mPlayButton, mApplyButton, mApplyAppendButton, mAppendButton, mDelayButton, mProcessorButton, mAppendCancelButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mGenFreqSlider;
 };
 
 void ParamTestApp::setup()
 {
-	// example code posed to afb
+	// TODO: ask afb his thoughs about this..
 //	Anim<Vec2f> pos = Vec2f( 1, 1 );
 //	timeline().apply( &pos, Vec2f::zero(), 1, EaseInQuad() );
 //	timeline().appendRamp( &pos, Vec2f( 10, 20 ), 2 ); // ???: Tween's mStartValue = (1,1) here?
@@ -81,7 +81,7 @@ void ParamTestApp::setup()
 
 	testApply();
 //	testApply2();
-//	connectModulator();
+//	connectProcessor();
 }
 
 void ParamTestApp::setupBasic()
@@ -151,13 +151,13 @@ void ParamTestApp::testAppendCancel()
 	}, (float)getElapsedSeconds() + 1 );
 }
 
-void ParamTestApp::testModulator()
+void ParamTestApp::testProcessor()
 {
 	auto ctx = audio2::Context::master();
 	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
 	mod->setFreq( 2 );
 
-	mGain->getParam()->setModulator( mod );
+	mGain->getParam()->setProcessor( mod );
 }
 
 void ParamTestApp::setupUI()
@@ -189,9 +189,9 @@ void ParamTestApp::setupUI()
 	mWidgets.push_back( &mDelayButton );
 
 	paramButtonRect += Vec2f( paramButtonRect.getWidth() + padding, 0 );
-	mModulatorButton = Button( false, "modulator" );
-	mModulatorButton.mBounds = paramButtonRect;
-	mWidgets.push_back( &mModulatorButton );
+	mProcessorButton = Button( false, "processor" );
+	mProcessorButton.mBounds = paramButtonRect;
+	mWidgets.push_back( &mProcessorButton );
 
 	paramButtonRect += Vec2f( paramButtonRect.getWidth() + padding, 0 );
 	mAppendCancelButton = Button( false, "cancel" );
@@ -276,8 +276,8 @@ void ParamTestApp::processTap( Vec2i pos )
 		testAppend();
 	else if( mDelayButton.hitTest( pos ) )
 		testDelay();
-	else if( mModulatorButton.hitTest( pos ) )
-		testModulator();
+	else if( mProcessorButton.hitTest( pos ) )
+		testProcessor();
 	else if( mAppendCancelButton.hitTest( pos ) )
 		testAppendCancel();
 	else if( mTestSelector.hitTest( pos ) && selectorIndex != mTestSelector.mCurrentSectionIndex ) {

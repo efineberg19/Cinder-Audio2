@@ -118,7 +118,7 @@ RampRef Param::appendRamp( float valueEnd, float rampSeconds, const Options &opt
 	return ramp;
 }
 
-void Param::setModulator( const NodeRef &node )
+void Param::setProcessor( const NodeRef &node )
 {
 	if( ! node )
 		return;
@@ -133,9 +133,9 @@ void Param::setModulator( const NodeRef &node )
 	node->setNumChannels( 1 );
 	node->initializeImpl();
 
-	mModulator = node;
+	mProcessor = node;
 
-	LOG_V( "modulator to: " << mModulator->getName() );
+	LOG_V( "set processing Node to: " << mProcessor->getName() );
 }
 
 void Param::reset()
@@ -186,8 +186,8 @@ float* Param::getValueArray()
 
 bool Param::eval()
 {
-	if( mModulator ) {
-		mModulator->pullInputs( &mInternalBuffer );
+	if( mProcessor ) {
+		mProcessor->pullInputs( &mInternalBuffer );
 		return true;
 	}
 	else {
@@ -266,7 +266,7 @@ void Param::resetImpl()
 		mRamps.clear();
 	}
 
-	mModulator.reset();
+	mProcessor.reset();
 }
 
 void Param::initInternalBuffer()
