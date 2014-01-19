@@ -111,8 +111,9 @@ void NodeTestApp::setup2to1()
 //	mGen->connect( mGain, 0, GainInputBus::SINE );
 
 	// connect by bus using operator>>
-	mNoise >> mGain->bus( 0, GainInputBus::NOISE );
-	mGen >> mGain->bus( 0, GainInputBus::SINE );
+	mNoise >> mGain->bus( GainInputBus::NOISE );
+	mGen >> mGain->bus( GainInputBus::SINE );
+
 
 	// ???: possible?
 //	mNoise->bus( 0 ) >> mGain->bus( GainInputBus::NOISE );

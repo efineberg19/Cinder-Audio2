@@ -80,8 +80,12 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Returns whether this Node is enabled for processing or not.
 	bool isEnabled() const						{ return mEnabled; }
 
-	//! Connects this Node to \a output on bus \a outputBus (default = 0). \a output then references this Node as an input on \a inputBus (default = 0).
-	virtual void connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 );
+	//! Connects this Node to \a output on bus 0. \a output then references this Node as an input on bus 0.
+	void connect( const NodeRef &output )							{ connect( output, 0, 0 ); }
+	//! Connects this Node to \a output on bus 0. \a output then references this Node as an input on bus \a inputBus.
+	void connect( const NodeRef &output, size_t inputBus )			{ connect( output, 0, inputBus ); }
+	//! Connects this Node to \a output on bus \a outputBus. \a output then references this Node as an input on \a inputBus.
+	virtual void connect( const NodeRef &output, size_t outputBus, size_t inputBus );
 	//! Connects this Node to \a output on the first available output bus. \a dest then references this Node as an input on the first available input bus.
 	virtual void addConnection( const NodeRef &output );
 	//! Disconnects this Node from the output Node located at bus \a outputBus.
@@ -146,7 +150,8 @@ class Node : public std::enable_shared_from_this<Node> {
 		size_t mOutputBus, mInputBus;
 	};
 	
-	BusConnector bus( size_t outputBus, size_t inputBus )		{ return BusConnector( shared_from_this(), outputBus, inputBus ); }
+	BusConnector bus( size_t outputBus, size_t inputBus )	{ return BusConnector( shared_from_this(), outputBus, inputBus ); }
+	BusConnector bus( size_t inputBus )						{ return BusConnector( shared_from_this(), 0, inputBus ); }
 
   protected:
 	Node( const Format &format );
