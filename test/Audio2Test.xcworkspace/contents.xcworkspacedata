@@ -33,9 +33,6 @@
             location = "group:FileNodeTest/xcode/FileNodeTest.xcodeproj">
          </FileRef>
          <FileRef
-            location = "group:InputTest/xcode/InputTest.xcodeproj">
-         </FileRef>
-         <FileRef
             location = "group:NodeTest/xcode/NodeTest.xcodeproj">
          </FileRef>
          <FileRef
@@ -59,9 +56,6 @@
          </FileRef>
          <FileRef
             location = "group:FileNodeTest/xcode_ios/FileNodeTest.xcodeproj">
-         </FileRef>
-         <FileRef
-            location = "group:InputTest/xcode_ios/InputTest.xcodeproj">
          </FileRef>
          <FileRef
             location = "group:NodeTest/xcode_ios/NodeTest.xcodeproj">
