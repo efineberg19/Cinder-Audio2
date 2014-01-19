@@ -52,17 +52,17 @@ inline LONGLONG secondsToNanoSeconds( double seconds )	{ return (LONGLONG)second
 } // anonymous namespace
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - SourceFileMediaFoundation
+// MARK: - SourceFileImplMediaFoundation
 // ----------------------------------------------------------------------------------------------------
 
-bool SourceFileMediaFoundation::sIsMfInitialized = false;
+bool SourceFileImplMediaFoundation::sIsMfInitialized = false;
 
-SourceFileMediaFoundation::SourceFileMediaFoundation()
+SourceFileImplMediaFoundation::SourceFileImplMediaFoundation()
 	: SourceFile(), mCanSeek( false ), mSeconds( 0 ), mReadBufferPos( 0 ), mFramesRemainingInReadBuffer( 0 )
 {
 }
 
-SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataSource )
+SourceFileImplMediaFoundation::SourceFileImplMediaFoundation( const DataSourceRef &dataSource )
 	: SourceFile(), mDataSource( dataSource ), mCanSeek( false ), mSeconds( 0 ), mReadBufferPos( 0 ), mFramesRemainingInReadBuffer( 0 )
 {
 	initMediaFoundation();
@@ -71,20 +71,20 @@ SourceFileMediaFoundation::SourceFileMediaFoundation( const DataSourceRef &dataS
 	LOG_V( "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek );
 }
 
-SourceFileRef SourceFileMediaFoundation::clone() const
+SourceFileRef SourceFileImplMediaFoundation::clone() const
 {
-	shared_ptr<SourceFileMediaFoundation> result( new SourceFileMediaFoundation );
+	shared_ptr<SourceFileImplMediaFoundation> result( new SourceFileImplMediaFoundation );
 	result->mDataSource = mDataSource;
 	result->initReader();
 
 	return result;
 }
 
-SourceFileMediaFoundation::~SourceFileMediaFoundation()
+SourceFileImplMediaFoundation::~SourceFileImplMediaFoundation()
 {
 }
 
-size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
+size_t SourceFileImplMediaFoundation::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
 {
 	CI_ASSERT( buffer->getNumFrames() >= bufferFrameOffset + numFramesNeeded );
 
@@ -136,7 +136,7 @@ size_t SourceFileMediaFoundation::performRead( Buffer *buffer, size_t bufferFram
 	return readCount;
 }
 
-void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
+void SourceFileImplMediaFoundation::performSeek( size_t readPositionFrames )
 {
 	if( ! mCanSeek ) {
 		LOG_E( "cannot seek." );
@@ -162,7 +162,7 @@ void SourceFileMediaFoundation::performSeek( size_t readPositionFrames )
 }
 
 // TODO: test setting MF_LOW_LATENCY attribute
-void SourceFileMediaFoundation::initReader()
+void SourceFileImplMediaFoundation::initReader()
 {
 	CI_ASSERT( mDataSource );
 	mFramesRemainingInReadBuffer = 0;
@@ -262,7 +262,7 @@ void SourceFileMediaFoundation::initReader()
 	mCanSeek = ( ( flags & MFMEDIASOURCE_CAN_SEEK ) == MFMEDIASOURCE_CAN_SEEK );
 }
 
-size_t SourceFileMediaFoundation::processNextReadSample()
+size_t SourceFileImplMediaFoundation::processNextReadSample()
 {
 	::IMFSample *mediaSample;
 	DWORD streamFlags = 0;
@@ -345,7 +345,7 @@ size_t SourceFileMediaFoundation::processNextReadSample()
 
 
 // static
-void SourceFileMediaFoundation::initMediaFoundation()
+void SourceFileImplMediaFoundation::initMediaFoundation()
 {
 	if( ! sIsMfInitialized ) {
 		sIsMfInitialized = true;
@@ -355,7 +355,7 @@ void SourceFileMediaFoundation::initMediaFoundation()
 }
 
 // static
-void SourceFileMediaFoundation::shutdownMediaFoundation()
+void SourceFileImplMediaFoundation::shutdownMediaFoundation()
 {
 	if( sIsMfInitialized ) {
 		sIsMfInitialized = false;

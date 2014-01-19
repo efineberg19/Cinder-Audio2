@@ -39,7 +39,7 @@ namespace cinder { namespace audio2 { namespace dsp {
 //
 //	The basic formula for ReqAtten is something close to 6.02*BitDepth+40. The ReqTransBand selection depends on how "greedy" you are for the highest frequencies. It's set to 2% by default, but in practice you can use 4 or 5, that still leaves a lot of frequency content (flat up to 21kHz for 44.1k audio).
 
-ConverterR8brain::ConverterR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
+ConverterImplR8brain::ConverterImplR8brain( size_t sourceSampleRate, size_t destSampleRate, size_t sourceNumChannels, size_t destNumChannels, size_t sourceMaxFramesPerBlock )
 	: Converter( sourceSampleRate, destSampleRate, sourceNumChannels, destNumChannels, sourceMaxFramesPerBlock )
 {
 	size_t numResamplers;
@@ -64,12 +64,12 @@ ConverterR8brain::ConverterR8brain( size_t sourceSampleRate, size_t destSampleRa
 	}
 }
 
-ConverterR8brain::~ConverterR8brain()
+ConverterImplR8brain::~ConverterImplR8brain()
 {
 }
 
 // note that in the following methods, sourceBuffer may have less frames than mBufferd, which is common at EOF. Its okay, but make sure readCount reflects this
-pair<size_t, size_t> ConverterR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
+pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, Buffer *destBuffer )
 {
 	CI_ASSERT( sourceBuffer->getNumChannels() == mSourceNumChannels && destBuffer->getNumChannels() == mDestNumChannels );
 
@@ -90,7 +90,7 @@ pair<size_t, size_t> ConverterR8brain::convert( const Buffer *sourceBuffer, Buff
 	return convertImplUpMixing( sourceBuffer, destBuffer, readCount );
 }
 
-pair<size_t, size_t> ConverterR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
+pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mBufferd.copyFrom( *sourceBuffer );
 
@@ -104,7 +104,7 @@ pair<size_t, size_t> ConverterR8brain::convertImpl( const Buffer *sourceBuffer, 
 	return make_pair( readCount, (size_t)outCount );
 }
 
-pair<size_t, size_t> ConverterR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
+pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mixBuffers( sourceBuffer, &mMixingBuffer );
 	mBufferd.copyFrom( mMixingBuffer );
@@ -119,7 +119,7 @@ pair<size_t, size_t> ConverterR8brain::convertImplDownMixing( const Buffer *sour
 	return make_pair( readCount, (size_t)outCount );
 }
 
-pair<size_t, size_t> ConverterR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
+pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mBufferd.copyFrom( *sourceBuffer );
 

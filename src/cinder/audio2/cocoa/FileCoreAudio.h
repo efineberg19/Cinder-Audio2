@@ -40,11 +40,11 @@ struct ExtAudioFileDeleter {
 
 typedef std::unique_ptr<::OpaqueExtAudioFile, ExtAudioFileDeleter>	ExtAudioFilePtr;
 
-class SourceFileCoreAudio : public SourceFile {
+class SourceFileImplCoreAudio : public SourceFile {
   public:
-	SourceFileCoreAudio();
-	SourceFileCoreAudio( const DataSourceRef &dataSource );
-	virtual ~SourceFileCoreAudio();
+	SourceFileImplCoreAudio();
+	SourceFileImplCoreAudio( const DataSourceRef &dataSource );
+	virtual ~SourceFileImplCoreAudio();
 
 	SourceFileRef	clone() const					override;
 

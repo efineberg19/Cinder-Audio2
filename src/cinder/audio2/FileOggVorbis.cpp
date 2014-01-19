@@ -32,11 +32,11 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-SourceFileOggVorbis::SourceFileOggVorbis()
+SourceFileImplOggVorbis::SourceFileImplOggVorbis()
 	: SourceFile()
 {}
 
-SourceFileOggVorbis::SourceFileOggVorbis( const DataSourceRef &dataSource )
+SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource )
 	: SourceFile()
 {
 	if( dataSource->isFilePath() ) {
@@ -49,9 +49,9 @@ SourceFileOggVorbis::SourceFileOggVorbis( const DataSourceRef &dataSource )
 	}
 }
 
-SourceFileRef SourceFileOggVorbis::clone() const
+SourceFileRef SourceFileImplOggVorbis::clone() const
 {
-	shared_ptr<SourceFileOggVorbis> result( new SourceFileOggVorbis );
+	shared_ptr<SourceFileImplOggVorbis> result( new SourceFileImplOggVorbis );
 
 	result->mFilePath = mFilePath;
 	result->initImpl();
@@ -59,12 +59,12 @@ SourceFileRef SourceFileOggVorbis::clone() const
 	return result;
 }
 
-SourceFileOggVorbis::~SourceFileOggVorbis()
+SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
 {
 	ov_clear( &mOggVorbisFile );
 }
 
-void SourceFileOggVorbis::initImpl()
+void SourceFileImplOggVorbis::initImpl()
 {
 	int status = ov_fopen( mFilePath.string().c_str(), &mOggVorbisFile );
 	if( status )
@@ -78,7 +78,7 @@ void SourceFileOggVorbis::initImpl()
     mNumFrames = mFileNumFrames = static_cast<uint32_t>( totalFrames );
 }
 
-size_t SourceFileOggVorbis::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
+size_t SourceFileImplOggVorbis::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
 {
 	CI_ASSERT( buffer->getNumFrames() >= bufferFrameOffset + numFramesNeeded );
 
@@ -107,13 +107,13 @@ size_t SourceFileOggVorbis::performRead( Buffer *buffer, size_t bufferFrameOffse
 	return static_cast<size_t>( readCount );
 }
 
-void SourceFileOggVorbis::performSeek( size_t readPositionFrames )
+void SourceFileImplOggVorbis::performSeek( size_t readPositionFrames )
 {
 	int status = ov_pcm_seek( &mOggVorbisFile, (ogg_int64_t)readPositionFrames );
 	CI_ASSERT( ! status );
 }
 
-string SourceFileOggVorbis::getMetaData() const
+string SourceFileImplOggVorbis::getMetaData() const
 {
 	ostringstream str;
 	const auto vf = const_cast<OggVorbis_File *>( &mOggVorbisFile );

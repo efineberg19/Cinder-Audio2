@@ -38,11 +38,11 @@ namespace dsp {
 	class Converter;
 }
 
-class SourceFileOggVorbis : public SourceFile {
+class SourceFileImplOggVorbis : public SourceFile {
   public:
-	SourceFileOggVorbis();
-	SourceFileOggVorbis( const DataSourceRef &dataSource );
-	virtual ~SourceFileOggVorbis();
+	SourceFileImplOggVorbis();
+	SourceFileImplOggVorbis( const DataSourceRef &dataSource );
+	virtual ~SourceFileImplOggVorbis();
 
 	SourceFileRef	clone() const	override;
 

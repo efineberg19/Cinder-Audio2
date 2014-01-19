@@ -55,14 +55,14 @@ namespace cinder { namespace audio2 { namespace cocoa {
 //}
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - SourceFileCoreAudio
+// MARK: - SourceFileImplCoreAudio
 // ----------------------------------------------------------------------------------------------------
 
-SourceFileCoreAudio::SourceFileCoreAudio()
+SourceFileImplCoreAudio::SourceFileImplCoreAudio()
 	: SourceFile()
 {}
 
-SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource )
+SourceFileImplCoreAudio::SourceFileImplCoreAudio( const DataSourceRef &dataSource )
 	: SourceFile()
 {
 //	printExtensions();
@@ -75,9 +75,9 @@ SourceFileCoreAudio::SourceFileCoreAudio( const DataSourceRef &dataSource )
 	initImpl();
 }
 
-SourceFileRef SourceFileCoreAudio::clone() const
+SourceFileRef SourceFileImplCoreAudio::clone() const
 {
-	shared_ptr<SourceFileCoreAudio> result( new SourceFileCoreAudio );
+	shared_ptr<SourceFileImplCoreAudio> result( new SourceFileImplCoreAudio );
 
 	result->mFilePath = mFilePath;
 	result->initImpl();
@@ -85,11 +85,11 @@ SourceFileRef SourceFileCoreAudio::clone() const
 	return result;
 }
 
-SourceFileCoreAudio::~SourceFileCoreAudio()
+SourceFileImplCoreAudio::~SourceFileImplCoreAudio()
 {
 }
 
-void SourceFileCoreAudio::initImpl()
+void SourceFileImplCoreAudio::initImpl()
 {
 	::CFURLRef fileUrl = ci::cocoa::createCfUrl( Url( mFilePath.string() ) );
 	::ExtAudioFileRef audioFile;
@@ -118,7 +118,7 @@ void SourceFileCoreAudio::initImpl()
 	outputFormatUpdated();
 }
 
-void SourceFileCoreAudio::outputFormatUpdated()
+void SourceFileImplCoreAudio::outputFormatUpdated()
 {
 	::AudioStreamBasicDescription outputFormat = audio2::cocoa::createFloatAsbd( mSampleRate, mNumChannels );
 	OSStatus status = ::ExtAudioFileSetProperty( mExtAudioFile.get(), kExtAudioFileProperty_ClientDataFormat, sizeof( outputFormat ), &outputFormat );
@@ -128,7 +128,7 @@ void SourceFileCoreAudio::outputFormatUpdated()
 	mBufferList = createNonInterleavedBufferListShallow( mNumChannels );
 }
 
-size_t SourceFileCoreAudio::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
+size_t SourceFileImplCoreAudio::performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )
 {
 	for( int ch = 0; ch < mNumChannels; ch++ ) {
 		mBufferList->mBuffers[ch].mDataByteSize = UInt32( numFramesNeeded * sizeof( float ) );
@@ -142,7 +142,7 @@ size_t SourceFileCoreAudio::performRead( Buffer *buffer, size_t bufferFrameOffse
 	return (size_t)frameCount;
 }
 
-void SourceFileCoreAudio::performSeek( size_t readPositionFrames )
+void SourceFileImplCoreAudio::performSeek( size_t readPositionFrames )
 {
 	OSStatus status = ::ExtAudioFileSeek( mExtAudioFile.get(), readPositionFrames );
 	CI_ASSERT( status == noErr );

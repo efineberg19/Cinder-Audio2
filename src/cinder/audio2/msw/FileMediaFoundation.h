@@ -34,20 +34,20 @@ struct IMFByteStream;
 
 namespace cinder { namespace audio2 { namespace msw {
 
-class SourceFileMediaFoundation : public SourceFile {
+class SourceFileImplMediaFoundation : public SourceFile {
   public:
 	enum Format { INT_16, FLOAT_32 }; // TODO: remove
 
-	SourceFileMediaFoundation();
-	SourceFileMediaFoundation( const DataSourceRef &dataSource );
-	virtual ~SourceFileMediaFoundation();
+	SourceFileImplMediaFoundation();
+	SourceFileImplMediaFoundation( const DataSourceRef &dataSource );
+	virtual ~SourceFileImplMediaFoundation();
 
 	SourceFileRef	clone() const	override;
 
 	size_t		performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded ) override;
 	void		performSeek( size_t readPositionFrames ) override;
 
-	//! Called automatically whenever a SourceFileMediaFoundation is constructed.
+	//! Called automatically whenever a SourceFileImplMediaFoundation is constructed.
 	static void		initMediaFoundation();
 	//! This function is not called automatically, but users may if they wish to free up memory used by Media Foundation.
 	static void		shutdownMediaFoundation();
