@@ -40,7 +40,7 @@ NodeTarget::NodeTarget( const Format &format )
 {
 }
 
-const NodeRef& NodeTarget::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
+const NodeRef& NodeTarget::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
 {
 	CI_ASSERT_MSG( 0, "NodeTarget does not support outputs" );
 	return dest;

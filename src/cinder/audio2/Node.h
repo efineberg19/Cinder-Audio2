@@ -80,10 +80,10 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Returns whether this Node is enabled for processing or not.
 	bool isEnabled() const						{ return mEnabled; }
 
-	//! Connects this Node to \a dest on bus \a outputBus (default = 0). \a dest then references this Node as an input on \a inputBus (default = 0).
-	virtual const NodeRef& connect( const NodeRef &dest, size_t outputBus = 0, size_t inputBus = 0 );
-	//! Connects this Node to \a dest on the first available output bus. \a dest then references this Node as an input on the first available input bus.
-	virtual const NodeRef& addConnection( const NodeRef &dest );
+	//! Connects this Node to \a output on bus \a outputBus (default = 0). \a output then references this Node as an input on \a inputBus (default = 0).
+	virtual const NodeRef& connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 );
+	//! Connects this Node to \a output on the first available output bus. \a dest then references this Node as an input on the first available input bus.
+	virtual const NodeRef& addConnection( const NodeRef &output );
 	//! Disconnects this Node from the output Node located at bus \a outputBus.
 	virtual void disconnect( size_t outputBus = 0 );
 	//! Disconnects this Node from all outputs.
@@ -189,7 +189,7 @@ inline const NodeRef& operator>>( const NodeRef &source, const NodeRef &dest )
 class NodeAutoPullable : public Node {
   public:
 	virtual ~NodeAutoPullable();
-	virtual const NodeRef& connect( const NodeRef &dest, size_t outputBus = 0, size_t inputBus = 0 ) override;
+	virtual const NodeRef& connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 ) override;
 	virtual void connectInput( const NodeRef &input, size_t bus )	override;
 	virtual void disconnectInput( const NodeRef &input )			override;
 

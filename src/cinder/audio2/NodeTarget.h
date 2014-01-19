@@ -62,7 +62,7 @@ class NodeTarget : public Node {
 
   private:
 	// NodeTarget does not have outputs, overridden to assert this method isn't called
-	const NodeRef& connect( const NodeRef &dest, size_t outputBus, size_t inputBus ) override;
+	const NodeRef& connect( const NodeRef &output, size_t outputBus, size_t inputBus ) override;
 };
 
 class LineOut : public NodeTarget {

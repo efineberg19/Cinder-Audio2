@@ -58,35 +58,35 @@ Node::~Node()
 {
 }
 
-const NodeRef& Node::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
+const NodeRef& Node::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
 {
 	// make a reference to ourselves so that we aren't deallocated in the case of the last owner
 	// disconnecting us, which we may need later anyway
 	NodeRef thisRef = shared_from_this();
 
-	if( ! dest->canConnectToInput( thisRef ) )
-		return dest;
+	if( ! output->canConnectToInput( thisRef ) )
+		return output;
 
-	auto outIt = mOutputs.find( outputBus );
-	if( outIt != mOutputs.end() ) {
-		NodeRef outRef = outIt->second.lock();
+	auto currentOutIt = mOutputs.find( outputBus );
+	if( currentOutIt != mOutputs.end() ) {
+		NodeRef currentOutput = currentOutIt->second.lock();
 		// in some cases, an output may have lost all references and is no longer valid, so it is safe to overwrite without disconnecting.
-		if( outRef )
-			outRef->disconnectInput( thisRef );
+		if( currentOutput )
+			currentOutput->disconnectInput( thisRef );
 		else
-			mOutputs.erase( outIt );
+			mOutputs.erase( currentOutIt );
 	}
 
-	mOutputs[outputBus] = dest; // set output bus first, so that it is visible in configureConnections()
-	dest->connectInput( thisRef, inputBus );
+	mOutputs[outputBus] = output; // set output bus first, so that it is visible in configureConnections()
+	output->connectInput( thisRef, inputBus );
 
-	dest->notifyConnectionsDidChange();
-	return dest;
+	output->notifyConnectionsDidChange();
+	return output;
 }
 
-const NodeRef& Node::addConnection( const NodeRef &dest )
+const NodeRef& Node::addConnection( const NodeRef &output )
 {
-	return connect( dest, getFirstAvailableOutputBus(), dest->getFirstAvailableInputBus() );
+	return connect( output, getFirstAvailableOutputBus(), output->getFirstAvailableInputBus() );
 }
 
 void Node::disconnect( size_t outputBus )
@@ -377,11 +377,11 @@ NodeAutoPullable::~NodeAutoPullable()
 {
 }
 
-const NodeRef& NodeAutoPullable::connect( const NodeRef &dest, size_t outputBus, size_t inputBus )
+const NodeRef& NodeAutoPullable::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
 {
-	Node::connect( dest, outputBus, inputBus );
+	Node::connect( output, outputBus, inputBus );
 	updatePullMethod();
-	return dest;
+	return output;
 }
 
 void NodeAutoPullable::connectInput( const NodeRef &input, size_t bus )
