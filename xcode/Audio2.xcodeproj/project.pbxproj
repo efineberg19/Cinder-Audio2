@@ -1282,7 +1282,6 @@
 					"$(inherited)",
 					"/Users/r/code/cinder/audio-rewrite/audio2/lib/macosx",
 				);
-				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Audio2;
 			};
 			name = Debug;
@@ -1296,7 +1295,6 @@
 					"$(inherited)",
 					"/Users/r/code/cinder/audio-rewrite/audio2/lib/macosx",
 				);
-				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Audio2;
 			};
 			name = Release;

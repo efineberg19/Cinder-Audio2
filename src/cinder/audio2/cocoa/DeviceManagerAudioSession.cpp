@@ -22,6 +22,7 @@
 */
 
 #include "cinder/audio2/cocoa/DeviceManagerAudioSession.h"
+#include "cinder/audio2/Exception.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 
@@ -119,7 +120,7 @@ void DeviceManagerAudioSession::setInputEnabled( bool enable )
 	CI_ASSERT( ! error );
 
 	mInputEnabled = enable;
-	LOG_V << "set session category to: " << getSessionCategory() << endl;
+	LOG_V( "set session category to: " << getSessionCategory() );
 }
 
 std::string DeviceManagerAudioSession::getName( const DeviceRef &device )
@@ -261,12 +262,12 @@ AudioSessionInterruptionHandlerImpl *DeviceManagerAudioSession::getSessionInterr
 
 - (void)beginInterruption
 {
-	LOG_V << "bang" << endl;
+	 LOG_V( "bang" );
 }
 
 - (void)endInterruptionWithFlags:(NSUInteger)flags
 {
-	LOG_V << "bang" << endl;
+	 LOG_V( "bang" );
 }
 
 #else // iOS 6+
@@ -276,9 +277,9 @@ AudioSessionInterruptionHandlerImpl *DeviceManagerAudioSession::getSessionInterr
 	NSUInteger interruptionType = (NSUInteger)[[notification userInfo] objectForKey:AVAudioSessionInterruptionTypeKey];
 
 	if( interruptionType == AVAudioSessionInterruptionTypeBegan )
-		LOG_V << "interruption began" << endl;
+		 LOG_V( "interruption began" );
 	else
-		LOG_V << "interruption ended" << endl;
+		 LOG_V( "interruption ended" );
 }
 
 #endif // iOS pre 6
