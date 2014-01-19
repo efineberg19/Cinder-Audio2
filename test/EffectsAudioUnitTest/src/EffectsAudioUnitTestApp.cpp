@@ -31,8 +31,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void processTap( Vec2i pos );
 	void initParams();
 
-	Context* mContext;
-	NodeInputRef mSource;
+	audio2::NodeInputRef mSource;
 
 	shared_ptr<NodeEffectAudioUnit> mEffect, mEffect2;
 
@@ -43,11 +42,11 @@ class EffectsAudioUnitTestApp : public AppNative {
 
 void EffectsAudioUnitTestApp::setup()
 {
-	mContext = Context::master();
+	auto ctx = audio2::Context::master();
 
-	auto noise = mContext->makeNode( new GenNoise() );
+	auto noise = ctx->makeNode( new audio2::GenNoise() );
 	noise->setAutoEnabled();
-	noise->getGen().setAmp( 0.25f );
+//	noise->getGen().setAmp( 0.25f );
 	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
 	mSource = noise;
 
@@ -56,32 +55,36 @@ void EffectsAudioUnitTestApp::setup()
 	setupUI();
 	initParams();
 
-	mContext->printGraph();
+	ctx->printGraph();
 }
 
 void EffectsAudioUnitTestApp::setupOne()
 {
-	mEffect = mContext->makeNode( new NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
-	mSource->connect( mEffect )->connect( mContext->getOutput() );
+	auto ctx = audio2::Context::master();
+
+	mEffect = ctx->makeNode( new audio2::cocoa::NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
+	mSource >> mEffect >> ctx->getOutput();
 
 	mBandpassSlider.mHidden = true;
 }
 
 void EffectsAudioUnitTestApp::setupTwo()
 {
-	mEffect = mContext->makeNode( new NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
-	mEffect2 = mContext->makeNode( new NodeEffectAudioUnit( kAudioUnitSubType_BandPassFilter ) );
+	auto ctx = audio2::Context::master();
+
+	mEffect = ctx->makeNode( new audio2::cocoa::NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
+	mEffect2 = ctx->makeNode( new audio2::cocoa::NodeEffectAudioUnit( kAudioUnitSubType_BandPassFilter ) );
 
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
-	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getOutput() );
+	mSource >> mEffect >> mEffect2 >> ctx->getOutput();
 
 	mBandpassSlider.mHidden = false;
 }
 
 void EffectsAudioUnitTestApp::setupNativeThenGeneric()
 {
-	LOG_V << "TODO: implement test" << endl;
+	LOG_E( "TODO: implement test" );
 }
 
 void EffectsAudioUnitTestApp::initParams()
@@ -153,16 +156,18 @@ void EffectsAudioUnitTestApp::processDrag( Vec2i pos )
 
 void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 {
+	auto ctx = audio2::Context::master();
+
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
+		ctx->setEnabled( ! ctx->isEnabled() );
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V << "selected: " << currentTest << endl;
+		LOG_V( "selected: " << currentTest );
 
-		bool enabled = mContext->isEnabled();
-		mContext->disconnectAllNodes();
+		bool enabled = ctx->isEnabled();
+		ctx->disconnectAllNodes();
 
 		mSource->disconnect();
 		mEffect->disconnect();
@@ -177,7 +182,8 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 			setupNativeThenGeneric();
 		initParams();
 
-		mContext->setEnabled( enabled );
+		ctx->setEnabled( enabled );
+		ctx->printGraph();
 	}
 }
 
