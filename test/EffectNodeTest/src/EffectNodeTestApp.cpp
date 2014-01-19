@@ -61,19 +61,19 @@ void EffectNodeTestApp::setup()
 
 void EffectNodeTestApp::setupOne()
 {
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
+	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getTarget();
 }
 
 void EffectNodeTestApp::setupForceStereo()
 {
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
+	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getTarget();
 }
 
 void EffectNodeTestApp::setupDownMix()
 {
 	auto ctx = audio2::Context::master();
 	auto mono = ctx->makeNode( new audio2::Gain( audio2::Node::Format().channels( 1 ) ) );
-	mGen->connect( mLowPass )->connect( mGain )->connect( mPan )->connect( mono )->connect( ctx->getTarget() );
+	mGen >> mLowPass >> mGain >> mPan >> mono >> ctx->getTarget();
 }
 
 void EffectNodeTestApp::setupUI()

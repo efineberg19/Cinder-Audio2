@@ -93,7 +93,7 @@ void FileNodeTestApp::setup()
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	mGain->connect( mPan )->connect( ctx->getTarget() );
+	mGain >> mPan >> ctx->getTarget();
 
 	//setupBufferPlayer();
 	setupFilePlayer();
@@ -118,7 +118,8 @@ void FileNodeTestApp::setupBufferPlayer()
 
 	auto connectFn = [bufferPlayer, this] {
 		mSamplePlayer = bufferPlayer;
-		mSamplePlayer->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
+		mSamplePlayer >> mGain >> mPan >> audio2::Context::master()->getTarget();
+//		mSamplePlayer->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
 		audio2::Context::master()->printGraph();
 	};
 
@@ -161,7 +162,7 @@ void FileNodeTestApp::setupFilePlayer()
 //	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( ctx->getTarget() );
 
 	// or connect in series (it is added to the Context's 'auto pulled list')
-	mSamplePlayer->connect( mGain )->connect( mPan )->connect( ctx->getTarget() );
+	mSamplePlayer >> mGain >> mPan >> ctx->getTarget();
 	mPan->addConnection( mScope );
 
 	// this call blows the current pan -> target connection, so nothing gets to the speakers

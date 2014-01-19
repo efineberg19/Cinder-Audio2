@@ -102,7 +102,7 @@ void SpectrumScopeTestApp::setup()
 
 void SpectrumScopeTestApp::setupSine()
 {
-	mSine->connect( mSpectrumScope )->connect( audio2::Context::master()->getTarget() );
+	mSine >> mSpectrumScope >> audio2::Context::master()->getTarget();
 	if( mPlaybackButton.mEnabled )
 		mSine->start();
 }
@@ -116,7 +116,7 @@ void SpectrumScopeTestApp::setupSineNoOutput()
 
 void SpectrumScopeTestApp::setupSample()
 {
-	mPlayerNode->connect( mSpectrumScope )->connect( audio2::Context::master()->getTarget() );
+	mPlayerNode >> mSpectrumScope >> audio2::Context::master()->getTarget();
 	if( mPlaybackButton.mEnabled )
 		mPlayerNode->start();
 }

@@ -179,8 +179,7 @@ void DeviceTestApp::setupIOProcessed()
 	auto ringMod = audio2::Context::master()->makeNode( new audio2::Gain );
 	ringMod->getParam()->setProcessor( mod );
 
-	// FIXME: second time around mLineIn has a dead pointer in its first slot, the connect tries to use it
-	mLineIn->connect( ringMod )->connect( mGain );
+	mLineIn >> ringMod >> mGain;
 
 	mLineIn->start();
 }
