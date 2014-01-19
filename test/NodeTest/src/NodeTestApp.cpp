@@ -149,7 +149,7 @@ void NodeTestApp::setupInterleavedPassThru()
 	mGain->disconnectAllInputs();
 
 	auto interleaved = audio2::Context::master()->makeNode( new InterleavedPassThruNode() );
-	mGen->connect( interleaved )->connect( mGain );
+	mGen >> interleaved >> mGain;
 	mGen->start();
 
 	mEnableNoiseButton.setEnabled( false );

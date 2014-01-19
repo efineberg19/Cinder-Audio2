@@ -58,14 +58,14 @@ Node::~Node()
 {
 }
 
-const NodeRef& Node::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
+void Node::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
 {
 	// make a reference to ourselves so that we aren't deallocated in the case of the last owner
 	// disconnecting us, which we may need later anyway
 	NodeRef thisRef = shared_from_this();
 
 	if( ! output->canConnectToInput( thisRef ) )
-		return output;
+		return;
 
 	auto currentOutIt = mOutputs.find( outputBus );
 	if( currentOutIt != mOutputs.end() ) {
@@ -81,12 +81,11 @@ const NodeRef& Node::connect( const NodeRef &output, size_t outputBus, size_t in
 	output->connectInput( thisRef, inputBus );
 
 	output->notifyConnectionsDidChange();
-	return output;
 }
 
-const NodeRef& Node::addConnection( const NodeRef &output )
+void Node::addConnection( const NodeRef &output )
 {
-	return connect( output, getFirstAvailableOutputBus(), output->getFirstAvailableInputBus() );
+	connect( output, getFirstAvailableOutputBus(), output->getFirstAvailableInputBus() );
 }
 
 void Node::disconnect( size_t outputBus )
@@ -377,11 +376,10 @@ NodeAutoPullable::~NodeAutoPullable()
 {
 }
 
-const NodeRef& NodeAutoPullable::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
+void NodeAutoPullable::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
 {
 	Node::connect( output, outputBus, inputBus );
 	updatePullMethod();
-	return output;
 }
 
 void NodeAutoPullable::connectInput( const NodeRef &input, size_t bus )

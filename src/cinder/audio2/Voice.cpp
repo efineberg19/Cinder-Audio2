@@ -100,7 +100,9 @@ void MixerImpl::addVoice( const VoiceRef &source )
 	bus.mGain = ctx->makeNode( new Gain() );
 	bus.mPan = ctx->makeNode( new Pan2d() );
 
-	source->getNode()->connect( bus.mGain )->connect( bus.mPan )->connect( mMasterGain );
+	source->getNode()->connect( bus.mGain );
+	bus.mGain->connect( bus.mPan );
+	bus.mPan->connect( mMasterGain );
 }
 
 BufferRef MixerImpl::loadBuffer( const SourceFileRef &sourceFile, size_t numChannels )

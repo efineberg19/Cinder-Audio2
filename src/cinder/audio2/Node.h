@@ -81,9 +81,9 @@ class Node : public std::enable_shared_from_this<Node> {
 	bool isEnabled() const						{ return mEnabled; }
 
 	//! Connects this Node to \a output on bus \a outputBus (default = 0). \a output then references this Node as an input on \a inputBus (default = 0).
-	virtual const NodeRef& connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 );
+	virtual void connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 );
 	//! Connects this Node to \a output on the first available output bus. \a dest then references this Node as an input on the first available input bus.
-	virtual const NodeRef& addConnection( const NodeRef &output );
+	virtual void addConnection( const NodeRef &output );
 	//! Disconnects this Node from the output Node located at bus \a outputBus.
 	virtual void disconnect( size_t outputBus = 0 );
 	//! Disconnects this Node from all outputs.
@@ -196,21 +196,25 @@ class Node : public std::enable_shared_from_this<Node> {
 	friend class Param;
 };
 
-inline const NodeRef& operator>>( const NodeRef &source, const NodeRef &output )
+//! Enable connection syntax \code input >> output; \endCode.  \return the connected \a output
+inline const NodeRef& operator>>( const NodeRef &input, const NodeRef &output )
 {
-	return source->connect( output );
+	input->connect( output );
+	return output;
 }
 
-inline const NodeRef& operator>>( const NodeRef &source, const Node::BusConnector &bus )
+//! Enable connection syntax \code input >> output->bus( inputBus, outputBus ); \endCode.  \return the connected \a output
+inline const NodeRef& operator>>( const NodeRef &input, const Node::BusConnector &bus )
 {
-	return source->connect( bus.getOutput(), bus.getOutputBus(), bus.getInputBus() );
+	input->connect( bus.getOutput(), bus.getOutputBus(), bus.getInputBus() );
+	return bus.getOutput();
 }
 
 //! a Node that can be pulled without being connected to any outputs.
 class NodeAutoPullable : public Node {
   public:
 	virtual ~NodeAutoPullable();
-	virtual const NodeRef& connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 ) override;
+	virtual void connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 ) override;
 	virtual void connectInput( const NodeRef &input, size_t bus )	override;
 	virtual void disconnectInput( const NodeRef &input )			override;
 
