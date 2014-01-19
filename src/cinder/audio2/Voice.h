@@ -25,7 +25,7 @@
 
 #include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/SamplePlayer.h"
-#include "cinder/audio2/File.h"
+#include "cinder/audio2/Source.h"
 
 #include <memory>
 

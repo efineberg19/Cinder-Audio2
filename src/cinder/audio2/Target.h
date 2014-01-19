@@ -23,48 +23,35 @@
 
 #pragma once
 
-#include "cinder/audio2/Source.h"
+// TODO: finish this, only basic TargetFile (with Cocoa / Core Audio) is currently supported.
 
-// TODO: doc says this may be necessary on windows.  still necessary if we're static linking?
-// - only really necessary if add source directly
-#define OV_EXCLUDE_STATIC_CALLBACKS
+#include "cinder/audio2/Buffer.h"
 
-#include "vorbis/codec.h"
-#include "vorbis/vorbisfile.h"
+#include "cinder/DataTarget.h"
 
 namespace cinder { namespace audio2 {
+
+typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 
 namespace dsp {
 	class Converter;
 }
 
-class SourceFileOggVorbis : public SourceFile {
-  public:
-	SourceFileOggVorbis();
-	SourceFileOggVorbis( const DataSourceRef &dataSource );
-	virtual ~SourceFileOggVorbis();
+class TargetFile {
+public:
+	static std::unique_ptr<TargetFile> create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
+	static std::unique_ptr<TargetFile> create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
+	virtual ~TargetFile() {}
 
-	SourceFileRef	clone() const	override;
+	//! If default numFrames is used (0), will write all frames in \a buffer
+	virtual void write( const Buffer *buffer, size_t frameOffset = 0, size_t numFrames = 0 ) = 0;
 
-	size_t		performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )		override;
-	void		performSeek( size_t readPositionFrames )											override;
-	std::string getMetaData() const																	override;
+protected:
+	TargetFile( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels )
+	: mSampleRate( sampleRate ), mNumChannels( numChannels )
+	{}
 
-  private:
-	void initImpl();
-
-	::OggVorbis_File	mOggVorbisFile;
-	fs::path			mFilePath;
+	size_t mSampleRate, mNumChannels;
 };
-
-//class TargetFileImplOggVorbis : public TargetFile {
-//public:
-//	TargetFileImplOggVorbis( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension );
-//	virtual TargetFileImplOggVorbis() {}
-//
-//	void write( const Buffer *buffer, size_t frameOffset, size_t numFrames ) override;
-//
-//private:
-//};
 
 } } // namespace cinder::audio2

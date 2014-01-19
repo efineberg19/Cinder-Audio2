@@ -237,10 +237,10 @@
 		119CD0F5184A793400853BEE /* RingBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD094184A793400853BEE /* RingBuffer.h */; };
 		119CD0F6184A793400853BEE /* Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD095184A793400853BEE /* Exception.h */; };
 		119CD0F7184A793400853BEE /* Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD095184A793400853BEE /* Exception.h */; };
-		119CD0F8184A793400853BEE /* File.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD096184A793400853BEE /* File.cpp */; };
-		119CD0F9184A793400853BEE /* File.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD096184A793400853BEE /* File.cpp */; };
-		119CD0FA184A793400853BEE /* File.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD097184A793400853BEE /* File.h */; };
-		119CD0FB184A793400853BEE /* File.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD097184A793400853BEE /* File.h */; };
+		119CD0F8184A793400853BEE /* Source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD096184A793400853BEE /* Source.cpp */; };
+		119CD0F9184A793400853BEE /* Source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD096184A793400853BEE /* Source.cpp */; };
+		119CD0FA184A793400853BEE /* Source.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD097184A793400853BEE /* Source.h */; };
+		119CD0FB184A793400853BEE /* Source.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD097184A793400853BEE /* Source.h */; };
 		119CD0FC184A793400853BEE /* FileOggVorbis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD098184A793400853BEE /* FileOggVorbis.cpp */; };
 		119CD0FD184A793400853BEE /* FileOggVorbis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD098184A793400853BEE /* FileOggVorbis.cpp */; };
 		119CD0FE184A793400853BEE /* FileOggVorbis.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD099184A793400853BEE /* FileOggVorbis.h */; };
@@ -279,6 +279,10 @@
 		119CD138184A7A1200853BEE /* fftsg.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD134184A7A1200853BEE /* fftsg.h */; };
 		119CD13A184A7E5E00853BEE /* Utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD139184A7E5E00853BEE /* Utilities.h */; };
 		119CD13B184A7E5E00853BEE /* Utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD139184A7E5E00853BEE /* Utilities.h */; };
+		11BC8394188BA61900F4B834 /* Target.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11BC8392188BA61900F4B834 /* Target.cpp */; };
+		11BC8395188BA61900F4B834 /* Target.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11BC8392188BA61900F4B834 /* Target.cpp */; };
+		11BC8396188BA61900F4B834 /* Target.h in Headers */ = {isa = PBXBuildFile; fileRef = 11BC8393188BA61900F4B834 /* Target.h */; };
+		11BC8397188BA61900F4B834 /* Target.h in Headers */ = {isa = PBXBuildFile; fileRef = 11BC8393188BA61900F4B834 /* Target.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -401,8 +405,8 @@
 		119CD091184A793400853BEE /* Fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fft.h; sourceTree = "<group>"; };
 		119CD094184A793400853BEE /* RingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RingBuffer.h; sourceTree = "<group>"; };
 		119CD095184A793400853BEE /* Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Exception.h; sourceTree = "<group>"; };
-		119CD096184A793400853BEE /* File.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = File.cpp; sourceTree = "<group>"; };
-		119CD097184A793400853BEE /* File.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = File.h; sourceTree = "<group>"; };
+		119CD096184A793400853BEE /* Source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Source.cpp; sourceTree = "<group>"; };
+		119CD097184A793400853BEE /* Source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Source.h; sourceTree = "<group>"; };
 		119CD098184A793400853BEE /* FileOggVorbis.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileOggVorbis.cpp; sourceTree = "<group>"; };
 		119CD099184A793400853BEE /* FileOggVorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOggVorbis.h; sourceTree = "<group>"; };
 		119CD09B184A793400853BEE /* ContextXAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContextXAudio.cpp; sourceTree = "<group>"; };
@@ -432,6 +436,8 @@
 		119CD134184A7A1200853BEE /* fftsg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fftsg.h; sourceTree = "<group>"; };
 		119CD139184A7E5E00853BEE /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
 		11B0421C179B90450034BEE2 /* libAudio2-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libAudio2-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		11BC8392188BA61900F4B834 /* Target.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Target.cpp; sourceTree = "<group>"; };
+		11BC8393188BA61900F4B834 /* Target.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Target.h; sourceTree = "<group>"; };
 		11C0B5C318544734001664F7 /* LineInWasapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LineInWasapi.cpp; sourceTree = "<group>"; };
 		11C0B5C418544734001664F7 /* LineInWasapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LineInWasapi.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -709,8 +715,8 @@
 				119CD085184A793400853BEE /* Device.cpp */,
 				119CD086184A793400853BEE /* Device.h */,
 				119CD095184A793400853BEE /* Exception.h */,
-				119CD096184A793400853BEE /* File.cpp */,
-				119CD097184A793400853BEE /* File.h */,
+				119CD096184A793400853BEE /* Source.cpp */,
+				119CD097184A793400853BEE /* Source.h */,
 				119CD098184A793400853BEE /* FileOggVorbis.cpp */,
 				119CD099184A793400853BEE /* FileOggVorbis.h */,
 				119CD0A6184A793400853BEE /* Node.cpp */,
@@ -729,6 +735,8 @@
 				1185786E186D1F0E00C4A290 /* SamplePlayer.h */,
 				119CD0B2184A793400853BEE /* Scope.cpp */,
 				119CD0B3184A793400853BEE /* Scope.h */,
+				11BC8392188BA61900F4B834 /* Target.cpp */,
+				11BC8393188BA61900F4B834 /* Target.h */,
 				119CD139184A7E5E00853BEE /* Utilities.h */,
 				110BF1F81879327800D7C54E /* Utilities.cpp */,
 				119CD072184A793400853BEE /* Voice.cpp */,
@@ -841,9 +849,10 @@
 				11857871186D1F0E00C4A290 /* SamplePlayer.h in Headers */,
 				114FE8F518032BF100C5841B /* misc.h in Headers */,
 				114FE91D18032BF100C5841B /* os.h in Headers */,
-				119CD0FA184A793400853BEE /* File.h in Headers */,
+				119CD0FA184A793400853BEE /* Source.h in Headers */,
 				119CD0E6184A793400853BEE /* ConverterR8brain.h in Headers */,
 				114FE93D18032BF100C5841B /* window.h in Headers */,
+				11BC8396188BA61900F4B834 /* Target.h in Headers */,
 				114FE98B180371F100C5841B /* CDSPRealFFT.h in Headers */,
 				119CD118184A793400853BEE /* Node.h in Headers */,
 				119CD12C184A793400853BEE /* Param.h in Headers */,
@@ -934,9 +943,10 @@
 				11857872186D1F0E00C4A290 /* SamplePlayer.h in Headers */,
 				114FE8F618032BF100C5841B /* misc.h in Headers */,
 				114FE91E18032BF100C5841B /* os.h in Headers */,
-				119CD0FB184A793400853BEE /* File.h in Headers */,
+				119CD0FB184A793400853BEE /* Source.h in Headers */,
 				119CD0E7184A793400853BEE /* ConverterR8brain.h in Headers */,
 				114FE93E18032BF100C5841B /* window.h in Headers */,
+				11BC8397188BA61900F4B834 /* Target.h in Headers */,
 				114FE98C180371F100C5841B /* CDSPRealFFT.h in Headers */,
 				119CD119184A793400853BEE /* Node.h in Headers */,
 				119CD12D184A793400853BEE /* Param.h in Headers */,
@@ -1083,7 +1093,7 @@
 				114FE8BF18032BF100C5841B /* bitrate.c in Sources */,
 				119CD0D8184A793400853BEE /* Device.cpp in Sources */,
 				114FE8D318032BF100C5841B /* envelope.c in Sources */,
-				119CD0F8184A793400853BEE /* File.cpp in Sources */,
+				119CD0F8184A793400853BEE /* Source.cpp in Sources */,
 				119CD0BA184A793400853BEE /* CinderAssert.cpp in Sources */,
 				114FE8B718032BF100C5841B /* framing.c in Sources */,
 				119CD0B4184A793400853BEE /* Voice.cpp in Sources */,
@@ -1096,6 +1106,7 @@
 				114FE8D918032BF100C5841B /* floor1.c in Sources */,
 				119CD11A184A793400853BEE /* NodeEffect.cpp in Sources */,
 				114FE8E518032BF100C5841B /* lpc.c in Sources */,
+				11BC8394188BA61900F4B834 /* Target.cpp in Sources */,
 				114FE93B18032BF100C5841B /* window.c in Sources */,
 				119CD0E8184A793400853BEE /* Dsp.cpp in Sources */,
 				119CD122184A793400853BEE /* NodeInput.cpp in Sources */,
@@ -1139,7 +1150,7 @@
 				114FE8C018032BF100C5841B /* bitrate.c in Sources */,
 				119CD0D9184A793400853BEE /* Device.cpp in Sources */,
 				114FE8D418032BF100C5841B /* envelope.c in Sources */,
-				119CD0F9184A793400853BEE /* File.cpp in Sources */,
+				119CD0F9184A793400853BEE /* Source.cpp in Sources */,
 				119CD0BB184A793400853BEE /* CinderAssert.cpp in Sources */,
 				119CD0C7184A793400853BEE /* DeviceManagerAudioSession.cpp in Sources */,
 				114FE8B818032BF100C5841B /* framing.c in Sources */,
@@ -1153,6 +1164,7 @@
 				114FE8DA18032BF100C5841B /* floor1.c in Sources */,
 				119CD11B184A793400853BEE /* NodeEffect.cpp in Sources */,
 				114FE8E618032BF100C5841B /* lpc.c in Sources */,
+				11BC8395188BA61900F4B834 /* Target.cpp in Sources */,
 				114FE93C18032BF100C5841B /* window.c in Sources */,
 				119CD0E9184A793400853BEE /* Dsp.cpp in Sources */,
 				119CD123184A793400853BEE /* NodeInput.cpp in Sources */,

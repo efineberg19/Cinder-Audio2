@@ -26,13 +26,11 @@
 #include "cinder/audio2/Buffer.h"
 
 #include "cinder/DataSource.h"
-#include "cinder/DataTarget.h"
 
 namespace cinder { namespace audio2 {
 	
 typedef std::shared_ptr<class Source>			SourceRef;
 typedef std::shared_ptr<class SourceFile>		SourceFileRef;
-typedef std::shared_ptr<class TargetFile>		TargetFileRef;
 
 namespace dsp {
 	class Converter;
@@ -111,25 +109,6 @@ class SourceFile : public Source {
 	virtual void performSeek( size_t readPositionFrames ) = 0;
 
 	size_t mNumFrames, mFileNumFrames, mReadPos;
-};
-
-// TODO: support sample formats other than float
-
-class TargetFile {
-  public:
-	static std::unique_ptr<TargetFile> create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
-	static std::unique_ptr<TargetFile> create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension = "" );
-	virtual ~TargetFile() {}
-
-	//! If default numFrames is used (0), will write all frames in \a buffer
-	virtual void write( const Buffer *buffer, size_t frameOffset = 0, size_t numFrames = 0 ) = 0;
-
-  protected:
-	TargetFile( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels )
-	: mSampleRate( sampleRate ), mNumChannels( numChannels )
-	{}
-
-	size_t mSampleRate, mNumChannels;
 };
 
 //! Convenience method for loading a SourceFile from \a dataSource. \see SourceFile::create()

@@ -21,50 +21,37 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "cinder/audio2/Target.h"
 
-#include "cinder/audio2/Source.h"
+#include "cinder/Utilities.h"
 
-// TODO: doc says this may be necessary on windows.  still necessary if we're static linking?
-// - only really necessary if add source directly
-#define OV_EXCLUDE_STATIC_CALLBACKS
+#if defined( CINDER_COCOA )
+	#include "cinder/audio2/cocoa/FileCoreAudio.h"
+#elif defined( CINDER_MSW )
+	#include "cinder/audio2/msw/FileMediaFoundation.h"
+#endif
 
-#include "vorbis/codec.h"
-#include "vorbis/vorbisfile.h"
+using namespace std;
 
 namespace cinder { namespace audio2 {
 
-namespace dsp {
-	class Converter;
+// TODO: these should be replaced with a generic registrar derived from the ImageIo stuff.
+
+std::unique_ptr<TargetFile> TargetFile::create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
+{
+	std::string ext = ( ! extension.empty() ? extension : getPathExtension( dataTarget->getFilePathHint() ) );
+
+#if defined( CINDER_COCOA )
+	return std::unique_ptr<TargetFile>( new cocoa::TargetFileCoreAudio( dataTarget, sampleRate, numChannels, ext ) );
+#elif defined( CINDER_MSW )
+	return std::unique_ptr<TargetFile>(); // TODO
+	//	return std::unique_ptr<TargetFile>( new msw::TargetFileMediaFoundation( dataTarget, sampleRate, numChannels, ext ) );
+#endif
 }
 
-class SourceFileOggVorbis : public SourceFile {
-  public:
-	SourceFileOggVorbis();
-	SourceFileOggVorbis( const DataSourceRef &dataSource );
-	virtual ~SourceFileOggVorbis();
-
-	SourceFileRef	clone() const	override;
-
-	size_t		performRead( Buffer *buffer, size_t bufferFrameOffset, size_t numFramesNeeded )		override;
-	void		performSeek( size_t readPositionFrames )											override;
-	std::string getMetaData() const																	override;
-
-  private:
-	void initImpl();
-
-	::OggVorbis_File	mOggVorbisFile;
-	fs::path			mFilePath;
-};
-
-//class TargetFileImplOggVorbis : public TargetFile {
-//public:
-//	TargetFileImplOggVorbis( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension );
-//	virtual TargetFileImplOggVorbis() {}
-//
-//	void write( const Buffer *buffer, size_t frameOffset, size_t numFrames ) override;
-//
-//private:
-//};
+std::unique_ptr<TargetFile> TargetFile::create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension )
+{
+	return create( (DataTargetRef)writeFile( path ), sampleRate, numChannels, extension );
+}
 
 } } // namespace cinder::audio2

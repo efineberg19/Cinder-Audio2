@@ -21,12 +21,11 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "cinder/audio2/File.h"
+#include "cinder/audio2/Source.h"
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/FileOggVorbis.h"
 #include "cinder/audio2/Debug.h"
 
-#include "cinder/Cinder.h"
 #include "cinder/Utilities.h"
 
 #if defined( CINDER_COCOA )
@@ -165,33 +164,16 @@ void SourceFile::seek( size_t readPositionFrames )
 
 // TODO: these should be replaced with a generic registrar derived from the ImageIo stuff.
 
-std::unique_ptr<SourceFile> SourceFile::create( const DataSourceRef &dataSource )
+unique_ptr<SourceFile> SourceFile::create( const DataSourceRef &dataSource )
 {
 	if( getPathExtension( dataSource->getFilePathHint() ) == "ogg" )
-		return std::unique_ptr<SourceFile>( new SourceFileOggVorbis( dataSource ) );
+		return unique_ptr<SourceFile>( new SourceFileImplOggVorbis( dataSource ) );
 
 #if defined( CINDER_COCOA )
-	return std::unique_ptr<SourceFile>( new cocoa::SourceFileCoreAudio( dataSource ) );
+	return unique_ptr<SourceFile>( new cocoa::SourceFileImplCoreAudio( dataSource ) );
 #elif defined( CINDER_MSW )
-	return std::unique_ptr<SourceFile>( new msw::SourceFileMediaFoundation( dataSource ) );
+	return unique_ptr<SourceFile>( new msw::SourceFileImplMediaFoundation( dataSource ) );
 #endif
-}
-
-std::unique_ptr<TargetFile> TargetFile::create( const DataTargetRef &dataTarget, size_t sampleRate, size_t numChannels, const std::string &extension )
-{
-	std::string ext = ( ! extension.empty() ? extension : getPathExtension( dataTarget->getFilePathHint() ) );
-
-#if defined( CINDER_COCOA )
-	return std::unique_ptr<TargetFile>( new cocoa::TargetFileCoreAudio( dataTarget, sampleRate, numChannels, ext ) );
-#elif defined( CINDER_MSW )
-	return std::unique_ptr<TargetFile>(); // TODO
-//	return std::unique_ptr<TargetFile>( new msw::TargetFileMediaFoundation( dataTarget, sampleRate, numChannels, ext ) );
-#endif
-}
-
-std::unique_ptr<TargetFile> TargetFile::create( const fs::path &path, size_t sampleRate, size_t numChannels, const std::string &extension )
-{
-	return create( (DataTargetRef)writeFile( path ), sampleRate, numChannels, extension );
 }
 
 } } // namespace cinder::audio2
