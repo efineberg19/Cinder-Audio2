@@ -46,7 +46,7 @@ class DeviceTestApp : public AppNative {
 	audio2::LineOutRef		mLineOut;
 	audio2::ScopeRef		mScope;
 	audio2::GainRef			mGain;
-	audio2::NodeSourceRef	mSourceNode;
+	audio2::NodeInputRef	mSourceNode;
 
 	vector<TestWidget *> mWidgets;
 	VSelector mTestSelector, mInputSelector, mOutputSelector;
@@ -95,7 +95,7 @@ void DeviceTestApp::setup()
 
 void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
 {
-	audio2::NodeSourceRef currentSource = audio2::findFirstUpstreamNode<audio2::NodeSource>( mGain );
+	audio2::NodeInputRef currentSource = audio2::findFirstUpstreamNode<audio2::NodeInput>( mGain );
 	audio2::SaveNodeEnabledState enabled( currentSource );
 
 	auto ctx = audio2::Context::master();
@@ -105,9 +105,9 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
 	mLineOut = ctx->createLineOut( device );
 
 	// TODO: if this call is moved to after the mScope->connect(), there is a chance that initialization can
-	// take place with samplerate / frames-per-block derived from the default NodeTarget (ses default Device)
-	// Double check this doesn't effect anyone, if it does then setTarget may need to do more work to update Nodes.
-	ctx->setTarget( mLineOut );
+	// take place with samplerate / frames-per-block derived from the default NodeOutput (ses default Device)
+	// Double check this doesn't effect anyone, if it does then setOutput may need to do more work to update Nodes.
+	ctx->setOutput( mLineOut );
 
 	mScope->connect( mLineOut );
 

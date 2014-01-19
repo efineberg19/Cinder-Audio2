@@ -1,7 +1,7 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Filter.h"
 #include "cinder/audio2/CinderAssert.h"
@@ -26,7 +26,7 @@ class EffectNodeTestApp : public AppNative {
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
 
-	audio2::NodeSourceRef		mGen;
+	audio2::NodeInputRef		mGen;
 	audio2::GainRef				mGain;
 	audio2::Pan2dRef			mPan;
 	audio2::FilterLowPassRef	mLowPass;
@@ -61,19 +61,19 @@ void EffectNodeTestApp::setup()
 
 void EffectNodeTestApp::setupOne()
 {
-	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getTarget();
+	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getOutput();
 }
 
 void EffectNodeTestApp::setupForceStereo()
 {
-	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getTarget();
+	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getOutput();
 }
 
 void EffectNodeTestApp::setupDownMix()
 {
 	auto ctx = audio2::Context::master();
 	auto mono = ctx->makeNode( new audio2::Gain( audio2::Node::Format().channels( 1 ) ) );
-	mGen >> mLowPass >> mGain >> mPan >> mono >> ctx->getTarget();
+	mGen >> mLowPass >> mGain >> mPan >> mono >> ctx->getOutput();
 }
 
 void EffectNodeTestApp::setupUI()

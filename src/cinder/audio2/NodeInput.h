@@ -29,25 +29,27 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeSource>				NodeSourceRef;
+typedef std::shared_ptr<class NodeInput>				NodeInputRef;
 typedef std::shared_ptr<class LineIn>					LineInRef;
 typedef std::shared_ptr<class Gen>						GenRef;
 typedef std::shared_ptr<class CallbackProcessor>		CallbackProcessorRef;
 
 typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
 
-class NodeSource : public Node {
+//! NodeInput is the base class for Node's that produces audio. It cannot have any inputs.
+class NodeInput : public Node {
   public:
-	virtual ~NodeSource();
+	virtual ~NodeInput();
 
   protected:
-	NodeSource( const Format &format );
+	NodeInput( const Format &format );
   private:
-	// NodeSource's cannot have any sources, overridden to assert this method isn't called
+	// NodeInput's cannot have any sources, overridden to assert this method isn't called
 	void connectInput( const NodeRef &input, size_t bus ) override;
 };
 
-class LineIn : public NodeSource {
+//! LineIn is the (abstract) base class for a Node representing a hardware input device. This is typically a microphone or a 'line-in' on an audio interface.
+class LineIn : public NodeInput {
   public:
 	virtual ~LineIn();
 
@@ -64,9 +66,10 @@ class LineIn : public NodeSource {
 	DeviceRef	mDevice;
 };
 
-class CallbackProcessor : public NodeSource {
+//! Blarg
+class CallbackProcessor : public NodeInput {
   public:
-	CallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeSource( format ), mCallbackFn( callbackFn ) {}
+	CallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeInput( format ), mCallbackFn( callbackFn ) {}
 	virtual ~CallbackProcessor() {}
 
 	void process( Buffer *buffer ) override;
@@ -75,7 +78,7 @@ class CallbackProcessor : public NodeSource {
 	CallbackProcessorFn mCallbackFn;
 };
 
-class Gen : public NodeSource {
+class Gen : public NodeInput {
   public:
 	Gen( const Format &format = Format() );
 

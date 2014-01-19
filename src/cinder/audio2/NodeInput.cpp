@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/Debug.h"
 
@@ -33,25 +33,25 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeSource
+// MARK: - NodeInput
 // ----------------------------------------------------------------------------------------------------
 
-NodeSource::NodeSource( const Format &format ) : Node( format )
+NodeInput::NodeInput( const Format &format ) : Node( format )
 {
 	mInputs.clear();
 
-	// NodeSource's don't have inputs, so disallow matches input channels
+	// NodeInput's don't have inputs, so disallow matches input channels
 	if( mChannelMode == ChannelMode::MATCHES_INPUT )
 		mChannelMode = ChannelMode::MATCHES_OUTPUT;
 }
 
-NodeSource::~NodeSource()
+NodeInput::~NodeInput()
 {
 }
 
-void NodeSource::connectInput( const NodeRef &input, size_t bus )
+void NodeInput::connectInput( const NodeRef &input, size_t bus )
 {
-	CI_ASSERT_MSG( 0, "NodeSource does not support inputs" );
+	CI_ASSERT_MSG( 0, "NodeInput does not support inputs" );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ void NodeSource::connectInput( const NodeRef &input, size_t bus )
 // ----------------------------------------------------------------------------------------------------
 
 LineIn::LineIn( const DeviceRef &device, const Format &format )
-: NodeSource( format ), mDevice( device )
+: NodeInput( format ), mDevice( device )
 {
 	if( boost::indeterminate( format.getAutoEnable() ) )
 		setAutoEnabled();
@@ -84,7 +84,7 @@ void CallbackProcessor::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 Gen::Gen( const Format &format )
-	: NodeSource( format ), mFreq( this ), mPhase( 0 )
+	: NodeInput( format ), mFreq( this ), mPhase( 0 )
 {
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 1 );

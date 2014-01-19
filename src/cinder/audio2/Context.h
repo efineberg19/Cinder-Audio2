@@ -24,8 +24,8 @@
 #pragma once
 
 #include "cinder/audio2/Node.h"
-#include "cinder/audio2/NodeSource.h"
-#include "cinder/audio2/NodeTarget.h"
+#include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/NodeOutput.h"
 
 #include <mutex>
 #include <set>
@@ -49,13 +49,13 @@ class Context : public std::enable_shared_from_this<Context> {
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );
 
-	virtual void setTarget( const NodeTargetRef &target );
+	virtual void setOutput( const NodeOutputRef &output );
 
-	//! If the target has not already been set, it is the default LineOut
-	virtual const NodeTargetRef& getTarget();
-	//! Enables audio processing. Effectively the same as calling getTarget()->start()
+	//! If the output has not already been set, it is the default LineOut
+	virtual const NodeOutputRef& getOutput();
+	//! Enables audio processing. Effectively the same as calling getOutput()->start()
 	virtual void start();
-	//! Enables audio processing. Effectively the same as calling getTarget()->stop()
+	//! Enables audio processing. Effectively the same as calling getOutput()->stop()
 	virtual void stop();
 	//! start / stop audio processing via boolean
 	void setEnabled( bool enabled = true );
@@ -65,20 +65,20 @@ class Context : public std::enable_shared_from_this<Context> {
 	//! Called by \a node when it's connections have changed, default implementation is empty.
 	virtual void connectionsDidChange( const NodeRef &node ) {} 
 
-	//! Returns the samplerate of this Context, which is governed by the current NodeTarget.
-	size_t		getSampleRate()				{ return getTarget()->getSampleRate(); }
-	//! Returns the number of frames processed in one block by this Node, which is governed by the current NodeTarget.
-	size_t		getFramesPerBlock()			{ return getTarget()->getFramesPerBlock(); }
+	//! Returns the samplerate of this Context, which is governed by the current NodeOutput.
+	size_t		getSampleRate()				{ return getOutput()->getSampleRate(); }
+	//! Returns the number of frames processed in one block by this Node, which is governed by the current NodeOutput.
+	size_t		getFramesPerBlock()			{ return getOutput()->getFramesPerBlock(); }
 
-	uint64_t	getNumProcessedFrames()		{ return getTarget()->getNumProcessedFrames(); }
+	uint64_t	getNumProcessedFrames()		{ return getOutput()->getNumProcessedFrames(); }
 	double		getNumProcessedSeconds()	{ return (double)getNumProcessedFrames() / (double)getSampleRate(); }
 
 	std::mutex& getMutex() const			{ return mMutex; }
 
 	//! Initialize all Node's related by this Context
-	void initializeAllNodes()				{ initRecursisve( mTarget ); }
+	void initializeAllNodes()				{ initRecursisve( mOutput ); }
 	//! Uninitialize all Node's related by this Context
-	void uninitializeAllNodes()				{ uninitRecursisve( mTarget ); }
+	void uninitializeAllNodes()				{ uninitRecursisve( mOutput ); }
 	//! Disconnect all Node's related by this Context
 	virtual void disconnectAllNodes();
 
@@ -105,9 +105,9 @@ class Context : public std::enable_shared_from_this<Context> {
 	void initRecursisve( const NodeRef &node );
 	void uninitRecursisve( const NodeRef &node );
 
-	const std::vector<Node *>& getAutoPulledNodes(); // called if there are any nodes besides target that need to be pulled
+	const std::vector<Node *>& getAutoPulledNodes(); // called if there are any nodes besides output that need to be pulled
 
-	NodeTargetRef			mTarget;				// the 'heartbeat'
+	NodeOutputRef			mOutput;				// the 'heartbeat'
 
 	// other nodes that don't have any outputs and need to be explictly pulled
 	std::set<NodeRef>		mAutoPulledNodes;

@@ -28,12 +28,13 @@
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeTarget>		NodeTargetRef;
+typedef std::shared_ptr<class NodeOutput>		NodeOutputRef;
 typedef std::shared_ptr<class LineOut>			LineOutRef;
 
-class NodeTarget : public Node {
+//! NodeInput is the base class for Node's that consumes audio. It cannot have any outputs.
+class NodeOutput : public Node {
   public:
-	virtual ~NodeTarget() {}
+	virtual ~NodeOutput() {}
 
 	virtual size_t getSampleRate()				= 0;
 	virtual size_t getFramesPerBlock()			= 0;
@@ -49,7 +50,7 @@ class NodeTarget : public Node {
 	uint64_t getNumProcessedFrames() const		{ return mNumProcessedFrames; }
 
   protected:
-	NodeTarget( const Format &format = Format() );
+	NodeOutput( const Format &format = Format() );
 
 	//! Implementations should call this after each processing block to increment the processed frame count.
 	void incrementFrameCount()					{ mNumProcessedFrames += getFramesPerBlock(); }
@@ -61,11 +62,12 @@ class NodeTarget : public Node {
 	float						mClipThreshold;
 
   private:
-	// NodeTarget does not have outputs, overridden to assert this method isn't called
+	// NodeOutput does not have outputs, overridden to assert this method isn't called
 	void connect( const NodeRef &output, size_t outputBus, size_t inputBus ) override;
 };
 
-class LineOut : public NodeTarget {
+//! LineOut is the (abstract) base class for a Node representing a hardware output device. This is typically speakers or a 'line-out' on an audio interface.
+class LineOut : public NodeOutput {
   public:
 	virtual ~LineOut() {}
 

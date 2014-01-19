@@ -191,7 +191,7 @@ void LineInAudioUnit::initialize()
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
 	// see if synchronous I/O is possible by looking at the LineOut
-	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getTarget() );
+	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getOutput() );
 
 	if( lineOutAu ) {
 		bool sameDevice = lineOutAu->getDevice() == mDevice;
@@ -442,7 +442,7 @@ void NodeEffectAudioUnit::setParameter( ::AudioUnitParameterID paramId, float va
 // MARK: - ContextAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineOutRef ContextAudioUnit::createLineOut( const DeviceRef &device, const NodeTarget::Format &format )
+LineOutRef ContextAudioUnit::createLineOut( const DeviceRef &device, const NodeOutput::Format &format )
 {
 	return makeNode( new LineOutAudioUnit( device, format ) );
 }

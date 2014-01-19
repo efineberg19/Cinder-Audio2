@@ -1,7 +1,7 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"
 #include "cinder/audio2/CinderAssert.h"
@@ -76,7 +76,7 @@ void NodeTestApp::setup()
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.5f );
-	mGain->connect( ctx->getTarget() );
+	mGain->connect( ctx->getOutput() );
 
 	mNoise = ctx->makeNode( new audio2::GenNoise() );
 	mGen = ctx->makeNode( new audio2::GenTriangle() );
@@ -128,7 +128,7 @@ void NodeTestApp::setup2to1()
 // note: this enables the scope as a secondary output of mGen, and as no one ever disconnects that, it harmlessly remains when the test is switched.
 void NodeTestApp::setup1to2()
 {
-	// either of these should work, given there are only 2 NodeSource's in this test, but the latter is a tad less work.
+	// either of these should work, given there are only 2 NodeInput's in this test, but the latter is a tad less work.
 //	mGain->disconnectAllInputs();
 	mNoise->disconnect();
 

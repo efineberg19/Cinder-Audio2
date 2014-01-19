@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/File.h"
 #include "cinder/audio2/dsp/RingBuffer.h"
 
@@ -40,7 +40,7 @@ typedef std::shared_ptr<class FilePlayer>				FilePlayerRef;
 //! \brief Base Node class for sampled audio playback. Can do operations like seek and loop.
 //! \note SamplePlayer itself doesn't process any audio, but contains the common interface for Node's that do.
 //! \see BufferPlayer, FilePlayer
-class SamplePlayer : public NodeSource {
+class SamplePlayer : public NodeInput {
 public:
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;

@@ -160,9 +160,9 @@ void NodeXAudioSourceVoice::initSourceVoice()
 	auto context = dynamic_pointer_cast<ContextXAudio>( getContext() );
 
 	// first ensure there is a valid mastering voice.
-	NodeTargetRef target = context->getTarget();
-	if( ! target->isInitialized() )
-		target->initialize();
+	NodeOutputRef output = context->getOutput();
+	if( ! output->isInitialized() )
+		output->initialize();
 
 	auto wfx = msw::interleavedFloatWaveFormat( context->getSampleRate(), getNumChannels() );
 
@@ -228,7 +228,7 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 	mInternalBuffer.zero();
 	pullInputs( &mInternalBuffer );
 
-	auto lineOutXAudio = dynamic_pointer_cast<LineOutXAudio>( getContext()->getTarget() );
+	auto lineOutXAudio = dynamic_pointer_cast<LineOutXAudio>( getContext()->getOutput() );
 	CI_ASSERT( lineOutXAudio );
 
 	if( lineOutXAudio->checkNotClipping() )
@@ -506,10 +506,10 @@ LineInRef ContextXAudio::createLineIn( const DeviceRef &device, const Node::Form
 	return makeNode( new LineInWasapi( device ) );
 }
 
-void ContextXAudio::setTarget( const NodeTargetRef &target )
+void ContextXAudio::setOutput( const NodeOutputRef &output )
 {
-	CI_ASSERT_MSG( dynamic_pointer_cast<LineOutXAudio>( target ), "ContextXAudio only supports a target of type LineOutXAudio" );
-	Context::setTarget( target );
+	CI_ASSERT_MSG( dynamic_pointer_cast<LineOutXAudio>( output ), "ContextXAudio only supports a NodeOutput of type LineOutXAudio" );
+	Context::setOutput( output );
 }
 
 // Recurse through inputs (this is only called when an input is set, not output).
@@ -543,7 +543,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
 				else {
 					// if node isn't connected to a LineOutXAudio, no need to connect a SourceVoiceXAudio yet
-					if( node != getTarget() && ! findFirstDownstreamNode<LineOutXAudio>( node ) )
+					if( node != getOutput() && ! findFirstDownstreamNode<LineOutXAudio>( node ) )
 						continue;
 					
 					// a SourceVoiceXAudio is needed

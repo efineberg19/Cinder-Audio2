@@ -83,7 +83,7 @@ MixerImpl::MixerImpl()
 	Context *ctx = Context::master();
 	mMasterGain = ctx->makeNode( new Gain() );
 
-	mMasterGain->addConnection( ctx->getTarget() );
+	mMasterGain->addConnection( ctx->getOutput() );
 
 	ctx->start();
 }

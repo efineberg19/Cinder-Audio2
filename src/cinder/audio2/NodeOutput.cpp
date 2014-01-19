@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "cinder/audio2/NodeTarget.h"
+#include "cinder/audio2/NodeOutput.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/Utilities.h"
 #include "cinder/audio2/Exception.h"
@@ -32,27 +32,27 @@ using namespace std;
 namespace cinder { namespace audio2 {
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - NodeTarget
+// MARK: - NodeOutput
 // ----------------------------------------------------------------------------------------------------
 
-NodeTarget::NodeTarget( const Format &format )
-	: Node( format ), mNumProcessedFrames( 0 ), mClipDetectionEnabled( true ), mClipThreshold( 2.0f ), mLastClip( 0 )
+NodeOutput::NodeOutput( const Format &format )
+	: Node( format ), mNumProcessedFrames( 0 ), mClipDetectionEnabled( true ), mClipThreshold( 2 ), mLastClip( 0 )
 {
 }
 
-void NodeTarget::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
+void NodeOutput::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
 {
-	CI_ASSERT_MSG( 0, "NodeTarget does not support outputs" );
+	CI_ASSERT_MSG( 0, "NodeOutput does not support outputs" );
 }
 
-uint64_t NodeTarget::getLastClip()
+uint64_t NodeOutput::getLastClip()
 {
 	uint64_t result = mLastClip;
 	mLastClip = 0;
 	return result;
 }
 
-void NodeTarget::enableClipDetection( bool enable, float threshold )
+void NodeOutput::enableClipDetection( bool enable, float threshold )
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
@@ -60,7 +60,7 @@ void NodeTarget::enableClipDetection( bool enable, float threshold )
 	mClipThreshold = threshold;
 }
 
-bool NodeTarget::checkNotClipping()
+bool NodeOutput::checkNotClipping()
 {
 	if( mClipDetectionEnabled ) {
 		size_t recordedFrame;
@@ -78,7 +78,7 @@ bool NodeTarget::checkNotClipping()
 // ----------------------------------------------------------------------------------------------------
 
 LineOut::LineOut( const DeviceRef &device, const Format &format )
-	: NodeTarget( format ), mDevice( device )
+	: NodeOutput( format ), mDevice( device )
 {
 	CI_ASSERT( mDevice );
 

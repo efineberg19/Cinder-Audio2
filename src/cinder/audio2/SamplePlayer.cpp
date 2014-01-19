@@ -36,7 +36,7 @@ namespace cinder { namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 SamplePlayer::SamplePlayer( const Format &format )
-: NodeSource( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ), mStartAtBeginning( true )
+: NodeInput( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ), mStartAtBeginning( true )
 {
 }
 

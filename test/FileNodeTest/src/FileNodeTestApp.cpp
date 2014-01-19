@@ -93,7 +93,7 @@ void FileNodeTestApp::setup()
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
 
-	mGain >> mPan >> ctx->getTarget();
+	mGain >> mPan >> ctx->getOutput();
 
 	//setupBufferPlayer();
 	setupFilePlayer();
@@ -118,8 +118,8 @@ void FileNodeTestApp::setupBufferPlayer()
 
 	auto connectFn = [bufferPlayer, this] {
 		mSamplePlayer = bufferPlayer;
-		mSamplePlayer >> mGain >> mPan >> audio2::Context::master()->getTarget();
-//		mSamplePlayer->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getTarget() );
+		mSamplePlayer >> mGain >> mPan >> audio2::Context::master()->getOutput();
+//		mSamplePlayer->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getOutput() );
 		audio2::Context::master()->printGraph();
 	};
 
@@ -159,10 +159,10 @@ void FileNodeTestApp::setupFilePlayer()
 	// when these connections are called, some (Gain and Pan) will already be connected, but this is okay, they should silently no-op.
 
 	// connect scope in sequence
-//	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( ctx->getTarget() );
+//	mSamplePlayer->connect( mGain )->connect( mPan )->connect( mScope )->connect( ctx->getOutput() );
 
 	// or connect in series (it is added to the Context's 'auto pulled list')
-	mSamplePlayer >> mGain >> mPan >> ctx->getTarget();
+	mSamplePlayer >> mGain >> mPan >> ctx->getOutput();
 	mPan->addConnection( mScope );
 
 	// this call blows the current pan -> target connection, so nothing gets to the speakers

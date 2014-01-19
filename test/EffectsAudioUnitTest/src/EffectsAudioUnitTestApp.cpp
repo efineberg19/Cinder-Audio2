@@ -2,7 +2,7 @@
 #include "cinder/gl/gl.h"
 
 
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 
@@ -32,7 +32,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void initParams();
 
 	Context* mContext;
-	NodeSourceRef mSource;
+	NodeInputRef mSource;
 
 	shared_ptr<NodeEffectAudioUnit> mEffect, mEffect2;
 
@@ -62,7 +62,7 @@ void EffectsAudioUnitTestApp::setup()
 void EffectsAudioUnitTestApp::setupOne()
 {
 	mEffect = mContext->makeNode( new NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
-	mSource->connect( mEffect )->connect( mContext->getTarget() );
+	mSource->connect( mEffect )->connect( mContext->getOutput() );
 
 	mBandpassSlider.mHidden = true;
 }
@@ -74,7 +74,7 @@ void EffectsAudioUnitTestApp::setupTwo()
 
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
-	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getTarget() );
+	mSource->connect( mEffect )->connect( mEffect2 )->connect( mContext->getOutput() );
 
 	mBandpassSlider.mHidden = false;
 }

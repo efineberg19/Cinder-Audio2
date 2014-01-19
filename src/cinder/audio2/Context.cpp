@@ -23,7 +23,7 @@
 
 
 #include "cinder/audio2/Context.h"
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/Debug.h"
 
 #include "cinder/Cinder.h"
@@ -88,7 +88,7 @@ void Context::start()
 		return;
 
 	mEnabled = true;
-	getTarget()->start();
+	getOutput()->start();
 }
 
 void Context::stop()
@@ -97,7 +97,7 @@ void Context::stop()
 		return;
 
 	mEnabled = false;
-	getTarget()->stop();
+	getOutput()->stop();
 }
 
 void Context::disconnectAllNodes()
@@ -105,7 +105,7 @@ void Context::disconnectAllNodes()
 	if( mEnabled )
 		stop();
 	
-	disconnectRecursive( mTarget );
+	disconnectRecursive( mOutput );
 }
 
 void Context::setEnabled( bool enabled )
@@ -116,16 +116,16 @@ void Context::setEnabled( bool enabled )
 		stop();
 }
 
-void Context::setTarget( const NodeTargetRef &target )
+void Context::setOutput( const NodeOutputRef &output )
 {
-	mTarget = target;
+	mOutput = output;
 }
 
-const NodeTargetRef& Context::getTarget()
+const NodeOutputRef& Context::getOutput()
 {
-	if( ! mTarget )
-		mTarget = createLineOut();
-	return mTarget;
+	if( ! mOutput )
+		mOutput = createLineOut();
+	return mOutput;
 }
 
 //void Context::startRecursive( const NodeRef &node )
@@ -256,7 +256,7 @@ void printRecursive( const NodeRef &node, size_t depth )
 void Context::printGraph()
 {
 	app::console() << "-------------- Graph configuration: --------------" << endl;
-	printRecursive( getTarget(), 0 );
+	printRecursive( getOutput(), 0 );
 	for( const auto& node : mAutoPulledNodes )
 		printRecursive( node, 0 );
 	app::console() << "--------------------------------------------------" << endl;

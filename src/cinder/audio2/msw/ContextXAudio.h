@@ -177,9 +177,9 @@ class ContextXAudio : public Context {
 	//! When connections change, ensure a NodeXAudioSourceVoice is in the right position to enable pulling audio samples.
 	void connectionsDidChange( const NodeRef &node ) override; 
 	//! Overridden to assert type is LineOutXAudio
-	void setTarget( const NodeTargetRef &target ) override;
+	void setOutput( const NodeOutputRef &output ) override;
 	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a LineOut.
-	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<LineOutXAudio>( mTarget )->getXAudio(); }
+	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<LineOutXAudio>( mOutput )->getXAudio(); }
 
 	//! Sets whether to enable filter usage within this audio context (default = true). \see NodeEffectXAudioFilter
 	void setFilterEffectsEnabled( bool b = true )	{ mFilterEnabled = b; }

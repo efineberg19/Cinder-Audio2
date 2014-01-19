@@ -3,7 +3,7 @@
 #include "cinder/Rand.h"
 #include "cinder/Timeline.h"
 
-#include "cinder/audio2/NodeSource.h"
+#include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Filter.h"
 #include "cinder/audio2/File.h"
@@ -86,13 +86,13 @@ void ParamTestApp::setup()
 
 void ParamTestApp::setupBasic()
 {
-	mGen >> mGain >> audio2::Context::master()->getTarget();
+	mGen >> mGain >> audio2::Context::master()->getOutput();
 	mGen->start();
 }
 
 void ParamTestApp::setupFilter()
 {
-	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getTarget();
+	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getOutput();
 	mGen->start();
 }
 
@@ -321,7 +321,7 @@ void ParamTestApp::draw()
 	drawWidgets( mWidgets );
 }
 
-// TODO: this will be formalized once there is an offline audio context and NodeTargetFile.
+// TODO: this will be formalized once there is an offline audio context and NodeOutputFile.
 void ParamTestApp::writeParamEval( audio2::Param *param )
 {
 	auto ctx = audio2::Context::master();

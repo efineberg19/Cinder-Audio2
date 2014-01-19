@@ -257,14 +257,14 @@
 		119CD11F184A793400853BEE /* Filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AA184A793400853BEE /* Filter.cpp */; };
 		119CD120184A793400853BEE /* Filter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AB184A793400853BEE /* Filter.h */; };
 		119CD121184A793400853BEE /* Filter.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AB184A793400853BEE /* Filter.h */; };
-		119CD122184A793400853BEE /* NodeSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AC184A793400853BEE /* NodeSource.cpp */; };
-		119CD123184A793400853BEE /* NodeSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AC184A793400853BEE /* NodeSource.cpp */; };
-		119CD124184A793400853BEE /* NodeSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AD184A793400853BEE /* NodeSource.h */; };
-		119CD125184A793400853BEE /* NodeSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AD184A793400853BEE /* NodeSource.h */; };
-		119CD126184A793400853BEE /* NodeTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AE184A793400853BEE /* NodeTarget.cpp */; };
-		119CD127184A793400853BEE /* NodeTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AE184A793400853BEE /* NodeTarget.cpp */; };
-		119CD128184A793400853BEE /* NodeTarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AF184A793400853BEE /* NodeTarget.h */; };
-		119CD129184A793400853BEE /* NodeTarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AF184A793400853BEE /* NodeTarget.h */; };
+		119CD122184A793400853BEE /* NodeInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AC184A793400853BEE /* NodeInput.cpp */; };
+		119CD123184A793400853BEE /* NodeInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AC184A793400853BEE /* NodeInput.cpp */; };
+		119CD124184A793400853BEE /* NodeInput.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AD184A793400853BEE /* NodeInput.h */; };
+		119CD125184A793400853BEE /* NodeInput.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AD184A793400853BEE /* NodeInput.h */; };
+		119CD126184A793400853BEE /* NodeOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AE184A793400853BEE /* NodeOutput.cpp */; };
+		119CD127184A793400853BEE /* NodeOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0AE184A793400853BEE /* NodeOutput.cpp */; };
+		119CD128184A793400853BEE /* NodeOutput.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AF184A793400853BEE /* NodeOutput.h */; };
+		119CD129184A793400853BEE /* NodeOutput.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0AF184A793400853BEE /* NodeOutput.h */; };
 		119CD12A184A793400853BEE /* Param.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0B0184A793400853BEE /* Param.cpp */; };
 		119CD12B184A793400853BEE /* Param.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 119CD0B0184A793400853BEE /* Param.cpp */; };
 		119CD12C184A793400853BEE /* Param.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD0B1184A793400853BEE /* Param.h */; };
@@ -420,10 +420,10 @@
 		119CD0A9184A793400853BEE /* NodeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeEffect.h; sourceTree = "<group>"; };
 		119CD0AA184A793400853BEE /* Filter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Filter.cpp; sourceTree = "<group>"; };
 		119CD0AB184A793400853BEE /* Filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Filter.h; sourceTree = "<group>"; };
-		119CD0AC184A793400853BEE /* NodeSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeSource.cpp; sourceTree = "<group>"; };
-		119CD0AD184A793400853BEE /* NodeSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeSource.h; sourceTree = "<group>"; };
-		119CD0AE184A793400853BEE /* NodeTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeTarget.cpp; sourceTree = "<group>"; };
-		119CD0AF184A793400853BEE /* NodeTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeTarget.h; sourceTree = "<group>"; };
+		119CD0AC184A793400853BEE /* NodeInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeInput.cpp; sourceTree = "<group>"; };
+		119CD0AD184A793400853BEE /* NodeInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeInput.h; sourceTree = "<group>"; };
+		119CD0AE184A793400853BEE /* NodeOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeOutput.cpp; sourceTree = "<group>"; };
+		119CD0AF184A793400853BEE /* NodeOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeOutput.h; sourceTree = "<group>"; };
 		119CD0B0184A793400853BEE /* Param.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Param.cpp; sourceTree = "<group>"; };
 		119CD0B1184A793400853BEE /* Param.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Param.h; sourceTree = "<group>"; };
 		119CD0B2184A793400853BEE /* Scope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scope.cpp; sourceTree = "<group>"; };
@@ -719,10 +719,10 @@
 				119CD0A9184A793400853BEE /* NodeEffect.h */,
 				119CD0AA184A793400853BEE /* Filter.cpp */,
 				119CD0AB184A793400853BEE /* Filter.h */,
-				119CD0AC184A793400853BEE /* NodeSource.cpp */,
-				119CD0AD184A793400853BEE /* NodeSource.h */,
-				119CD0AE184A793400853BEE /* NodeTarget.cpp */,
-				119CD0AF184A793400853BEE /* NodeTarget.h */,
+				119CD0AC184A793400853BEE /* NodeInput.cpp */,
+				119CD0AD184A793400853BEE /* NodeInput.h */,
+				119CD0AE184A793400853BEE /* NodeOutput.cpp */,
+				119CD0AF184A793400853BEE /* NodeOutput.h */,
 				119CD0B0184A793400853BEE /* Param.cpp */,
 				119CD0B1184A793400853BEE /* Param.h */,
 				1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */,
@@ -824,7 +824,7 @@
 				114FE8CF18032BF100C5841B /* codebook.h in Headers */,
 				114FE8EF18032BF100C5841B /* masking.h in Headers */,
 				114FE987180371F100C5841B /* CDSPFIRFilter.h in Headers */,
-				119CD128184A793400853BEE /* NodeTarget.h in Headers */,
+				119CD128184A793400853BEE /* NodeOutput.h in Headers */,
 				119CD0D6184A793400853BEE /* Debug.h in Headers */,
 				119CD0C8184A793400853BEE /* DeviceManagerAudioSession.h in Headers */,
 				114FE98F180371F100C5841B /* CDSPSincFilterGen.h in Headers */,
@@ -883,7 +883,7 @@
 				114FE91118032BF100C5841B /* setup_32.h in Headers */,
 				119CD0F4184A793400853BEE /* RingBuffer.h in Headers */,
 				119CD0E2184A793400853BEE /* Converter.h in Headers */,
-				119CD124184A793400853BEE /* NodeSource.h in Headers */,
+				119CD124184A793400853BEE /* NodeInput.h in Headers */,
 				1115502118026C9100D415BC /* vorbisfile.h in Headers */,
 				114FE8C118032BF100C5841B /* bitrate.h in Headers */,
 				114FE92B18032BF100C5841B /* scales.h in Headers */,
@@ -917,7 +917,7 @@
 				114FE8D018032BF100C5841B /* codebook.h in Headers */,
 				114FE8F018032BF100C5841B /* masking.h in Headers */,
 				114FE988180371F100C5841B /* CDSPFIRFilter.h in Headers */,
-				119CD129184A793400853BEE /* NodeTarget.h in Headers */,
+				119CD129184A793400853BEE /* NodeOutput.h in Headers */,
 				119CD0D7184A793400853BEE /* Debug.h in Headers */,
 				119CD0C9184A793400853BEE /* DeviceManagerAudioSession.h in Headers */,
 				114FE990180371F100C5841B /* CDSPSincFilterGen.h in Headers */,
@@ -976,7 +976,7 @@
 				114FE91218032BF100C5841B /* setup_32.h in Headers */,
 				119CD0F5184A793400853BEE /* RingBuffer.h in Headers */,
 				119CD0E3184A793400853BEE /* Converter.h in Headers */,
-				119CD125184A793400853BEE /* NodeSource.h in Headers */,
+				119CD125184A793400853BEE /* NodeInput.h in Headers */,
 				1115502218026C9100D415BC /* vorbisfile.h in Headers */,
 				114FE8C218032BF100C5841B /* bitrate.h in Headers */,
 				114FE92C18032BF100C5841B /* scales.h in Headers */,
@@ -1058,7 +1058,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				119CD126184A793400853BEE /* NodeTarget.cpp in Sources */,
+				119CD126184A793400853BEE /* NodeOutput.cpp in Sources */,
 				119CD0D2184A793400853BEE /* Context.cpp in Sources */,
 				119CD11E184A793400853BEE /* Filter.cpp in Sources */,
 				114FE92F18032BF100C5841B /* smallft.c in Sources */,
@@ -1098,7 +1098,7 @@
 				114FE8E518032BF100C5841B /* lpc.c in Sources */,
 				114FE93B18032BF100C5841B /* window.c in Sources */,
 				119CD0E8184A793400853BEE /* Dsp.cpp in Sources */,
-				119CD122184A793400853BEE /* NodeSource.cpp in Sources */,
+				119CD122184A793400853BEE /* NodeInput.cpp in Sources */,
 				114FE92D18032BF100C5841B /* sharedbook.c in Sources */,
 				114FE8ED18032BF100C5841B /* mapping0.c in Sources */,
 				119CD135184A7A1200853BEE /* fftsg.cpp in Sources */,
@@ -1115,7 +1115,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				119CD127184A793400853BEE /* NodeTarget.cpp in Sources */,
+				119CD127184A793400853BEE /* NodeOutput.cpp in Sources */,
 				119CD0D3184A793400853BEE /* Context.cpp in Sources */,
 				119CD11F184A793400853BEE /* Filter.cpp in Sources */,
 				114FE93018032BF100C5841B /* smallft.c in Sources */,
@@ -1155,7 +1155,7 @@
 				114FE8E618032BF100C5841B /* lpc.c in Sources */,
 				114FE93C18032BF100C5841B /* window.c in Sources */,
 				119CD0E9184A793400853BEE /* Dsp.cpp in Sources */,
-				119CD123184A793400853BEE /* NodeSource.cpp in Sources */,
+				119CD123184A793400853BEE /* NodeInput.cpp in Sources */,
 				114FE92E18032BF100C5841B /* sharedbook.c in Sources */,
 				114FE8EE18032BF100C5841B /* mapping0.c in Sources */,
 				119CD136184A7A1200853BEE /* fftsg.cpp in Sources */,
