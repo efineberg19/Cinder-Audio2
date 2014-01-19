@@ -132,6 +132,22 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Returns a string representing the name of this Node type. TODO: use typeid + abi de-mangling to ease the burden on sub-classes
 	virtual std::string getName();
 
+	struct BusConnector {
+		BusConnector( const NodeRef &output, size_t outputBus, size_t inputBus ) : mOutput( output ), mOutputBus( outputBus ), mInputBus( inputBus )
+		{}
+
+		const NodeRef& getOutput() const	{ return mOutput; }
+
+		size_t	getOutputBus() const	{ return mOutputBus; }
+		size_t	getInputBus() const	{ return mInputBus; }
+
+	private:
+		NodeRef mOutput;
+		size_t mOutputBus, mInputBus;
+	};
+	
+	BusConnector bus( size_t outputBus, size_t inputBus )		{ return BusConnector( shared_from_this(), outputBus, inputBus ); }
+
   protected:
 	Node( const Format &format );
 
@@ -180,9 +196,14 @@ class Node : public std::enable_shared_from_this<Node> {
 	friend class Param;
 };
 
-inline const NodeRef& operator>>( const NodeRef &source, const NodeRef &dest )
+inline const NodeRef& operator>>( const NodeRef &source, const NodeRef &output )
 {
-	return source->connect( dest );
+	return source->connect( output );
+}
+
+inline const NodeRef& operator>>( const NodeRef &source, const Node::BusConnector &bus )
+{
+	return source->connect( bus.getOutput(), bus.getOutputBus(), bus.getInputBus() );
 }
 
 //! a Node that can be pulled without being connected to any outputs.
