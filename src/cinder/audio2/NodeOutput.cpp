@@ -85,13 +85,15 @@ LineOut::LineOut( const DeviceRef &device, const Format &format )
 	mWillChangeConn = mDevice->getSignalParamsWillChange().connect( bind( &LineOut::deviceParamsWillChange, this ) );
 	mDidChangeConn = mDevice->getSignalParamsDidChange().connect( bind( &LineOut::deviceParamsDidChange, this ) );
 
+	size_t deviceNumChannels = mDevice->getNumOutputChannels();
+
 	if( mChannelMode != ChannelMode::SPECIFIED ) {
 		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( 2 );
+		setNumChannels( std::min( deviceNumChannels, (size_t)2 ) );
 	}
 
-	if( mDevice->getNumOutputChannels() < mNumChannels )
-		throw AudioFormatExc( "Device can not accommodate specified number of channels." );
+	if( deviceNumChannels < mNumChannels )
+		throw AudioFormatExc( string( "Device can not accommodate " ) + to_string( deviceNumChannels ) + " output channels." );
 }
 
 void LineOut::deviceParamsWillChange()
