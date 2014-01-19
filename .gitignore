@@ -2,6 +2,10 @@
 cinder
 !src/cinder
 
+# test doxygen stuff
+doc/html
+doc/latex
+
 # Mac OS X cruft
 *.pbxuser
 *.mode1v3
