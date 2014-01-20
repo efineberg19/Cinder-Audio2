@@ -23,6 +23,7 @@
 
 #include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/Context.h"
+#include "cinder/audio2/Exception.h"
 #include "cinder/audio2/Debug.h"
 
 #include "cinder/Rand.h"
@@ -63,6 +64,16 @@ LineIn::LineIn( const DeviceRef &device, const Format &format )
 {
 	if( boost::indeterminate( format.getAutoEnable() ) )
 		setAutoEnabled();
+
+	size_t deviceNumChannels = mDevice->getNumInputChannels();
+
+	if( mChannelMode != ChannelMode::SPECIFIED ) {
+		mChannelMode = ChannelMode::SPECIFIED;
+		setNumChannels( std::min( deviceNumChannels, (size_t)2 ) );
+	}
+
+	if( deviceNumChannels < mNumChannels )
+		throw AudioFormatExc( string( "Device can not accommodate " ) + to_string( deviceNumChannels ) + " output channels." );
 }
 
 LineIn::~LineIn()
