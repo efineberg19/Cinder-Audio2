@@ -29,6 +29,7 @@ class DeviceTestApp : public AppNative {
 
 	void setOutputDevice( const audio2::DeviceRef &device );
 	void setInputDevice( const audio2::DeviceRef &device );
+	void setupMultiChannelDevice( const string &deviceName );
 	void printDeviceDetails( const audio2::DeviceRef &device );
 
 	void setupSine();
@@ -76,6 +77,8 @@ void DeviceTestApp::setup()
 
 	setOutputDevice( audio2::Device::getDefaultOutput() );
 	setInputDevice( audio2::Device::getDefaultInput() );
+
+//	setupMultiChannelDevice( "PreSonus FIREPOD (1431)" );
 
 	// TODO: this should be set in setOutputDevice()
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
@@ -132,6 +135,14 @@ void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device )
 	printDeviceDetails( device );
 }
 
+void DeviceTestApp::setupMultiChannelDevice( const string &deviceName )
+{
+	auto dev = audio2::Device::findDeviceByName( deviceName );
+	CI_ASSERT( dev );
+
+	setOutputDevice( dev );
+	setInputDevice( dev );
+}
 void DeviceTestApp::printDeviceDetails( const audio2::DeviceRef &device )
 {
 	console() << "\t name: " << device->getName() << endl;
@@ -298,9 +309,18 @@ void DeviceTestApp::processTap( Vec2i pos )
 	size_t currentOutputIndex = mOutputSelector.mCurrentSectionIndex;
 	if( mOutputSelector.hitTest( pos ) && currentOutputIndex != mOutputSelector.mCurrentSectionIndex ) {
 		auto dev = audio2::Device::findDeviceByName( mOutputSelector.mSegments[mOutputSelector.mCurrentSectionIndex] );
-		LOG_V( "selected device named: " << dev->getName() << ", key: " << dev->getKey() );
+		LOG_V( "selected output device named: " << dev->getName() << ", key: " << dev->getKey() );
 
 		setOutputDevice( dev );
+		return;
+	}
+
+	size_t currentInputIndex = mInputSelector.mCurrentSectionIndex;
+	if( mInputSelector.hitTest( pos ) && currentInputIndex != mInputSelector.mCurrentSectionIndex ) {
+		auto dev = audio2::Device::findDeviceByName( mInputSelector.mSegments[mInputSelector.mCurrentSectionIndex] );
+		LOG_V( "selected input named: " << dev->getName() << ", key: " << dev->getKey() );
+
+		setInputDevice( dev );
 	}
 }
 
