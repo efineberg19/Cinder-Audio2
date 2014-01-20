@@ -58,13 +58,13 @@ public:
 	void processTap( Vec2i pos );
 
 	audio2::GainRef		mGain;
-	audio2::ScopeRef		mScope;
+	audio2::ScopeRef	mScope;
 	audio2::GenRef		mGen, mNoise;
 
-	vector<TestWidget *> mWidgets;
-	Button mPlayButton, mEnableNoiseButton, mEnableSineButton;
-	VSelector mTestSelector;
-	HSlider mGainSlider;
+	vector<TestWidget *>	mWidgets;
+	Button					mPlayButton, mEnableNoiseButton, mEnableSineButton;
+	VSelector				mTestSelector;
+	HSlider					mGainSlider;
 
 	enum GainInputBus { NOISE, SINE };
 };
