@@ -5,26 +5,47 @@
 	id="org.libcinder.audio2"
 	author="Richard Eakin"
 	license="BSD"
-	summary="development block for Cinder audio rewrite"
+	summary="dev block for Cinder audio rewrite"
 	git="git://github.com/richardeakin/Cinder-Audio2.git"
 	version="0.1"
 	libraryUrl="www.libcinder.org"
 	>
 
 	<includePath>src</includePath>
+	<includePath>src/oggvorbis/vorbis</includePath>
+	<includePath system="true">include/oggvorbis</includePath>
 
-	<headerPattern>src/*.h</headerPattern>
-	<sourcePattern>src/*.cpp</sourcePattern>
-	<headerPattern>src/audio2/*.h</headerPattern>
-	<sourcePattern>src/audio2/*.cpp</sourcePattern>
+	<headerPattern>src/cinder/audio2/*.h</headerPattern>
+	<sourcePattern>src/cinder/audio2/*.cpp</sourcePattern>
+	<headerPattern>src/cinder/audio2/dsp/*.h</headerPattern>
+	<sourcePattern>src/cinder/audio2/dsp/*.cpp</sourcePattern>
+
+	<sourcePattern>src/oggvorbis/ogg/*.c</sourcePattern>
+	<sourcePattern>src/oggvorbis/vorbis/*.c</sourcePattern>
 
 	<platform os="macosx">
-		<headerPattern>src/audio2/cocoa/*.h</headerPattern>
-		<sourcePattern>src/audio2/cocoa/*.cpp</sourcePattern>
+		<header>src/cinder/audio2/cocoa/ContextAudioUnit.h</header>
+		<header>src/cinder/audio2/cocoa/CinderCoreAudio.h</header>
+		<header>src/cinder/audio2/cocoa/FileCoreAudio.h</header>
+		<source>src/cinder/audio2/cocoa/ContextAudioUnit.cpp</source>
+		<source>src/cinder/audio2/cocoa/CinderCoreAudio.cpp</source>
+		<source>src/cinder/audio2/cocoa/FileCoreAudio.cpp</source>
+
+		<header>src/cinder/audio2/cocoa/DeviceManagerCoreAudio.h</header>
+		<source>src/cinder/audio2/cocoa/DeviceManagerCoreAudio.cpp</source>
 	</platform>
 	<platform os="ios">
-		<headerPattern>src/audio2/cocoa/*.h</headerPattern>
-		<sourcePattern>src/audio2/cocoa/*.cpp</sourcePattern>
+		<header>src/cinder/audio2/cocoa/ContextAudioUnit.h</header>
+		<header>src/cinder/audio2/cocoa/CinderCoreAudio.h</header>
+		<header>src/cinder/audio2/cocoa/FileCoreAudio.h</header>
+		<source>src/cinder/audio2/cocoa/ContextAudioUnit.cpp</source>
+		<source>src/cinder/audio2/cocoa/CinderCoreAudio.cpp</source>
+		<source>src/cinder/audio2/cocoa/FileCoreAudio.cpp</source>
+
+		<header>src/cinder/audio2/cocoa/DeviceManagerAudioSession.h</header>
+		<source>src/cinder/audio2/cocoa/DeviceManagerAudioSession.mm</source>
+
+		<framework sdk="true">Accelerate.framework</framework>
 	</platform>
 	<platform os="msw">
 		<headerPattern>src/audio2/msw/*.h</headerPattern>
