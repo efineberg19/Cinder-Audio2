@@ -3,6 +3,8 @@
 #include "cinder/Timeline.h"
 #include "cinder/Timer.h"
 
+#include "cinder/audio2/Source.h"
+#include "cinder/audio2/Target.h"
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/SamplePlayer.h"
 #include "cinder/audio2/NodeEffect.h"
@@ -95,8 +97,8 @@ void FileNodeTestApp::setup()
 
 	mGain >> mPan >> ctx->getOutput();
 
-	//setupBufferPlayer();
-	setupFilePlayer();
+	setupBufferPlayer();
+//	setupFilePlayer();
 
 	setupUI();
 

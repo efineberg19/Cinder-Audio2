@@ -9,14 +9,15 @@
 /* Begin PBXBuildFile section */
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
-		11B04260179C56BC0034BEE2 /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B04254179C56950034BEE2 /* libAudio2-ios.a */; };
+		114B40A5188CC5AC00DB811D /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11DB1B64188CC30A00B70E6E /* libAudio2-ios.a */; };
+		114B40A7188CC5B600DB811D /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 114B40A6188CC5B600DB811D /* Accelerate.framework */; };
+		114B40AA188CC5CD00DB811D /* AudioDrawUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 114B40A9188CC5CD00DB811D /* AudioDrawUtils.cpp */; };
+		114B40AC188CC63A00DB811D /* cash_satisfied_mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 114B40AB188CC63A00DB811D /* cash_satisfied_mind.mp3 */; };
 		14ACABCB1767903100854FE5 /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABBC1767903100854FE5 /* Blank__Kytt_-_08_-_RSPN.mp3 */; };
 		14ACABCC1767903100854FE5 /* DrainMagic.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABBD1767903100854FE5 /* DrainMagic.ogg */; };
-		14ACABCD1767903100854FE5 /* exp006-003_synplant_utonic_f32.wav in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABBE1767903100854FE5 /* exp006-003_synplant_utonic_f32.wav */; };
 		14ACABCE1767903100854FE5 /* Radiohead_-_Pyramid_Song_(sample).ogg in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABBF1767903100854FE5 /* Radiohead_-_Pyramid_Song_(sample).ogg */; };
 		14ACABCF1767903100854FE5 /* Ringtone 07.wma in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABC01767903100854FE5 /* Ringtone 07.wma */; };
 		14ACABD01767903100854FE5 /* Stevie Wonder  For Once In My Life.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABC11767903100854FE5 /* Stevie Wonder  For Once In My Life.ogg */; };
-		14ACABD11767903100854FE5 /* Summertime_sample_10s.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABC21767903100854FE5 /* Summertime_sample_10s.ogg */; };
 		14ACABD21767903100854FE5 /* tone440_float.wav in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABC31767903100854FE5 /* tone440_float.wav */; };
 		14ACABD31767903100854FE5 /* tone440.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABC41767903100854FE5 /* tone440.mp3 */; };
 		14ACABD41767903100854FE5 /* tone440.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 14ACABC51767903100854FE5 /* tone440.ogg */; };
@@ -41,25 +42,25 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		11B04251179C56950034BEE2 /* PBXContainerItemProxy */ = {
+		114B40A1188CC5A500DB811D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B0424C179C56950034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 11DB1B5C188CC30A00B70E6E /* Audio2.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 11B041F2179B90450034BEE2;
+			remoteInfo = "Audio2-ios";
+		};
+		11DB1B61188CC30A00B70E6E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11DB1B5C188CC30A00B70E6E /* Audio2.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 1104F3C917753F10003EAA2B;
 			remoteInfo = "Audio2-mac";
 		};
-		11B04253179C56950034BEE2 /* PBXContainerItemProxy */ = {
+		11DB1B63188CC30A00B70E6E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 11B0424C179C56950034BEE2 /* Audio2.xcodeproj */;
+			containerPortal = 11DB1B5C188CC30A00B70E6E /* Audio2.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 11B0421C179B90450034BEE2;
-			remoteInfo = "Audio2-ios";
-		};
-		11B0425E179C56B00034BEE2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 11B0424C179C56950034BEE2 /* Audio2.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 11B041F2179B90450034BEE2;
 			remoteInfo = "Audio2-ios";
 		};
 /* End PBXContainerItemProxy section */
@@ -70,14 +71,16 @@
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		02B35E9B7146446F8DDEED11 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
-		11B0424C179C56950034BEE2 /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<absolute>"; };
+		114B40A6188CC5B600DB811D /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		114B40A8188CC5CD00DB811D /* AudioDrawUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AudioDrawUtils.h; path = ../../../samples/common/AudioDrawUtils.h; sourceTree = "<group>"; };
+		114B40A9188CC5CD00DB811D /* AudioDrawUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AudioDrawUtils.cpp; path = ../../../samples/common/AudioDrawUtils.cpp; sourceTree = "<group>"; };
+		114B40AB188CC63A00DB811D /* cash_satisfied_mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = cash_satisfied_mind.mp3; path = ../../../assets/cash_satisfied_mind.mp3; sourceTree = "<group>"; };
+		11DB1B5C188CC30A00B70E6E /* Audio2.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Audio2.xcodeproj; path = ../../../xcode/Audio2.xcodeproj; sourceTree = "<group>"; };
 		14ACABBC1767903100854FE5 /* Blank__Kytt_-_08_-_RSPN.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "Blank__Kytt_-_08_-_RSPN.mp3"; path = "../../../assets/Blank__Kytt_-_08_-_RSPN.mp3"; sourceTree = "<group>"; };
 		14ACABBD1767903100854FE5 /* DrainMagic.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = DrainMagic.ogg; path = ../../../assets/DrainMagic.ogg; sourceTree = "<group>"; };
-		14ACABBE1767903100854FE5 /* exp006-003_synplant_utonic_f32.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = "exp006-003_synplant_utonic_f32.wav"; path = "../../../assets/exp006-003_synplant_utonic_f32.wav"; sourceTree = "<group>"; };
 		14ACABBF1767903100854FE5 /* Radiohead_-_Pyramid_Song_(sample).ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Radiohead_-_Pyramid_Song_(sample).ogg"; path = "../../../assets/Radiohead_-_Pyramid_Song_(sample).ogg"; sourceTree = "<group>"; };
 		14ACABC01767903100854FE5 /* Ringtone 07.wma */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Ringtone 07.wma"; path = "../../../assets/Ringtone 07.wma"; sourceTree = "<group>"; };
 		14ACABC11767903100854FE5 /* Stevie Wonder  For Once In My Life.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Stevie Wonder  For Once In My Life.ogg"; path = "../../../assets/Stevie Wonder  For Once In My Life.ogg"; sourceTree = "<group>"; };
-		14ACABC21767903100854FE5 /* Summertime_sample_10s.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = Summertime_sample_10s.ogg; path = ../../../assets/Summertime_sample_10s.ogg; sourceTree = "<group>"; };
 		14ACABC31767903100854FE5 /* tone440_float.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = tone440_float.wav; path = ../../../assets/tone440_float.wav; sourceTree = "<group>"; };
 		14ACABC41767903100854FE5 /* tone440.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = tone440.mp3; path = ../../../assets/tone440.mp3; sourceTree = "<group>"; };
 		14ACABC51767903100854FE5 /* tone440.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = tone440.ogg; path = ../../../assets/tone440.ogg; sourceTree = "<group>"; };
@@ -107,7 +110,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11B04260179C56BC0034BEE2 /* libAudio2-ios.a in Frameworks */,
+				114B40A5188CC5AC00DB811D /* libAudio2-ios.a in Frameworks */,
+				114B40A7188CC5B600DB811D /* Accelerate.framework in Frameworks */,
 				C725E001121DAC8F00FA186B /* AVFoundation.framework in Frameworks */,
 				C725DFFE121DAC7F00FA186B /* CoreMedia.framework in Frameworks */,
 				C725E001121DAC8FFFFA18FF /* ImageIO.framework in Frameworks */,
@@ -129,7 +133,7 @@
 		00692BC414FF149000D0A05E = {
 			isa = PBXGroup;
 			children = (
-				11B0424C179C56950034BEE2 /* Audio2.xcodeproj */,
+				11DB1B5C188CC30A00B70E6E /* Audio2.xcodeproj */,
 				99692BD914FF149000D0A05F /* Headers */,
 				00692BD914FF149000D0A05E /* Source */,
 				00692BD914FF149000D0FFFF /* Resources */,
@@ -149,6 +153,7 @@
 		00692BD214FF149000D0A05E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				114B40A6188CC5B600DB811D /* Accelerate.framework */,
 				C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */,
 				C727C02B121B400300192073 /* CoreMedia.framework */,
 				C727C02D121B400300192073 /* CoreVideo.framework */,
@@ -168,6 +173,8 @@
 		00692BD914FF149000D0A05E /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				114B40A8188CC5CD00DB811D /* AudioDrawUtils.h */,
+				114B40A9188CC5CD00DB811D /* AudioDrawUtils.cpp */,
 				3FA7C92DC3E04D2287F42479 /* FileNodeTestApp.cpp */,
 			);
 			name = Source;
@@ -184,11 +191,11 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
-		11B0424D179C56950034BEE2 /* Products */ = {
+		11DB1B5D188CC30A00B70E6E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				11B04252179C56950034BEE2 /* libAudio2.a */,
-				11B04254179C56950034BEE2 /* libAudio2-ios.a */,
+				11DB1B62188CC30A00B70E6E /* libAudio2.a */,
+				11DB1B64188CC30A00B70E6E /* libAudio2-ios.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -196,13 +203,12 @@
 		14ACABBB1767902800854FE5 /* sound */ = {
 			isa = PBXGroup;
 			children = (
+				114B40AB188CC63A00DB811D /* cash_satisfied_mind.mp3 */,
 				14ACABBC1767903100854FE5 /* Blank__Kytt_-_08_-_RSPN.mp3 */,
 				14ACABBD1767903100854FE5 /* DrainMagic.ogg */,
-				14ACABBE1767903100854FE5 /* exp006-003_synplant_utonic_f32.wav */,
 				14ACABBF1767903100854FE5 /* Radiohead_-_Pyramid_Song_(sample).ogg */,
 				14ACABC01767903100854FE5 /* Ringtone 07.wma */,
 				14ACABC11767903100854FE5 /* Stevie Wonder  For Once In My Life.ogg */,
-				14ACABC21767903100854FE5 /* Summertime_sample_10s.ogg */,
 				14ACABC31767903100854FE5 /* tone440_float.wav */,
 				14ACABC41767903100854FE5 /* tone440.mp3 */,
 				14ACABC51767903100854FE5 /* tone440.ogg */,
@@ -238,7 +244,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				11B0425F179C56B00034BEE2 /* PBXTargetDependency */,
+				114B40A2188CC5A500DB811D /* PBXTargetDependency */,
 			);
 			name = FileNodeTest;
 			productName = FileNodeTest;
@@ -264,8 +270,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 11B0424D179C56950034BEE2 /* Products */;
-					ProjectRef = 11B0424C179C56950034BEE2 /* Audio2.xcodeproj */;
+					ProductGroup = 11DB1B5D188CC30A00B70E6E /* Products */;
+					ProjectRef = 11DB1B5C188CC30A00B70E6E /* Audio2.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -276,18 +282,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		11B04252179C56950034BEE2 /* libAudio2.a */ = {
+		11DB1B62188CC30A00B70E6E /* libAudio2.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libAudio2.a;
-			remoteRef = 11B04251179C56950034BEE2 /* PBXContainerItemProxy */;
+			remoteRef = 11DB1B61188CC30A00B70E6E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		11B04254179C56950034BEE2 /* libAudio2-ios.a */ = {
+		11DB1B64188CC30A00B70E6E /* libAudio2-ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = "libAudio2-ios.a";
-			remoteRef = 11B04253179C56950034BEE2 /* PBXContainerItemProxy */;
+			remoteRef = 11DB1B63188CC30A00B70E6E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -302,10 +308,9 @@
 				14ACABCE1767903100854FE5 /* Radiohead_-_Pyramid_Song_(sample).ogg in Resources */,
 				14ACABD01767903100854FE5 /* Stevie Wonder  For Once In My Life.ogg in Resources */,
 				14ACABCC1767903100854FE5 /* DrainMagic.ogg in Resources */,
-				14ACABD11767903100854FE5 /* Summertime_sample_10s.ogg in Resources */,
 				14ACABD91767903100854FE5 /* tone440L220R.wav in Resources */,
+				114B40AC188CC63A00DB811D /* cash_satisfied_mind.mp3 in Resources */,
 				5200EF4C167A4C6A8E08531A /* CinderApp_ios.png in Resources */,
-				14ACABCD1767903100854FE5 /* exp006-003_synplant_utonic_f32.wav in Resources */,
 				14ACABD31767903100854FE5 /* tone440.mp3 in Resources */,
 				14ACABD51767903100854FE5 /* tone440.wav in Resources */,
 				CE3064E03C194585A5E1F283 /* Default-568h@2x.png in Resources */,
@@ -324,6 +329,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				114B40AA188CC5CD00DB811D /* AudioDrawUtils.cpp in Sources */,
 				DB1E63CFF36F4EEDA7D00296 /* FileNodeTestApp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -331,10 +337,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		11B0425F179C56B00034BEE2 /* PBXTargetDependency */ = {
+		114B40A2188CC5A500DB811D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Audio2-ios";
-			targetProxy = 11B0425E179C56B00034BEE2 /* PBXContainerItemProxy */;
+			targetProxy = 114B40A1188CC5A500DB811D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -343,11 +349,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CINDER_PATH = ../../../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Richard Eakin (VGYS9BEJKE)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -364,6 +369,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include \"$(CINDER_PATH)/blocks/audio2/src\"";
@@ -374,7 +380,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CINDER_PATH = ../../../cinder;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";

@@ -15,7 +15,7 @@
 		08019EE3AC7E44BDAC280CDF /* FileNodeTestApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 87979270473A48D48B99601B /* FileNodeTestApp.cpp */; };
 		1189C93C185982750051AB13 /* AudioDrawUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1189C93A185982750051AB13 /* AudioDrawUtils.cpp */; };
 		118EB8931808635800E056C5 /* cash_satisfied_mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 118EB8921808635800E056C5 /* cash_satisfied_mind.mp3 */; };
-		11B92E6D17A0B97F003D6346 /* libAudio2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B92E6817A0B974003D6346 /* libAudio2.a */; };
+		11DB1B6C188CC50C00B70E6E /* libAudio2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11B92E6A17A0B974003D6346 /* libAudio2-ios.a */; };
 		1485FD141768CFFD003BAECF /* Blank__Kytt_-_08_-_RSPN.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD051768CFFD003BAECF /* Blank__Kytt_-_08_-_RSPN.mp3 */; };
 		1485FD151768CFFD003BAECF /* DrainMagic.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD061768CFFD003BAECF /* DrainMagic.ogg */; };
 		1485FD171768CFFD003BAECF /* Radiohead_-_Pyramid_Song_(sample).ogg in Resources */ = {isa = PBXBuildFile; fileRef = 1485FD081768CFFD003BAECF /* Radiohead_-_Pyramid_Song_(sample).ogg */; };
@@ -100,7 +100,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11B92E6D17A0B97F003D6346 /* libAudio2.a in Frameworks */,
+				11DB1B6C188CC50C00B70E6E /* libAudio2-ios.a in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */,
 				5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */,
