@@ -34,7 +34,7 @@ using namespace ci;
 
 void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, const Vec2f &padding, bool drawFrame )
 {
-	gl::color( 0.0f, 0.9f, 0.0f );
+	gl::color( 0, 0.9f, 0 );
 
 	const float waveHeight = float( bounds.getHeight() - padding.y * 2 ) / (float)buffer.getNumChannels();
 	const float xScale = float( bounds.getWidth() - padding.x * 2 ) / (float)buffer.getNumFrames();
@@ -64,8 +64,8 @@ void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, const V
 namespace {
 
 inline void calcMinMaxForSection( const float *buffer, size_t samplesPerSection, float &max, float &min ) {
-	max = 0.0f;
-	min = 0.0f;
+	max = 0;
+	min = 0;
 	for( size_t k = 0; k < samplesPerSection; k++ ) {
 		float s = buffer[k];
 		max = math<float>::max( max, s );
@@ -74,11 +74,11 @@ inline void calcMinMaxForSection( const float *buffer, size_t samplesPerSection,
 }
 
 inline void calcAverageForSection( const float *buffer, size_t samplesPerSection, float &upper, float &lower ) {
-	upper = 0.0f;
-	lower = 0.0f;
+	upper = 0;
+	lower = 0;
 	for( size_t k = 0; k < samplesPerSection; k++ ) {
 		float s = buffer[k];
-		if( s > 0.0f ) {
+		if( s > 0 ) {
 			upper += s;
 		} else {
 			lower += s;
@@ -155,7 +155,7 @@ void WaveformPlot::draw()
 
 	if( waveforms.size() > 2 ) {
 		gl::pushMatrices();
-		gl::translate( 0.0f, getBounds().getHeight() / 2 );
+		gl::translate( 0, getBounds().getHeight() / 2 );
 
 		gl::color( mColorMinMax );
 		gl::draw( waveforms[2].getMesh() );
@@ -176,12 +176,12 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 	if( magSpectrum.empty() )
 		return;
 
-	Color bottomColor( 0.0f, 0.0f, 0.7f );
+	ColorA bottomColor( 0, 0, 0.7f, 1 );
 
 	float width = mBounds.getWidth();
 	float height = mBounds.getHeight();
 	size_t numBins = magSpectrum.size();
-	float padding = 0.0f;
+	float padding = 0;
 	float binWidth = ( width - padding * ( numBins - 1 ) ) / (float)numBins;
 
 	size_t numVerts = magSpectrum.size() * 2 + 2;
@@ -195,7 +195,7 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 	for( size_t i = 0; i < numBins; i++ ) {
 		float m = magSpectrum[i];
 		if( mScaleDecibels )
-			m = audio2::toDecibels( m ) / 100.0f;
+			m = audio2::toDecibels( m ) / 100;
 
 		bin.y1 = bin.y2 - m * height;
 
