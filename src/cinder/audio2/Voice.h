@@ -55,6 +55,13 @@ class Voice {
 	//! Creates a Voice that continously calls \a callbackFn to process a Buffer of samples.
 	static VoiceRef create( CallbackProcessorFn callbackFn, const Options &options = Options() );
 
+	//! Starts the Voice from its current state.
+	virtual void play();
+	//! Pauses the Voice inits current state. play() will resume from here.
+	virtual void pause();
+	//! Stops the Voice, resetting its state to the same as when it was created.
+	virtual void stop();
+
 	virtual NodeRef getNode() const = 0;
 
 	void setVolume( float volume );
@@ -77,6 +84,8 @@ class VoiceSamplePlayer : public Voice {
 	NodeRef getNode() const override			{ return mNode; }
 	SamplePlayerRef getSamplePlayer() const		{ return mNode; }
 
+	virtual void stop() override;
+
   protected:
 	VoiceSamplePlayer( const SourceFileRef &sourceFile, const Options &options );
 	SamplePlayerRef mNode;
@@ -94,9 +103,5 @@ class VoiceCallbackProcessor : public Voice {
 	CallbackProcessorRef mNode;
 	friend class Voice;
 };
-
-// TODO: remove this in favor of Voice->play() ?
-//	- or even Voice->start() / Voice->stop()
-void play( const VoiceRef &voice );
 
 } } // namespace cinder::audio2

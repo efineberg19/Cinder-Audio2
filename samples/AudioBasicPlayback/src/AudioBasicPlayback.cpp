@@ -27,13 +27,13 @@ void AudioBasicPlaybackApp::setup()
 
 void AudioBasicPlaybackApp::mouseDown( MouseEvent event )
 {
-	float volume = 1.0f - ( (float)event.getPos().y / (float)getWindowHeight() );
+	float volume = 1.0f - (float)event.getPos().y / (float)getWindowHeight();
 	float pan = (float)event.getPos().x / (float)getWindowWidth();
 
 	mVoice->setVolume( volume );
 	mVoice->setPan( pan );
 
-	audio2::play( mVoice );
+	mVoice->play();
 }
 
 void AudioBasicPlaybackApp::draw()

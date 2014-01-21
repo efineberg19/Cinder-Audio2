@@ -184,9 +184,19 @@ void Voice::setPan( float pan )
 	MixerImpl::get()->setBusPan( mBusId, pan );
 }
 
-void play( const VoiceRef &source )
+void Voice::play()
 {
-	source->getNode()->start();
+	getNode()->start();
+}
+
+void Voice::pause()
+{
+	getNode()->stop();
+}
+
+void Voice::stop()
+{
+	getNode()->start();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -202,6 +212,14 @@ VoiceSamplePlayer::VoiceSamplePlayer( const SourceFileRef &sourceFile, const Opt
 		mNode = Context::master()->makeNode( new BufferPlayer( buffer ) );
 	} else
 		mNode = Context::master()->makeNode( new FilePlayer( sourceFile ) );
+
+	mNode->setStartAtBeginning( false );
+}
+
+void VoiceSamplePlayer::stop()
+{
+	mNode->stop();
+	mNode->seek( 0 );
 }
 
 // ----------------------------------------------------------------------------------------------------
