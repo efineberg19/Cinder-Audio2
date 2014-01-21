@@ -202,9 +202,9 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 		mVerts[currVertex] = bin.getLowerLeft();
 		mColors[currVertex] = bottomColor;
 		mVerts[currVertex + 1] = bin.getUpperLeft();
-		mColors[currVertex + 1] = Color( 0.0f, m, 0.7f );
+		mColors[currVertex + 1] = ColorA( 0, m, 0.7f, 1 );
 
-		bin += Vec2f( binWidth + padding, 0.0f );
+		bin += Vec2f( binWidth + padding, 0 );
 		currVertex += 2;
 	}
 
@@ -213,13 +213,13 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 	mVerts[currVertex + 1] = bin.getUpperLeft();
 	mColors[currVertex + 1] = mColors[currVertex - 1];
 
-	gl::color( 0.0f, 0.9f, 0.0f );
+	gl::color( 0, 0.9f, 0 );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_COLOR_ARRAY );
 	glVertexPointer( 2, GL_FLOAT, 0, mVerts.data() );
-	glColorPointer( 3, GL_FLOAT, 0, mColors.data() );
-	glDrawArrays( GL_TRIANGLE_STRIP, 0, (GLsizei)mVerts.size() ); // FIXME: crashing on iOS.
+	glColorPointer( 4, GL_FLOAT, 0, mColors.data() );  // note: on OpenGL ES v1.1, the 'size' param to glColorPointer can only be 4
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, (GLsizei)mVerts.size() );
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
 }

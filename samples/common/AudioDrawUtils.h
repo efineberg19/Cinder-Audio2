@@ -89,5 +89,5 @@ private:
 	ci::Rectf				mBounds;
 	bool					mScaleDecibels;
 	std::vector<ci::Vec2f>	mVerts;
-	std::vector<ci::Color>	mColors;
+	std::vector<ci::ColorA>	mColors;
 };
