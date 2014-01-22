@@ -83,11 +83,9 @@ void DeviceTestApp::setup()
 	// TODO: this should be set in setOutputDevice()
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
 
-
-	setupSine();
-//	setupIOClean();
+//	setupSine();
+	setupIOClean();
 //	setupIOProcessed();
-
 
 	ctx->printGraph();
 

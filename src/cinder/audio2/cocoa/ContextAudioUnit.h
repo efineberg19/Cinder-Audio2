@@ -92,7 +92,6 @@ class LineInAudioUnit : public LineIn, public NodeAudioUnit {
 	uint64_t getLastOverrun() override;
 
   private:
-	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
 
 	dsp::RingBuffer						mRingBuffer;

@@ -221,11 +221,6 @@ void LineInAudioUnit::initialize()
 		if( lineOutWasInitialized )
 			lineOutAu->initialize();
 
-//		::AURenderCallbackStruct callbackStruct { LineInAudioUnit::renderCallback, &mRenderData };
-//		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::INPUT );
-
-//		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
-
 		if( lineOutWasEnabled )
 			lineOutAu->setEnabled();
 
@@ -329,15 +324,6 @@ void LineInAudioUnit::process( Buffer *buffer )
 		if( ! mRingBuffer.read( buffer->getData(), buffer->getSize() ) )
 		   mLastUnderrun = getContext()->getNumProcessedFrames();
 	}
-}
-
-OSStatus LineInAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList )
-{
-	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
-	LineInAudioUnit *lineIn = static_cast<LineInAudioUnit *>( renderData->node );
-
-	copyToBufferList( bufferList, lineIn->mProcessBuffer );
-	return noErr;
 }
 
 // note: Not all AudioUnitRender status errors are fatal here. For instance, if samplerate just changed we may not be able to pull input just yet, but we will next frame.
