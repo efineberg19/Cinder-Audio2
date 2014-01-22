@@ -20,7 +20,6 @@
     <ClCompile Include="..\src\cinder\audio2\dsp\Dsp.cpp" />
     <ClCompile Include="..\src\cinder\audio2\dsp\Fft.cpp" />
     <ClCompile Include="..\src\cinder\audio2\dsp\ooura\fftsg.cpp" />
-    <ClCompile Include="..\src\cinder\audio2\File.cpp" />
     <ClCompile Include="..\src\cinder\audio2\FileOggVorbis.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Filter.cpp" />
     <ClCompile Include="..\src\cinder\audio2\msw\ContextXAudio.cpp" />
@@ -30,11 +29,13 @@
     <ClCompile Include="..\src\cinder\audio2\msw\util.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Node.cpp" />
     <ClCompile Include="..\src\cinder\audio2\NodeEffect.cpp" />
-    <ClCompile Include="..\src\cinder\audio2\NodeSource.cpp" />
-    <ClCompile Include="..\src\cinder\audio2\NodeTarget.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\NodeInput.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\NodeOutput.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Param.cpp" />
     <ClCompile Include="..\src\cinder\audio2\SamplePlayer.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Scope.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Source.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Target.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Utilities.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Voice.cpp" />
     <ClCompile Include="..\src\oggvorbis\ogg\bitwise.c" />
@@ -82,7 +83,6 @@
     <ClInclude Include="..\src\cinder\audio2\dsp\ooura\fftsg.h" />
     <ClInclude Include="..\src\cinder\audio2\dsp\RingBuffer.h" />
     <ClInclude Include="..\src\cinder\audio2\Exception.h" />
-    <ClInclude Include="..\src\cinder\audio2\File.h" />
     <ClInclude Include="..\src\cinder\audio2\FileOggVorbis.h" />
     <ClInclude Include="..\src\cinder\audio2\Filter.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\ContextXAudio.h" />
@@ -93,11 +93,13 @@
     <ClInclude Include="..\src\cinder\audio2\msw\xaudio.h" />
     <ClInclude Include="..\src\cinder\audio2\Node.h" />
     <ClInclude Include="..\src\cinder\audio2\NodeEffect.h" />
-    <ClInclude Include="..\src\cinder\audio2\NodeSource.h" />
-    <ClInclude Include="..\src\cinder\audio2\NodeTarget.h" />
+    <ClInclude Include="..\src\cinder\audio2\NodeInput.h" />
+    <ClInclude Include="..\src\cinder\audio2\NodeOutput.h" />
     <ClInclude Include="..\src\cinder\audio2\Param.h" />
     <ClInclude Include="..\src\cinder\audio2\SamplePlayer.h" />
     <ClInclude Include="..\src\cinder\audio2\Scope.h" />
+    <ClInclude Include="..\src\cinder\audio2\Source.h" />
+    <ClInclude Include="..\src\cinder\audio2\Target.h" />
     <ClInclude Include="..\src\cinder\audio2\Utilities.h" />
     <ClInclude Include="..\src\cinder\audio2\Voice.h" />
     <ClInclude Include="..\src\oggvorbis\vorbis\backends.h" />
