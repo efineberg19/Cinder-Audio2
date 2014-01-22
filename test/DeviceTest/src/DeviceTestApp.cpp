@@ -12,9 +12,7 @@
 
 #include "../../common/AudioTestGui.h"
 
-// TODO: finish testing on-the-fly device changes with fireface
 // TODO: check iOS 6+ interruption handlers via notification
-// TODO: add channels controls for i/o
 
 using namespace ci;
 using namespace ci::app;
@@ -27,8 +25,8 @@ class DeviceTestApp : public AppNative {
 	void update();
 	void draw();
 
-	void setOutputDevice( const audio2::DeviceRef &device );
-	void setInputDevice( const audio2::DeviceRef &device );
+	void setOutputDevice( const audio2::DeviceRef &device, size_t numChannels = 0 );
+	void setInputDevice( const audio2::DeviceRef &device, size_t numChannels = 0 );
 	void setupMultiChannelDevice( const string &deviceName );
 	void printDeviceDetails( const audio2::DeviceRef &device );
 
@@ -53,7 +51,7 @@ class DeviceTestApp : public AppNative {
 	VSelector mTestSelector, mInputSelector, mOutputSelector;
 	Button mPlayButton;
 	HSlider mGainSlider;
-	TextInput mSamplerateInput, mFramesPerBlockInput;
+	TextInput mSamplerateInput, mFramesPerBlockInput, mNumInChannelsInput, mNumOutChannelsInput;
 
 	Anim<float> mUnderrunFade, mOverrunFade, mClipFade;
 	Anim<float> mViewYOffset; // for iOS keyboard
@@ -94,7 +92,7 @@ void DeviceTestApp::setup()
 	LOG_V( "Context samplerate: " << ctx->getSampleRate() );
 }
 
-void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
+void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t numChannels )
 {
 	audio2::NodeInputRef currentSource = audio2::findFirstUpstreamNode<audio2::NodeInput>( mGain );
 	audio2::SaveNodeEnabledState enabled( currentSource );
@@ -103,7 +101,11 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
 
 	ctx->uninitializeAllNodes();
 
-	mLineOut = ctx->createLineOut( device );
+	audio2::Node::Format format;
+	if( numChannels )
+		format.channels( numChannels );
+
+	mLineOut = ctx->createLineOut( device, format );
 
 	// TODO: if this call is moved to after the mScope->connect(), there is a chance that initialization can
 	// take place with samplerate / frames-per-block derived from the default NodeOutput (ses default Device)
@@ -118,15 +120,18 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device )
 	printDeviceDetails( device );
 }
 
-void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device )
+void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device, size_t numChannels  )
 {
 	audio2::SaveNodeEnabledState enabled( mLineIn );
 
 	if( mLineIn )
 		mLineIn->disconnectAllOutputs();
 
-	mLineIn = audio2::Context::master()->createLineIn( device );
-//	mLineIn = audio2::Context::master()->createLineIn( device, audio2::Node::Format().channels( 2 ) );
+	audio2::Node::Format format;
+	if( numChannels )
+		format.channels( numChannels );
+
+	mLineIn = audio2::Context::master()->createLineIn( device, format );
 
 	setupTest( mTestSelector.currentSection() );
 
@@ -158,7 +163,7 @@ void DeviceTestApp::printDeviceDetails( const audio2::DeviceRef &device )
 void DeviceTestApp::setupSine()
 {
 	auto sineGen = audio2::Context::master()->makeNode( new audio2::GenSine() );
-	sineGen->setFreq( 440.0f );
+	sineGen->setFreq( 440 );
 	mSourceNode = sineGen;
 
 	mSourceNode->connect( mGain );
@@ -196,8 +201,8 @@ void DeviceTestApp::setupIOProcessed()
 
 void DeviceTestApp::setupUI()
 {
-	mUnderrunFade = mOverrunFade = mClipFade = 0.0f;
-	mViewYOffset = 0.0f;
+	mUnderrunFade = mOverrunFade = mClipFade = 0;
+	mViewYOffset = 0;
 
 	mPlayButton = Button( true, "stopped", "playing" );
 	mWidgets.push_back( &mPlayButton );
@@ -210,19 +215,19 @@ void DeviceTestApp::setupUI()
 
 #if defined( CINDER_COCOA_TOUCH )
 	mPlayButton.mBounds = Rectf( 0, 0, 120, 60 );
-	mTestSelector.mBounds = Rectf( getWindowWidth() - 190, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.mBounds = Rectf( getWindowWidth() - 190, 0, getWindowWidth(), 160 );
 #else
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
-	mTestSelector.mBounds = Rectf( getWindowCenter().x + 110, 0.0f, getWindowWidth(), 160.0f );
+	mTestSelector.mBounds = Rectf( getWindowCenter().x + 110, 0, getWindowWidth(), 160 );
 #endif
 
-	mGainSlider.mBounds = Rectf( mTestSelector.mBounds.x1, mTestSelector.mBounds.y2 + 10.0f, mTestSelector.mBounds.x2, mTestSelector.mBounds.y2 + 50.0f );
+	mGainSlider.mBounds = Rectf( mTestSelector.mBounds.x1, mTestSelector.mBounds.y2 + 10, mTestSelector.mBounds.x2, mTestSelector.mBounds.y2 + 50 );
 	mGainSlider.mTitle = "Gain";
 	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
 	mOutputSelector.mTitle = "Output Devices";
-	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40.0f, getWindowWidth(), getWindowHeight() );
+	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40, getWindowWidth(), getWindowHeight() );
 	for( const auto &dev : audio2::Device::getOutputDevices() ) {
 		if( dev == mLineOut->getDevice() )
 			mOutputSelector.mCurrentSectionIndex = mOutputSelector.mSegments.size();
@@ -231,7 +236,7 @@ void DeviceTestApp::setupUI()
 	mWidgets.push_back( &mOutputSelector );
 
 	mInputSelector.mTitle = "Input Devices";
-	mInputSelector.mBounds = mOutputSelector.mBounds - Vec2f( mOutputSelector.mBounds.getWidth() + 10.0f, 0.0f );
+	mInputSelector.mBounds = mOutputSelector.mBounds - Vec2f( mOutputSelector.mBounds.getWidth() + 10, 0 );
 	for( const auto &dev : audio2::Device::getInputDevices() ) {
 		if( dev == mLineIn->getDevice() )
 		mInputSelector.mCurrentSectionIndex = mInputSelector.mSegments.size();
@@ -239,23 +244,34 @@ void DeviceTestApp::setupUI()
 	}
 	mWidgets.push_back( &mInputSelector );
 
-	Rectf textInputBounds( 0.0f, getWindowCenter().y + 40.0f, 200.0f, getWindowCenter().y + 70.0f  );
+	Rectf textInputBounds( 0, getWindowCenter().y + 40, 200, getWindowCenter().y + 70  );
 	mSamplerateInput.mBounds = textInputBounds;
 	mSamplerateInput.mTitle = "samplerate";
 	mSamplerateInput.setValue( audio2::Context::master()->getSampleRate() );
 	mWidgets.push_back( &mSamplerateInput );
 
-	textInputBounds += Vec2f( 0.0f, textInputBounds.getHeight() + 24.0f );
+	textInputBounds += Vec2f( 0, textInputBounds.getHeight() + 24 );
 	mFramesPerBlockInput.mBounds = textInputBounds;
 	mFramesPerBlockInput.mTitle = "frames per block";
 	mFramesPerBlockInput.setValue( audio2::Context::master()->getFramesPerBlock() );
 	mWidgets.push_back( &mFramesPerBlockInput );
 
+	textInputBounds += Vec2f( 0, textInputBounds.getHeight() + 24 );
+	mNumInChannelsInput.mBounds = textInputBounds;
+	mNumInChannelsInput.mTitle = "num inputs";
+	mNumInChannelsInput.setValue( mLineIn->getNumChannels() );
+	mWidgets.push_back( &mNumInChannelsInput );
 
-	Vec2f xrunSize( 80.0f, 26.0f );
-	mUnderrunRect = Rectf( 0, mPlayButton.mBounds.y2 + 10.0f, xrunSize.x, mPlayButton.mBounds.y2 + xrunSize.y + 10.0f );
-	mOverrunRect = mUnderrunRect + Vec2f( xrunSize.x + 10.0f, 0.0f );
-	mClipRect = mOverrunRect + Vec2f( xrunSize.x + 10.0f, 0.0f );
+	textInputBounds += Vec2f( 0, textInputBounds.getHeight() + 24 );
+	mNumOutChannelsInput.mBounds = textInputBounds;
+	mNumOutChannelsInput.mTitle = "num outputs";
+	mNumOutChannelsInput.setValue( mLineOut->getNumChannels() );
+	mWidgets.push_back( &mNumOutChannelsInput );
+
+	Vec2f xrunSize( 80, 26 );
+	mUnderrunRect = Rectf( 0, mPlayButton.mBounds.y2 + 10, xrunSize.x, mPlayButton.mBounds.y2 + xrunSize.y + 10 );
+	mOverrunRect = mUnderrunRect + Vec2f( xrunSize.x + 10, 0 );
+	mClipRect = mOverrunRect + Vec2f( xrunSize.x + 10, 0 );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -266,8 +282,8 @@ void DeviceTestApp::setupUI()
 	} );
 
 #if defined( CINDER_COCOA_TOUCH )
-	getSignalKeyboardWillShow().connect( [this] { timeline().apply( &mViewYOffset, -100.0f, 0.3f, EaseInOutCubic() );	} );
-	getSignalKeyboardWillHide().connect( [this] { timeline().apply( &mViewYOffset, 0.0f, 0.3f, EaseInOutCubic() ); } );
+	getSignalKeyboardWillShow().connect( [this] { timeline().apply( &mViewYOffset, -100, 0.3f, EaseInOutCubic() );	} );
+	getSignalKeyboardWillHide().connect( [this] { timeline().apply( &mViewYOffset, 0, 0.3f, EaseInOutCubic() ); } );
 #endif
 
 	gl::enableAlphaBlending();
@@ -281,20 +297,23 @@ void DeviceTestApp::processDrag( Vec2i pos )
 
 void DeviceTestApp::processTap( Vec2i pos )
 {
+//	TextInput *selectedInput = false;
 	if( mPlayButton.hitTest( pos ) )
 		audio2::Context::master()->setEnabled( ! audio2::Context::master()->isEnabled() );
 	else if( mSamplerateInput.hitTest( pos ) ) {
-		LOG_V( "mSamplerateInput selected" );
-#if defined( CINDER_COCOA_TOUCH )
-		showKeyboard( KeyboardOptions().type( KeyboardType::NUMERICAL ).initialString( mSamplerateInput.mInputString ) );
-#endif
 	}
 	else if( mFramesPerBlockInput.hitTest( pos ) ) {
-		LOG_V( "mFramesPerBlockInput selected" );
-#if defined( CINDER_COCOA_TOUCH )
-		showKeyboard( KeyboardOptions().type( KeyboardType::NUMERICAL ).initialString( mFramesPerBlockInput.mInputString ) );
-#endif
 	}
+	else if( mNumInChannelsInput.hitTest( pos ) ) {
+	}
+	else if( mNumOutChannelsInput.hitTest( pos ) ) {
+	}
+
+#if defined( CINDER_COCOA_TOUCH )
+	TextInput *currentSelected = TextInput::getCurrentSelected();
+	if( currentSelected )
+		showKeyboard( KeyboardOptions().type( KeyboardType::NUMERICAL ).initialString( currentSelected->mInputString ) );
+#endif
 
 	size_t currentTestIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentTestIndex != mTestSelector.mCurrentSectionIndex ) {
@@ -361,8 +380,18 @@ void DeviceTestApp::keyDown( KeyEvent event )
 				LOG_V( "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames );
 				mLineOut->getDevice()->updateFormat( audio2::Device::Format().framesPerBlock( frames ) );
 			}
+			else if( currentSelected == &mNumInChannelsInput ) {
+				int numChannels = currentSelected->getValue();
+				LOG_V( "updating nnm input channels from: " << mLineIn->getNumChannels() << " to: " << numChannels );
+				setInputDevice( mLineIn->getDevice(), numChannels );
+			}
+			else if( currentSelected == &mNumOutChannelsInput ) {
+				int numChannels = currentSelected->getValue();
+				LOG_V( "updating nnm output channels from: " << mLineOut->getNumChannels() << " to: " << numChannels );
+				setOutputDevice( mLineOut->getDevice(), numChannels );
+			}
 			else
-				LOG_V( "unhandled return for string: " << currentSelected->mInputString );
+				LOG_E( "unhandled return for string: " << currentSelected->mInputString );
 		}
 		catch( audio2::AudioDeviceExc &exc ) {
 			LOG_E( "AudioDeviceExc caught, what: " << exc.what() );
@@ -396,15 +425,15 @@ void DeviceTestApp::update()
 void DeviceTestApp::draw()
 {
 	gl::clear();
-	gl::color( 0.0f, 0.9f, 0.0f );
+	gl::color( 0, 0.9f, 0 );
 
 	gl::pushMatrices();
-	gl::translate( 0.0f, mViewYOffset );
+	gl::translate( 0, mViewYOffset );
 
 	if( mScope && mScope->isInitialized() ) {
 		const audio2::Buffer &buffer = mScope->getBuffer();
 
-		float padding = 20.0f;
+		float padding = 20;
 		float waveHeight = ((float)getWindowHeight() - padding * 3.0f ) / (float)buffer.getNumChannels();
 
 		float yOffset = padding;
@@ -421,7 +450,7 @@ void DeviceTestApp::draw()
 			yOffset += waveHeight + padding;
 		}
 
-		float volumeMeterHeight = 20.0f;
+		float volumeMeterHeight = 20;
 		float volume = mScope->getVolume();
 		Rectf volumeRect( padding, getWindowHeight() - padding - volumeMeterHeight, padding + volume * ( getWindowWidth() - padding ), getWindowHeight() - padding );
 		gl::drawSolidRect( volumeRect );
@@ -430,17 +459,17 @@ void DeviceTestApp::draw()
 	drawWidgets( mWidgets );
 
 	if( mUnderrunFade > 0.0001f ) {
-		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mUnderrunFade ) );
+		gl::color( ColorA( 1, 0.5f, 0, mUnderrunFade ) );
 		gl::drawSolidRect( mUnderrunRect );
 		gl::drawStringCentered( "underrun", mUnderrunRect.getCenter(), Color::black() );
 	}
 	if( mOverrunFade > 0.0001f ) {
-		gl::color( ColorA( 1.0f, 0.5f, 0.0f, mOverrunFade ) );
+		gl::color( ColorA( 1, 0.5f, 0, mOverrunFade ) );
 		gl::drawSolidRect( mOverrunRect );
 		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
 	}
 	if( mClipFade > 0.0001f ) {
-		gl::color( ColorA( 1.0f, 0.1f, 0.0f, mClipFade ) );
+		gl::color( ColorA( 1, 0.1f, 0, mClipFade ) );
 		gl::drawSolidRect( mClipRect );
 		gl::drawStringCentered( "clip", mClipRect.getCenter(), Color::black() );
 	}
