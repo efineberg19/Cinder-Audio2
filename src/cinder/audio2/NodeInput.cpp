@@ -72,8 +72,10 @@ LineIn::LineIn( const DeviceRef &device, const Format &format )
 		setNumChannels( std::min( deviceNumChannels, (size_t)2 ) );
 	}
 
-	if( deviceNumChannels < mNumChannels )
-		throw AudioFormatExc( string( "Device can not accommodate " ) + to_string( deviceNumChannels ) + " output channels." );
+	// TODO: this doesn't always mean a failing cause, need Device::supportsNumInputChannels( mNumChannels ) to be sure
+	//	- on iOS, the RemoteIO audio unit can have 2 input channels, while the AVAudioSession reports only 1 input channel.
+//	if( deviceNumChannels < mNumChannels )
+//		throw AudioFormatExc( string( "Device can not accommodate " ) + to_string( deviceNumChannels ) + " output channels." );
 }
 
 LineIn::~LineIn()

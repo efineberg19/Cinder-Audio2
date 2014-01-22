@@ -68,7 +68,7 @@ void NodeAudioUnit::uninitAu()
 // MARK: - LineOutAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineOutAudioUnit::LineOutAudioUnit( DeviceRef device, const Format &format )
+LineOutAudioUnit::LineOutAudioUnit( const DeviceRef &device, const Format &format )
 : LineOut( device, format ), mSynchronousIO( false )
 {
 	findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
@@ -90,6 +90,10 @@ void LineOutAudioUnit::initialize()
 
 	UInt32 enableInput = mSynchronousIO;
 	setAudioUnitProperty( mAudioUnit, kAudioOutputUnitProperty_EnableIO, enableInput, kAudioUnitScope_Input, DeviceBus::INPUT );
+
+	if( enableInput )
+		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
+
 
 	::AURenderCallbackStruct callbackStruct { LineOutAudioUnit::renderCallback, &mRenderData };
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::OUTPUT );
@@ -165,20 +169,9 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 // MARK: - LineInAudioUnit
 // ----------------------------------------------------------------------------------------------------
 
-LineInAudioUnit::LineInAudioUnit( DeviceRef device, const Format &format )
+LineInAudioUnit::LineInAudioUnit( const DeviceRef &device, const Format &format )
 : LineIn( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 ), mRingBufferPaddingFactor( 2 )
 {
-#if defined( CINDER_COCOA_TOUCH )
-	auto manager = dynamic_cast<DeviceManagerAudioSession *>( Context::deviceManager() );
-	CI_ASSERT( manager );
-
-	manager->setInputEnabled();
-#endif
-
-	if( mChannelMode != ChannelMode::SPECIFIED ) {
-		mChannelMode = ChannelMode::SPECIFIED;
-		setNumChannels( mDevice->getNumInputChannels() );
-	}
 }
 
 LineInAudioUnit::~LineInAudioUnit()
@@ -192,22 +185,19 @@ void LineInAudioUnit::initialize()
 
 	// see if synchronous I/O is possible by looking at the LineOut
 	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getOutput() );
+	CI_ASSERT( lineOutAu );
 
-	if( lineOutAu ) {
-		bool sameDevice = lineOutAu->getDevice() == mDevice;
-		if( sameDevice ) {
+	if( mDevice == lineOutAu->getDevice() && mNumChannels == lineOutAu->getNumChannels() ) {
+		mSynchronousIO = true;
+		mAudioUnit = lineOutAu->getAudioUnit();
+		mOwnsAudioUnit = false;
+	}
+	else {
+		// make our own AudioUnit, if we don't already have one (from a previous initialize())
+		findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
 
-			mSynchronousIO = true;
-			mAudioUnit = lineOutAu->getAudioUnit();
-			mOwnsAudioUnit = false;
-		}
-		else {
-			// make our own AudioUnit, if we don't already have one (from a previous initialize())
-			findAndCreateAudioComponent( getOutputAudioUnitDesc(), &mAudioUnit );
-
-			mSynchronousIO = false;
-			mOwnsAudioUnit = true;
-		}
+		mSynchronousIO = false;
+		mOwnsAudioUnit = true;
 	}
 
 	size_t framesPerBlock = lineOutAu->getFramesPerBlock();
@@ -228,14 +218,17 @@ void LineInAudioUnit::initialize()
 
 		mBufferList = createNonInterleavedBufferList( framesPerBlock, getNumChannels() );
 
-		::AURenderCallbackStruct callbackStruct { LineInAudioUnit::renderCallback, &mRenderData };
-		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::INPUT );
-		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
-
 		if( lineOutWasInitialized )
 			lineOutAu->initialize();
+
+//		::AURenderCallbackStruct callbackStruct { LineInAudioUnit::renderCallback, &mRenderData };
+//		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_SetRenderCallback, callbackStruct, kAudioUnitScope_Input, DeviceBus::INPUT );
+
+//		setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, DeviceBus::INPUT );
+
 		if( lineOutWasEnabled )
 			lineOutAu->setEnabled();
+
 
 	}
 	else {

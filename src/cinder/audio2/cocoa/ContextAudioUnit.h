@@ -58,7 +58,7 @@ class NodeAudioUnit {
 
 class LineOutAudioUnit : public LineOut, public NodeAudioUnit {
   public:
-	LineOutAudioUnit( DeviceRef device, const Format &format = Format() );
+	LineOutAudioUnit( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineOutAudioUnit() = default;
 
 	void initialize() override;
@@ -77,7 +77,7 @@ class LineOutAudioUnit : public LineOut, public NodeAudioUnit {
 
 class LineInAudioUnit : public LineIn, public NodeAudioUnit {
   public:
-	LineInAudioUnit( DeviceRef device, const Format &format = Format() );
+	LineInAudioUnit( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineInAudioUnit();
 
 	void initialize() override;

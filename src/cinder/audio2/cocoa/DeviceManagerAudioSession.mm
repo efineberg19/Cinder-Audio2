@@ -87,6 +87,7 @@ DeviceRef DeviceManagerAudioSession::getDefaultOutput()
 
 DeviceRef DeviceManagerAudioSession::getDefaultInput()
 {
+	setInputEnabled( true ); // in order for any input's to be available, the AVAudioSessionCategory needs to be updated from its default.
 	return getRemoteIODevice();
 }
 

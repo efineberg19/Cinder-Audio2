@@ -128,6 +128,7 @@ void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device )
 		mLineIn->disconnectAllOutputs();
 
 	mLineIn = audio2::Context::master()->createLineIn( device );
+//	mLineIn = audio2::Context::master()->createLineIn( device, audio2::Node::Format().channels( 2 ) );
 
 	setupTest( mTestSelector.currentSection() );
 
@@ -151,7 +152,7 @@ void DeviceTestApp::printDeviceDetails( const audio2::DeviceRef &device )
 	console() << "\t samplerate: " << device->getSampleRate() << endl;
 	console() << "\t block size: " << device->getFramesPerBlock() << endl;
 
-	bool isSyncIO = mLineIn && mLineOut && ( mLineIn->getDevice() == mLineOut->getDevice() );
+	bool isSyncIO = mLineIn && mLineOut && ( mLineIn->getDevice() == mLineOut->getDevice() && ( mLineIn->getNumChannels() == mLineOut->getNumChannels() ) );
 
 	console() << "\t sync IO: " << boolalpha << isSyncIO << dec << endl;
 }
