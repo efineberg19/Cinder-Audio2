@@ -121,8 +121,15 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void pullInputs( Buffer *destBuffer );
 
 	// TODO: consider doing custom iterators and hiding these container types
-	InputsContainerT& getInputs()			{ return mInputs; }
-	OutputsContainerT& getOutputs()			{ return mOutputs; }
+	InputsContainerT&			getInputs()				{ return mInputs; }
+	const InputsContainerT&		getInputs() const		{ return mInputs; }
+	OutputsContainerT&			getOutputs()			{ return mOutputs; }
+	const OutputsContainerT&	getOutputs() const		{ return mOutputs; }
+
+	//! Returns a vector of the currently occupied input busses.
+	std::vector<size_t> getOccupiedInputBusses() const;
+	//! Returns a vector of the currently occupied output busses.
+	std::vector<size_t> getOccupiedOutputBusses() const;
 
 	//! Returns whether this Node is in an initialized state and is capabale of processing audio.
 	bool isInitialized() const					{ return mInitialized; }

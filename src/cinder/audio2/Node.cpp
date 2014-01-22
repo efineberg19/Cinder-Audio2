@@ -105,13 +105,15 @@ void Node::disconnect( size_t outputBus )
 void Node::disconnectAllOutputs()
 {
 	NodeRef thisRef = shared_from_this();
-	for( auto &out : mOutputs )
-		disconnect( out.first );
+
+	for( size_t &outBus : getOccupiedOutputBusses() )
+		disconnect( outBus );
 }
 
 void Node::disconnectAllInputs()
 {
 	NodeRef thisRef = shared_from_this();
+
 	for( auto &in : mInputs )
 		in.second->disconnectOutput( thisRef );
 
@@ -149,6 +151,24 @@ void Node::disconnectOutput( const NodeRef &output )
 			break;
 		}
 	}
+}
+
+vector<size_t> Node::getOccupiedInputBusses() const
+{
+	vector<size_t> result;
+	for( const auto &in : getInputs() )
+		result.push_back( in.first );
+
+	return result;
+}
+
+vector<size_t> Node::getOccupiedOutputBusses() const
+{
+	vector<size_t> result;
+	for( const auto &in : getOutputs() )
+		result.push_back( in.first );
+
+	return result;
 }
 
 void Node::pullInputs( Buffer *destBuffer )

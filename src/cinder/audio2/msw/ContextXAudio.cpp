@@ -513,12 +513,10 @@ void ContextXAudio::setOutput( const NodeOutputRef &output )
 }
 
 // Recurse through inputs (this is only called when an input is set, not output).
-// Because a node connections may change, we can't use iterators. So first retrieve all bus indices and iterate over those.
 void ContextXAudio::connectionsDidChange( const NodeRef &node )
 {
-	vector<size_t> inputBusses;
-	for( const auto &in : node->getInputs() )
-		inputBusses.push_back( in.first );
+	// Because node connections may change, we can't iterate on inputs. So first retrieve all bus indices and iterate over those.
+	vector<size_t> inputBusses = node->getOccupiedInputBusses();
 
 	for( size_t bus : inputBusses ) {
 		NodeRef input = node->getInputs()[bus];
