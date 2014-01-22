@@ -121,7 +121,6 @@ void FileNodeTestApp::setupBufferPlayer()
 	auto connectFn = [bufferPlayer, this] {
 		mSamplePlayer = bufferPlayer;
 		mSamplePlayer >> mGain >> mPan >> audio2::Context::master()->getOutput();
-//		mSamplePlayer->connect( mGain )->connect( mPan )->connect( audio2::Context::master()->getOutput() );
 		audio2::Context::master()->printGraph();
 	};
 

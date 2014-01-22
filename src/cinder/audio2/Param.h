@@ -114,7 +114,7 @@ class Param {
 	//! \note Forces \a node to be mono.
 	void setProcessor( const NodeRef &node );
 
-	//! Resets Param, blowing away any Ramps's or processing Node. \note Must be called from a non-audio thread.
+	//! Resets Param, blowing away any Ramp's or processing Node. \note Must be called from a non-audio thread.
 	void reset();
 	//! Returns the number of Ramp's that are currently scheduled.
 	size_t getNumRamps() const;
