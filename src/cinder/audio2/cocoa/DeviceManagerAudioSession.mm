@@ -90,17 +90,17 @@ DeviceRef DeviceManagerAudioSession::getDefaultInput()
 	return getRemoteIODevice();
 }
 
-DeviceRef DeviceManagerAudioSession::findDeviceByName( const std::string &name )
+DeviceRef DeviceManagerAudioSession::findDeviceByName( const string &name )
 {
 	return getRemoteIODevice();
 }
 
-DeviceRef DeviceManagerAudioSession::findDeviceByKey( const std::string &key )
+DeviceRef DeviceManagerAudioSession::findDeviceByKey( const string &key )
 {
 	return getRemoteIODevice();
 }
 
-const std::vector<DeviceRef>& DeviceManagerAudioSession::getDevices()
+const vector<DeviceRef>& DeviceManagerAudioSession::getDevices()
 {
 	if( mDevices.empty() )
 		mDevices.push_back( getDefaultOutput() );
@@ -123,7 +123,7 @@ void DeviceManagerAudioSession::setInputEnabled( bool enable )
 	LOG_V( "set session category to: " << getSessionCategory() );
 }
 
-std::string DeviceManagerAudioSession::getName( const DeviceRef &device )
+string DeviceManagerAudioSession::getName( const DeviceRef &device )
 {
 	return kRemoteIOKey;
 }
@@ -134,11 +134,11 @@ size_t DeviceManagerAudioSession::getNumInputChannels( const DeviceRef &device )
 		return 0;
 
 #if( __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 )
+	// TODO: AVAudioSession's maximumOutputNumberOfChannels will say 2 here if headphones are plugged in - need to expose that as an option
 	NSInteger result = [[AVAudioSession sharedInstance] inputNumberOfChannels];
 #else
 	NSInteger result = [[AVAudioSession sharedInstance] currentHardwareInputNumberOfChannels];
 #endif
-
 	return static_cast<size_t>( result );
 }
 
@@ -175,7 +175,7 @@ size_t DeviceManagerAudioSession::getFramesPerBlock( const DeviceRef &device )
 	CI_ASSERT( status == noErr );
 #endif
 
-	return std::lround( static_cast<Float32>( getSampleRate( device ) ) * durationSeconds );
+	return lround( static_cast<Float32>( getSampleRate( device ) ) * durationSeconds );
 }
 
 void DeviceManagerAudioSession::setSampleRate( const DeviceRef &device, size_t sampleRate )
