@@ -75,9 +75,6 @@ void SpectrumScopeTestApp::setup()
 	mSine = ctx->makeNode( new audio2::GenSine() );
 	mSine->setFreq( 440.0f );
 
-#if ! defined( CINDER_MSW )
-	// FIXME: audio decoding on msw not ready
-
 	mSourceFile = audio2::load( loadResource( RES_CASH_MP3 ) );
 	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
 
@@ -85,8 +82,6 @@ void SpectrumScopeTestApp::setup()
 	LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
 
 	mPlayerNode = ctx->makeNode( new audio2::BufferPlayer( audioBuffer ) );
-
-#endif
 
 	setupSine();
 
