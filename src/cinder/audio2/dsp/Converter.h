@@ -80,4 +80,41 @@ void convertBuffers( const BufferT<SourceT> *sourceBuffer, BufferT<DestT> *destB
 		convert( sourceBuffer->getChannel( ch ), destBuffer->getChannel( ch ), numFrames );
 }
 
+template<typename T>
+inline void interleaveStereoBuffer( const BufferT<T> *nonInterleavedSource, BufferInterleavedT<T> *interleavedDest )
+{
+	CI_ASSERT( interleavedDest->getNumChannels() == 2 && nonInterleavedSource->getNumChannels() == 2 );
+	CI_ASSERT( interleavedDest->getSize() <= nonInterleavedSource->getSize() );
+
+	size_t numFrames = interleavedDest->getNumFrames();
+	const T *left = nonInterleavedSource->getChannel( 0 );
+	const T *right = nonInterleavedSource->getChannel( 1 );
+
+	T *mixed = interleavedDest->getData();
+
+	size_t i, j;
+	for( i = 0, j = 0; i < numFrames; i++, j += 2 ) {
+		mixed[j] = left[i];
+		mixed[j + 1] = right[i];
+	}
+}
+
+template<typename T>
+inline void deinterleaveStereoBuffer( const BufferInterleavedT<T> *interleavedSource, BufferT<T> *nonInterleavedDest )
+{
+	CI_ASSERT( interleavedSource->getNumChannels() == 2 && nonInterleavedDest->getNumChannels() == 2 );
+	CI_ASSERT( nonInterleavedDest->getSize() <= interleavedSource->getSize() );
+
+	size_t numFrames = nonInterleavedDest->getNumFrames();
+	T *left = nonInterleavedDest->getChannel( 0 );
+	T *right = nonInterleavedDest->getChannel( 1 );
+	const T *mixed = interleavedSource->getData();
+
+	size_t i, j;
+	for( i = 0, j = 0; i < numFrames; i++, j += 2 ) {
+		left[i] = mixed[j];
+		right[i] = mixed[j + 1];
+	}
+}
+
 } } } // namespace cinder::audio2::dsp

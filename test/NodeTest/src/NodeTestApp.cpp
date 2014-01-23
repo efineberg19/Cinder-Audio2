@@ -5,12 +5,11 @@
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"
 #include "cinder/audio2/CinderAssert.h"
+#include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
-
-// TODO: implement cycle detection and add test for it that catches exception
 
 using namespace ci;
 using namespace ci::app;
@@ -34,8 +33,8 @@ struct InterleavedPassThruNode : public audio2::Node {
 	{
 		CI_ASSERT( buffer->getNumChannels() == 2 );
 
-		interleaveStereoBuffer( buffer, &mBufferInterleaved );
-		deinterleaveStereoBuffer( &mBufferInterleaved, buffer );
+		audio2::dsp::interleaveStereoBuffer( buffer, &mBufferInterleaved );
+		audio2::dsp::deinterleaveStereoBuffer( &mBufferInterleaved, buffer );
 	}
 
 private:

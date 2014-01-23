@@ -200,46 +200,6 @@ class BufferDynamicT : public BufferT<T> {
 	size_t mAllocatedSize;
 };
 
-// TODO: move these freestanding functions into classes
-// - Buffer::fillInterleaved( BufferInteleaved *), BufferInterleaved::fillBuffer( Buffer *)
-// - Buffer::interleaved(), etc. (not appropriate for real-time)
-template<typename T>
-inline void interleaveStereoBuffer( BufferT<T> *nonInterleaved, BufferInterleavedT<T> *interleaved )
-{
-	CI_ASSERT( interleaved->getNumChannels() == 2 && nonInterleaved->getNumChannels() == 2 );
-	CI_ASSERT( interleaved->getSize() <= nonInterleaved->getSize() );
-
-	size_t numFrames = interleaved->getNumFrames();
-	T *left = nonInterleaved->getChannel( 0 );
-	T *right = nonInterleaved->getChannel( 1 );
-
-	T *mixed = interleaved->getData();
-
-	size_t i, j;
-	for( i = 0, j = 0; i < numFrames; i++, j += 2 ) {
-		mixed[j] = left[i];
-		mixed[j + 1] = right[i];
-	}
-}
-
-template<typename T>
-inline void deinterleaveStereoBuffer( BufferInterleavedT<T> *interleaved, BufferT<T> *nonInterleaved )
-{
-	CI_ASSERT( interleaved->getNumChannels() == 2 && nonInterleaved->getNumChannels() == 2 );
-	CI_ASSERT( nonInterleaved->getSize() <= interleaved->getSize() );
-
-	size_t numFrames = nonInterleaved->getNumFrames();
-	T *left = nonInterleaved->getChannel( 0 );
-	T *right = nonInterleaved->getChannel( 1 );
-	T *mixed = interleaved->getData();
-
-	size_t i, j;
-	for( i = 0, j = 0; i < numFrames; i++, j += 2 ) {
-		left[i] = mixed[j];
-		right[i] = mixed[j + 1];
-	}
-}
-
 //! Simple functor wrapping free(), suitable for unique_ptr's that allocate memory with malloc, calloc and realloc.
 template<typename T>
 struct FreeDeleter {

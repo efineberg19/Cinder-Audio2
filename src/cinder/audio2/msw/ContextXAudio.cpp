@@ -26,6 +26,7 @@
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/msw/xaudio.h"
 #include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Utilities.h"
 #include "cinder/audio2/Exception.h"
 #include "cinder/audio2/CinderAssert.h"
@@ -239,7 +240,7 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 	ctx->processAutoPulledNodes();
 
 	if( getNumChannels() == 2 )
-		interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
+		dsp::interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudioBuffer );
 	CI_ASSERT( hr == S_OK );

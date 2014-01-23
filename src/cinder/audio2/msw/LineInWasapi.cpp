@@ -25,8 +25,9 @@
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/msw/util.h"
 #include "cinder/audio2/Context.h"
-#include "cinder/audio2/dsp/RingBuffer.h"
 #include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/dsp/RingBuffer.h"
+#include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Exception.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
@@ -176,7 +177,7 @@ void LineInWasapi::process( Buffer *buffer )
 	if( buffer->getNumChannels() == 2 ) {
 		size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.getData(), samplesNeeded );
 		//CI_ASSERT( numRead == samplesNeeded );
-		deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
+		dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
 	} else {
 		size_t numRead = mImpl->mRingBuffer->read( buffer->getData(), samplesNeeded );
 		//CI_ASSERT( numRead == samplesNeeded );
