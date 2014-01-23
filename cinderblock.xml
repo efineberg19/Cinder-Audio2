@@ -48,8 +48,8 @@
 		<framework sdk="true">Accelerate.framework</framework>
 	</platform>
 	<platform os="msw">
-		<headerPattern>src/audio2/msw/*.h</headerPattern>
-		<sourcePattern>src/audio2/msw/*.cpp</sourcePattern>
+		<headerPattern>src/cinder/audio2/msw/*.h</headerPattern>
+		<sourcePattern>src/cinder/audio2/msw/*.cpp</sourcePattern>
 		<includePath system="true" absolute="true">$(DXSDK_DIR)\include</includePath>
 		<libraryPath absolute="true">$(DXSDK_DIR)\Lib\x86</libraryPath>
 	</platform>
