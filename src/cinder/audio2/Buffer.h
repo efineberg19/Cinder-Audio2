@@ -115,7 +115,7 @@ class BufferT : public BufferBaseT<T> {
 
 		for( size_t ch = 0; ch < numChannels; ch++ ) {
 			const OtherT *otherChannel = other.getChannel( ch );
-			std::copy( otherChannel, otherChannel + numFrames, this->getChannel( ch ) );
+			std::memcpy( this->getChannel( ch ), otherChannel, numFrames * sizeof( T ) );
 		}
 	}
 };

@@ -26,7 +26,6 @@
 #include "cinder/audio2/CinderAssert.h"
 
 #include <atomic>
-#include <algorithm>
 
 namespace cinder { namespace audio2 { namespace dsp {
 
@@ -67,9 +66,9 @@ public:
 		size_t allocatedSize = count + 1; // one bin is used to distinguish between the read and write indices when full.
 
 		if( mAllocatedSize )
-			mData = (T *)realloc( mData, allocatedSize * sizeof( T ) );
+			mData = (T *)::realloc( mData, allocatedSize * sizeof( T ) );
 		else
-			mData = (T *)calloc( allocatedSize, sizeof( T ) );
+			mData = (T *)::calloc( allocatedSize, sizeof( T ) );
 
 		CI_ASSERT( mData );
 
@@ -107,13 +106,14 @@ public:
 
 		if( writeIndex + count > mAllocatedSize ) {
 			size_t countA = mAllocatedSize - writeIndex;
+			size_t countB = count - countA;
 
-			std::copy( array, array + countA, mData + writeIndex );
-			std::copy( array + countA, array + count, mData );
+			std::memcpy( mData + writeIndex, array, countA * sizeof( T ) );
+			std::memcpy( mData, array + countA, countB * sizeof( T ) );
 			writeIndexAfter -= mAllocatedSize;
 		}
 		else {
-			std::copy( array, array + count, mData + writeIndex );
+			std::memcpy( mData + writeIndex, array, count * sizeof( T ) );
 			if( writeIndexAfter == mAllocatedSize )
 				writeIndexAfter = 0;
 		}
@@ -137,13 +137,13 @@ public:
 			size_t countA = mAllocatedSize - readIndex;
 			size_t countB = count - countA;
 
-			std::copy( mData + readIndex, mData + mAllocatedSize, array );
-			std::copy( mData, mData + countB, array + countA );
+			std::memcpy( array, mData + readIndex, countA * sizeof( T ) );
+			std::memcpy( array + countA, mData, countB * sizeof( T ) );
 
 			readIndexAfter -= mAllocatedSize;
 		}
 		else {
-			std::copy( mData + readIndex, mData + mReadIndex + count, array );
+			std::memcpy( array, mData + readIndex, count * sizeof( T ) );
 			if( readIndexAfter == mAllocatedSize )
 				readIndexAfter = 0;
 		}
