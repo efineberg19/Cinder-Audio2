@@ -251,8 +251,11 @@ template<typename T>
 std::unique_ptr<T, FreeDeleter<T> > makeAlignedArray( size_t size, size_t alignment = 16 )
 {
 	void *ptr = std::calloc( size, sizeof( T ) );
-	ptr = std::align( alignment, size, ptr, size );
-	CI_ASSERT( ptr );
+
+	// FIXME: broken on windows, this is returning NULL.
+	// unnecessary at the moment anyway, so it is commented out until fixed
+	//ptr = std::align( alignment, size, ptr, size );
+	//CI_ASSERT( ptr );
 	
 	return std::unique_ptr<T, FreeDeleter<T> >( static_cast<T *>( ptr ) );
 }
