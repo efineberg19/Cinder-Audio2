@@ -92,13 +92,13 @@ pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, 
 
 pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
-	mBufferd.copyFrom( *sourceBuffer );
+	convertBuffers( sourceBuffer, &mBufferd );
 
 	int outCount = 0;
 	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;
 		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
-		copy( out, out + outCount, destBuffer->getChannel( ch ) );
+		dsp::convert( out, destBuffer->getChannel( ch ), (size_t)outCount );
 	}
 
 	return make_pair( readCount, (size_t)outCount );
@@ -107,13 +107,13 @@ pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourceBuff
 pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
 	mixBuffers( sourceBuffer, &mMixingBuffer );
-	mBufferd.copyFrom( mMixingBuffer );
+	convertBuffers( &mMixingBuffer, &mBufferd );
 
 	int outCount = 0;
 	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;
 		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
-		copy( out, out + outCount, destBuffer->getChannel( ch ) );
+		dsp::convert( out, destBuffer->getChannel( ch ), outCount );
 	}
 
 	return make_pair( readCount, (size_t)outCount );
@@ -121,13 +121,13 @@ pair<size_t, size_t> ConverterImplR8brain::convertImplDownMixing( const Buffer *
 
 pair<size_t, size_t> ConverterImplR8brain::convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
 {
-	mBufferd.copyFrom( *sourceBuffer );
+	convertBuffers( sourceBuffer, &mBufferd );
 
 	int outCount = 0;
 	for( size_t ch = 0; ch < mBufferd.getNumChannels(); ch++ ) {
 		double *out = nullptr;
 		outCount = mResamplers[ch]->process( mBufferd.getChannel( ch ), readCount, out );
-		copy( out, out + outCount, mMixingBuffer.getChannel( ch ) );
+		dsp::convert( out, mMixingBuffer.getChannel( ch ), outCount );
 	}
 
 	mixBuffers( &mMixingBuffer, destBuffer, outCount );

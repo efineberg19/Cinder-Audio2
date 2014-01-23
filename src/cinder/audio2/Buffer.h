@@ -106,18 +106,13 @@ class BufferT : public BufferBaseT<T> {
 	}
 
 	//! Copies min( this, other ) channels and frames from \a other to internal storage.
-	template <typename OtherT>
-	void copyFrom( const BufferT<OtherT> &other )
+	void copyFrom( const BufferT<T> &other )
 	{
 		size_t numFrames = std::min( this->getNumFrames(), other.getNumFrames() );
 		size_t numChannels = std::min( this->getNumChannels(), other.getNumChannels() );
 
-		for( size_t ch = 0; ch < numChannels; ch++ ) {
-			T *channel = this->getChannel( ch );
-			const OtherT *otherChannel = other.getChannel( ch );
-			for( size_t i = 0; i < numFrames; i++ )
-				channel[i] = otherChannel[i];
-		}
+		for( size_t ch = 0; ch < numChannels; ch++ )
+			std::memmove( this->getChannel( ch ), other.getChannel( ch ), numFrames * sizeof( T ) );
 	}
 };
 

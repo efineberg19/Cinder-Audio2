@@ -429,13 +429,15 @@ void FileNodeTestApp::testConverter()
 	while( numFramesConverted < audioBuffer->getNumFrames() ) {
 		if( audioBuffer->getNumFrames() - numFramesConverted > sourceMaxFramesPerBlock ) {
 			for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
-				copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceMaxFramesPerBlock, sourceBuffer.getChannel( ch ) );
+				memcpy( sourceBuffer.getChannel( ch ), audioBuffer->getChannel( ch ) + numFramesConverted, sourceMaxFramesPerBlock * sizeof( float ) );
+				//copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + numFramesConverted + sourceMaxFramesPerBlock, sourceBuffer.getChannel( ch ) );
 		}
 		else {
 			// EOF, shrink sourceBuffer to match remaining
 			sourceBuffer.setNumFrames( audioBuffer->getNumFrames() - numFramesConverted );
 			for( size_t ch = 0; ch < audioBuffer->getNumChannels(); ch++ )
-				copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + audioBuffer->getNumFrames(), sourceBuffer.getChannel( ch ) );
+				memcpy( sourceBuffer.getChannel( ch ), audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getNumFrames() * sizeof( float ) );
+				//copy( audioBuffer->getChannel( ch ) + numFramesConverted, audioBuffer->getChannel( ch ) + audioBuffer->getNumFrames(), sourceBuffer.getChannel( ch ) );
 		}
 
 		pair<size_t, size_t> result = converter->convert( &sourceBuffer, &destBuffer );

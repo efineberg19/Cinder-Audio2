@@ -63,4 +63,21 @@ void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrame
 //! Sums \a sourceBuffer into \a destBuffer. Channel up or down mixing is applied if necessary. Unequal frame counts are permitted (the minimum size will be used).
 inline void sumBuffers( const Buffer *sourceBuffer, Buffer *destBuffer )	{ sumBuffers( sourceBuffer, destBuffer, std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() ) ); }
 
+template <typename SourceT, typename DestT>
+void convert( const SourceT *sourceArray, DestT *destArray, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		destArray[i] = static_cast<DestT>( sourceArray[i] );
+}
+
+template <typename SourceT, typename DestT>
+void convertBuffers( const BufferT<SourceT> *sourceBuffer, BufferT<DestT> *destBuffer )
+{
+	size_t numFrames = std::min( sourceBuffer->getNumFrames(), destBuffer->getNumFrames() );
+	size_t numChannels = std::min( sourceBuffer->getNumChannels(), destBuffer->getNumChannels() );
+
+	for( size_t ch = 0; ch < numChannels; ch++ )
+		convert( sourceBuffer->getChannel( ch ), destBuffer->getChannel( ch ), numFrames );
+}
+
 } } } // namespace cinder::audio2::dsp
