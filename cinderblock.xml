@@ -19,6 +19,12 @@
 	<sourcePattern>src/cinder/audio2/*.cpp</sourcePattern>
 	<headerPattern>src/cinder/audio2/dsp/*.h</headerPattern>
 	<sourcePattern>src/cinder/audio2/dsp/*.cpp</sourcePattern>
+	<headerPattern>src/cinder/audio2/dsp/ooura/*.h</headerPattern>
+	<sourcePattern>src/cinder/audio2/dsp/ooura/*.cpp</sourcePattern>
+
+
+	<headerPattern>src/r8brain/*.h</headerPattern>
+	<sourcePattern>src/r8brain/*.cpp</sourcePattern>
 
 	<sourcePattern>src/oggvorbis/ogg/*.c</sourcePattern>
 	<sourcePattern>src/oggvorbis/vorbis/*.c</sourcePattern>
@@ -50,6 +56,7 @@
 	<platform os="msw">
 		<headerPattern>src/cinder/audio2/msw/*.h</headerPattern>
 		<sourcePattern>src/cinder/audio2/msw/*.cpp</sourcePattern>
+
 		<includePath system="true" absolute="true">$(DXSDK_DIR)\include</includePath>
 		<libraryPath absolute="true">$(DXSDK_DIR)\Lib\x86</libraryPath>
 	</platform>
