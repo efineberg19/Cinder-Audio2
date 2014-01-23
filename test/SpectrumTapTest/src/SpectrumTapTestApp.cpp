@@ -45,7 +45,7 @@ class SpectrumScopeTestApp : public AppNative {
 
 
 	audio2::BufferPlayerRef			mPlayerNode;
-	shared_ptr<audio2::GenSine>		mSine;
+	shared_ptr<audio2::Gen>			mGen;
 	audio2::ScopeSpectralRef		mSpectrumScope;
 	audio2::SourceFileRef			mSourceFile;
 
@@ -72,13 +72,14 @@ void SpectrumScopeTestApp::setup()
 	mSpectrumScope = ctx->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 	mSpectrumScope->setAutoEnabled();
 
-	mSine = ctx->makeNode( new audio2::GenSine() );
-	mSine->setFreq( 440.0f );
+	//mGen = ctx->makeNode( new audio2::GenSine() );
+	mGen = ctx->makeNode( new audio2::GenTriangle() );
+	mGen->setFreq( 440.0f );
 
 	mSourceFile = audio2::load( loadResource( RES_CASH_MP3 ) );
 	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
 
-	auto audioBuffer = mSourceFile->loadBuffer();
+	auto audioBuffer = mSourceFile->loadBuffer(); // TODO: load async
 	LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
 
 	mPlayerNode = ctx->makeNode( new audio2::BufferPlayer( audioBuffer ) );
@@ -97,16 +98,16 @@ void SpectrumScopeTestApp::setup()
 
 void SpectrumScopeTestApp::setupSine()
 {
-	mSine >> mSpectrumScope >> audio2::Context::master()->getOutput();
+	mGen >> mSpectrumScope >> audio2::Context::master()->getOutput();
 	if( mPlaybackButton.mEnabled )
-		mSine->start();
+		mGen->start();
 }
 
 void SpectrumScopeTestApp::setupSineNoOutput()
 {
-	mSine->connect( mSpectrumScope );
+	mGen->connect( mSpectrumScope );
 	if( mPlaybackButton.mEnabled )
-		mSine->start();
+		mGen->start();
 }
 
 void SpectrumScopeTestApp::setupSample()
@@ -169,7 +170,7 @@ void SpectrumScopeTestApp::setupUI()
 	mFreqSlider.mMin = 0.0f;
 //	mFreqSlider.mMax = mContext->getSampleRate() / 2.0f;
 	mFreqSlider.mMax = 800;
-	mFreqSlider.set( mSine->getFreq() );
+	mFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mFreqSlider );
 
 
@@ -208,7 +209,7 @@ void SpectrumScopeTestApp::processTap( Vec2i pos )
 		ctx->setEnabled( ! ctx->isEnabled() );
 	else if( mPlaybackButton.hitTest( pos ) ) {
 		if( mTestSelector.currentSection() == "sine" || mTestSelector.currentSection() == "sine (no output)" )
-			mSine->setEnabled( ! mSine->isEnabled() );
+			mGen->setEnabled( ! mGen->isEnabled() );
 		else
 			mPlayerNode->setEnabled( ! mPlayerNode->isEnabled() );
 	}
@@ -244,7 +245,7 @@ void SpectrumScopeTestApp::processDrag( Vec2i pos )
 	if( mSmoothingFactorSlider.hitTest( pos ) )
 		mSpectrumScope->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
 	if( mFreqSlider.hitTest( pos ) )
-		mSine->setFreq( mFreqSlider.mValueScaled );
+		mGen->setFreq( mFreqSlider.mValueScaled );
 }
 
 void SpectrumScopeTestApp::fileDrop( FileDropEvent event )
