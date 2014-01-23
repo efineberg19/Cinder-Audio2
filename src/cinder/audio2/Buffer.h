@@ -24,7 +24,6 @@
 #pragma once
 
 #include "cinder/audio2/CinderAssert.h"
-#include "cinder/audio2/dsp/Dsp.h"
 
 #include <vector>
 #include <memory>

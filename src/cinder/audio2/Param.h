@@ -26,8 +26,7 @@
 #include "cinder/audio2/Buffer.h"
 
 #include <list>
-#include <vector>
-
+#include <atomic>
 #include <functional>
 
 namespace cinder { namespace audio2 {

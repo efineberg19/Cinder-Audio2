@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "cinder/audio2/Context.h"
+#include "cinder/audio2/Buffer.h"
 
 #include <memory>
 

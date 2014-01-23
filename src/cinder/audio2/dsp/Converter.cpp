@@ -22,6 +22,7 @@
  */
 
 #include "cinder/audio2/dsp/Converter.h"
+#include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/dsp/ConverterR8brain.h"
 #include "cinder/audio2/CinderAssert.h"
 
