@@ -25,7 +25,7 @@
 
 #include "cinder/audio2/Source.h"
 #include "cinder/audio2/NodeInput.h"
-#include "cinder/audio2/msw/util.h"
+#include "cinder/audio2/msw/MswUtil.h"
 
 #include <vector>
 

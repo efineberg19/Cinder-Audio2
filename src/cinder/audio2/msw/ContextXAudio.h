@@ -26,8 +26,8 @@
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/Buffer.h"
 #include "cinder/audio2/NodeEffect.h"
-#include "cinder/audio2/msw/xaudio.h"
-#include "cinder/audio2/msw/util.h"
+#include "cinder/audio2/msw/CinderXaudio.h"
+#include "cinder/audio2/msw/MswUtil.h"
 
 namespace cinder { namespace audio2 { namespace msw {
 

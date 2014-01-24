@@ -24,7 +24,6 @@
 #include "cinder/audio2/msw/ContextXAudio.h"
 #include "cinder/audio2/msw/LineInWasapi.h"
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
-#include "cinder/audio2/msw/xaudio.h"
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Utilities.h"
@@ -39,7 +38,8 @@ using namespace std;
 
 namespace cinder { namespace audio2 { namespace msw {
 
-static bool isNodeNativeXAudio( NodeRef node ) {
+static bool isNodeNativeXAudio( NodeRef node )
+{
 	return dynamic_pointer_cast<NodeXAudio>( node );
 }
 

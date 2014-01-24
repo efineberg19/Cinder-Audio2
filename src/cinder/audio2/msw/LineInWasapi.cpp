@@ -23,7 +23,7 @@
 
 #include "cinder/audio2/msw/LineInWasapi.h"
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
-#include "cinder/audio2/msw/util.h"
+#include "cinder/audio2/msw/MswUtil.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/dsp/RingBuffer.h"

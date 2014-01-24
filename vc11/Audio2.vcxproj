@@ -26,7 +26,7 @@
     <ClCompile Include="..\src\cinder\audio2\msw\DeviceManagerWasapi.cpp" />
     <ClCompile Include="..\src\cinder\audio2\msw\FileMediaFoundation.cpp" />
     <ClCompile Include="..\src\cinder\audio2\msw\LineInWasapi.cpp" />
-    <ClCompile Include="..\src\cinder\audio2\msw\util.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\msw\MswUtil.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Node.cpp" />
     <ClCompile Include="..\src\cinder\audio2\NodeEffect.cpp" />
     <ClCompile Include="..\src\cinder\audio2\NodeInput.cpp" />
@@ -89,8 +89,8 @@
     <ClInclude Include="..\src\cinder\audio2\msw\DeviceManagerWasapi.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\FileMediaFoundation.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\LineInWasapi.h" />
-    <ClInclude Include="..\src\cinder\audio2\msw\util.h" />
-    <ClInclude Include="..\src\cinder\audio2\msw\xaudio.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\MswUtil.h" />
+    <ClInclude Include="..\src\cinder\audio2\msw\CinderXAudio.h" />
     <ClInclude Include="..\src\cinder\audio2\Node.h" />
     <ClInclude Include="..\src\cinder\audio2\NodeEffect.h" />
     <ClInclude Include="..\src\cinder\audio2\NodeInput.h" />
