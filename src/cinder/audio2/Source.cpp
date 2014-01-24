@@ -130,13 +130,7 @@ BufferRef SourceFile::loadBuffer()
 			CI_ASSERT( outNumFrames == framesNeeded );
 
 			pair<size_t, size_t> count = mConverter->convert( &mConverterReadBuffer, &converterDestBuffer );
-
-			// TODO: add a method to Buffer for this
-			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-				float *channel = converterDestBuffer.getChannel( ch );
-				//copy( channel, channel + count.second, result->getChannel( ch ) + mReadPos );
-				memcpy( result->getChannel( ch ) + mReadPos, channel, count.second * sizeof( float ) );
-			}
+			result->copyOffset( converterDestBuffer, count.second, mReadPos, 0 );
 
 			readCount += outNumFrames;
 			mReadPos += count.second;

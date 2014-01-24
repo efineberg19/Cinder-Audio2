@@ -73,7 +73,7 @@ class BufferBaseT {
 		std::memset( mData.data(), 0, mData.size() * sizeof( T ) );
 	}
 
-protected:
+  protected:
 	std::vector<T> mData;
 	size_t mNumChannels, mNumFrames;
 };
@@ -106,6 +106,7 @@ class BufferT : public BufferBaseT<T> {
 	}
 
 	//! Copies min( this, other ) channels and frames from \a other to internal storage.
+	// TODO: rename to copy? it's pretty clear where the copy is coming from
 	void copyFrom( const BufferT<T> &other )
 	{
 		size_t numFrames = std::min( this->getNumFrames(), other.getNumFrames() );
@@ -114,12 +115,23 @@ class BufferT : public BufferBaseT<T> {
 		for( size_t ch = 0; ch < numChannels; ch++ )
 			std::memmove( this->getChannel( ch ), other.getChannel( ch ), numFrames * sizeof( T ) );
 	}
+
+	//! Copies \a count frames from \a other offset by \a otherFrameOffset to internal storage offset by \a frameOffset.
+	//! \note requires channel counts to match.
+	void copyOffset( const BufferT<T> &other, size_t count, size_t frameOffset, size_t otherFrameOffset )
+	{
+		CI_ASSERT( this->getNumChannels() == other.getNumChannels() );
+		CI_ASSERT( frameOffset + count < this->getNumFrames() );
+		CI_ASSERT( otherFrameOffset + count < this->getNumFrames() );
+
+		for( size_t ch = 0; ch < mNumChannels; ch++ )
+			std::memmove( this->getChannel( ch ) + frameOffset, other.getChannel( ch ) + otherFrameOffset, count * sizeof( T ) );
+	}
 };
 
 template <typename T>
 class BufferInterleavedT : public BufferBaseT<T> {
-public:
-
+  public:
 	BufferInterleavedT( size_t numFrames = 0, size_t numChannels = 1 ) : BufferBaseT<T>( numFrames, numChannels ) {}
 
 	using BufferBaseT<T>::zero;
@@ -137,8 +149,7 @@ public:
 //! time and frequency domain signals.
 template <typename T>
 class BufferSpectralT : public BufferT<T> {
-public:
-
+  public:
 	BufferSpectralT( size_t numFrames = 0 ) : BufferT<T>( numFrames / 2, 2 ) {}
 
 	T* getReal()				{ return &this->mData[0]; }
