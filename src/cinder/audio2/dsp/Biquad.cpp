@@ -69,17 +69,6 @@ namespace {
 
 const size_t kBufferSize = 1024;
 
-// This is a nop if we can flush denormals to zero in hardware.
-static inline float flushDenormalFloatToZero(float f)
-{
-#if defined( CINDER_MSW ) && ( ! _M_IX86_FP )
-	// For systems using x87 instead of sse, there's no hardware support to flush denormals automatically. Hence, we need to flush denormals to zero manually.
-	return (fabs(f) < FLT_MIN) ? 0.0f : f;
-#else
-	return f;
-#endif
-}
-
 }
 
 Biquad::Biquad()
@@ -122,10 +111,10 @@ void Biquad::process( const float *source, float *dest, size_t framesToProcess )
 
     while (n--) {
         // FIXME: this can be optimized by pipelining the multiply adds...
-        float x = *source++;
-        float y = b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2;
+        double x( *source++ );
+        double y = b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2;
 
-        *dest++ = y;
+        *dest++ = (float)y;
 
         // Update state variables
         x2 = x1;
@@ -134,11 +123,10 @@ void Biquad::process( const float *source, float *dest, size_t framesToProcess )
         y1 = y;
     }
 
-    // Local variables back to member. Flush denormals here so we don't slow down the inner loop above.
-    mX1 = flushDenormalFloatToZero( x1 );
-    mX2 = flushDenormalFloatToZero( x2 );
-    mY1 = flushDenormalFloatToZero( y1 );
-    mY2 = flushDenormalFloatToZero( y2 );
+    mX1 = x1;
+    mX2 = x2;
+    mY1 = y1;
+    mY2 = y2;
 
     mB0 = b0;
     mB1 = b1;
