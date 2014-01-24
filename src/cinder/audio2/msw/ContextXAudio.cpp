@@ -33,6 +33,7 @@
 #include "cinder/audio2/Debug.h"
 
 #include "cinder/Utilities.h"
+#include "cinder/msw/CinderMsw.h"
 
 using namespace std;
 
@@ -50,7 +51,11 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 	void renderIfNecessary()
 	{
 		::XAUDIO2_VOICE_STATE state;
+#if defined( CINDER_XAUDIO_2_8 )
 		mSourceVoice->GetState( &state, XAUDIO2_VOICE_NOSAMPLESPLAYED );
+#else
+		mSourceVoice->GetState( &state );
+#endif
 		if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
 			mRenderCallback();
 	}
@@ -257,7 +262,8 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 	LOG_V( "CINDER_XAUDIO_2_7, toolset: v110_xp" );
 	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
 
-	ci::msw::initializeCom();
+	// ???: why did i add this to the 2.7-only section? well apparently it isn't needed there anyway..
+	ci::msw::initializeCom(); 
 
 #else
 	LOG_V( "CINDER_XAUDIO_2_8, toolset: v110" );
@@ -288,37 +294,36 @@ LineOutXAudio::~LineOutXAudio()
 
 void LineOutXAudio::initialize()
 {
-	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
-	const wstring &deviceId = deviceManager->getDeviceId( mDevice );
-	//const string &name = mDevice->getName();
 	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
+	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
 
 #if defined( CINDER_XAUDIO_2_8 )
+	const wstring &deviceId = deviceManager->getDeviceId( mDevice );
 	HRESULT hr = xaudio->CreateMasteringVoice( &mMasteringVoice, getNumChannels(), getSampleRate(), 0, deviceId.c_str() );
 	CI_ASSERT( hr == S_OK );
 #else
 
-	// TODO: on XAudio2.7, mKey (from WASAPI) is the device Id, but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
+	// TODO: on XAudio2.7, Device::getKey() is the device Id (from WASAPI) , but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
 	UINT32 deviceCount;
-	hr = mXAudio->GetDeviceCount( &deviceCount );
+	HRESULT hr = mXAudio->GetDeviceCount( &deviceCount );
 	CI_ASSERT( hr == S_OK );
+
 	::XAUDIO2_DEVICE_DETAILS deviceDetails;
 	for( UINT32 i = 0; i < deviceCount; i++ ) {
 		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
 		CI_ASSERT( hr == S_OK );
-		if( mKey == ci::toUtf8( deviceDetails.DeviceID ) ) {
+		if( mDevice->getKey() == ci::toUtf8( deviceDetails.DeviceID ) ) {
 			LOG_V( "found match: display name: " << deviceDetails.DisplayName );
 			LOG_V( "device id: " << deviceDetails.DeviceID );
 
 			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice,  getNumChannels(), getSampleRate(), 0, i );
 			CI_ASSERT( hr == S_OK );
 		}
-
 	}
 
-	CI_ASSERT( mMasteringVoice );
-
 #endif
+
+	CI_ASSERT( mMasteringVoice );
 
 	::XAUDIO2_VOICE_DETAILS voiceDetails;
 	mMasteringVoice->GetVoiceDetails( &voiceDetails );

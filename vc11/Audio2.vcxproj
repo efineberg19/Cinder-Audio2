@@ -186,12 +186,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)\include</IncludePath>
+    <IncludePath>$(IncludePath);</IncludePath>
     <OutDir>..\lib\msw\</OutDir>
     <TargetName>audio2_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)\include</IncludePath>
+    <IncludePath>$(IncludePath);</IncludePath>
     <OutDir>..\lib\msw\</OutDir>
     <TargetName>audio2</TargetName>
   </PropertyGroup>
@@ -201,8 +201,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;$(DXSDK_DIR)\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <MinimalRebuild>true</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -221,9 +221,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_WINDOWS;NOMINMAX;NDEBUG;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NOMINMAX;NDEBUG;_WIN32_WINNT=$(AUDIO2_DEPLOYMENT_TARGET);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\oggvorbis;..\src;..\cinder\include;..\cinder\boost;$(DXSDK_DIR)\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>

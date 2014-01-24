@@ -3,7 +3,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <CINDER_PATH>..\..\..\cinder</CINDER_PATH>
-    <AUDIO2_DEPLOYMENT_TARGET>_WIN32_WINNT_WIN8</AUDIO2_DEPLOYMENT_TARGET>
+    <AUDIO2_DEPLOYMENT_TARGET>0x0601</AUDIO2_DEPLOYMENT_TARGET>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
