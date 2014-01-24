@@ -102,12 +102,11 @@ class BufferT : public BufferBaseT<T> {
 	{
 		CI_ASSERT( startFrame + numFrames <= this->mNumFrames );
 		for( size_t ch = 0; ch < this->mNumChannels; ch++ )
-			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( float ) );
+			std::memset( &getChannel( ch )[startFrame], 0, numFrames * sizeof( T ) );
 	}
 
 	//! Copies min( this, other ) channels and frames from \a other to internal storage.
-	// TODO: rename to copy? it's pretty clear where the copy is coming from
-	void copyFrom( const BufferT<T> &other )
+	void copy( const BufferT<T> &other )
 	{
 		size_t numFrames = std::min( this->getNumFrames(), other.getNumFrames() );
 		size_t numChannels = std::min( this->getNumChannels(), other.getNumChannels() );
@@ -116,16 +115,28 @@ class BufferT : public BufferBaseT<T> {
 			std::memmove( this->getChannel( ch ), other.getChannel( ch ), numFrames * sizeof( T ) );
 	}
 
-	//! Copies \a count frames from \a other offset by \a otherFrameOffset to internal storage offset by \a frameOffset.
+	//! Copies \a numFrames frames from \a other into internal storage.
 	//! \note requires channel counts to match.
-	void copyOffset( const BufferT<T> &other, size_t count, size_t frameOffset, size_t otherFrameOffset )
+	void copy( const BufferT<T> &other, size_t numFrames )
 	{
 		CI_ASSERT( this->getNumChannels() == other.getNumChannels() );
-		CI_ASSERT( frameOffset + count < this->getNumFrames() );
-		CI_ASSERT( otherFrameOffset + count < this->getNumFrames() );
+		CI_ASSERT( numFrames <= this->getNumFrames() );
+		CI_ASSERT( numFrames <= other.getNumFrames() );
 
-		for( size_t ch = 0; ch < mNumChannels; ch++ )
-			std::memmove( this->getChannel( ch ) + frameOffset, other.getChannel( ch ) + otherFrameOffset, count * sizeof( T ) );
+		for( size_t ch = 0; ch < this->getNumChannels(); ch++ )
+			std::memmove( this->getChannel( ch ), other.getChannel( ch ), numFrames * sizeof( T ) );
+	}
+
+	//! Copies \a numFrames frames from \a other offset by \a otherFrameOffset into internal storage offset by \a frameOffset.
+	//! \note requires channel counts to match.
+	void copyOffset( const BufferT<T> &other, size_t numFrames, size_t frameOffset, size_t otherFrameOffset )
+	{
+		CI_ASSERT( this->getNumChannels() == other.getNumChannels() );
+		CI_ASSERT( frameOffset + numFrames <= this->getNumFrames() );
+		CI_ASSERT( otherFrameOffset + numFrames <= other.getNumFrames() );
+
+		for( size_t ch = 0; ch < this->getNumChannels(); ch++ )
+			std::memmove( this->getChannel( ch ) + frameOffset, other.getChannel( ch ) + otherFrameOffset, numFrames * sizeof( T ) );
 	}
 };
 

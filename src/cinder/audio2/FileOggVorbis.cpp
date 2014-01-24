@@ -82,7 +82,7 @@ size_t SourceFileImplOggVorbis::performRead( Buffer *buffer, size_t bufferFrameO
 {
 	CI_ASSERT( buffer->getNumFrames() >= bufferFrameOffset + numFramesNeeded );
 
-	long readCount = 0;
+	size_t readCount = 0;
 	while( readCount < numFramesNeeded ) {
 		float **outChannels;
 		int section;
@@ -96,10 +96,8 @@ size_t SourceFileImplOggVorbis::performRead( Buffer *buffer, size_t bufferFrameO
 		}
 
 		size_t offset = bufferFrameOffset + readCount;
-		for( int ch = 0; ch < mNativeNumChannels; ch++ ) {
-			float *channel = outChannels[ch];
-			copy( channel, channel + outNumFrames, buffer->getChannel( ch ) + offset );
-		}
+		for( size_t ch = 0; ch < mNativeNumChannels; ch++ )
+			memcpy( buffer->getChannel( ch ) + offset, outChannels[ch], outNumFrames * sizeof( float ) );
 
 		readCount += outNumFrames;
 	}

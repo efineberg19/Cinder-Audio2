@@ -56,7 +56,7 @@ Converter::Converter( size_t sourceSampleRate, size_t destSampleRate, size_t sou
 	if( ! mDestNumChannels )
 		mDestNumChannels = mSourceNumChannels;
 
-	mDestMaxFramesPerBlock = ceil( (float)mSourceMaxFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
+	mDestMaxFramesPerBlock = (size_t)ceil( (float)mSourceMaxFramesPerBlock * (float)mDestSampleRate / (float)mSourceSampleRate );
 }
 
 void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrames )
@@ -64,15 +64,13 @@ void mixBuffers( const Buffer *sourceBuffer, Buffer *destBuffer, size_t numFrame
 	size_t sourceChannels = sourceBuffer->getNumChannels();
 	size_t destChannels = destBuffer->getNumChannels();
 
-	if( destChannels == sourceBuffer->getNumChannels() ) {
-		for( size_t c = 0; c < destChannels; c++ )
-			copy( sourceBuffer->getChannel( c ), sourceBuffer->getChannel( c ) + numFrames, destBuffer->getChannel( c ) );
-	}
+	if( destChannels == sourceBuffer->getNumChannels() )
+		destBuffer->copy( *sourceBuffer, numFrames );
 	else if( sourceChannels == 1 ) {
 		// up-mix mono sourceBuffer to destChannels
 		const float *sourceChannel0 = sourceBuffer->getChannel( 0 );
-		for( size_t c = 0; c < destChannels; c++ )
-			copy( sourceChannel0, sourceChannel0 + numFrames, destBuffer->getChannel( c ) );
+		for( size_t ch = 0; ch < destChannels; ch++ )
+			memmove( destBuffer->getChannel( ch ), sourceChannel0, numFrames * sizeof( float ) );
 	}
 	else if( destChannels == 1 ) {
 		// down-mix mono destBuffer to sourceChannels, multiply by an equal-power normalizer to help prevent clipping
