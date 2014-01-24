@@ -71,7 +71,7 @@ void SourceFile::setOutputFormat( size_t outputSampleRate, size_t outputNumChann
 				LOG_V( "created Converter for samplerate: " << mNativeSampleRate << " -> " << mSampleRate << ", channels: " << mNativeNumChannels << " -> " << mNumChannels << ", output num frames: " << mNumFrames );
 			}
 
-			mNumFrames = std::ceil( (float)mFileNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
+			mNumFrames = (size_t)std::ceil( (float)mFileNumFrames * (float)mSampleRate / (float)mNativeSampleRate );
 		}
 		else {
 			mNumFrames = mFileNumFrames;
@@ -90,7 +90,7 @@ size_t SourceFile::read( Buffer *buffer )
 	size_t numRead;
 
 	if( mConverter ) {
-		size_t sourceBufFrames = buffer->getNumFrames() * (float)mNativeSampleRate / (float)mSampleRate;
+		size_t sourceBufFrames = size_t( buffer->getNumFrames() * (float)mNativeSampleRate / (float)mSampleRate );
 		size_t numFramesNeeded = std::min( mFileNumFrames - mReadPos, std::min( mMaxFramesPerRead, sourceBufFrames ) );
 
 		mConverterReadBuffer.setNumFrames( numFramesNeeded );
@@ -115,7 +115,7 @@ BufferRef SourceFile::loadBuffer()
 
 	if( mConverter ) {
 		// TODO: need BufferView's in order to reduce number of copies
-		Buffer destBuffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels );
+		Buffer converterDestBuffer( mConverter->getDestMaxFramesPerBlock(), mNumChannels );
 		size_t readCount = 0;
 		while( true ) {
 			size_t framesNeeded = min( mMaxFramesPerRead, mFileNumFrames - readCount );
@@ -129,11 +129,13 @@ BufferRef SourceFile::loadBuffer()
 			size_t outNumFrames = performRead( &mConverterReadBuffer, 0, framesNeeded );
 			CI_ASSERT( outNumFrames == framesNeeded );
 
-			pair<size_t, size_t> count = mConverter->convert( &mConverterReadBuffer, &destBuffer );
+			pair<size_t, size_t> count = mConverter->convert( &mConverterReadBuffer, &converterDestBuffer );
 
-			for( int ch = 0; ch < mNumChannels; ch++ ) {
-				float *channel = destBuffer.getChannel( ch );
-				copy( channel, channel + count.second, result->getChannel( ch ) + mReadPos );
+			// TODO: add a method to Buffer for this
+			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+				float *channel = converterDestBuffer.getChannel( ch );
+				//copy( channel, channel + count.second, result->getChannel( ch ) + mReadPos );
+				memcpy( result->getChannel( ch ) + mReadPos, channel, count.second * sizeof( float ) );
 			}
 
 			readCount += outNumFrames;
@@ -156,7 +158,7 @@ void SourceFile::seek( size_t readPositionFrames )
 	// adjust read pos for samplerate conversion so that it is relative to file num frames
 	size_t fileReadPos = readPositionFrames;
 	if( mSampleRate != mNativeSampleRate )
-		fileReadPos *= (float)mFileNumFrames / (float)mNumFrames;
+		fileReadPos *= size_t( (float)mFileNumFrames / (float)mNumFrames );
 
 	performSeek( fileReadPos );
 	mReadPos = readPositionFrames;
