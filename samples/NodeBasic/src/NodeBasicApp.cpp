@@ -47,7 +47,7 @@ void NodeBasic::mouseDrag( MouseEvent event )
 
 void NodeBasic::draw()
 {
-	gl::clear( Color::gray( mGain->getValue() ) );
+	gl::clear( Color( 0, mGain->getValue(), 0.2f ) );
 }
 
 CINDER_APP_NATIVE( NodeBasic, RendererGl )
