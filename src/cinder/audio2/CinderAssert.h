@@ -21,38 +21,80 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-// define to break into the debugger when assertion fails, rather than abort.
-//#define CI_ASSERT_DEBUG_BREAK
+// This file has no include guards, so users can redefine the behavior of assertions per compilation unit
+//
+// Parameters users can define:
+// - CI_DISABLE_ASSERTS: disables all asserts, they become no-op's.
+// - CI_ENABLE_ASSERT_HANDLER: if this is set, users must define assertionFailed() and assertionFailedMessage()
+//	 to handle a failed assertion.
+// - CI_ASSERT_DEBUG_BREAK: overrides default assertion behavoir to break into the debugger instead of
+//	 aborting. Cannot be used in conjunction with CI_ENABLE_ASSERT_HANDLER.
 
-// No include guards, so that NDEBUG can redefine the behavior of assertions per compilation unit
+#if defined( CI_ASSERT )
+	#undef CI_ASSERT
+#endif
+#if defined( CI_ASSERT_MSG )
+	#undef CI_ASSERT_MSG
+#endif
 
-#ifdef NDEBUG
-#   ifdef CI_ASSERT
-#       undef CI_ASSERT
-#   endif
-#   ifdef CI_ASSERT_MSG
-#       undef CI_ASSERT_MSG
-#   endif
-#   if defined( CI_ASSERT_DEBUG_BREAK )
-namespace cinder {
-	void assertion_failed( char const * expr, char const * function, char const * file, long line );
-	void assertion_failed_msg( char const * expr, char const * msg, char const * function, char const * file, long line );
-}
-#       if defined ( _MSC_VER )
-#           define __func__ __FUNCTION__
-#       endif
-#       if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)
-#           define CI_ASSERT( expr ) ((expr)? ((void)0): ::cinder::assertion_failed( #expr, __func__, __FILE__, __LINE__ ))
-#           define CI_ASSERT_MSG( expr, msg ) ((expr)? ((void)0): ::cinder::assertion_failed_msg( #expr, msg, __func__, __FILE__, __LINE__ ))
-#       else
-#           define CI_ASSERT( expr ) ((expr)? ((void)0): ::cinder::assertion_failed( #expr, "", __FILE__, __LINE__ ))
-#           define CI_ASSERT( expr, msg ) ((expr)? ((void)0): ::cinder::assertion_failed( #expr, "", __FILE__, __LINE__ ))
-#       endif
-#   else
-#       define CI_ASSERT(expr) assert(expr)
-#       define CI_ASSERT_MSG( expr, msg ) assert(expr)
-#   endif
+#if ! defined( CI_DISABLE_ASSERTS )
+
+	#if defined( CI_ASSERT_DEBUG_BREAK )
+
+		#if defined( CI_ENABLE_ASSERT_HANDLER )
+			#error "assert handler already enabled, cannot enable debug break assert handler"
+		#endif
+		#define CI_ENABLE_ASSERT_HANDLER
+
+	#endif // defined( CI_ASSERT_DEBUG_BREAK )
+
+	#if defined( CI_ENABLE_ASSERT_HANDLER )
+
+		#if defined ( _MSC_VER ) && ! defined( __func__ )
+			#define __func__ __FUNCTION__
+		#endif
+
+		#if defined( CI_ASSERT_DEBUG_BREAK )
+
+			#if ! defined( CI_ASSERT_DEBUG_BREAK_H )
+				#define CI_ASSERT_DEBUG_BREAK_H
+
+				// defined in CinderAssert.cpp
+				namespace cinder {
+					void assertionFailedBreak( char const *expr, char const *function, char const *file, long line );
+					void assertionFailedMessageBreak( char const *expr, char const *msg, char const *function, char const *file, long line );
+				}
+
+				#define CI_ASSERT( expr ) ( (expr) ? ( (void)0) : ::cinder::assertionFailedBreak( #expr, __func__, __FILE__, __LINE__ ) )
+				#define CI_ASSERT_MSG( expr, msg ) ( (expr) ? ( (void)0) : ::cinder::assertionFailedMessageBreak( #expr, msg, __func__, __FILE__, __LINE__ ) )
+			#endif // CI_ASSERT_DEBUG_BREAK_H
+
+		#else // CI_ASSERT_DEBUG_BREAK
+
+				// User must define these functions
+				namespace cinder {
+					//! Called when CI_ASSERT() fails
+					void assertionFailed( char const *expr, char const *function, char const *file, long line );
+					//! Called when CI_ASSERT_MSG() fails
+					void assertionFailedMessage( char const *expr, char const *msg, char const *function, char const *file, long line );
+				}
+
+			#define CI_ASSERT( expr ) ( (expr) ? ( (void)0) : ::cinder::assertionFailed( #expr, __func__, __FILE__, __LINE__ ) )
+			#define CI_ASSERT_MSG( expr, msg ) ( (expr) ? ( (void)0) : ::cinder::assertionFailedMessage( #expr, msg, __func__, __FILE__, __LINE__ ) )
+
+		#endif // user defined handlers
+
+	#else // defined( CI_ENABLE_ASSERT_HANDLER )
+
+		#include <cassert>
+		#define CI_ASSERT( expr ) assert( expr )
+		#define CI_ASSERT_MSG( expr, msg ) assert( expr && msg )
+
+	#endif // defined( CI_ASSERT_DEBUG_BREAK )
+
 #else
-#   define CI_ASSERT(expr) ((void)0)
-#   define CI_ASSERT_MSG( expr, msg ) ((void)0)
+
+	#define CI_ASSERT(expr) ((void)0)
+	#define CI_ASSERT_MSG( expr, msg ) ((void)0)
+
 #endif

@@ -23,25 +23,21 @@
 
 #include "cinder/audio2/CinderAssert.h"
 
-#if defined( CI_ASSERT_DEBUG_BREAK )
-
 #include <iostream>
 #include <csignal>
 
 namespace cinder {
 
-	void assertion_failed(char const * expr, char const * function, char const * file, long line)
+	void assertionFailedBreak( char const *expr, char const *function, char const *file, long line )
 	{
-		std::cerr << "***** Internal Program Error - assertion (" << expr << ") failed in "	<< function << ":\n" << file << '(' << line << "): " << std::endl;
+		std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << std::endl;
 		std::raise( SIGINT );
 	}
 
-	void assertion_failed_msg( char const * expr, char const * msg, char const * function, char const * file, long line )
+	void assertionFailedMessageBreak( char const *expr, char const *msg, char const *function, char const *file, long line )
 	{
-		std::cerr << "***** Internal Program Error - assertion (" << expr << ") failed in "	<< function << ":\n" << file << '(' << line << "): " << msg << std::endl;
+		std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << msg << std::endl;
 		std::raise( SIGINT );
 	}
 
 }
-
-#endif // defined( CI_ASSERT_DEBUG_BREAK )
