@@ -17,9 +17,7 @@ xcuserdata/
 
 boost/
 build/
-lib/libcinder*.a
-lib/cinder*.lib
-audio2*.lib
+lib/
 
 # Windows cruft
 *.suo
