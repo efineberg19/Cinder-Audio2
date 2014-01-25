@@ -30,6 +30,10 @@
 #include "os.h"
 #include "misc.h"
 
+#if defined( _MSC_VER )
+	#pragma warning( disable: 4244 )
+#endif
+
 /* A 'chained bitstream' is a Vorbis bitstream that contains more than
    one logical bitstream arranged end to end (the only form of Ogg
    multiplexing allowed in a Vorbis bitstream; grouping [parallel

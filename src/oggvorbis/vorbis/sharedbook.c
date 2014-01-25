@@ -25,6 +25,10 @@
 #include "codebook.h"
 #include "scales.h"
 
+#if defined( _MSC_VER )
+	#pragma warning( disable: 4244 )
+#endif
+
 /**** pack/unpack helpers ******************************************/
 int _ilog(unsigned int v){
   int ret=0;

@@ -38,6 +38,10 @@
 #include <stdio.h>
 #endif
 
+#if defined( _MSC_VER )
+	#pragma warning( disable: 4244 )
+#endif
+
 typedef struct {
   vorbis_info_residue0 *info;
 

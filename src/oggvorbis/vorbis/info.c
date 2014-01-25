@@ -34,6 +34,10 @@
 #define GENERAL_VENDOR_STRING "Xiph.Org libVorbis 1.3.3"
 #define ENCODE_VENDOR_STRING "Xiph.Org libVorbis I 20120203 (Omnipresent)"
 
+#if defined( _MSC_VER )
+	#pragma warning( disable: 4244 )
+#endif
+
 /* helpers */
 static int ilog2(unsigned int v){
   int ret=0;

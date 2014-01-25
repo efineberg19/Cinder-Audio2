@@ -32,6 +32,10 @@
 #include "misc.h"
 #include <stdio.h>
 
+#if defined( _MSC_VER )
+	#pragma warning( disable: 4244 )
+#endif
+
 typedef struct {
   int ln;
   int  m;

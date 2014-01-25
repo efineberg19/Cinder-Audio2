@@ -41,6 +41,10 @@
 #include "lookup.h"
 #include "scales.h"
 
+#if defined( _MSC_VER )
+	#pragma warning( disable: 4244 )
+#endif
+
 /* three possible LSP to f curve functions; the exact computation
    (float), a lookup based float implementation, and an integer
    implementation.  The float lookup is likely the optimal choice on

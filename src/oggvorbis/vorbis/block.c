@@ -31,6 +31,10 @@
 #include "registry.h"
 #include "misc.h"
 
+#if defined( _MSC_VER )
+	#pragma warning( disable: 4244 )
+#endif
+
 static int ilog2(unsigned int v){
   int ret=0;
   if(v)--v;
