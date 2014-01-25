@@ -23,7 +23,7 @@
 
 // This file has no include guards, so users can redefine the behavior of assertions per compilation unit
 //
-// Parameters users can define:
+// User-definable parameters:
 // - CI_DISABLE_ASSERTS: disables all asserts, they become no-op's.
 // - CI_ENABLE_ASSERT_HANDLER: if this is set, users must define assertionFailed() and assertionFailedMessage()
 //	 to handle a failed assertion.
