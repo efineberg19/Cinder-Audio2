@@ -38,7 +38,7 @@ using namespace std;
 
 namespace cinder { namespace audio2 { namespace msw {
 
-static bool isNodeNativeXAudio( NodeRef node )
+inline bool isNodeNativeXAudio( NodeRef node )
 {
 	return dynamic_pointer_cast<NodeXAudio>( node );
 }
@@ -206,7 +206,9 @@ void NodeXAudioSourceVoice::stop()
 
 	CI_ASSERT( mSourceVoice );
 	mEnabled = false;
-	mSourceVoice->Stop();
+
+	HRESULT hr = mSourceVoice->Stop();
+	CI_ASSERT( hr == S_OK );
 }
 
 bool LineOutXAudio::checkNotClippingImpl( const Buffer &sourceVoiceBuffer )
@@ -270,7 +272,7 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 	UINT32 flags = 0;
 #endif
 
-	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
+	HRESULT hr = ::XAudio2Create( &mXAudio, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR );
 	CI_ASSERT( hr == S_OK );
 	hr = mXAudio->RegisterForCallbacks( mEngineCallback.get() );
 	CI_ASSERT( hr == S_OK );
@@ -289,6 +291,7 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 
 LineOutXAudio::~LineOutXAudio()
 {
+	LOG_V( "bang" );
 	mXAudio->Release();
 }
 
