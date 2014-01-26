@@ -35,7 +35,7 @@ void NodeAdvancedApp::setup()
 {
 	auto ctx = audio2::Context::master();
 
-	// Here we're using a GenPhasor, which just oscillates through 'phase', aka a ramp waveform.
+	// Here we're using a GenTriangle, which generates a triangle waveform that contains many upper harmonics.
 	// To reduce the sharpness, a lowpass filter is used to cut down the higher frequences.
 	mGen = ctx->makeNode( new audio2::GenTriangle( audio2::Node::Format().autoEnable() ) );
 	mLowpass = ctx->makeNode( new audio2::FilterLowPass );
