@@ -55,13 +55,15 @@ class Voice {
 	//! Creates a Voice that continously calls \a callbackFn to process a Buffer of samples.
 	static VoiceRef create( CallbackProcessorFn callbackFn, const Options &options = Options() );
 
-	//! Starts the Voice from its current state.
+	//! Starts the Voice. Does nothing if currently playing. \note In the case of a VoiceSamplePlayer and the sample has reached EOF, play() will start from the beginning.
 	virtual void play();
 	//! Pauses the Voice inits current state. play() will resume from here.
 	virtual void pause();
 	//! Stops the Voice, resetting its state to the same as when it was created.
 	virtual void stop();
-
+	//! Returns whether the Voice is currently playing or not.
+	virtual bool isPlaying() const;
+	//! Returns the underlining Node that is matching by this Voice. The Node type is determined by the Voice subclassed.
 	virtual NodeRef getNode() const = 0;
 
 	void setVolume( float volume );
@@ -84,6 +86,7 @@ class VoiceSamplePlayer : public Voice {
 	NodeRef getNode() const override			{ return mNode; }
 	SamplePlayerRef getSamplePlayer() const		{ return mNode; }
 
+	virtual void play() override;
 	virtual void stop() override;
 
   protected:

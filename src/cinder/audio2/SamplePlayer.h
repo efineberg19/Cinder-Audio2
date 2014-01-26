@@ -42,6 +42,8 @@ typedef std::shared_ptr<class FilePlayer>				FilePlayerRef;
 //! \see BufferPlayer, FilePlayer
 class SamplePlayer : public NodeInput {
 public:
+	virtual ~SamplePlayer() {}
+
 	//! Seek the read position to \a readPositionFrames
 	virtual void seek( size_t readPositionFrames ) = 0;
 
@@ -51,6 +53,8 @@ public:
 	size_t getReadPosition() const	{ return mReadPos; }
 	//! Gets the current read position in seconds.
 	double getReadPositionTime() const;
+	//! Returns whether the SamplePlayer has reached EOF (end of file). If true, isEnabled() will also return false.
+	bool isEof() const				{ return mIsEof; }
 
 	//! Sets whether playing continues from beginning after the end is reached (default = false)
 	void setLoop( bool b = true )	{ mLoop = b; }
@@ -65,11 +69,10 @@ public:
 
 protected:
 	SamplePlayer( const Format &format = Format() );
-	virtual ~SamplePlayer() {}
 
 	size_t mNumFrames;
 	std::atomic<size_t> mReadPos;
-	std::atomic<bool>	mLoop;
+	std::atomic<bool>	mLoop, mIsEof;
 	bool				mStartAtBeginning;
 };
 

@@ -196,7 +196,12 @@ void Voice::pause()
 
 void Voice::stop()
 {
-	getNode()->start();
+	getNode()->stop();
+}
+
+bool Voice::isPlaying() const
+{
+	return getNode()->isEnabled();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -213,7 +218,15 @@ VoiceSamplePlayer::VoiceSamplePlayer( const SourceFileRef &sourceFile, const Opt
 	} else
 		mNode = Context::master()->makeNode( new FilePlayer( sourceFile ) );
 
-	mNode->setStartAtBeginning( false );
+	mNode->setStartAtBeginning( false ); // allows Node to be 'paused', since seek needs to be done manually this way.
+}
+
+void VoiceSamplePlayer::play()
+{
+	if( mNode->isEof() )
+		mNode->seek( 0 );
+
+	mNode->start();
 }
 
 void VoiceSamplePlayer::stop()

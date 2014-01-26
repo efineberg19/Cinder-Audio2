@@ -79,20 +79,18 @@ void BufferPlayer::start()
 	if( mStartAtBeginning )
 		mReadPos = 0;
 
+	mIsEof = false;
 	mEnabled = true;
-
-	LOG_V( "started" );
 }
 
 void BufferPlayer::stop()
 {
 	mEnabled = false;
-
-	LOG_V( "stopped" );
 }
 
 void BufferPlayer::seek( size_t readPositionFrames )
 {
+	mIsEof = false;
 	mReadPos = math<size_t>::clamp( readPositionFrames, 0, mNumFrames );
 }
 
@@ -139,8 +137,10 @@ void BufferPlayer::process( Buffer *buffer )
 		if( mLoop ) {
 			mReadPos = 0;
 			return;
-		} else
+		} else {
+			mIsEof = true;
 			mEnabled = false;
+		}
 	}
 
 	mReadPos += readCount;
@@ -209,6 +209,7 @@ void FilePlayer::start()
 	if( mStartAtBeginning )
 		seekImpl( 0 );
 
+	mIsEof = false;
 	mEnabled = true;
 
 	LOG_V( "started" );
@@ -233,6 +234,7 @@ void FilePlayer::seek( size_t readPositionFrames )
 	mutex &m = mIsReadAsync ? mAsyncReadMutex : getContext()->getMutex();
 	lock_guard<mutex> lock( m );
 
+	mIsEof = false;
 	seekImpl( readPositionFrames );
 }
 
@@ -304,8 +306,10 @@ void FilePlayer::process( Buffer *buffer )
 				// - these should also already be in the ringbuffer, since a seek is done there as well. Rethink this path.
 				seekImpl( 0 );
 			}
-			else
+			else {
+				mIsEof = true;
 				mEnabled = false;
+			}
 		}
 	}
 }
