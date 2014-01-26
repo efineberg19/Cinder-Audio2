@@ -58,6 +58,12 @@ There are two ways to include ci::audio2 in your project:
 - put this repo in _$(CINDER_PATH)/blocks/_ and use tinderbox to add the Audio2 cinderblock.
 - link to the Audio2.xcodeproj or Audio2.sln as a dependency and add an include path for _$(AUDIO2_PATH)/src_.  This is how I have organized all of the tests / samples as it means I am always up-to-date with the current source files. 
 
+** Windows 8 Only: Building for XAudio2.8 **
+
+* delete the "$(DXSDK_DIR)\include" include paths entry from the Audio2.sln
+* set the value of `_WIN32_WINNT` to equal win 8 by opening up the Audio2.sln's property sheed and changing `AUDIO2_DEPLOYMENT_TARGET` to 0x0602.
+
+
 ## Feedback
 
 Please provide any feedback that you feel is relevant by either creating issues, commenting in line on github, or posting to Cinder's [dev forum][2]. Thanks!
