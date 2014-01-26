@@ -28,11 +28,10 @@ void NodeBasic::setup()
 	mGen->setFreq( 220 );
 	mGain->setValue( 0.5f );
 
-	// connection can be done this way or via connect(). The Context's getOutput() is the speakers by default.
+	// connections can be made this way or with connect(). The master Context's getOutput() is the speakers by default.
 	mGen >> mGain >> ctx->getOutput();
 
-	// Node's need to be enabled to process audio. By default NodeEffect's are already enabled,
-	// while NodeSource's (GenSine in this case) need to be switched on.
+	// Node's need to be enabled to process audio. NodeEffect's are enabled by default, while NodeSource's (like Gen) need to be switched on.
 	mGen->start();
 
 	// Context also must be started. Starting and stopping this controls the entire DSP graph.

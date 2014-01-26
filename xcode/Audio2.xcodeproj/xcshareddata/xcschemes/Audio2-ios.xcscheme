@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "11B041F2179B90450034BEE2"
-               BuildableName = "libAudio2-ios.a"
+               BuildableName = "libaudio2-ios.a"
                BlueprintName = "Audio2-ios"
                ReferencedContainer = "container:Audio2.xcodeproj">
             </BuildableReference>

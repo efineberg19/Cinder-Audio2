@@ -6,16 +6,6 @@
    </FileRef>
    <Group
       location = "container:"
-      name = "samples">
-      <FileRef
-         location = "group:../samples/AudioBasicPlayback/xcode/AudioBasicPlayback.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:../samples/AudioBasicProcessing/xcode/AudioBasicProcessing.xcodeproj">
-      </FileRef>
-   </Group>
-   <Group
-      location = "container:"
       name = "tests">
       <Group
          location = "container:"
