@@ -1308,7 +1308,6 @@
 		11B0421A179B90450034BEE2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 				CONFIGURATION_BUILD_DIR = ../lib/ios;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
@@ -1324,7 +1323,6 @@
 		11B0421B179B90450034BEE2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 				CONFIGURATION_BUILD_DIR = ../lib/ios;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;

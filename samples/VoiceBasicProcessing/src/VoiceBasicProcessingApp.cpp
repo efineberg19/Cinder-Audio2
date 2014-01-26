@@ -33,7 +33,7 @@ void VoiceBasicProcessingApp::setup()
 
 		float *channel0 = buffer->getChannel( 0 );
 
-#if 1
+#if 0
 		// generate a sine wave
 		float phaseIncr = ( mFreq / (float)sampleRate ) * 2 * (float)M_PI;
 		for( size_t i = 0; i < buffer->getNumFrames(); i++ )	{
