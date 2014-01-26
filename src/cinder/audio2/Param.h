@@ -74,7 +74,7 @@ class Param {
 
 	//! Optional parameters when applying or appending ramps. \see applyRamp() \see appendRamp()
 	struct Options {
-		Options() : mDelay( 0.0f ), mRampFn( rampLinear ) {}
+		Options() : mDelay( 0 ), mRampFn( rampLinear ) {}
 
 		//! Specifies a delay of \a delay in seconds.
 		Options& delay( float delay )				{ mDelay = delay; return *this; }
@@ -92,7 +92,7 @@ class Param {
 	};
 
 	//! Constructs a Param with a pointer (weak reference) to the owning parent Node and an optional \a initialValue (default = 0).
-	Param( Node *parentNode, float initialValue = 0.0f );
+	Param( Node *parentNode, float initialValue = 0 );
 
 	//! Sets the value of the Param, blowing away any scheduled Event's or processing Node. \note Must be called from a non-audio thread.
 	void	setValue( float value );

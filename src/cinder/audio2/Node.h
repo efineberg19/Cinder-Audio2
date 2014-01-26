@@ -156,8 +156,10 @@ class Node : public std::enable_shared_from_this<Node> {
 		NodeRef mOutput;
 		size_t mOutputBus, mInputBus;
 	};
-	
+
+	//! Returns a BusConnector, which is used when connecting Node's via the >> operator. \a outputBus is associated with the left-hand side's output's and \a inputBus is associated with the right-hand side's inputs.
 	BusConnector bus( size_t outputBus, size_t inputBus )	{ return BusConnector( shared_from_this(), outputBus, inputBus ); }
+	//! Returns a BusConnector, which is used when connecting Node's via the >> operator. \a inputBus is associated with the right-hand side's inputs, while the left-hand side's output bus is 0.
 	BusConnector bus( size_t inputBus )						{ return BusConnector( shared_from_this(), 0, inputBus ); }
 
   protected:
