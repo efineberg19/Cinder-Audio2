@@ -32,29 +32,29 @@
 using namespace std;
 using namespace ci;
 
-void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, const Vec2f &padding, bool drawFrame )
+void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, bool drawFrame, const ci::ColorA &color )
 {
-	gl::color( 0, 0.9f, 0 );
+	gl::color( color );
 
-	const float waveHeight = float( bounds.getHeight() - padding.y * 2 ) / (float)buffer.getNumChannels();
-	const float xScale = float( bounds.getWidth() - padding.x * 2 ) / (float)buffer.getNumFrames();
+	const float waveHeight = bounds.getHeight() / (float)buffer.getNumChannels();
+	const float xScale = bounds.getWidth() / (float)buffer.getNumFrames();
 
-	float yOffset = padding.y;
+	float yOffset = bounds.y1;
 	for( size_t ch = 0; ch < buffer.getNumChannels(); ch++ ) {
 		PolyLine2f waveform;
 		const float *channel = buffer.getChannel( ch );
-		float x = padding.x;
+		float x = bounds.x1;
 		for( size_t i = 0; i < buffer.getNumFrames(); i++ ) {
 			x += xScale;
 			float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
 			waveform.push_back( Vec2f( x, y ) );
 		}
 		gl::draw( waveform );
-		yOffset += waveHeight + padding.y;
+		yOffset += waveHeight;
 	}
 
 	if( drawFrame )
-		gl::drawStrokedRect( Rectf( bounds.x1 + padding.x, bounds.y1 + padding.y, bounds.x2 - padding.x, bounds.y2 - padding.y ) );
+		gl::drawStrokedRect( bounds );
 }
 
 // ----------------------------------------------------------------------------------------------------

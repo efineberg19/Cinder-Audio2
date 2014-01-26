@@ -251,8 +251,11 @@ void NodeTestApp::draw()
 {
 	gl::clear();
 
-	if( mScope && mScope->getNumConnectedInputs() )
-		drawAudioBuffer( mScope->getBuffer(), getWindowBounds(), Vec2f( 20, 20 ), true );
+	if( mScope && mScope->getNumConnectedInputs() ) {
+		const float padding = 20;
+		Rectf scopeRect( padding, padding, getWindowWidth() - padding, getWindowHeight() - padding );
+		drawAudioBuffer( mScope->getBuffer(), scopeRect, true );
+	}
 
 	drawWidgets( mWidgets );
 }
