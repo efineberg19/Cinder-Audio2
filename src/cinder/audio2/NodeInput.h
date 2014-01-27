@@ -36,7 +36,7 @@ typedef std::shared_ptr<class CallbackProcessor>		CallbackProcessorRef;
 
 typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
 
-//! NodeInput is the base class for Node's that produces audio. It cannot have any inputs.
+//! NodeInput is the base class for Node's that produce audio. It cannot have any inputs.
 class NodeInput : public Node {
   public:
 	virtual ~NodeInput();

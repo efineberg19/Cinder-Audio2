@@ -1,29 +1,56 @@
 # Cinder-Audio2
 
-WIP repo for [Cinder][1]'s next audio API.
-
-*status: alpha testing*
-
+This is the development repo for [Cinder][cinder]'s next audio API. It is available here as a cinderblock for alpha testing and feedback. It will be merged into the master repo closer to the next release.
 
 ## Features
 
 
-*Features in initial release include:*
+*initial release:*
 
 - A flexible and comfortable system for modular audio processing.  We want people to explore what's capable.
 - a 'simple api', that lets users easily play audio.
 - Wide device and file support
+- Built-in support for audio-rate parameter ramping and manipulation.
 - a library of DSP tools such as FFT, samplerate conversion, and vector operations.
 - Probably goes without saying, but we want this system to be fast.
 - For initial release, support for Mac, iOS, Windows 7, 8, and minimal support for XP
 
-*Features delayed until after initial release:*
+*delayed until after initial release:*
 
 - High level constructs for game and 3d audio, ex. voice management.
 - an offline audio processing graph
 - support for sub-graph processing, such as upsampling or in the spectral domain
 - WinRT support
 
+
+## Design
+
+The core of the design draws from concepts found in other popular modular audio API's, namely [Web Audio][webaudio] and [Pure Data][puredata], however aims to be closely integrated into cinder's existing design patterns. We also take full advantage of C++11 features such as smart pointers, `std::atomic`'s, and `std::mutex`'s.
+
+A modular api is advantagous because it is proven to be very flexible and allows for reusability without loss in performance.  Still, higher level constructs exist and more will be added as time permits.  The cinder philosophy remains, "easy things easy and hard things possible." 
+
+## Building
+
+The code is currently wrapped up as a cinderblock for easy testing, so the fastest way to get up and running is to clone it to your cinder/blocks path and use [Tinderbox][tinderbox].
+
+However, **you must still build the audio2 static library**, which can be done by opening up your platforms IDE project file (xcode/Audio2.xcodeproject on mac, vc2012/Audio2.sln on windows) and building in the same manner that you would cinder from source. Organizing the code into a static libraries means that as updates are made and file names are changed, your project files don't need to be updated as well.
+
+Another option is to link to the Audio2.xcodeproj or Audio2.sln as a dependency and add an include path for _$(AUDIO2_PATH)/src_.  This is how I have organized all of the tests / samples
+
+
+** Windows 8 Only: Building for XAudio2.8 **
+
+* delete the "$(DXSDK_DIR)\include" include paths entry from the Audio2.sln
+* set the value of `_WIN32_WINNT` to equal win 8 by opening up the Audio2.sln's property sheet and changing `AUDIO2_DEPLOYMENT_TARGET` to 0x0602.
+
+## Viewing the Tests
+
+There are currently only a small handful of samples that are meant to get new users up and running in the samples folder.  To see more extensive usage of the various components, open up one of the test workspaces:
+
+- mac: test/Audio2Test.xcworkspace
+- windows: test/Audio2Test.msw/Audio2Test.sln
+
+These are meant to be more for feature and regression testing than anything else, but at the moment they are also the most useful way to see the entire breadth of the available functionality.
 
 
 ## Usage
@@ -41,44 +68,123 @@ Common tasks like play(), pause(), and stop() are supported. Each Voice has cont
 
 The Voice API sits above and ties into the modular API, wihch is explained below. Each Voice has a virtual `getNode()` member function that gives access to more advanced functionality.
 
-#### Context
+#### Modular API
 
-* manages a platform specific audio processing.
-* thread synchronization between the 'audio' (real-time) and 'user' (typically UI/main, but not limited to) threads.
-* There is one 'master', which is the only hardware-facing Context.
-* All Node's are created using the Context, which is necessary for thread safety.
+##### Context
 
-#### Node
+The Context class manages platform specific audio processing and thread synchronization between the 'audio' (real-time) and 'user' (typically UI/main, but not limited to) threads. There is one 'master', which is the only hardware-facing Context. All Node's are created using the Context, which is necessary for thread safety:
 
-* contains a virtual method `process( Buffer *buffer )`, this is where the magic happens. 
-* processing can be enabled/disabled on a per-Node basis.
+```
+auto ctx = audio2::Context::master();
+mNode = ctx->makeNode( new NodeType );
+```
+
+##### Node
+
+A Node is the fundamental building block for audio processing graphs. They allow for flexible combinations of synthesis, analysis, effects, file reading/writing, etc., and are meant to be easily subclassed. There are a three fundamental types of Node's:
+
+* **NodeOutput**: an endpoint at the end of an audio graph. Has no outputs.
+* **NodeInput**: an endpoint at the beginning of an audio graph. Has no inputs.
+* **NodeEffect**: has both inputs and outputs.
+
+Node's are connected together to from an audio graph. For audio to reach the speakers, the last Node in the graph is connected to the Context's NodeOutput:
+
+```
+auto ctx = audio2::Context::master();
+mSine = ctx->makeNode( new audio2::GenSine );
+mGain = ctx->makeNode( new audio2::Gain );
+
+mSine->connect( mGain );
+mGain->connect( ctx->getOutput() );
+```
+
+Node's are connected from source to destination. A convenient shorthand syntax that is meant to represent this is as follows:
+
+```
+mSine >> mGain >> ctx->getOutput();
+```
+
+
+To process audio, each Node subclass implements a virtual method `process( Buffer *buffer )`. Processing can be enabled/disabled on a per-Node basis. While `NodeEffect`s are enabled by default, `NodeInput`s must be turned on before they produce any audio. `NodeOutput`s are managed by their owning `Context`, which has a similar enabled/disabled syntax:
+
+```
+mSine->start();
+ctx->start();
+```
+
+It is important to note, however, that turning that enabling/disabling the Context effects the enabled state of the entire audio graph - no Node will process audio if it is off, which is useful catch-all way to shut off the audio processing thread.
+
+The reason why the above is true is that, although Node's are (by convention) connected source >> destination, the actual processing follows the 'pull model', i.e. destination (recursively) pulls the source.  This is achieved in Node's` pullInputs( Buffer *destBuffer)`, although the method is virtual and may be customized by sublasses.
+
+Other Node features include:
+
 * can be enabled / disabled / connected / disconnected while audio is playing
 * supports multiple inputs, which are implicitly summed to their specified number of channels.
 * supports multiple outputs, which don't necessarily have to be connected to the Context's output( they will be added to the 'auto pull list').
 * If possible (ex. one input, same # channels), a Node will process audio in-place
 * Node::ChannelMode allows the channels to be decided based on either a Node's input, it's output, or specified by user.
 
+See:
+
+* samples: [NodeBasic](samples/NodeBasic/src/NodeBasicApp.cpp), [NodeAdvanced](samples/NodeAdvanced/src/NodeAdvancedApp.cpp)
+* tests: [NodeTest](test/NodeTest/src/NodeTestApp.cpp), [NodeEffectTest](test/NodeEffectTest/src/NodeEffectTestApp.cpp)
+
+####  Device Input and Output
 
 FINISH ME
 
-#### Controlling a Node's processing:
- A Node must be enabled in order for it to process audio.  This is done by calling `Node::start()` or `Node::setEnabled( true )`. For convenience, you can also call `Node::setAudioEnabled( true )`, and the Node will be enabled/disabled when you call `Context::start()` or `Context::stop()`.  Some of the Node's have this setting on by default, such as `NodeEffect` subclasses.
+Allows for choosing either default input or output devices, or choosing device by name or key
 
+Supports audio interfaces with an arbitrary number of channels
 
-#### Reading and Writing Audio Files
+See:
+
+* [DeviceTest](test/DeviceTest/src/DeviceTestApp.cpp)
+
+#### Reading Audio Files
+
+Audio files are represented by the `audio2::SourceFile` class. The main interface for audio file playback is SamplePlayer, which is abstract and comes in two concrete flavors:
+
+- **BufferPlayer**: plays back audio from an `audio2::Buffer`, i.e. in-memory. The Buffer is loaded from a `SourceFile` in one shot and there is no file i/o during playback.
+- **FilePlayer**: streams the audio playback via file. 
+
+```
+// load a sample
+mSourceFile = audio2::load( loadAsset( "audiofile.wav" ) );
+
+// create an load a BufferPlayer
+auto ctx = audio2::Context::master();
+mBufferPlayer = ctx->makeNode( new audio2::BufferPlayer() );
+mBufferPlayer->loadBuffer( mSourceFile );
+
+// or create a FilePlayer, which takes a ref to the SourceFile at construction:
+mFilePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile ) );
+```
+
+Both support reading of file types async; `BufferPlayer::loadBuffer` can be done on a background thread, and FilePlayer can be specified as reading from a background thread during construction. 
 
 Supported File types:
+
 - For mac, see file types [listed here][coreaudio-file-types].
 - For windows, see file types [listed here][mediafoundation-file-types]. 
 - supported ogg vorbis on all platforms.
 
+See:
 
-####  Device Input and Output
+* [SamplePlayerTest](test/SamplePlayerTest/src/SamplePlayerTestApp.cpp)
 
-Allows for choosing either default input or output devices, or choosing device by name or key
+#### Writing Audio Files
 
-supports audio interfaces with an arbitrary number of channels
+TODO (not finished implementing)
 
+#### Viewing audio using Scope and ScopeSpectral
+
+TODO
+
+See:
+
+* sample using `Scope`: [NodeAdvanced](samples/NodeAdvanced/src/NodeAdvancedApp.cpp)
+* test using `ScopeSpectral`: [SpectralTest](test/SpectralTest/src/SpectralTestApp.cpp)
 
 ## Try It
 
@@ -94,29 +200,19 @@ __note on non-working tests:__
 - MixerTest is up in limbo, since `Node`'s can implicitly sum multiple inputs. 
 
 
-#### Building and Using in Your Project
-
-The main reasons for separating this code out into its own repo and placing it in the ci::audio2 namespace is so that you can try it in your own projects, with whatever version of cinder you are currently using.  However, since we make use of many C++11 features, you'll need at least cinder 0.8.5 and, on Windows, you'll need Visual Studio 2012.
-
-There are two ways to include ci::audio2 in your project:
-
-- put this repo in _$(CINDER_PATH)/blocks/_ and use tinderbox to add the Audio2 cinderblock.
-- link to the Audio2.xcodeproj or Audio2.sln as a dependency and add an include path for _$(AUDIO2_PATH)/src_.  This is how I have organized all of the tests / samples as it means I am always up-to-date with the current source files. 
-
-** Windows 8 Only: Building for XAudio2.8 **
-
-* delete the "$(DXSDK_DIR)\include" include paths entry from the Audio2.sln
-* set the value of `_WIN32_WINNT` to equal win 8 by opening up the Audio2.sln's property sheed and changing `AUDIO2_DEPLOYMENT_TARGET` to 0x0602.
-
-
 ## Feedback
 
-Please provide any feedback that you feel is relevant by either creating issues, commenting in line on github, or posting to Cinder's [dev forum][2]. Thanks!
+Please provide any feedback that you feel is relevant by either creating github issues, commenting in line on github, or posting to Cinder's [dev forum][dev-forum].
+
+Cheers,
 
 Rich
 
 
-[1]: https://github.com/cinder/cinder
-[2]: https://forum.libcinder.org/#Forum/developing-cinder
+[cinder]: https://github.com/cinder/cinder
+[tinderbox]: http://libcinder.org/docs/welcome/TinderBox.html
+[dev-forum]: https://forum.libcinder.org/#Forum/developing-cinder
+[webaudio]: https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
+[puredata]: http://puredata.info/
 [coreaudio-file-types]: https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/CoreAudioOverview/SupportedAudioFormatsMacOSX/SupportedAudioFormatsMacOSX.html
 [mediafoundation-file-types]: http://msdn.microsoft.com/en-us/library/windows/desktop/dd757927(v=vs.85).aspx
