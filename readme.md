@@ -2,37 +2,82 @@
 
 WIP repo for [Cinder][1]'s next audio API.
 
+*status: alpha testing*
 
 
-## Goals
+## Features
+
+
+*Features in initial release include:*
 
 - A flexible and comfortable system for modular audio processing.  We want people to explore what's capable.
-- Wide device and file support
 - a 'simple api', that lets users easily play audio.
-- High level constructs for game and 3d audio, ex. voice management.
+- Wide device and file support
+- a library of DSP tools such as FFT, samplerate conversion, and vector operations.
 - Probably goes without saying, but we want this system to be fast.
-- For initiial release, support for Mac, iOS, Windows 7, 8 and WinRT, along with minimal support for XP.
+- For initial release, support for Mac, iOS, Windows 7, 8, and minimal support for XP
 
- 
+*Features delayed until after initial release:*
 
-## Design
+- High level constructs for game and 3d audio, ex. voice management.
+- an offline audio processing graph
+- support for sub-graph processing, such as upsampling or in the spectral domain
+- WinRT support
 
-#### Node features
 
-* Every node has a virtual method `process( Buffer *buffer )`, which is called from the audio graph if `isEnabled() == true`.
-* a Node can be  enabled / disabled / connected / disconnected while audio is playing
-* Node's can have multiple inputs and they will sum to their specified number of channels.
-* If possible (ex. one input, same num channels), a Node will process audio in-place
+
+## Usage
+
+#### Voice API
+
+The Voice class allows users to easily perform common audio tasks, like playing a sound file. For example:
+
+```
+mVoice = audio2::Voice::create( audio2::load( loadAsset( "soundfile.wav"  ) ) );
+mVoice->play();
+```
+
+Common tasks like play(), pause(), and stop() are supported. Each Voice has controls for volume and 2d panning. For more information, see the samples [VoiceBasic](samples/VoiceBasic/src/VoiceBasicApp.cpp) and [VoiceBasicProcessing](samples/VoiceBasicProcessing/src/VoiceBasicProcessingApp.cpp).
+
+The Voice API sits above and ties into the modular API, wihch is explained below. Each Voice has a virtual `getNode()` member function that gives access to more advanced functionality.
+
+#### Context
+
+* manages a platform specific audio processing.
+* thread synchronization between the 'audio' (real-time) and 'user' (typically UI/main, but not limited to) threads.
+* There is one 'master', which is the only hardware-facing Context.
+* All Node's are created using the Context, which is necessary for thread safety.
+
+#### Node
+
+* contains a virtual method `process( Buffer *buffer )`, this is where the magic happens. 
+* processing can be enabled/disabled on a per-Node basis.
+* can be enabled / disabled / connected / disconnected while audio is playing
+* supports multiple inputs, which are implicitly summed to their specified number of channels.
+* supports multiple outputs, which don't necessarily have to be connected to the Context's output( they will be added to the 'auto pull list').
+* If possible (ex. one input, same # channels), a Node will process audio in-place
 * Node::ChannelMode allows the channels to be decided based on either a Node's input, it's output, or specified by user.
 
-
-
-## Usage (graph)
 
 FINISH ME
 
 #### Controlling a Node's processing:
  A Node must be enabled in order for it to process audio.  This is done by calling `Node::start()` or `Node::setEnabled( true )`. For convenience, you can also call `Node::setAudioEnabled( true )`, and the Node will be enabled/disabled when you call `Context::start()` or `Context::stop()`.  Some of the Node's have this setting on by default, such as `NodeEffect` subclasses.
+
+
+#### Reading and Writing Audio Files
+
+Supported File types:
+- For mac, see file types [listed here][coreaudio-file-types].
+- For windows, see file types [listed here][mediafoundation-file-types]. 
+- supported ogg vorbis on all platforms.
+
+
+####  Device Input and Output
+
+Allows for choosing either default input or output devices, or choosing device by name or key
+
+supports audio interfaces with an arbitrary number of channels
 
 
 ## Try It
@@ -73,3 +118,5 @@ Rich
 
 [1]: https://github.com/cinder/cinder
 [2]: https://forum.libcinder.org/#Forum/developing-cinder
+[coreaudio-file-types]: https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/CoreAudioOverview/SupportedAudioFormatsMacOSX/SupportedAudioFormatsMacOSX.html
+[mediafoundation-file-types]: http://msdn.microsoft.com/en-us/library/windows/desktop/dd757927(v=vs.85).aspx
