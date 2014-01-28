@@ -33,9 +33,9 @@ A modular api is advantagous because it is proven to be very flexible and allows
 
 The code is currently wrapped up as a cinderblock for easy testing, so the fastest way to get up and running is to clone it to your cinder/blocks path and use [Tinderbox][tinderbox].
 
-However, **you must still build the audio2 static library**, which can be done by opening up your platforms IDE project file (xcode/Audio2.xcodeproject on mac, vc2012/Audio2.sln on windows) and building in the same manner that you would cinder from source. Organizing the code into a static libraries means that as updates are made and file names are changed, your project files don't need to be updated as well.
+However, **you must still build the audio2 static library**, which can be done by opening up your platform's IDE project file (xcode/Audio2.xcodeproject on mac, vc2012/Audio2.sln on windows) and building in the same manner that you would cinder from source. Organizing the code into a static library means that as updates are made and file names are changed, your project files don't need to be updated as well.
 
-Another option is to link to the Audio2.xcodeproj or Audio2.sln as a dependency and add an include path for _$(AUDIO2_PATH)/src_.  This is how I have organized all of the tests / samples
+Another option is to link to the Audio2.xcodeproj or Audio2.sln as a project dependency, and add an include path for `$(AUDIO2_PATH)/src`.  This is how the tests are organized.
 
 
 ** Windows 8 Only: Building for XAudio2.8 **
