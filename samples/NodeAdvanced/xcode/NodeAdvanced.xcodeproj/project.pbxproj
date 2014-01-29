@@ -238,7 +238,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"\"$(CINDER_PATH)/lib/libcinder_d.a\"",
-					"\"../../../../../cinder-dev/blocks/audio2/lib/macosx/libaudio2_d.a\"",
+					"\"../../../lib/macosx/libaudio2_d.a\"",
 				);
 				PRODUCT_NAME = NodeAdvanced;
 				SYMROOT = ./build;
@@ -263,7 +263,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"\"$(CINDER_PATH)/lib/libcinder.a\"",
-					"\"../../../../../cinder-dev/blocks/audio2/lib/macosx/libaudio2.a\"",
+					"\"../../../lib/macosx/libaudio2.a\"",
 				);
 				PRODUCT_NAME = NodeAdvanced;
 				STRIP_INSTALLED_PRODUCT = YES;
@@ -277,7 +277,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = i386;
-				CINDER_PATH = "../../../../../cinder-dev";
+				CINDER_PATH = ../../../../../;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -294,7 +294,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = i386;
-				CINDER_PATH = "../../../../../cinder-dev";
+				CINDER_PATH = ../../../../../;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;

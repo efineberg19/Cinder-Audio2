@@ -255,11 +255,11 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				CINDER_PATH = "../../../../../cinder-dev";
+				CINDER_PATH = ../../../../../;
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
 				USER_HEADER_SEARCH_PATHS = (
 					"\"$(CINDER_PATH)/include\" ../include",
-					"\"../../../../../cinder-dev/blocks/audio2/src\"",
+					"../../../src",
 				);
 			};
 			name = Debug;
@@ -284,11 +284,11 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
-				CINDER_PATH = "../../../../../cinder-dev";
+				CINDER_PATH = ../../../../../;
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
 				USER_HEADER_SEARCH_PATHS = (
 					"\"$(CINDER_PATH)/include\" ../include",
-					"\"../../../../../cinder-dev/blocks/audio2/src\"",
+					"../../../src",
 				);
 			};
 			name = Release;
@@ -304,12 +304,12 @@
 				"OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" = (
 					"\"$(CINDER_PATH)/lib/libcinder-iphone_d.a\"",
 					"-lz",
-					"\"../../../../../cinder-dev/blocks/audio2/lib/ios/libaudio2_d.a\"",
+					"\"../../../lib/ios/libaudio2_d.a\"",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
 					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim_d.a\"",
 					"-lz",
-					"\"../../../../../cinder-dev/blocks/audio2/lib/ios/libaudio2_d.a\"",
+					"\"../../../lib/ios/libaudio2_d.a\"",
 				);
 			};
 			name = Debug;
@@ -325,12 +325,12 @@
 				"OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" = (
 					"\"$(CINDER_PATH)/lib/libcinder-iphone.a\"",
 					"-lz",
-					"\"../../../../../cinder-dev/blocks/audio2/lib/ios/libaudio2.a\"",
+					"\"../../../lib/ios/libaudio2.a\"",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
 					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim.a\"",
 					"-lz",
-					"\"../../../../../cinder-dev/blocks/audio2/lib/ios/libaudio2.a\"",
+					"\"../../../lib/ios/libaudio2.a\"",
 				);
 			};
 			name = Release;
