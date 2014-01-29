@@ -1308,11 +1308,11 @@
 		11B0421A179B90450034BEE2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CONFIGURATION_BUILD_DIR = ../lib/ios;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
-				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "audio2-ios_d";
 				SDKROOT = iphoneos;
 				SYMROOT = ../lib/ios;
@@ -1323,6 +1323,7 @@
 		11B0421B179B90450034BEE2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CONFIGURATION_BUILD_DIR = ../lib/ios;
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
