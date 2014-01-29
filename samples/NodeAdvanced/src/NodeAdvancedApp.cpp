@@ -56,9 +56,19 @@ void NodeAdvancedApp::setup()
 
 	ctx->start();
 
+	// Many times it is easier to specify musical pitches in MIDI format, which is linear rather than in hertz.
 	// Below is the pentatonic notes for the C major scale from C3-C5, represented in MIDI values.
-	// It is many times easier to specify musical pitches in this format, which is linear rather than in hertz, which is logorithmic.
-	mCPentatonicScale = { 48, 50, 52, 55, 57, 60, 62, 64, 67, 69, 72 };
+	mCPentatonicScale.push_back( 48 );
+	mCPentatonicScale.push_back( 50 );
+	mCPentatonicScale.push_back( 52 );
+	mCPentatonicScale.push_back( 55 );
+	mCPentatonicScale.push_back( 57 );
+	mCPentatonicScale.push_back( 60 );
+	mCPentatonicScale.push_back( 62 );
+	mCPentatonicScale.push_back( 64 );
+	mCPentatonicScale.push_back( 67 );
+	mCPentatonicScale.push_back( 69 );
+	mCPentatonicScale.push_back( 72 );
 
 	mFreqRampTime = 0.015f;
 }
