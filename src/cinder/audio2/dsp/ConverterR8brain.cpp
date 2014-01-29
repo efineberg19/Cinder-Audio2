@@ -29,7 +29,6 @@
 #include <algorithm>
 
 using namespace std;
-using namespace ci;
 
 namespace cinder { namespace audio2 { namespace dsp {
 

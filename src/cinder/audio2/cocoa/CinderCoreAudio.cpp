@@ -23,9 +23,9 @@
 
 #include "cinder/audio2/cocoa/CinderCoreAudio.h"
 #include "cinder/audio2/Debug.h"
+#include "cinder/Cinder.h"
 
 using namespace std;
-using namespace ci;
 
 namespace cinder { namespace audio2 { namespace cocoa {
 
