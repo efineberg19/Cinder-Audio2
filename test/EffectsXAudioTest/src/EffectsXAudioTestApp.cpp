@@ -1,7 +1,9 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "audio2/audio.h"
+// TODO: update
+// - remove using namespace audio2
+
 #include "audio2/CinderAssert.h"
 #include "audio2/Debug.h"
 
