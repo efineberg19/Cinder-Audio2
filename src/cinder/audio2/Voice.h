@@ -52,8 +52,8 @@ class Voice {
 
 	//! Creates a Voice that manages sample playback of an audio file pointed at with \a sourceFile.
 	static VoiceSamplePlayerRef create( const SourceFileRef &sourceFile, const Options &options = Options() );
-	//! Creates a Voice that continously calls \a callbackFn to process a Buffer of samples.
-	static VoiceRef create( CallbackProcessorFn callbackFn, const Options &options = Options() );
+	//! Creates a Voice that continuously calls \a callbackFn to process a Buffer of samples.
+	static VoiceRef create( const CallbackProcessorFn &callbackFn, const Options &options = Options() );
 
 	//! Starts the Voice. Does nothing if currently playing. \note In the case of a VoiceSamplePlayer and the sample has reached EOF, play() will start from the beginning.
 	virtual void play();

@@ -148,7 +148,7 @@ float MixerImpl::getBusPan( size_t busId )
 // MARK: - Voice
 // ----------------------------------------------------------------------------------------------------
 
-VoiceRef Voice::create( CallbackProcessorFn callbackFn, const Options &options )
+VoiceRef Voice::create( const CallbackProcessorFn &callbackFn, const Options &options )
 {
 	VoiceRef result( new VoiceCallbackProcessor( callbackFn, options ) );
 	MixerImpl::get()->addVoice( result );
