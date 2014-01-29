@@ -73,9 +73,14 @@ class Source {
 	//! Implementations should override and return true if they can provide samplerate and channel conversion.  If false (default), a Converter will be used if needed.
 	virtual bool supportsConversion()	{ return false; }
 
-	size_t mNativeSampleRate, mNativeNumChannels, mSampleRate, mNumChannels, mMaxFramesPerRead;
+	size_t								mNativeSampleRate, mNativeNumChannels, mSampleRate, mNumChannels, mMaxFramesPerRead;
 	std::unique_ptr<dsp::Converter>		mConverter;
 	BufferDynamic						mConverterReadBuffer;
+
+  private:
+	  // noncopyable
+	  Source( Source const& );
+	  Source& operator=( Source const& );
 };
 
 class SourceFile : public Source {
