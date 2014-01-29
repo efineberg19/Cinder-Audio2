@@ -22,7 +22,6 @@ This is the development repo for [Cinder][cinder]'s next audio API. It is availa
 - support for sub-graph processing, such as upsampling or in the spectral domain
 - WinRT support
 
-
 ## Design
 
 The core of the design draws from concepts found in other popular modular audio API's, namely [Web Audio][webaudio] and [Pure Data][puredata], however aims to be closely integrated into cinder's existing design patterns. We also take full advantage of C++11 features such as smart pointers, `std::atomic`'s, and `std::mutex`'s.
@@ -37,6 +36,9 @@ However, **you must still build the audio2 static library**, which can be done b
 
 Another option is to link to the Audio2.xcodeproj or Audio2.sln as a project dependency, and add an include path for `$(AUDIO2_PATH)/src`.  This is how the tests are organized.
 
+** iOS Only:**
+
+I've only tested on the device, not simulator.  The iOS simulator has many problems related to audio, limiting its usefulness for testing this code.  Instead, build for mac desktop when testing.
 
 ** Windows 8 Only: Building for XAudio2.8 **
 
