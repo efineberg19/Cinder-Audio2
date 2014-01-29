@@ -114,9 +114,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resources.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\..\samples\common\AudioDrawUtils.cpp" />
     <ClCompile Include="..\src\NodeTestApp.cpp" />
   </ItemGroup>
