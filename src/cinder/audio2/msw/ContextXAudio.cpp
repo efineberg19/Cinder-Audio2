@@ -272,7 +272,7 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 	UINT32 flags = 0;
 #endif
 
-	HRESULT hr = ::XAudio2Create( &mXAudio, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR );
+	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
 	CI_ASSERT( hr == S_OK );
 	hr = mXAudio->RegisterForCallbacks( mEngineCallback.get() );
 	CI_ASSERT( hr == S_OK );
