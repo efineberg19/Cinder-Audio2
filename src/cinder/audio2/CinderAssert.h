@@ -28,6 +28,7 @@
 // - CI_ASSERT_MSG( expr, msg ): same as CI_ASSERT but takes an additional, human readable \a const char* message parameter
 // - CI_VERIFY( expr ): same as CI_ASSERT, but still evaluates \a expr in release mode.
 // - CI_VERIFY_MSG( expr ): same as CI_ASSERT_MSG, but still evaluates \a expr in release mode.
+// - CI_ASSERT_NOT_REACHABLE(): utility to place at an unreachable location in code, which will cause a failed assertion.
 //
 // User-definable parameters:
 // - CI_DISABLE_ASSERTS: disables all asserts, they become no-ops (VERIFY variants still evaluate \a expr).
@@ -35,6 +36,7 @@
 //	 to handle a failed assertion.
 // - CI_ASSERT_DEBUG_BREAK: overrides default assertion behavoir to break into the debugger instead of
 //	 aborting. Cannot be used in conjunction with CI_ENABLE_ASSERT_HANDLER.
+
 
 #if defined( CI_ASSERT )
 	#undef CI_ASSERT
@@ -102,11 +104,15 @@
 	#define CI_VERIFY( expr )			CI_ASSERT( expr )
 	#define CI_VERIFY_MSG( expr, msg )	CI_ASSERT_MSG( expr, msg )
 
+	#define CI_ASSERT_NOT_REACHABLE()	CI_ASSERT_MSG( 0, "not reachable" )
+
 #else
 
 	#define CI_ASSERT( expr )			((void)0)
 	#define CI_ASSERT_MSG( expr, msg )	((void)0)
 	#define CI_VERIFY( expr )			((void)expr)
 	#define CI_VERIFY_MSG( expr, msg )	((void)expr)
+
+	#define CI_ASSERT_NOT_REACHABLE()	((void)0)
 
 #endif
