@@ -87,6 +87,12 @@ void Context::start()
 	if( mEnabled )
 		return;
 
+	const auto &output = getOutput();
+
+	// output may not yet be initialized if no Node's are connected to it.
+	if( ! output->isInitialized() )
+		output->initializeImpl();
+
 	mEnabled = true;
 	getOutput()->start();
 }
