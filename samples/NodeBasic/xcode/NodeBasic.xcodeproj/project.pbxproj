@@ -32,8 +32,7 @@
 		6B1819DFAF044298AFA20BC3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* NodeBasic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NodeBasic.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E1579957F0049618C4A5C01 /* NodeBasicApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = NodeBasicApp.cpp; path = ../src/NodeBasicApp.cpp; sourceTree = "<group>"; };
-		C936FFDB93614ADAA5FE253A /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
-		EDA0EC6538684461AD0BFC40 /* NodeBasic_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = NodeBasic_Prefix.pch; sourceTree = "<group>"; };
+		EDA0EC6538684461AD0BFC40 /* Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Prefix.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,8 +117,7 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				C936FFDB93614ADAA5FE253A /* Resources.h */,
-				EDA0EC6538684461AD0BFC40 /* NodeBasic_Prefix.pch */,
+				EDA0EC6538684461AD0BFC40 /* Prefix.pch */,
 			);
 			name = Headers;
 			sourceTree = "<group>";
@@ -220,7 +218,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = NodeBasic_Prefix.pch;
+				GCC_PREFIX_HEADER = Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -249,7 +247,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = NodeBasic_Prefix.pch;
+				GCC_PREFIX_HEADER = Prefix.pch;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
