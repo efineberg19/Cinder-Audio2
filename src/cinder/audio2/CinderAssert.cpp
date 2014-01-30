@@ -28,16 +28,16 @@
 
 namespace cinder {
 
-	void assertionFailedBreak( char const *expr, char const *function, char const *file, long line )
-	{
-		std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << std::endl;
-		std::raise( SIGINT );
-	}
+void assertionFailedBreak( char const *expr, char const *function, char const *file, long line )
+{
+	std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << std::endl;
+	std::raise( SIGINT );
+}
 
-	void assertionFailedMessageBreak( char const *expr, char const *msg, char const *function, char const *file, long line )
-	{
-		std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << msg << std::endl;
-		std::raise( SIGINT );
-	}
+void assertionFailedMessageBreak( char const *expr, char const *msg, char const *function, char const *file, long line )
+{
+	std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << msg << std::endl;
+	std::raise( SIGINT );
+}
 
 }
