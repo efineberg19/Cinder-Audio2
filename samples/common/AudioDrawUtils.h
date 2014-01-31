@@ -75,19 +75,22 @@ private:
 
 class SpectrumPlot {
 public:
-	SpectrumPlot() : mScaleDecibels( true ) {}
+	SpectrumPlot() : mScaleDecibels( true ), mBorderEnabled( true ) {}
 	
 	void setBounds( const ci::Rectf &bounds )	{ mBounds = bounds; }
 	const ci::Rectf& getBounds() const			{ return mBounds; }
 
-	void setScaleDecibels( bool b = true )		{ mScaleDecibels = b; }
+	void enableScaleDecibels( bool b = true )	{ mScaleDecibels = b; }
 	bool getScaleDecibels() const				{ return mScaleDecibels; }
-	
+
+	void enableBorder( bool b = true )			{ mBorderEnabled = b; }
+	bool getBorderEnabled() const				{ return mBorderEnabled; }
+
 	void draw( const std::vector<float> &magSpectrum );
 
 private:
 	ci::Rectf				mBounds;
-	bool					mScaleDecibels;
+	bool					mScaleDecibels, mBorderEnabled;
 	std::vector<ci::Vec2f>	mVerts;
 	std::vector<ci::ColorA>	mColors;
 };

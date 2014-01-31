@@ -222,4 +222,9 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, (GLsizei)mVerts.size() );
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
+
+	if( mBorderEnabled ) {
+		gl::color( Color::gray( 0.5f ) );
+		gl::drawStrokedRect( mBounds );
+	}
 }
