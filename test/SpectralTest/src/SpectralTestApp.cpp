@@ -32,6 +32,7 @@ class SpectralTestApp : public AppNative {
 	void prepareSettings( Settings *settings );
 	void fileDrop( FileDropEvent event );
 	void setup();
+	void resize();
 	void update();
 	void draw();
 
@@ -46,7 +47,7 @@ class SpectralTestApp : public AppNative {
 
 	audio2::BufferPlayerRef			mPlayerNode;
 	shared_ptr<audio2::Gen>			mGen;
-	audio2::ScopeSpectralRef		mSpectrumScope;
+	audio2::ScopeSpectralRef		mScopeSpectral;
 	audio2::SourceFileRef			mSourceFile;
 
 	vector<TestWidget *>			mWidgets;
@@ -69,8 +70,8 @@ void SpectralTestApp::setup()
 
 	auto ctx = audio2::Context::master();
 
-	mSpectrumScope = ctx->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
-	mSpectrumScope->setAutoEnabled();
+	mScopeSpectral = ctx->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
+	mScopeSpectral->setAutoEnabled();
 
 	//mGen = ctx->makeNode( new audio2::GenSine() );
 	mGen = ctx->makeNode( new audio2::GenTriangle() );
@@ -94,25 +95,27 @@ void SpectralTestApp::setup()
 	mScaleDecibelsButton.setEnabled( mSpectrumPlot.getScaleDecibels() );
 
 	ctx->printGraph();
+
+	LOG_V( "ScopeSpectral fftSize: " << mScopeSpectral->getFftSize() << ", windowSize: " << mScopeSpectral->getWindowSize() );
 }
 
 void SpectralTestApp::setupSine()
 {
-	mGen >> mSpectrumScope >> audio2::Context::master()->getOutput();
+	mGen >> mScopeSpectral >> audio2::Context::master()->getOutput();
 	if( mPlaybackButton.mEnabled )
 		mGen->start();
 }
 
 void SpectralTestApp::setupSineNoOutput()
 {
-	mGen->connect( mSpectrumScope );
+	mGen->connect( mScopeSpectral );
 	if( mPlaybackButton.mEnabled )
 		mGen->start();
 }
 
 void SpectralTestApp::setupSample()
 {
-	mPlayerNode >> mSpectrumScope >> audio2::Context::master()->getOutput();
+	mPlayerNode >> mScopeSpectral >> audio2::Context::master()->getOutput();
 	if( mPlaybackButton.mEnabled )
 		mPlayerNode->start();
 }
@@ -161,7 +164,7 @@ void SpectralTestApp::setupUI()
 	mSmoothingFactorSlider.mTitle = "Smoothing";
 	mSmoothingFactorSlider.mMin = 0.0f;
 	mSmoothingFactorSlider.mMax = 1.0f;
-	mSmoothingFactorSlider.set( mSpectrumScope->getSmoothingFactor() );
+	mSmoothingFactorSlider.set( mScopeSpectral->getSmoothingFactor() );
 	mWidgets.push_back( &mSmoothingFactorSlider );
 
 	sliderRect += Vec2f( 0.0f, sliderSize.y + padding );
@@ -192,10 +195,10 @@ void SpectralTestApp::printBinFreq( size_t xPos )
 
 //	freq = bin * samplerate / sizeFft
 
-	size_t numBins = mSpectrumScope->getFftSize() / 2;
+	size_t numBins = mScopeSpectral->getFftSize() / 2;
 	size_t spectroWidth = getWindowWidth() - mSpectroMargin * 2;
 	size_t bin = ( numBins * ( xPos - mSpectroMargin ) ) / spectroWidth;
-	float freq = bin * audio2::Context::master()->getSampleRate() / float( mSpectrumScope->getFftSize() );
+	float freq = bin * audio2::Context::master()->getSampleRate() / float( mScopeSpectral->getFftSize() );
 
 	LOG_V( "bin: " << bin << ", freq: " << freq );
 }
@@ -216,7 +219,7 @@ void SpectralTestApp::processTap( Vec2i pos )
 	else if( mLoopButton.hitTest( pos ) )
 		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
 	else if( mScaleDecibelsButton.hitTest( pos ) )
-		mSpectrumPlot.setScaleDecibels( ! mSpectrumPlot.getScaleDecibels() );
+		mSpectrumPlot.enableScaleDecibels( ! mSpectrumPlot.getScaleDecibels() );
 	else
 		printBinFreq( pos.x );
 
@@ -243,7 +246,7 @@ void SpectralTestApp::processTap( Vec2i pos )
 void SpectralTestApp::processDrag( Vec2i pos )
 {
 	if( mSmoothingFactorSlider.hitTest( pos ) )
-		mSpectrumScope->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
+		mScopeSpectral->setSmoothingFactor( mSmoothingFactorSlider.mValueScaled );
 	if( mFreqSlider.hitTest( pos ) )
 		mGen->setFreq( mFreqSlider.mValueScaled );
 }
@@ -261,6 +264,11 @@ void SpectralTestApp::fileDrop( FileDropEvent event )
 	LOG_V( "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() );
 }
 
+void SpectralTestApp::resize()
+{
+	mSpectrumPlot.setBounds( Rectf( mSpectroMargin, mSpectroMargin, getWindowWidth() - mSpectroMargin, getWindowHeight() - mSpectroMargin ) );
+}
+
 void SpectralTestApp::update()
 {
 	// update playback button, since the player node may stop itself at the end of a file.
@@ -272,14 +280,9 @@ void SpectralTestApp::draw()
 {
 	gl::clear();
 
-	// draw magnitude spectrum bins
-	auto &mag = mSpectrumScope->getMagSpectrum();
-	mSpectrumPlot.setBounds( Rectf( mSpectroMargin, mSpectroMargin, getWindowWidth() - mSpectroMargin, getWindowHeight() - mSpectroMargin ) );
+	// draw magnitude spectrum
+	auto &mag = mScopeSpectral->getMagSpectrum();
 	mSpectrumPlot.draw( mag );
-	
-	// draw rect around spectrogram boundary
-	gl::color( Color::gray( 0.5 ) );
-	gl::drawStrokedRect( mSpectrumPlot.getBounds() );
 
 	if( ! mag.empty() ) {
 		auto min = min_element( mag.begin(), mag.end() );

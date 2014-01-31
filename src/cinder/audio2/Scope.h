@@ -44,6 +44,7 @@ class Scope : public NodeAutoPullable {
 		Format() : mWindowSize( 0 ) {}
 
 		//! Sets the window size, the number of samples that are recorded for one 'window' into the audio signal. Default is the Context's frames-per-block.
+		//! \note will be rounded up to the nearest power of two.
 		Format& windowSize( size_t size )		{ mWindowSize = size; return *this; }
 		//! Returns the window size.
 		size_t getWindowSize() const			{ return mWindowSize; }
@@ -55,8 +56,10 @@ class Scope : public NodeAutoPullable {
 	Scope( const Format &format = Format() );
 	virtual ~Scope();
 
+	//! Returns a filled Buffer of the sampled audio stream, suitable for consuming on the main UI thread.
 	const Buffer& getBuffer();
-
+	//! Returns the window size, which is the number of samples that are copied from the audio stream. Equivalent to: \code getBuffer().size() \endcode.
+	size_t getWindowSize() const	{ return mWindowSize; }
 	//! Compute the average (RMS) volume across all channels
 	float getVolume();
 	//! Compute the average (RMS) volume across \a channel
@@ -80,12 +83,12 @@ class ScopeSpectral : public Scope {
 	struct Format : public Scope::Format {
 		Format() : Scope::Format(), mFftSize( 0 ), mWindowType( dsp::WindowType::BLACKMAN ) {}
 
-		//! Sets the FFT size, rounded up to the nearest power of 2 greated than \a windowSize. Setting this larger than \a windowSize causes the FFT transform to be 'zero-padded'. Default is the same as windowSize.
-		Format&		fftSize( size_t size )			{ mFftSize = size; return *this; }
+		//! Sets the FFT size, rounded up to the nearest power of 2 greater or equal to \a windowSize. Setting this larger than \a windowSize causes the FFT transform to be 'zero-padded'. Default is the same as windowSize.
+		Format&		fftSize( size_t size )				{ mFftSize = size; return *this; }
 		//! defaults to WindowType::BLACKMAN
 		Format&		windowType( dsp::WindowType type )	{ mWindowType = type; return *this; }
 		//! \see Scope::windowSize()
-		Format&		windowSize( size_t size )		{ Scope::Format::windowSize( size ); return *this; }
+		Format&		windowSize( size_t size )			{ Scope::Format::windowSize( size ); return *this; }
 
 		size_t			getFftSize() const				{ return mFftSize; }
 		dsp::WindowType	getWindowType() const			{ return mWindowType; }
@@ -100,12 +103,18 @@ class ScopeSpectral : public Scope {
 
 	virtual void initialize() override;
 
-	const std::vector<float>& getMagSpectrum();
-
-	size_t getFftSize() const	{ return mFftSize; }
-
-	float getSmoothingFactor() const	{ return mSmoothingFactor; }
-	void setSmoothingFactor( float factor );
+	//! Returns the magnitude spectrum of the currently sampled audio stream, suitable for consuming on the main UI thread.
+	const	std::vector<float>& getMagSpectrum();
+	//! Returns the number of frequency bins in the analyzed magnitude spectrum. Equivilant to fftSize / 2.
+	size_t	getNumBins() const				{ return mFftSize / 2; }
+	//! Returns the size of the FFT used for spectral analysis.
+	size_t	getFftSize() const				{ return mFftSize; }
+	//! Returns the corresponding frequency for \a bin. Computed as \code bin * getContext()->getSampleRate() / getFftSize() \endcode
+	float	getFreqForBin( size_t bin );
+	//! Returns the factor (0 - 1, default = 0.5) used when smoothing the magnitude spectrum between sequential calls to getMagSpectrum().
+	float	getSmoothingFactor() const		{ return mSmoothingFactor; }
+	//! Sets the factor (0 - 1, default = 0.5) used when smoothing the magnitude spectrum between sequential calls to getMagSpectrum()
+	void	setSmoothingFactor( float factor );
 
   private:
 	std::unique_ptr<dsp::Fft>	mFft;

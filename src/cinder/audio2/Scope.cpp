@@ -179,4 +179,9 @@ void ScopeSpectral::setSmoothingFactor( float factor )
 	mSmoothingFactor = math<float>::clamp( factor );
 }
 
+float ScopeSpectral::getFreqForBin( size_t bin )
+{
+	return bin * getContext()->getSampleRate() / (float)getFftSize();
+}
+
 } } // namespace cinder::audio2
