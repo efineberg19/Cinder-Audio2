@@ -64,8 +64,9 @@ void Scope::initialize()
 
 void Scope::process( Buffer *buffer )
 {
+	size_t numFrames = min( buffer->getNumFrames(), mRingBuffers[0].getSize() );
 	for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-		if( ! mRingBuffers[ch].write( buffer->getChannel( ch ), buffer->getNumFrames() ) )
+		if( ! mRingBuffers[ch].write( buffer->getChannel( ch ), numFrames ) )
 			return;
 	}
 }

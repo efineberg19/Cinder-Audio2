@@ -38,6 +38,15 @@ namespace dsp {
 typedef std::shared_ptr<class Scope> ScopeRef;
 typedef std::shared_ptr<class ScopeSpectral> ScopeSpectralRef;
 
+//!	\brief Node for retrieving time-domain audio PCM samples.
+//!
+//!	Scope provides a way to copy PCM samples from the audio thread and safely use them on the user (normally main) thread.
+//! Also provides RMS volume analysis. Derives its name from oscilloscope.
+//!
+//! This Node does not modify the incoming Buffer in its process() function and does not need to be connected to a NodeOutput.
+//!
+//! \note Internally, a dsp::RingBuffer is used, which has a limited size. Once it fills up, more samples will not be written
+//! until space is made by calling getBuffer(). In practice, this isn't a problem since this method is normally called from within the update() or draw() loop.
 class Scope : public NodeAutoPullable {
   public:
 	struct Format : public Node::Format {
@@ -57,6 +66,7 @@ class Scope : public NodeAutoPullable {
 	virtual ~Scope();
 
 	//! Returns a filled Buffer of the sampled audio stream, suitable for consuming on the main UI thread.
+	//! \note samples will only be copied if there is enough available in the internal dsp::RingBuffer.
 	const Buffer& getBuffer();
 	//! Returns the window size, which is the number of samples that are copied from the audio stream. Equivalent to: \code getBuffer().size() \endcode.
 	size_t getWindowSize() const	{ return mWindowSize; }
@@ -78,6 +88,7 @@ class Scope : public NodeAutoPullable {
 	size_t							mRingBufferPaddingFactor;
 };
 
+//! A Scope that performs spectral (Fourier) analysis.
 class ScopeSpectral : public Scope {
   public:
 	struct Format : public Scope::Format {
