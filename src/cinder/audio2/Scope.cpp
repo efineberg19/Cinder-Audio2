@@ -141,7 +141,7 @@ const std::vector<float>& ScopeSpectral::getMagSpectrum()
 {
 	fillCopiedBuffer();
 
-	// window the copied buffer and computer forward FFT transform
+	// window the copied buffer and compute forward FFT transform
 	if( mNumChannels > 1 ) {
 		// naive average of all channels
 		mFftBuffer.zero();
@@ -165,11 +165,11 @@ const std::vector<float>& ScopeSpectral::getMagSpectrum()
 
 	// compute normalized magnitude spectrum
 	// TODO: break this into vector cartisian -> polar and then vector lowpass. skip lowpass if smoothing factor is very small
-	const float kMagScale = 1.0f / mFft->getSize();
+	const float magScale = 1.0f / mFft->getSize();
 	for( size_t i = 0; i < mMagSpectrum.size(); i++ ) {
 		float re = real[i];
 		float im = imag[i];
-		mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + sqrt( re * re + im * im ) * kMagScale * ( 1.0f - mSmoothingFactor );
+		mMagSpectrum[i] = mMagSpectrum[i] * mSmoothingFactor + sqrt( re * re + im * im ) * magScale * ( 1 - mSmoothingFactor );
 	}
 
 	return mMagSpectrum;

@@ -95,7 +95,8 @@ class ScopeSpectral : public Scope {
 		Format() : Scope::Format(), mFftSize( 0 ), mWindowType( dsp::WindowType::BLACKMAN ) {}
 
 		//! Sets the FFT size, rounded up to the nearest power of 2 greater or equal to \a windowSize. Setting this larger than \a windowSize causes the FFT transform to be 'zero-padded'. Default is the same as windowSize.
-		Format&		fftSize( size_t size )				{ mFftSize = size; return *this; }
+		//! \note resulting number of output spectral bins is equal to (\a size / 2)
+		Format&     fftSize( size_t size )              { mFftSize = size; return *this; }
 		//! defaults to WindowType::BLACKMAN
 		Format&		windowType( dsp::WindowType type )	{ mWindowType = type; return *this; }
 		//! \see Scope::windowSize()
