@@ -62,9 +62,6 @@ void NodeInput::connectInput( const NodeRef &input, size_t bus )
 LineIn::LineIn( const DeviceRef &device, const Format &format )
 : NodeInput( format ), mDevice( device )
 {
-	if( boost::indeterminate( format.getAutoEnable() ) )
-		setAutoEnabled();
-
 	size_t deviceNumChannels = mDevice->getNumInputChannels();
 
 	if( mChannelMode != ChannelMode::SPECIFIED ) {

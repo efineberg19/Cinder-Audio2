@@ -41,10 +41,7 @@ void InputAnalyzer::setup()
 
 	mLineIn >> mScopeSpectral;
 
-	// not currently needed since LineIn is auto-enabled by default.
-	//	- Is this inconsistent? Other NodeInput's default to needing start().
-//	mLineIn->start();
-
+	mLineIn->start();
 	ctx->start();
 }
 
