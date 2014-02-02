@@ -21,6 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "cinder/Cinder.h"
 #include "cinder/audio2/CinderAssert.h"
 
 #include <iostream>
@@ -31,13 +32,23 @@ namespace cinder {
 void assertionFailedBreak( char const *expr, char const *function, char const *file, long line )
 {
 	std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << std::endl;
+
+#if defined( CINDER_MSW )
+	__debugbreak();
+#else
 	std::raise( SIGINT );
+#endif
 }
 
 void assertionFailedMessageBreak( char const *expr, char const *msg, char const *function, char const *file, long line )
 {
 	std::cerr << "*** Assertion Failed *** | expression: (" << expr << "), location: " << function << ":\n" << file << '(' << line << "): " << msg << std::endl;
+
+#if defined( CINDER_MSW )
+	__debugbreak();
+#else
 	std::raise( SIGINT );
+#endif
 }
 
-}
+} // namespace cinder
