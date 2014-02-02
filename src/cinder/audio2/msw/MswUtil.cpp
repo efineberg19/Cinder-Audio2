@@ -97,7 +97,7 @@ HRESULT STDMETHODCALLTYPE ComIStream::Seek( LARGE_INTEGER liDistanceToMove, DWOR
 		mIStream->seekRelative( (off_t)liDistanceToMove.QuadPart );
 		break;
 	case STREAM_SEEK_END:
-		mIStream->seekAbsolute( (off_t)(-liDistanceToMove.QuadPart) );
+		mIStream->seekAbsolute( (off_t)( - liDistanceToMove.QuadPart ) );
 		break;
 	default:   
 		return STG_E_INVALIDFUNCTION;

@@ -291,7 +291,6 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 
 LineOutXAudio::~LineOutXAudio()
 {
-	LOG_V( "bang" );
 	mXAudio->Release();
 }
 
