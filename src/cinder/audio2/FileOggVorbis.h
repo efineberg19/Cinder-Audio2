@@ -51,10 +51,19 @@ class SourceFileImplOggVorbis : public SourceFile {
 	std::string getMetaData() const																	override;
 
   private:
-	void initImpl();
+	void init();
+
+	// ov_callbacks
+	static size_t	readFn( void *ptr, size_t size, size_t count, void *datasource );
+	static int		seekFn( void *datasource, ogg_int64_t offset, int whence );
+	static int		closeFn( void *datasource );
+	static long		tellFn( void *datasource );
 
 	::OggVorbis_File	mOggVorbisFile;
-	fs::path			mFilePath;
+	//fs::path			mFilePath;
+
+	ci::DataSourceRef	mDataSource;
+	ci::IStreamRef		mStream;
 };
 
 //class TargetFileImplOggVorbis : public TargetFile {

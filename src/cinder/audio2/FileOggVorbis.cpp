@@ -21,6 +21,8 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define CI_ASSERT_DEBUG_BREAK
+
 #include "cinder/audio2/FileOggVorbis.h"
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Exception.h"
@@ -39,22 +41,16 @@ SourceFileImplOggVorbis::SourceFileImplOggVorbis()
 SourceFileImplOggVorbis::SourceFileImplOggVorbis( const DataSourceRef &dataSource )
 	: SourceFile()
 {
-	if( dataSource->isFilePath() ) {
-		mFilePath = dataSource->getFilePath();
-		initImpl();
-	}
-	else {
-		// TODO: to enable this, need to use ov_open_callbacks + ov_callbacks and cinders datasource streaming support
-		CI_ASSERT( 0 && "loading from win resource not implemented" );
-	}
+	mDataSource = dataSource;
+	init();
 }
 
 SourceFileRef SourceFileImplOggVorbis::clone() const
 {
 	shared_ptr<SourceFileImplOggVorbis> result( new SourceFileImplOggVorbis );
 
-	result->mFilePath = mFilePath;
-	result->initImpl();
+	result->mDataSource = mDataSource;
+	result->init();
 
 	return result;
 }
@@ -64,11 +60,28 @@ SourceFileImplOggVorbis::~SourceFileImplOggVorbis()
 	ov_clear( &mOggVorbisFile );
 }
 
-void SourceFileImplOggVorbis::initImpl()
+void SourceFileImplOggVorbis::init()
 {
-	int status = ov_fopen( mFilePath.string().c_str(), &mOggVorbisFile );
-	if( status )
-		throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
+	CI_ASSERT( mDataSource );
+	if( mDataSource->isFilePath() ) {
+		int status = ov_fopen( mDataSource->getFilePath().string().c_str(), &mOggVorbisFile );
+		if( status )
+			throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
+	}
+	else {
+		LOG_V( "BLARG. lets load a windows resource." );
+
+		mStream = mDataSource->createStream();
+
+		ov_callbacks callbacks;
+		callbacks.read_func = readFn;
+		callbacks.seek_func = seekFn;
+		callbacks.close_func = closeFn;
+		callbacks.tell_func = tellFn;
+
+		int status = ov_open_callbacks( this, &mOggVorbisFile, NULL, 0, callbacks );
+		CI_ASSERT( status == 0 );
+	}
 
 	vorbis_info *info = ov_info( &mOggVorbisFile, -1 );
     mSampleRate = mNativeSampleRate = info->rate;
@@ -123,6 +136,62 @@ string SourceFileImplOggVorbis::getMetaData() const
 		str << *comment++ << endl;
 
 	return str.str();
+}
+
+// static
+size_t SourceFileImplOggVorbis::readFn( void *ptr, size_t size, size_t nmemb, void *datasource )
+{
+	auto sourceFile = (SourceFileImplOggVorbis *)datasource;
+
+	size_t bytes = size * nmemb;
+	sourceFile->mStream->readData( ptr, bytes );
+
+	return nmemb;
+}
+
+// static 
+int SourceFileImplOggVorbis::seekFn( void *datasource, ogg_int64_t offset, int whence )
+{
+	auto sourceFile = (SourceFileImplOggVorbis *)datasource;
+
+	LOG_V( "seeking to: " << offset );
+
+	switch( whence ) {
+		case SEEK_SET:
+			sourceFile->mStream->seekAbsolute( (off_t)offset );
+			break;
+		case SEEK_CUR:
+			sourceFile->mStream->seekRelative( (off_t)offset );
+			break;
+		case SEEK_END:
+			// TODO: docs say "The implementation of SEEK_END should set the access cursor one past the last byte of accessible data, as would stdio fseek()"
+			// - is this possible with ci::IStream?
+			sourceFile->mStream->seekAbsolute( (off_t)( - offset ) );
+			break;
+		default:
+			CI_ASSERT_NOT_REACHABLE();
+			return -1;
+	}
+
+	return 0;
+}
+
+// static
+int	SourceFileImplOggVorbis::closeFn( void *datasource )
+{
+	return 0;
+}
+
+// static
+long SourceFileImplOggVorbis::tellFn( void *datasource )
+{
+	auto sourceFile = (SourceFileImplOggVorbis *)datasource;
+	
+	long pos = sourceFile->mStream->tell();
+
+	LOG_V( "pos: " << pos );
+
+	return pos;
 }
 
 } } // namespace cinder::audio2
