@@ -44,6 +44,7 @@ class NodeEffect : public Node {
 class Gain : public NodeEffect {
   public:
 	Gain( const Format &format = Format() );
+	Gain( float initialValue, const Format &format = Format() );
 	virtual ~Gain() {}
 
 	void process( Buffer *buffer ) override;
