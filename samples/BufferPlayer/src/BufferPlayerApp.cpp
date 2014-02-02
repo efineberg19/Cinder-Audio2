@@ -15,6 +15,7 @@ class BufferPlayerApp : public AppNative {
 public:
 	void prepareSettings( Settings *settings );
 	void setup();
+	void fileDrop( FileDropEvent event );
 	void mouseDown( MouseEvent event );
 	void mouseDrag( MouseEvent event );
 	void draw();
@@ -51,6 +52,15 @@ void BufferPlayerApp::setup()
 
 	// also load the buffer into our waveform visual util.
 	mWaveformPlot.load( buffer, getWindowBounds() );
+}
+
+void BufferPlayerApp::fileDrop( FileDropEvent event )
+{
+	audio2::SourceFileRef sourceFile = audio2::load( loadFile( event.getFile( 0 ) ) );
+
+	// BufferPlayer can also load a buffer directly from the SourceFile. This is also be call on a background thread.
+	mBufferPlayer->loadBuffer( sourceFile );
+	mWaveformPlot.load( mBufferPlayer->getBuffer(), getWindowBounds() );
 }
 
 void BufferPlayerApp::mouseDown( MouseEvent event )
