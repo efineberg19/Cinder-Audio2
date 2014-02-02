@@ -36,6 +36,20 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class Context>			ContextRef;
 typedef std::shared_ptr<class Node>				NodeRef;
 
+//! \brief Fundamental building block for creating an audio processing graph.
+//!
+//!	Node's allow for flexible combinations of synthesis, analysis, effects, file reading/writing, etc, and are designed so that
+//! that it is easy for users to add their own custom subclasses to a processing graph.
+//!
+//! Node's typically operate on two different threads: a 'user' thread (i.e. main / UI) and an audio thread. As such, certain methods
+//!
+//! A Node is owned by a Context, and as such must by created using its makeNode() method, or one of the specializations for platform
+//! specific Node's.
+//!
+//! Subclassing: implement process( Buffer *buffer ) to perform audio processing. A Node does not have access to its owning Context until
+//! initialize() is called, uninitialize() is called before a Node is deallocated or channel counts change.
+//!
+//! \see NodeInput, NodeOutput, NodeEffect
 class Node : public std::enable_shared_from_this<Node> {
   public:
 	typedef std::map<size_t, std::shared_ptr<Node> >		InputsContainerT;		//! input bus, strong reference to this
@@ -143,6 +157,7 @@ class Node : public std::enable_shared_from_this<Node> {
 	//! Returns a string representing the name of this Node type. TODO: use typeid + abi de-mangling to ease the burden on sub-classes
 	virtual std::string getName();
 
+	//! Used when connecting Node's with operator>>() and the user needs to specify the input and/or output bus.
 	struct BusConnector {
 		BusConnector( const NodeRef &output, size_t outputBus, size_t inputBus ) : mOutput( output ), mOutputBus( outputBus ), mInputBus( inputBus )
 		{}
@@ -157,9 +172,9 @@ class Node : public std::enable_shared_from_this<Node> {
 		size_t mOutputBus, mInputBus;
 	};
 
-	//! Returns a BusConnector, which is used when connecting Node's via the >> operator. \a outputBus is associated with the left-hand side's output's and \a inputBus is associated with the right-hand side's inputs.
+	//! Returns a BusConnector, which is used when connecting Node's via operator>>(). \a outputBus is associated with the left-hand side's output's and \a inputBus is associated with the right-hand side's inputs.
 	BusConnector bus( size_t outputBus, size_t inputBus )	{ return BusConnector( shared_from_this(), outputBus, inputBus ); }
-	//! Returns a BusConnector, which is used when connecting Node's via the >> operator. \a inputBus is associated with the right-hand side's inputs, while the left-hand side's output bus is 0.
+	//! Returns a BusConnector, which is used when connecting Node's via operator>>(). \a inputBus is associated with the right-hand side's inputs, while the left-hand side's output bus is 0.
 	BusConnector bus( size_t inputBus )						{ return BusConnector( shared_from_this(), 0, inputBus ); }
 
   protected:
@@ -210,14 +225,14 @@ class Node : public std::enable_shared_from_this<Node> {
 	friend class Param;
 };
 
-//! Enable connection syntax \code input >> output; \endCode.  \return the connected \a output
+//! Enable connection syntax: \code input >> output; \endcode.  \return the connected \a output
 inline const NodeRef& operator>>( const NodeRef &input, const NodeRef &output )
 {
 	input->connect( output );
 	return output;
 }
 
-//! Enable connection syntax \code input >> output->bus( inputBus, outputBus ); \endCode.  \return the connected \a output
+//! Enable connection syntax: \code input >> output->bus( inputBus, outputBus ); \endcode.  \return the connected \a output
 inline const NodeRef& operator>>( const NodeRef &input, const Node::BusConnector &bus )
 {
 	input->connect( bus.getOutput(), bus.getOutputBus(), bus.getInputBus() );
