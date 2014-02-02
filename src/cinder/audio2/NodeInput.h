@@ -34,9 +34,9 @@ typedef std::shared_ptr<class LineIn>					LineInRef;
 typedef std::shared_ptr<class Gen>						GenRef;
 typedef std::shared_ptr<class CallbackProcessor>		CallbackProcessorRef;
 
-typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
-
-//! NodeInput is the base class for Node's that produce audio. It cannot have any inputs.
+//! \brief NodeInput is the base class for Node's that produce audio. It cannot have any inputs.
+//!
+//! In general, you must call start() before a NodeInput will process audio. \see Node::Format::autoEnable()
 class NodeInput : public Node {
   public:
 	virtual ~NodeInput();
@@ -66,7 +66,10 @@ class LineIn : public NodeInput {
 	DeviceRef	mDevice;
 };
 
-//! Blarg
+//! Callback used to allow simple audio processing without subclassing a Node. First parameter is the Buffer to which to write samples, second parameter is the samplerate.
+typedef std::function<void( Buffer *, size_t )> CallbackProcessorFn;
+
+//! NodeInput that processes audio with a std::function callback. \see CallbackProcessorFn
 class CallbackProcessor : public NodeInput {
   public:
 	CallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeInput( format ), mCallbackFn( callbackFn ) {}
@@ -78,6 +81,7 @@ class CallbackProcessor : public NodeInput {
 	CallbackProcessorFn mCallbackFn;
 };
 
+//! Base class for NodeInput's that generate audio samples.
 class Gen : public NodeInput {
   public:
 	Gen( const Format &format = Format() );
@@ -96,7 +100,7 @@ class Gen : public NodeInput {
 	float mPhase;
 };
 
-//! \note freq param is ignored
+//! Noise generator. \note freq param is ignored
 class GenNoise : public Gen {
   public:
 	GenNoise( const Format &format = Format() ) : Gen( format ) {}
@@ -104,6 +108,7 @@ class GenNoise : public Gen {
 	void process( Buffer *buffer ) override;
 };
 
+//! Phasor generator, i.e. sawtooth waveform.
 class GenPhasor : public Gen {
   public:
 	GenPhasor( const Format &format = Format() ) : Gen( format )
@@ -112,6 +117,7 @@ class GenPhasor : public Gen {
 	void process( Buffer *buffer ) override;
 };
 
+//! Sinewave waveform generator.
 class GenSine : public Gen {
   public:
 	GenSine( const Format &format = Format() ) : Gen( format )
@@ -120,6 +126,7 @@ class GenSine : public Gen {
 	void process( Buffer *buffer ) override;
 };
 
+//! Triangle waveform generator.
 class GenTriangle : public Gen {
   public:
 	GenTriangle( const Format &format = Format() ) : Gen( format ), mUpSlope( 1.0f ), mDownSlope( 1.0f )

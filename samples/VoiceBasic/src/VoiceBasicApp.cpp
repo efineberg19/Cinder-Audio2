@@ -10,6 +10,7 @@ using namespace ci::app;
 
 class VoiceBasicApp : public AppNative {
 public:
+	void prepareSettings( Settings *settings );
 	void setup();
 	void mouseDown( MouseEvent event );
 	void keyDown( KeyEvent event );
@@ -17,6 +18,11 @@ public:
 
 	audio2::VoiceRef mVoice;
 };
+
+void VoiceBasicApp::prepareSettings( Settings *settings )
+{
+	settings->enableMultiTouch( false );
+}
 
 void VoiceBasicApp::setup()
 {
@@ -28,7 +34,7 @@ void VoiceBasicApp::setup()
 	mVoice = audio2::Voice::create( audiofile );
 
 	// possible (proposed) shortcut:
-	//	mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ) );
+	//mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ) );
 }
 
 void VoiceBasicApp::mouseDown( MouseEvent event )

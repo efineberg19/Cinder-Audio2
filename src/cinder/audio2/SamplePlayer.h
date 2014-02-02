@@ -81,7 +81,7 @@ class BufferPlayer : public SamplePlayer {
 public:
 	//! Constructs a BufferPlayer without a buffer, with the assumption one will be set later. \note Format::channels() can still be used to allocate the expected channel count ahead of time.
 	BufferPlayer( const Format &format = Format() );
-	//! Constructs a BufferPlayer \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
+	//! Constructs a BufferPlayer with \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
 	BufferPlayer( const BufferRef &buffer, const Format &format = Format() );
 
 	virtual ~BufferPlayer() {}

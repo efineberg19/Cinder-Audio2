@@ -36,7 +36,7 @@ namespace cinder { namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 NodeEffect::NodeEffect( const Format &format )
-	: Node( format )
+: Node( format )
 {
 	if( boost::indeterminate( format.getAutoEnable() ) )
 		setAutoEnabled();
@@ -47,7 +47,12 @@ NodeEffect::NodeEffect( const Format &format )
 // ----------------------------------------------------------------------------------------------------
 
 Gain::Gain( const Format &format )
-	: NodeEffect( format ), mParam( this, 1 ), mMin( 0 ), mMax( 1 )
+: NodeEffect( format ), mParam( this, 1 ), mMin( 0 ), mMax( 1 )
+{
+}
+
+Gain::Gain( float initialValue, const Format &format )
+: NodeEffect( format ), mParam( this, initialValue ), mMin( 0 ), mMax( 1 )
 {
 }
 
