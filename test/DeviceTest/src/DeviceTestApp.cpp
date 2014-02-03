@@ -95,7 +95,7 @@ void DeviceTestApp::setup()
 void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t numChannels )
 {
 	audio2::NodeInputRef currentSource = audio2::findFirstUpstreamNode<audio2::NodeInput>( mGain );
-	audio2::SaveNodeEnabledState enabled( currentSource );
+	audio2::ScopedNodeEnabledState enabled( currentSource );
 
 	auto ctx = audio2::Context::master();
 
@@ -122,7 +122,7 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t num
 
 void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device, size_t numChannels  )
 {
-	audio2::SaveNodeEnabledState enabled( mLineIn );
+	audio2::ScopedNodeEnabledState enabled( mLineIn );
 
 	if( mLineIn )
 		mLineIn->disconnectAllOutputs();

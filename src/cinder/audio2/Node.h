@@ -300,13 +300,14 @@ static std::shared_ptr<NodeT> findFirstUpstreamNode( NodeRef node )
 	return std::shared_ptr<NodeT>();
 }
 
-//! Convenience class that pushes and pops a \a Node's current enabled state.
-struct SaveNodeEnabledState {
-	SaveNodeEnabledState( const NodeRef &node ) : mNode( node )
+//! RAII-style utility class to save the \a Node's current enabled state.
+struct ScopedNodeEnabledState {
+	ScopedNodeEnabledState( const NodeRef &node )
+	: mNode( node )
 	{
 		mEnabled = ( mNode ? mNode->isEnabled() : false );
 	}
-	~SaveNodeEnabledState()
+	~ScopedNodeEnabledState()
 	{
 		if( mNode )
 			mNode->setEnabled( mEnabled );
