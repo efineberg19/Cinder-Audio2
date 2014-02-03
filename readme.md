@@ -36,11 +36,11 @@ However, **you must still build the audio2 static library**, which can be done b
 
 Another option is to link to the Audio2.xcodeproj or Audio2.sln as a project dependency, and add an include path for `$(AUDIO2_PATH)/src`.  This is how the tests are organized.
 
-** iOS Only:**
+**iOS Only:**
 
 I've only tested on the device, not simulator.  The iOS simulator has many problems related to audio, limiting its usefulness for testing this code.  Instead, build for mac desktop when testing.
 
-** Windows 8 Only: Building for XAudio2.8 **
+**Windows 8 Only: Building for XAudio2.8**
 
 * delete the "$(DXSDK_DIR)\include" include paths entry from the Audio2.sln
 * set the value of `_WIN32_WINNT` to equal win 8 by opening up the Audio2.sln's property sheet and changing `AUDIO2_DEPLOYMENT_TARGET` to 0x0602.
@@ -61,7 +61,7 @@ These are meant to be more for feature and regression testing than anything else
 
 The Voice class allows users to easily perform common audio tasks, like playing a sound file. For example:
 
-```
+```cpp
 mVoice = audio2::Voice::create( audio2::load( loadAsset( "soundfile.wav"  ) ) );
 mVoice->play();
 ```
@@ -76,7 +76,7 @@ The Voice API sits above and ties into the modular API, wihch is explained below
 
 The Context class manages platform specific audio processing and thread synchronization between the 'audio' (real-time) and 'user' (typically UI/main, but not limited to) threads. There is one 'master', which is the only hardware-facing Context. All Node's are created using the Context, which is necessary for thread safety:
 
-```
+```cpp
 auto ctx = audio2::Context::master();
 mNode = ctx->makeNode( new NodeType );
 ```
@@ -91,7 +91,7 @@ A Node is the fundamental building block for audio processing graphs. They allow
 
 Node's are connected together to from an audio graph. For audio to reach the speakers, the last Node in the graph is connected to the Context's NodeOutput:
 
-```
+```cpp
 auto ctx = audio2::Context::master();
 mSine = ctx->makeNode( new audio2::GenSine );
 mGain = ctx->makeNode( new audio2::Gain );
@@ -102,14 +102,14 @@ mGain->connect( ctx->getOutput() );
 
 Node's are connected from source to destination. A convenient shorthand syntax that is meant to represent this is as follows:
 
-```
+```cpp
 mSine >> mGain >> ctx->getOutput();
 ```
 
 
 To process audio, each Node subclass implements a virtual method `process( Buffer *buffer )`. Processing can be enabled/disabled on a per-Node basis. While `NodeEffect`s are enabled by default, `NodeInput`s must be turned on before they produce any audio. `NodeOutput`s are managed by their owning `Context`, which has a similar enabled/disabled syntax:
 
-```
+```cpp
 mSine->start();
 ctx->start();
 ```
@@ -150,7 +150,7 @@ Audio files are represented by the `audio2::SourceFile` class. The main interfac
 - **BufferPlayer**: plays back audio from an `audio2::Buffer`, i.e. in-memory. The Buffer is loaded from a `SourceFile` in one shot and there is no file i/o during playback.
 - **FilePlayer**: streams the audio playback via file. 
 
-```
+```cpp
 // load a sample
 mSourceFile = audio2::load( loadAsset( "audiofile.wav" ) );
 
