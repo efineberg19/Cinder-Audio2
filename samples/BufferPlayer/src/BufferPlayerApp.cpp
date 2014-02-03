@@ -84,7 +84,7 @@ void BufferPlayerApp::draw()
 	// draw the current play position
 	float readPos = (float)getWindowWidth() * mBufferPlayer->getReadPosition() / mBufferPlayer->getNumFrames();
 	gl::color( ColorA( 0, 1, 0, 0.7f ) );
-	gl::drawSolidRoundedRect( Rectf( readPos - 2, 0, readPos + 2, getWindowHeight() ), 2 );
+	gl::drawSolidRoundedRect( Rectf( readPos - 2, 0, readPos + 2, (float)getWindowHeight() ), 2 );
 }
 
 CINDER_APP_NATIVE( BufferPlayerApp, RendererGl )
