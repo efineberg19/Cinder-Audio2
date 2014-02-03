@@ -20,7 +20,7 @@ public:
 	void draw();
 
 	void drawLabels();
-	void printBinInfo( float mouseX );
+	void printBinInfo( int mouseX );
 
 	audio2::LineInRef			mLineIn;
 	audio2::ScopeSpectralRef	mScopeSpectral;
@@ -55,7 +55,7 @@ void InputAnalyzer::mouseDown( MouseEvent event )
 
 void InputAnalyzer::update()
 {
-	mSpectrumPlot.setBounds( Rectf( 40, 40, getWindowWidth() - 40, getWindowHeight() - 40 ) );
+	mSpectrumPlot.setBounds( Rectf( 40, 40, (float)getWindowWidth() - 40, (float)getWindowHeight() - 40 ) );
 
 	mMagSpectrum = mScopeSpectral->getMagSpectrum();
 }
@@ -78,7 +78,7 @@ void InputAnalyzer::drawLabels()
 
 	// draw x-axis label
 	string freqLabel = "Frequency (hertz)";
-	mTextureFont->drawString( freqLabel, Vec2f( getWindowCenter().x - mTextureFont->measureString( freqLabel ).x / 2, getWindowHeight() - 20 ) );
+	mTextureFont->drawString( freqLabel, Vec2f( getWindowCenter().x - mTextureFont->measureString( freqLabel ).x / 2, (float)getWindowHeight() - 20 ) );
 
 	// draw y-axis label
 	string dbLabel = "Magnitude (decibels)";
@@ -89,7 +89,7 @@ void InputAnalyzer::drawLabels()
 	gl::popModelView();
 }
 
-void InputAnalyzer::printBinInfo( float mouseX )
+void InputAnalyzer::printBinInfo( int mouseX )
 {
 	size_t numBins = mScopeSpectral->getFftSize() / 2;
 	size_t bin = min( numBins - 1, size_t( ( numBins * ( mouseX - mSpectrumPlot.getBounds().x1 ) ) / mSpectrumPlot.getBounds().getWidth() ) );
