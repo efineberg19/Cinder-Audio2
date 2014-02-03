@@ -80,7 +80,7 @@ void LineInWasapi::initialize()
 
 	size_t sampleRate = getContext()->getSampleRate();
 
-	auto wfx = interleavedFloatWaveFormat( mNumChannels, sampleRate );
+	auto wfx = interleavedFloatWaveFormat( sampleRate, mNumChannels );
 	::WAVEFORMATEX *closestMatch;
 	HRESULT hr = mImpl->mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
 	if( hr == S_OK )
