@@ -26,12 +26,7 @@ void VoiceBasicApp::prepareSettings( Settings *settings )
 
 void VoiceBasicApp::setup()
 {
-	// TODO: windows compiler can't figure out we want the create( SourceFileRef ) variant, since it is passed back as unique_ptr..
-	// maybe its time to just pass back as shared_ptr
-	//mVoice = audio2::Voice::create( audio2::load( loadResource( RES_DRAIN_OGG ) ) );
-
-	audio2::SourceFileRef audiofile = audio2::load( loadResource( RES_DRAIN_OGG ) );
-	mVoice = audio2::Voice::create( audiofile );
+	mVoice = audio2::Voice::create( audio2::load( loadResource( RES_DRAIN_OGG ) ) );
 
 	// possible (proposed) shortcut:
 	//mVoice = audio2::makeVoice( loadResource( RES_DRAIN_OGG ) );

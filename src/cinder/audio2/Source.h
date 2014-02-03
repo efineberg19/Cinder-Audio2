@@ -116,7 +116,7 @@ class SourceFile : public Source {
 	size_t mNumFrames, mFileNumFrames, mReadPos;
 };
 
-//! Convenience method for loading a SourceFile from \a dataSource. \see SourceFile::create()
-inline std::unique_ptr<SourceFile>	load( const DataSourceRef &dataSource )	{ return SourceFile::create( dataSource ); }
+//! Convenience method for loading a SourceFile from \a dataSource. \return SourceFileRef. \see SourceFile::create()
+inline SourceFileRef	load( const DataSourceRef &dataSource )	{ return SourceFile::create( dataSource ); }
 
 } } // namespace cinder::audio2
