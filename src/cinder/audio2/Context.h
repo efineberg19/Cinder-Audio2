@@ -120,7 +120,7 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	// TODO: if this is singleton, why hold in shared_ptr?
 	// - it's still stored in Node classes as a weak_ptr, so it needs to (for now) be created as a shared_ptr
-	static std::shared_ptr<Context>			sHardwareContext;
+	static std::shared_ptr<Context>			sMasterContext;
 	static std::unique_ptr<DeviceManager>	sDeviceManager; // TODO: consider turning DeviceManager into a HardwareContext class
 };
 

@@ -46,19 +46,19 @@ using namespace std;
 
 namespace cinder { namespace audio2 {
 
-std::shared_ptr<Context>		Context::sHardwareContext;
+std::shared_ptr<Context>		Context::sMasterContext;
 std::unique_ptr<DeviceManager>	Context::sDeviceManager;
 
 Context* Context::master()
 {
-	if( ! sHardwareContext ) {
+	if( ! sMasterContext ) {
 #if defined( CINDER_COCOA )
-		sHardwareContext.reset( new cocoa::ContextAudioUnit() );
+		sMasterContext.reset( new cocoa::ContextAudioUnit() );
 #elif defined( CINDER_MSW )
-		sHardwareContext.reset( new msw::ContextXAudio() );
+		sMasterContext.reset( new msw::ContextXAudio() );
 #endif
 	}
-	return sHardwareContext.get();
+	return sMasterContext.get();
 }
 
 DeviceManager* Context::deviceManager()
