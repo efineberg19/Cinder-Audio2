@@ -30,7 +30,7 @@ void VoiceBasicApp::setup()
 	// maybe its time to just pass back as shared_ptr
 	//mVoice = audio2::Voice::create( audio2::load( loadResource( RES_DRAIN_OGG ) ) );
 
-	audio2::SourceFileRef audiofile = audio2::load( loadResource( RES_DRAIN_WAV ) );
+	audio2::SourceFileRef audiofile = audio2::load( loadResource( RES_DRAIN_OGG ) );
 	mVoice = audio2::Voice::create( audiofile );
 
 	// possible (proposed) shortcut:

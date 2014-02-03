@@ -43,6 +43,8 @@ void InputAnalyzer::setup()
 
 	mLineIn->start();
 	ctx->start();
+
+	getWindow()->setTitle( mLineIn->getDevice()->getName() );
 }
 
 void InputAnalyzer::mouseDown( MouseEvent event )

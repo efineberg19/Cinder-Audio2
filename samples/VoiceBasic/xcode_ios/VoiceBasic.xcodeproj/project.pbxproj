@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
-		11802E76189DC58400AD0089 /* DrainMagic.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11802E74189DC58400AD0089 /* DrainMagic.wav */; };
 		11802E77189DC58400AD0089 /* DrainMagic.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 11802E75189DC58400AD0089 /* DrainMagic.ogg */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
@@ -34,7 +33,6 @@
 		00CFDF6A1138442D0091FFFF /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		0FF39D58C30345858FEF35E1 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		10370E7E797341DD947BBD30 /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = CinderApp_ios.png; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; };
-		11802E74189DC58400AD0089 /* DrainMagic.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = DrainMagic.wav; path = ../../../assets/DrainMagic.wav; sourceTree = "<group>"; };
 		11802E75189DC58400AD0089 /* DrainMagic.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = DrainMagic.ogg; path = ../../../assets/DrainMagic.ogg; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -127,7 +125,6 @@
 		00692BD914FF149000D0FFFF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				11802E74189DC58400AD0089 /* DrainMagic.wav */,
 				11802E75189DC58400AD0089 /* DrainMagic.ogg */,
 				10370E7E797341DD947BBD30 /* CinderApp_ios.png */,
 				DC53F52E6C8941B3A9A01B0C /* Default-568h@2x.png */,
@@ -203,7 +200,6 @@
 			files = (
 				11802E77189DC58400AD0089 /* DrainMagic.ogg in Resources */,
 				C7420F2D073043668B86FCBC /* CinderApp_ios.png in Resources */,
-				11802E76189DC58400AD0089 /* DrainMagic.wav in Resources */,
 				EDB4A8DD481343348CDD4799 /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -293,7 +289,7 @@
 				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
 					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim_d.a\"",
 					"-lz",
-					"\"../../../lib/ios/libaudio2_d.a\"",
+					"\"../../../lib/ios/libaudio2-ios_d.a\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -314,7 +310,7 @@
 				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
 					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim.a\"",
 					"-lz",
-					"\"../../../lib/ios/libaudio2.a\"",
+					"\"../../../lib/ios/libaudio2-ios.a\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;

@@ -56,10 +56,15 @@ void BufferPlayerApp::setup()
 
 void BufferPlayerApp::fileDrop( FileDropEvent event )
 {
-	audio2::SourceFileRef sourceFile = audio2::load( loadFile( event.getFile( 0 ) ) );
+	fs::path filePath = event.getFile( 0 );
+	getWindow()->setTitle( filePath.filename().string() );
 
-	// BufferPlayer can also load a buffer directly from the SourceFile. This is also be call on a background thread.
+	audio2::SourceFileRef sourceFile = audio2::load( loadFile( filePath ) );
+
+	// BufferPlayer can also load a buffer directly from the SourceFile.
+	// This is safe to call on a background thread, which would alleviate blocking the UI loop.
 	mBufferPlayer->loadBuffer( sourceFile );
+
 	mWaveformPlot.load( mBufferPlayer->getBuffer(), getWindowBounds() );
 }
 

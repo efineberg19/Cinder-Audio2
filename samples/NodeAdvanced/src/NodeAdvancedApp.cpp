@@ -117,7 +117,6 @@ void NodeAdvancedApp::draw()
 
 	gl::color( 0, 0.8f, 0.8f );
 	gl::drawSolidCircle( Vec2f( circleX, getWindowCenter().y ), 50 );
-
 }
 
 CINDER_APP_NATIVE( NodeAdvancedApp, RendererGl )

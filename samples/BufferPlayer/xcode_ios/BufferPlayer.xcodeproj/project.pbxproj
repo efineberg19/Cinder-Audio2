@@ -11,6 +11,7 @@
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
 		11802E58189BA09500AD0089 /* AudioDrawUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11802E57189BA09500AD0089 /* AudioDrawUtils.cpp */; };
 		11802E7B189DCE9800AD0089 /* DrainMagic.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 11802E7A189DCE9800AD0089 /* DrainMagic.ogg */; };
+		11802E89189F646400AD0089 /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 11802E88189F646400AD0089 /* CinderApp_ios.png */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -34,6 +35,7 @@
 		11802E56189BA09500AD0089 /* AudioDrawUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AudioDrawUtils.h; path = ../../common/AudioDrawUtils.h; sourceTree = "<group>"; };
 		11802E57189BA09500AD0089 /* AudioDrawUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AudioDrawUtils.cpp; path = ../../common/AudioDrawUtils.cpp; sourceTree = "<group>"; };
 		11802E7A189DCE9800AD0089 /* DrainMagic.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; name = DrainMagic.ogg; path = ../../../assets/DrainMagic.ogg; sourceTree = "<group>"; };
+		11802E88189F646400AD0089 /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = CinderApp_ios.png; path = ../../../resources/CinderApp_ios.png; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		1E5C7C3410B2484F82779A83 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 		00692BD914FF149000D0FFFF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				11802E88189F646400AD0089 /* CinderApp_ios.png */,
 				11802E7A189DCE9800AD0089 /* DrainMagic.ogg */,
 				1E5C7C3410B2484F82779A83 /* Default-568h@2x.png */,
 				8ADEBE40DCD64907B8E75972 /* Info.plist */,
@@ -208,6 +211,7 @@
 			files = (
 				11802E7B189DCE9800AD0089 /* DrainMagic.ogg in Resources */,
 				344622557311472A9C9143E1 /* Default-568h@2x.png in Resources */,
+				11802E89189F646400AD0089 /* CinderApp_ios.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
