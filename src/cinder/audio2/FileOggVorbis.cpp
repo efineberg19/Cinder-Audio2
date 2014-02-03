@@ -21,8 +21,6 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define CI_ASSERT_DEBUG_BREAK
-
 #include "cinder/audio2/FileOggVorbis.h"
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Exception.h"
