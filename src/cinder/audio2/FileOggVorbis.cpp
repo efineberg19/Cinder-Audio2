@@ -69,8 +69,6 @@ void SourceFileImplOggVorbis::init()
 			throw AudioFileExc( string( "Failed to open Ogg Vorbis file with error: " ), (int32_t)status );
 	}
 	else {
-		LOG_V( "BLARG. lets load a windows resource." );
-
 		mStream = mDataSource->createStream();
 
 		ov_callbacks callbacks;
@@ -143,18 +141,14 @@ size_t SourceFileImplOggVorbis::readFn( void *ptr, size_t size, size_t nmemb, vo
 {
 	auto sourceFile = (SourceFileImplOggVorbis *)datasource;
 
-	size_t bytes = size * nmemb;
-	sourceFile->mStream->readData( ptr, bytes );
-
-	return nmemb;
+	size_t bytesRead = sourceFile->mStream->readDataAvailable( ptr, size * nmemb);
+	return bytesRead / size;
 }
 
 // static 
 int SourceFileImplOggVorbis::seekFn( void *datasource, ogg_int64_t offset, int whence )
 {
 	auto sourceFile = (SourceFileImplOggVorbis *)datasource;
-
-	LOG_V( "seeking to: " << offset );
 
 	switch( whence ) {
 		case SEEK_SET:
@@ -165,8 +159,9 @@ int SourceFileImplOggVorbis::seekFn( void *datasource, ogg_int64_t offset, int w
 			break;
 		case SEEK_END:
 			// TODO: docs say "The implementation of SEEK_END should set the access cursor one past the last byte of accessible data, as would stdio fseek()"
-			// - is this possible with ci::IStream?
-			sourceFile->mStream->seekAbsolute( (off_t)( - offset ) );
+			// http://xiph.org/vorbis/doc/vorbisfile/callbacks.html
+			// - is this the right way to do this with ci::IStream?
+			sourceFile->mStream->seekAbsolute( -1 );
 			break;
 		default:
 			CI_ASSERT_NOT_REACHABLE();
@@ -187,11 +182,7 @@ long SourceFileImplOggVorbis::tellFn( void *datasource )
 {
 	auto sourceFile = (SourceFileImplOggVorbis *)datasource;
 	
-	long pos = sourceFile->mStream->tell();
-
-	LOG_V( "pos: " << pos );
-
-	return pos;
+	return sourceFile->mStream->tell();
 }
 
 } } // namespace cinder::audio2
