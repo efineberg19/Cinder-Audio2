@@ -323,11 +323,8 @@ void LineOutXAudio::initialize()
 
 	CI_ASSERT( mMasteringVoice );
 
-	::XAUDIO2_VOICE_DETAILS voiceDetails;
-	mMasteringVoice->GetVoiceDetails( &voiceDetails );
-
-	auto ctx = dynamic_pointer_cast<ContextXAudio>( getContext() );
-	ctx->enableAutoPullSourceVoiceIfNecessary();
+	//::XAUDIO2_VOICE_DETAILS voiceDetails;
+	//mMasteringVoice->GetVoiceDetails( &voiceDetails );
 
 	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
 	// needs to ensure this guy is around before it can do anything and it can't call
@@ -573,16 +570,12 @@ void ContextXAudio::enableAutoPullSourceVoiceIfNecessary()
 {
 	if( getOutput()->getNumConnectedInputs() == 0 && ! getAutoPulledNodes().empty() && ! mAutoPullSourceVoice ) {
 		mAutoPullSourceVoice = makeNode( new NodeXAudioSourceVoice );
-		mAutoPullSourceVoice->initialize();
+		mAutoPullSourceVoice->initializeImpl();
 		mAutoPullSourceVoice->start();
-
-		LOG_V( "created auto-pull source voice" );
 	}
 	else if( mAutoPullSourceVoice ) {
 		mAutoPullSourceVoice->uninitializeImpl();
 		mAutoPullSourceVoice.reset();
-
-		LOG_V( "removed auto-pull source voice" );
 	}
 }
 
