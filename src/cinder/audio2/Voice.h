@@ -34,13 +34,26 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class Voice> VoiceRef;
 typedef std::shared_ptr<class VoiceSamplePlayer> VoiceSamplePlayerRef;
 
+//! \brief Interface for performing high-level audio playback tasks.
+//!
+//! A Voice is an abstraction of something you can hear, and as such they send audio
+//! to your computers output device. Currently supports file playback and processing audio with a callback function.
+//! Each Voice has controls for setting the volume and pan of its signal, and supports
+//! play(), pause(), and stop() functionality.
+//!
+//! Underneath, playback is managed by a Node, which can be retrieved via the virtual getNode() method to
+//! perform more complex tasks.
+//!
 class Voice {
   public:
-
+	//! Optional parameters passed into Voice::create() methods.
 	struct Options {
 		Options() : mChannels( 0 ), mMaxFramesForBufferPlayback( 96000 ) {}
 
+		//! Sets the number of channels for the Voice.
 		Options& channels( size_t ch )							{ mChannels = ch; return *this; }
+		//! Sets the maximum number of frames acceptable for a VoiceSamplePlayer to use in-memory buffer playback via BufferPlayer (default = 96,000).
+		//! If the file is larger than this, it will be streamed from disk using a FilePlayer.
 		Options& maxFramesForBufferPlayback( size_t frames )	{ mMaxFramesForBufferPlayback = frames; return *this; }
 
 		size_t			getChannels() const						{ return mChannels; }
@@ -80,6 +93,11 @@ class Voice {
 	friend class MixerImpl;
 };
 
+//! \brief Concrete Voice for sample playback.
+//!
+//! Depending on the size of the specified file, playback will either be done in-memory (with BufferPlayer)
+//! or streaming (with FilePlayer). The maximum frames for in-memory playback can be specified with Voice::Options::maxFramesForBufferPlayback()
+//! Create with Voice::create( const SourceFileRef &sourceFile, const Options &options )
 class VoiceSamplePlayer : public Voice {
   public:
 
@@ -96,6 +114,7 @@ class VoiceSamplePlayer : public Voice {
 	friend class Voice;
 };
 
+//! Concrete Voice for processing audio with a callback function. \see CallbackProcessorFn
 class VoiceCallbackProcessor : public Voice {
   public:
 	NodeRef getNode() const override				{ return mNode; }

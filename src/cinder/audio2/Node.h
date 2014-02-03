@@ -64,7 +64,9 @@ class Node : public std::enable_shared_from_this<Node> {
 	struct Format {
 		Format() : mChannels( 0 ), mChannelMode( ChannelMode::MATCHES_INPUT ), mAutoEnable( boost::logic::indeterminate ) {}
 
+		//! Sets the number of channels for the Node.
 		Format& channels( size_t ch )							{ mChannels = ch; return *this; }
+		//! Controls how channels will be matched between connected Node's, if necessary. \see ChannelMode.
 		Format& channelMode( ChannelMode mode )					{ mChannelMode = mode; return *this; }
 		//! Whether or not the Node will be auto-enabled when connection changes occur.  Default is false for base \a Node class, although sub-classes may choose a different default.
 		Format& autoEnable( boost::tribool tb = true )			{ mAutoEnable = tb; return *this; }

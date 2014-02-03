@@ -48,7 +48,7 @@ class NodeInput : public Node {
 	void connectInput( const NodeRef &input, size_t bus ) override;
 };
 
-//! LineIn is the (abstract) base class for a Node representing a hardware input device. This is typically a microphone or a 'line-in' on an audio interface.
+//! Interface representing a Node that communicates with a hardware input device. This is typically a microphone or a 'line-in' on an audio interface.
 class LineIn : public NodeInput {
   public:
 	virtual ~LineIn();

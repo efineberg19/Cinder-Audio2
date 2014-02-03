@@ -31,7 +31,7 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class NodeOutput>		NodeOutputRef;
 typedef std::shared_ptr<class LineOut>			LineOutRef;
 
-//! NodeInput is the base class for Node's that consumes audio. It cannot have any outputs.
+//! Base class for Node's that consume an audio signal, for example speakers. It cannot have any outputs.
 class NodeOutput : public Node {
   public:
 	virtual ~NodeOutput() {}
@@ -66,7 +66,7 @@ class NodeOutput : public Node {
 	void connect( const NodeRef &output, size_t outputBus, size_t inputBus ) override;
 };
 
-//! LineOut is the (abstract) base class for a Node representing a hardware output device. This is typically speakers or a 'line-out' on an audio interface.
+//! Interface representing a Node that communicates with a hardware output device. This is typically speakers or a 'line-out' on an audio interface.
 class LineOut : public NodeOutput {
   public:
 	virtual ~LineOut() {}

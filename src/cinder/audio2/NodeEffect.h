@@ -34,13 +34,14 @@ typedef std::shared_ptr<class NodeEffect>		NodeEffectRef;
 typedef std::shared_ptr<class Gain>			GainRef;
 typedef std::shared_ptr<class Pan2d>		Pan2dRef;
 
-//! NodeEffect is the base class for Node's that process audio, they have both inputs and outputs.
+//! Base class for Node's that process audio, they have both inputs and outputs.
 class NodeEffect : public Node {
   public:
 	NodeEffect( const Format &format = Format() );
 	virtual ~NodeEffect() {}
 };
 
+//! NodeEffect for controlling signal gain, aka volume or amplitude.
 class Gain : public NodeEffect {
   public:
 	Gain( const Format &format = Format() );
