@@ -16,15 +16,13 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// TODO NEXT: test all paths that use Converter on windows 
-
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_MP3
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_MP3
-#define INITIAL_AUDIO_RES	RES_CASH_MP3
+//#define INITIAL_AUDIO_RES	RES_CASH_MP3
 //#define INITIAL_AUDIO_RES	RES_TONE440_OGG
-//#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
+#define INITIAL_AUDIO_RES	RES_TONE440L220R_OGG
 //#define INITIAL_AUDIO_RES	RES_RADIOHEAD_OGG
 
 using namespace ci;
@@ -52,7 +50,7 @@ class SamplePlayerTestApp : public AppNative {
 	void processTap( Vec2i pos );
 
 	void seek( size_t xPos );
-	void printBufferSamples( float xPos );
+	void printBufferSamples( size_t xPos );
 
 	void testConverter();
 	void testWrite();
@@ -295,7 +293,7 @@ void SamplePlayerTestApp::seek( size_t xPos )
 	mSamplePlayer->seek( mSamplePlayer->getNumFrames() * xPos / getWindowWidth() );
 }
 
-void SamplePlayerTestApp::printBufferSamples( float xPos )
+void SamplePlayerTestApp::printBufferSamples( size_t xPos )
 {
 	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
 	if( ! bufferPlayer )
@@ -389,7 +387,7 @@ void SamplePlayerTestApp::draw()
 
 	float readPos = (float)getWindowWidth() * mSamplePlayer->getReadPosition() / mSamplePlayer->getNumFrames();
 	gl::color( ColorA( 0, 1, 0, 0.7f ) );
-	gl::drawSolidRoundedRect( Rectf( readPos - 2, 0, readPos + 2, getWindowHeight() ), 2 );
+	gl::drawSolidRoundedRect( Rectf( readPos - 2, 0, readPos + 2, (float)getWindowHeight() ), 2 );
 
 	if( mUnderrunFade > 0.0001f ) {
 		gl::color( ColorA( 1, 0.5f, 0, mUnderrunFade ) );
