@@ -296,12 +296,11 @@ LineOutXAudio::~LineOutXAudio()
 
 void LineOutXAudio::initialize()
 {
-	IXAudio2 *xaudio = dynamic_pointer_cast<ContextXAudio>( getContext() )->getXAudio();
 	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
 
 #if defined( CINDER_XAUDIO_2_8 )
 	const wstring &deviceId = deviceManager->getDeviceId( mDevice );
-	HRESULT hr = xaudio->CreateMasteringVoice( &mMasteringVoice, getNumChannels(), getSampleRate(), 0, deviceId.c_str() );
+	HRESULT hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, getNumChannels(), getSampleRate(), 0, deviceId.c_str() );
 	CI_ASSERT( hr == S_OK );
 #else
 
@@ -326,6 +325,9 @@ void LineOutXAudio::initialize()
 
 	::XAUDIO2_VOICE_DETAILS voiceDetails;
 	mMasteringVoice->GetVoiceDetails( &voiceDetails );
+
+	auto ctx = dynamic_pointer_cast<ContextXAudio>( getContext() );
+	ctx->enableAutoPullSourceVoiceIfNecessary();
 
 	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
 	// needs to ensure this guy is around before it can do anything and it can't call
@@ -532,7 +534,6 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 				// see if there is already an upstream source voice
 				sourceVoice = findFirstUpstreamNode<NodeXAudioSourceVoice>( node );
 				if( sourceVoice ) {
-					LOG_V( "detected upstream source node, shuffling." );
 					// TODO: account account for multiple inputs in both input and sourceVoice
 					NodeRef sourceInput = sourceVoice->getInputs()[0];
 					sourceVoice->disconnect();
@@ -549,10 +550,7 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 						continue;
 					
 					// a SourceVoiceXAudio is needed
-
-					LOG_V( "implicit connection: " << input->getName() << " -> SourceVoiceXAudio -> " << node->getName() );
-
-					sourceVoice = makeNode( new NodeXAudioSourceVoice() );
+					sourceVoice = makeNode( new NodeXAudioSourceVoice );
 
 					input->connect( sourceVoice );
 					sourceVoice->connect( node, 0, bus );
@@ -566,6 +564,25 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 		shared_ptr<NodeEffectXAudioXapo> xapo = dynamic_pointer_cast<NodeEffectXAudioXapo>( input );
 		if( xapo )
 			xapo->notifyConnected();
+	}
+
+	enableAutoPullSourceVoiceIfNecessary();
+}
+
+void ContextXAudio::enableAutoPullSourceVoiceIfNecessary()
+{
+	if( getOutput()->getNumConnectedInputs() == 0 && ! getAutoPulledNodes().empty() && ! mAutoPullSourceVoice ) {
+		mAutoPullSourceVoice = makeNode( new NodeXAudioSourceVoice );
+		mAutoPullSourceVoice->initialize();
+		mAutoPullSourceVoice->start();
+
+		LOG_V( "created auto-pull source voice" );
+	}
+	else if( mAutoPullSourceVoice ) {
+		mAutoPullSourceVoice->uninitializeImpl();
+		mAutoPullSourceVoice.reset();
+
+		LOG_V( "removed auto-pull source voice" );
 	}
 }
 

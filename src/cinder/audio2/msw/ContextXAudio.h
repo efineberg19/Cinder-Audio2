@@ -180,7 +180,8 @@ class ContextXAudio : public Context {
 	void setOutput( const NodeOutputRef &output ) override;
 	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a LineOut.
 	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<LineOutXAudio>( mOutput )->getXAudio(); }
-
+	//! Called from LineOutXAudio::iniialize(), creates a NodeXAudioSourceVoice if there are auto-pull Node's and no other source voices
+	void enableAutoPullSourceVoiceIfNecessary();
 	//! Sets whether to enable filter usage within this audio context (default = true). \see NodeEffectXAudioFilter
 	void setFilterEffectsEnabled( bool b = true )	{ mFilterEnabled = b; }
 	//! Returns whether filter usage is enabled within this audio context (default = true). \see NodeEffectXAudioFilter
@@ -188,6 +189,8 @@ class ContextXAudio : public Context {
 
   private:
 	bool	mFilterEnabled;
+
+	std::shared_ptr<NodeXAudioSourceVoice> mAutoPullSourceVoice;
 };
 
 } } } // namespace cinder::audio2::msw

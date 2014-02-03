@@ -50,6 +50,7 @@ public:
 	void setup2to1();
 	void setup1to2();
 	void setupInterleavedPassThru();
+	void setupAutoPulled();
 	void printDefaultOutput();
 
 	void setupUI();
@@ -75,13 +76,13 @@ void NodeTestApp::setup()
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.5f );
-	mGain->connect( ctx->getOutput() );
 
 	mNoise = ctx->makeNode( new audio2::GenNoise() );
 	mGen = ctx->makeNode( new audio2::GenTriangle() );
 	mGen->setFreq( 440 );
 
-	setupGen();
+	//setupGen();
+	setupAutoPulled();
 	ctx->printGraph();
 	
 	setupUI();
@@ -91,7 +92,7 @@ void NodeTestApp::setupGen()
 {
 	mGain->disconnectAllInputs();
 
-	mGen >> mGain;
+	mGen >> mGain >> audio2::Context::master()->getOutput();
 
 	mGen->start();
 
@@ -113,9 +114,10 @@ void NodeTestApp::setup2to1()
 	mNoise >> mGain->bus( GainInputBus::NOISE );
 	mGen >> mGain->bus( GainInputBus::SINE );
 
-
 	// ???: possible?
 //	mNoise->bus( 0 ) >> mGain->bus( GainInputBus::NOISE );
+
+	mGain >> audio2::Context::master()->getOutput();
 
 	mGen->start();
 	mNoise->start();
@@ -133,7 +135,7 @@ void NodeTestApp::setup1to2()
 
 	// TODO: this wants to connect at bus 0, but what if mGen is already connected at a different bus?
 	// - output bus should be updated to reflect the newly specified index
-	mGen->connect( mGain );
+	mGen >> mGain >> audio2::Context::master()->getOutput();
 	mGen->start();
 
 	if( ! mScope )
@@ -146,14 +148,35 @@ void NodeTestApp::setup1to2()
 
 void NodeTestApp::setupInterleavedPassThru()
 {
+	auto ctx = audio2::Context::master();
+
 	mGain->disconnectAllInputs();
 
-	auto interleaved = audio2::Context::master()->makeNode( new InterleavedPassThruNode() );
-	mGen >> interleaved >> mGain;
+	auto interleaved = ctx->makeNode( new InterleavedPassThruNode() );
+	mGen >> interleaved >> mGain >> ctx->getOutput();
 	mGen->start();
 
 	mEnableNoiseButton.setEnabled( false );
 	mEnableSineButton.setEnabled( true );
+}
+
+void NodeTestApp::setupAutoPulled()
+{
+	auto ctx = audio2::Context::master();
+
+	ctx->disconnectAllNodes();
+
+	if( ! mScope )
+		mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
+
+	mGen >> mScope;
+
+	mGen->start();
+
+	// TODO: dsp would have been stopped by ctx->disconnectAllNodes() - why is this necessary?
+	// - don't stop context if not necessary
+	if( mPlayButton.mEnabled )
+		ctx->start();
 }
 
 void NodeTestApp::printDefaultOutput()
@@ -177,6 +200,7 @@ void NodeTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "2 to 1" );
 	mTestSelector.mSegments.push_back( "1 to 2" );
 	mTestSelector.mSegments.push_back( "interleave pass-thru" );
+	mTestSelector.mSegments.push_back( "auto-pulled" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
 	mWidgets.push_back( &mTestSelector );
 
@@ -234,14 +258,19 @@ void NodeTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V( "selected: " << currentTest );
 
+		if( mScope )
+			mScope->disconnectAll();
+
 		if( currentTest == "sine" )
 			setupGen();
-		if( currentTest == "2 to 1" )
+		else if( currentTest == "2 to 1" )
 			setup2to1();
-		if( currentTest == "1 to 2" )
+		else if( currentTest == "1 to 2" )
 			setup1to2();
-		if( currentTest == "interleave pass-thru" )
+		else if( currentTest == "interleave pass-thru" )
 			setupInterleavedPassThru();
+		else if( currentTest == "auto-pulled" )
+			setupAutoPulled();
 
 		ctx->printGraph();
 	}
