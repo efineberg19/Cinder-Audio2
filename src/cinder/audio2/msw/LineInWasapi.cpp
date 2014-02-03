@@ -48,9 +48,10 @@ struct LineInWasapi::Impl {
 	void captureAudio();
 
 	std::unique_ptr<::IAudioClient, ComReleaser>			mAudioClient;
-	std::unique_ptr<::IAudioCaptureClient, ComReleaser>	mCaptureClient;
-	std::unique_ptr<dsp::RingBuffer>		mRingBuffer;
-	size_t mNumSamplesBuffered, mNumChannels;
+	std::unique_ptr<::IAudioCaptureClient, ComReleaser>		mCaptureClient;
+	std::unique_ptr<dsp::RingBuffer>						mRingBuffer;
+	
+	size_t	mNumSamplesBuffered, mNumChannels;
 };
 
 // converts to 100-nanoseconds

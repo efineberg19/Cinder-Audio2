@@ -218,7 +218,7 @@ void DeviceTestApp::setupUI()
 	mTestSelector.mBounds = Rectf( getWindowWidth() - 190, 0, getWindowWidth(), 160 );
 #else
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
-	mTestSelector.mBounds = Rectf( getWindowCenter().x + 110, 0, getWindowWidth(), 160 );
+	mTestSelector.mBounds = Rectf( getWindowCenter().x + 110, 0, (float)getWindowWidth(), 160 );
 #endif
 
 	mGainSlider.mBounds = Rectf( mTestSelector.mBounds.x1, mTestSelector.mBounds.y2 + 10, mTestSelector.mBounds.x2, mTestSelector.mBounds.y2 + 50 );
@@ -227,7 +227,7 @@ void DeviceTestApp::setupUI()
 	mWidgets.push_back( &mGainSlider );
 
 	mOutputSelector.mTitle = "Output Devices";
-	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40, getWindowWidth(), getWindowHeight() );
+	mOutputSelector.mBounds = Rectf( mTestSelector.mBounds.x1, getWindowCenter().y + 40, (float)getWindowWidth(), (float)getWindowHeight() );
 	for( const auto &dev : audio2::Device::getOutputDevices() ) {
 		if( dev == mLineOut->getDevice() )
 			mOutputSelector.mCurrentSectionIndex = mOutputSelector.mSegments.size();
