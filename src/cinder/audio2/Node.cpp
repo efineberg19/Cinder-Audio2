@@ -421,12 +421,10 @@ void NodeAutoPullable::updatePullMethod()
 	if( ! hasOutputs && ! mIsPulledByContext ) {
 		mIsPulledByContext = true;
 		getContext()->addAutoPulledNode( shared_from_this() );
-		LOG_V( "added " << getName() << " to auto-pull list" );
 	}
 	else if( hasOutputs && mIsPulledByContext ) {
 		mIsPulledByContext = false;
 		getContext()->removeAutoPulledNode( shared_from_this() );
-		LOG_V( "removed " << getName() << " from auto-pull list" );
 	}
 }
 

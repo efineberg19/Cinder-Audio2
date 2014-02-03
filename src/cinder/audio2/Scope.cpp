@@ -131,8 +131,6 @@ void ScopeSpectral::initialize()
 
 	mWindowingTable = makeAlignedArray<float>( mWindowSize );
 	generateWindow( mWindowType, mWindowingTable.get(), mWindowSize );
-
-	LOG_V( "complete. fft size: " << mFftSize << ", window size: " << mWindowSize );
 }
 
 // TODO: When mNumChannels > 1, use generic channel converter.

@@ -78,8 +78,6 @@ DeviceRef DeviceManagerWasapi::getDefaultOutput()
 
 	string key( ci::toUtf8( idStr ) );
 	::CoTaskMemFree( idStr );
-	LOG_V( "key: " << key );
-
 	return findDeviceByKey( key );
 }
 
@@ -102,7 +100,6 @@ DeviceRef DeviceManagerWasapi::getDefaultInput()
 
 	string key( ci::toUtf8( idStr ) );
 	::CoTaskMemFree( idStr );
-	LOG_V( "key: " << key );
 
 	return findDeviceByKey( key );
 }
@@ -299,7 +296,7 @@ vector<wstring> DeviceManagerWasapi::parseDeviceIds( DeviceInfo::Usage usage )
 			if( error == ERROR_NO_MORE_ITEMS )
 				break;
 			else {
-				LOG_V( "SetupDiEnumDeviceInterfaces returned error: " << error );
+				LOG_E( "SetupDiEnumDeviceInterfaces returned error: " << error );
 				CI_ASSERT( 0 );
 			}
 		}

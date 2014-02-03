@@ -84,16 +84,12 @@ void LineInWasapi::initialize()
 	auto wfx = interleavedFloatWaveFormat( sampleRate, mNumChannels );
 	::WAVEFORMATEX *closestMatch;
 	HRESULT hr = mImpl->mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
-	if( hr == S_OK )
-		LOG_V( "requested format is supported." );
-	else if( hr == S_FALSE ) {
+	if( hr == S_FALSE ) {
 		CI_ASSERT( closestMatch );
 		LOG_V( "cannot use requested format. TODO: use closest" );
 	}
-	else
+	else if( hr != S_OK )
 		throw AudioFormatExc( "Could not find a suitable format for IAudioCaptureClient" );
-
-	LOG_V( "requested block size: " << mCaptureBlockSize << " frames" );
 
 	::REFERENCE_TIME requestedDuration = samplesToReferenceTime( mCaptureBlockSize, sampleRate );
 	hr = mImpl->mAudioClient->Initialize( ::AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, wfx.get(), NULL ); 
@@ -110,10 +106,9 @@ void LineInWasapi::initialize()
 
 	mInterleavedBuffer = BufferInterleaved( numFrames, mNumChannels );
 	
-	LOG_V( "numFrames: " << numFrames << ", buffer size: " << mInterleavedBuffer.getSize() << ", actual duration: " << captureDurationMs << "ms" );
+	//LOG_V( "numFrames: " << numFrames << ", buffer size: " << mInterleavedBuffer.getSize() << ", actual duration: " << captureDurationMs << "ms" );
 
 	mInitialized = true;
-	LOG_V( "complete." );
 }
 
 // TODO: consider uninitializing device
@@ -137,7 +132,6 @@ void LineInWasapi::start()
 	CI_ASSERT( hr == S_OK );
 
 	mEnabled = true;
-	LOG_V( "started " << mDevice->getName() );
 }
 
 void LineInWasapi::stop()
@@ -216,10 +210,8 @@ void LineInWasapi::Impl::initAudioClient( const DeviceRef &device )
 	// - index (ex 4, 5, 8, 9)
 	mNumChannels = mixFormat->nChannels;
 
-	LOG_V( "initial mix format samplerate: " << mixFormat->nSamplesPerSec << ", num channels: " << mixFormat->nChannels );
+	//LOG_V( "initial mix format samplerate: " << mixFormat->nSamplesPerSec << ", num channels: " << mixFormat->nChannels );
 	::CoTaskMemFree( mixFormat );
-
-	LOG_V( "activated audio client" );
 }
 
 void LineInWasapi::Impl::initCapture( size_t numFrames ) {

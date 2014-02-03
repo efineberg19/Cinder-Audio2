@@ -263,8 +263,12 @@ void Context::printGraph()
 {
 	app::console() << "-------------- Graph configuration: --------------" << endl;
 	printRecursive( getOutput(), 0 );
-	for( const auto& node : mAutoPulledNodes )
-		printRecursive( node, 0 );
+
+	if( ! mAutoPulledNodes.empty() ) {
+		app::console() << "(auto-pulled:)" << endl;
+		for( const auto& node : mAutoPulledNodes )
+			printRecursive( node, 0 );
+	}
 	app::console() << "--------------------------------------------------" << endl;
 }
 

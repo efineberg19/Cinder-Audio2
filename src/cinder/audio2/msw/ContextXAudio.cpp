@@ -261,14 +261,14 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 : LineOut( device, format ), mEngineCallback( new EngineCallbackImpl( this ) )
 {
 #if defined( CINDER_XAUDIO_2_7 )
-	LOG_V( "CINDER_XAUDIO_2_7, toolset: v110_xp" );
+	LOG_V( "CINDER_XAUDIO_2_7" );
 	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
 
 	// ???: why did i add this to the 2.7-only section? well apparently it isn't needed there anyway..
 	ci::msw::initializeCom(); 
 
 #else
-	LOG_V( "CINDER_XAUDIO_2_8, toolset: v110" );
+	LOG_V( "CINDER_XAUDIO_2_8" );
 	UINT32 flags = 0;
 #endif
 
@@ -315,9 +315,6 @@ void LineOutXAudio::initialize()
 		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
 		CI_ASSERT( hr == S_OK );
 		if( mDevice->getKey() == ci::toUtf8( deviceDetails.DeviceID ) ) {
-			LOG_V( "found match: display name: " << deviceDetails.DisplayName );
-			LOG_V( "device id: " << deviceDetails.DeviceID );
-
 			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice,  getNumChannels(), getSampleRate(), 0, i );
 			CI_ASSERT( hr == S_OK );
 		}
@@ -329,7 +326,6 @@ void LineOutXAudio::initialize()
 
 	::XAUDIO2_VOICE_DETAILS voiceDetails;
 	mMasteringVoice->GetVoiceDetails( &voiceDetails );
-	LOG_V( "created mastering voice. channels: " << voiceDetails.InputChannels << ", samplerate: " << voiceDetails.InputSampleRate );
 
 	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
 	// needs to ensure this guy is around before it can do anything and it can't call
