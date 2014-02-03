@@ -103,6 +103,12 @@ void Node::disconnect( size_t outputBus )
 	output->notifyConnectionsDidChange();
 }
 
+void Node::disconnectAll()
+{
+	disconnectAllInputs();
+	disconnectAllOutputs();
+}
+
 void Node::disconnectAllOutputs()
 {
 	NodeRef thisRef = shared_from_this();
@@ -413,6 +419,16 @@ void NodeAutoPullable::disconnectInput( const NodeRef &input )
 {
 	Node::disconnectInput( input );
 	updatePullMethod();
+}
+
+void NodeAutoPullable::disconnectAllOutputs()
+{
+	Node::disconnectAllOutputs();
+
+	if( mIsPulledByContext ) {
+		mIsPulledByContext = false;
+		getContext()->removeAutoPulledNode( shared_from_this() );
+	}
 }
 
 void NodeAutoPullable::updatePullMethod()

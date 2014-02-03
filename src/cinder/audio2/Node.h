@@ -104,6 +104,8 @@ class Node : public std::enable_shared_from_this<Node> {
 	virtual void addConnection( const NodeRef &output );
 	//! Disconnects this Node from the output Node located at bus \a outputBus.
 	virtual void disconnect( size_t outputBus = 0 );
+	//! Disconnects this Node from all inputs and outputs.
+	virtual void disconnectAll();
 	//! Disconnects this Node from all outputs.
 	virtual void disconnectAllOutputs();
 	//! Disconnects all of this Node's inputs.
@@ -243,9 +245,12 @@ inline const NodeRef& operator>>( const NodeRef &input, const Node::BusConnector
 class NodeAutoPullable : public Node {
   public:
 	virtual ~NodeAutoPullable();
+
 	virtual void connect( const NodeRef &output, size_t outputBus = 0, size_t inputBus = 0 ) override;
 	virtual void connectInput( const NodeRef &input, size_t bus )	override;
 	virtual void disconnectInput( const NodeRef &input )			override;
+	//! Overridden to also remove from  Context's auto-pulled list
+	virtual void disconnectAllOutputs()								override;
 
   protected:
 	NodeAutoPullable( const Format &format );
