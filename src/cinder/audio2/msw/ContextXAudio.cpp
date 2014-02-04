@@ -260,12 +260,16 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 : LineOut( device, format ), mEngineCallback( new EngineCallbackImpl( this ) )
 {
+
 #if defined( CINDER_XAUDIO_2_7 )
 	LOG_V( "CINDER_XAUDIO_2_7" );
 	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
 
-	// ???: why did i add this to the 2.7-only section? well apparently it isn't needed there anyway..
-	ci::msw::initializeCom(); 
+	//! CoInitializeEx is only required by XAudio2.7
+	// TODO: using the initializeCom() creates a thread-local shared object that may go down before ~Context()
+	// - so temp soln. is to not use it, long term is to have it pass back ref counted object.
+	//ci::msw::initializeCom(); 
+	::CoInitializeEx( NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE );
 
 #else
 	LOG_V( "CINDER_XAUDIO_2_8" );
