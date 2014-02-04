@@ -156,10 +156,7 @@ int SourceFileImplOggVorbis::seekFn( void *datasource, ogg_int64_t offset, int w
 			sourceFile->mStream->seekRelative( (off_t)offset );
 			break;
 		case SEEK_END:
-			// TODO: docs say "The implementation of SEEK_END should set the access cursor one past the last byte of accessible data, as would stdio fseek()"
-			// http://xiph.org/vorbis/doc/vorbisfile/callbacks.html
-			// - is this the right way to do this with ci::IStream?
-			sourceFile->mStream->seekAbsolute( -1 );
+			sourceFile->mStream->seekAbsolute( sourceFile->mStream->size() );
 			break;
 		default:
 			CI_ASSERT_NOT_REACHABLE();
