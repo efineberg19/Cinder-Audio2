@@ -81,8 +81,7 @@ void NodeTestApp::setup()
 	mGen = ctx->makeNode( new audio2::GenTriangle() );
 	mGen->setFreq( 440 );
 
-	//setupGen();
-	setupAutoPulled();
+	setupGen();
 	ctx->printGraph();
 	
 	setupUI();
