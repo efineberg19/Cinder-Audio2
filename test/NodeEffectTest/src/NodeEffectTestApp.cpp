@@ -21,6 +21,7 @@ class NodeEffectTestApp : public AppNative {
 	void setupOne();
 	void setupForceStereo();
 	void setupDownMix();
+	void setupCycle();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -53,6 +54,7 @@ void NodeEffectTestApp::setup()
 	setupOne();
 //	setupForceStereo();
 //	setupDownMix();
+//	setupCycle();
 
 	setupUI();
 
@@ -76,6 +78,17 @@ void NodeEffectTestApp::setupDownMix()
 	mGen >> mLowPass >> mGain >> mPan >> mono >> ctx->getOutput();
 }
 
+void NodeEffectTestApp::setupCycle()
+{
+	// TODO: make this throw NodeCycleExc
+	// - although I don't want to have to traver graph twice to do it, and prefer optional zero traversals in release.
+
+	mGen->connect( mLowPass );
+	mLowPass->addConnection( mGain );
+	mGain->addConnection( mLowPass );
+	mLowPass->addConnection( audio2::Context::master()->getOutput() );
+}
+
 void NodeEffectTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
@@ -85,6 +98,7 @@ void NodeEffectTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "one" );
 	mTestSelector.mSegments.push_back( "force stereo" );
 	mTestSelector.mSegments.push_back( "down-mix" );
+	mTestSelector.mSegments.push_back( "cycle" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
 	mWidgets.push_back( &mTestSelector );
 
@@ -161,6 +175,8 @@ void NodeEffectTestApp::processTap( Vec2i pos )
 			setupForceStereo();
 		if( currentTest == "down-mix" )
 			setupDownMix();
+		if( currentTest == "cycle" )
+			setupCycle();
 
 		ctx->setEnabled( enabled );
 		ctx->printGraph();

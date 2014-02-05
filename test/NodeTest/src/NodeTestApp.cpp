@@ -200,11 +200,11 @@ void NodeTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "1 to 2" );
 	mTestSelector.mSegments.push_back( "interleave pass-thru" );
 	mTestSelector.mSegments.push_back( "auto-pulled" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 180 );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20,  440.0f );
-	Rectf sliderRect( getWindowCenter().x - width / 2, 200, getWindowCenter().x + width / 2, 250 );
+	Rectf sliderRect( getWindowCenter().x - width / 2, getWindowCenter().y + 10, getWindowCenter().x + width / 2, getWindowCenter().y + 50 );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
 	mGainSlider.mMax = 1;
