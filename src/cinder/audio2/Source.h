@@ -24,8 +24,9 @@
 #pragma once
 
 #include "cinder/audio2/Buffer.h"
-
 #include "cinder/DataSource.h"
+
+#include <boost/noncopyable.hpp>
 
 namespace cinder { namespace audio2 {
 	
@@ -36,7 +37,7 @@ namespace dsp {
 	class Converter;
 }
 
-class Source {
+class Source : public boost::noncopyable {
   public:
 	virtual ~Source();
 
@@ -76,11 +77,6 @@ class Source {
 	size_t								mNativeSampleRate, mNativeNumChannels, mSampleRate, mNumChannels, mMaxFramesPerRead;
 	std::unique_ptr<dsp::Converter>		mConverter;
 	BufferDynamic						mConverterReadBuffer;
-
-  private:
-	  // noncopyable
-	  Source( Source const& );
-	  Source& operator=( Source const& );
 };
 
 class SourceFile : public Source {

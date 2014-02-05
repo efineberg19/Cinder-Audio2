@@ -25,6 +25,7 @@
 
 #include "cinder/audio2/Buffer.h"
 
+#include <boost/noncopyable.hpp>
 #include <boost/logic/tribool.hpp>
 
 #include <memory>
@@ -50,7 +51,7 @@ typedef std::shared_ptr<class Node>				NodeRef;
 //! initialize() is called, uninitialize() is called before a Node is deallocated or channel counts change.
 //!
 //! \see NodeInput, NodeOutput, NodeEffect
-class Node : public std::enable_shared_from_this<Node> {
+class Node : public std::enable_shared_from_this<Node>, public boost::noncopyable {
   public:
 	typedef std::map<size_t, std::shared_ptr<Node> >		InputsContainerT;		//! input bus, strong reference to this
 	typedef std::map<size_t, std::weak_ptr<Node> >			OutputsContainerT;		//! output bus for this node, weak reference to this
@@ -218,9 +219,6 @@ class Node : public std::enable_shared_from_this<Node> {
 	BufferDynamic			mInternalBuffer, mSummingBuffer;
 
   private:
-	// noncopyable
-	Node( Node const& );
-	Node& operator=( Node const& );
 
 	void setContext( const ContextRef &context )	{ mContext = context; }
 
