@@ -206,8 +206,36 @@ GenWaveTable::GenWaveTable( const Format &format )
 : Gen( format ), mType( SINE )
 {
 	fillTable( SINE, 512 );
-//	fillTable( SINE, 4096 );
 }
+
+namespace {
+
+#if 0
+
+// truncate, phase range: 0-1
+inline float tableLookup( float *table, size_t size, float phase )
+{
+	return table[(size_t)( phase * size )];
+}
+
+#else
+
+// linear interpolation, phase range: 0-1
+inline float tableLookup( float *table, size_t size, float phase )
+{
+	float lookup = phase * size;
+	size_t index1 = (size_t)lookup;
+	size_t index2 = ( index1 + 1 ) % size;
+	float val1 = table[index1];
+	float val2 = table[index2];
+	float frac = lookup - (float)index1;
+
+	return val2 + frac * ( val2 - val1 );
+}
+
+#endif
+
+} // anonymous namespace
 
 void GenWaveTable::process( Buffer *buffer )
 {
@@ -218,8 +246,7 @@ void GenWaveTable::process( Buffer *buffer )
 
 	const float phaseIncr = mFreq.getValue() * phaseMul;
 	for( size_t i = 0; i < count; i++ )	{
-		size_t index = (size_t)( phase * mTable.size() );
-		data[i] = mTable[index];
+		data[i] = tableLookup( mTable.data(), mTable.size(), phase );
 		phase = fmodf( phase + phaseIncr, 1 );
 	}
 
@@ -238,6 +265,7 @@ void GenWaveTable::fillTable( Type type, size_t length )
 	}
 }
 
+// TODO: consider using our own lock for updating the wavetable so that it can try and fail without blocking
 void GenWaveTable::copyFromTable( float *array ) const
 {
 	lock_guard<mutex> lock( getContext()->getMutex() );
