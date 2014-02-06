@@ -14,6 +14,12 @@
             location = "group:NodeTest/xcode/NodeTest.xcodeproj">
          </FileRef>
          <FileRef
+            location = "group:DeviceTest/xcode/DeviceTest.xcodeproj">
+         </FileRef>
+         <FileRef
+            location = "group:EffectsAudioUnitTest/xcode/EffectsAudioUnitTest.xcodeproj">
+         </FileRef>
+         <FileRef
             location = "group:NodeEffectTest/xcode/NodeEffectTest.xcodeproj">
          </FileRef>
          <FileRef
@@ -26,10 +32,7 @@
             location = "group:SpectralTest/xcode/SpectralTest.xcodeproj">
          </FileRef>
          <FileRef
-            location = "group:DeviceTest/xcode/DeviceTest.xcodeproj">
-         </FileRef>
-         <FileRef
-            location = "group:EffectsAudioUnitTest/xcode/EffectsAudioUnitTest.xcodeproj">
+            location = "group:WaveTableTest/xcode/WaveTableTest.xcodeproj">
          </FileRef>
       </Group>
       <Group

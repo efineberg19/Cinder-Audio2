@@ -32,6 +32,7 @@ namespace cinder { namespace audio2 {
 typedef std::shared_ptr<class NodeInput>				NodeInputRef;
 typedef std::shared_ptr<class LineIn>					LineInRef;
 typedef std::shared_ptr<class Gen>						GenRef;
+typedef std::shared_ptr<class GenWaveTable>				GenWaveTableRef;
 typedef std::shared_ptr<class CallbackProcessor>		CallbackProcessorRef;
 
 //! \brief NodeInput is the base class for Node's that produce audio. It cannot have any inputs.
@@ -129,7 +130,7 @@ class GenSine : public Gen {
 //! Triangle waveform generator.
 class GenTriangle : public Gen {
   public:
-	GenTriangle( const Format &format = Format() ) : Gen( format ), mUpSlope( 1.0f ), mDownSlope( 1.0f )
+	GenTriangle( const Format &format = Format() ) : Gen( format ), mUpSlope( 1 ), mDownSlope( 1 )
 	{}
 
 	void setUpSlope( float up )			{ mUpSlope = up; }
@@ -142,6 +143,26 @@ class GenTriangle : public Gen {
 
   private:
 	std::atomic<float> mUpSlope, mDownSlope;
+};
+
+//! Generator that uses wavetable lookup.
+class GenWaveTable : public Gen {
+  public:
+	GenWaveTable( const Format &format = Format() );
+	void process( Buffer *buffer ) override;
+
+	enum Type { SINE, SAWTOOTH, SQUARE, TRIANGLE, USER };
+
+	size_t getTableSize() const	{ return mTable.size(); }
+
+	void copyFromTable( float *array ) const;
+	void copyToTable( const float *array, size_t length = 0 );
+
+  protected:
+	void fillTable( Type type, size_t length );
+
+	Type				mType;
+	std::vector<float>	mTable;
 };
 
 } } // namespace cinder::audio2

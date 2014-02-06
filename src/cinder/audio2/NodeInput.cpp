@@ -201,4 +201,58 @@ void GenTriangle::process( Buffer *buffer )
 	mPhase = phase;
 }
 
+
+GenWaveTable::GenWaveTable( const Format &format )
+: Gen( format ), mType( SINE )
+{
+	fillTable( SINE, 512 );
+//	fillTable( SINE, 4096 );
+}
+
+void GenWaveTable::process( Buffer *buffer )
+{
+	float *data = buffer->getData();
+	size_t count = buffer->getSize();
+	float phase = mPhase;
+	const float phaseMul = float( 1.0 / (double)mSampleRate );
+
+	const float phaseIncr = mFreq.getValue() * phaseMul;
+	for( size_t i = 0; i < count; i++ )	{
+		size_t index = (size_t)( phase * mTable.size() );
+		data[i] = mTable[index];
+		phase = fmodf( phase + phaseIncr, 1 );
+	}
+
+	mPhase = phase;
+}
+
+void GenWaveTable::fillTable( Type type, size_t length )
+{
+	mTable.resize( length );
+
+	double phase = 0;
+	const double phaseIncr = ( 2.0 * M_PI ) / (double)length;
+	for( size_t i = 0; i < length; i++ ) {
+		mTable[i] = (float)sin( phase );
+		phase += phaseIncr;
+	}
+}
+
+void GenWaveTable::copyFromTable( float *array ) const
+{
+	lock_guard<mutex> lock( getContext()->getMutex() );
+
+	memcpy( array, mTable.data(), mTable.size() * sizeof( float ) );
+}
+
+void GenWaveTable::copyToTable( const float *array, size_t length )
+{
+	lock_guard<mutex> lock( getContext()->getMutex() );
+
+	if( mTable.size() != length )
+		mTable.resize( length );
+
+	memcpy( mTable.data(), array, length * sizeof( float ) );
+}
+
 } } // namespace cinder::audio2
