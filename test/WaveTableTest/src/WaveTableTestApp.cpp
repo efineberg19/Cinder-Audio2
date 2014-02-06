@@ -105,9 +105,9 @@ void WaveTableTestApp::setupUI()
 void WaveTableTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
-		mGain->setValue( mGainSlider.mValueScaled );
+		mGain->getParam()->applyRamp( mGainSlider.mValueScaled, 0.03f );
 	if( mFreqSlider.hitTest( pos ) )
-		mGen->setFreq( mFreqSlider.mValueScaled );
+		mGen->getParamFreq()->applyRamp( mFreqSlider.mValueScaled, 0.03f );
 }
 
 void WaveTableTestApp::processTap( Vec2i pos )

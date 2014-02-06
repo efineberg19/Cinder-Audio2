@@ -244,10 +244,19 @@ void GenWaveTable::process( Buffer *buffer )
 	float phase = mPhase;
 	const float phaseMul = float( 1.0 / (double)mSampleRate );
 
-	const float phaseIncr = mFreq.getValue() * phaseMul;
-	for( size_t i = 0; i < count; i++ )	{
-		data[i] = tableLookup( mTable.data(), mTable.size(), phase );
-		phase = fmodf( phase + phaseIncr, 1 );
+	if( mFreq.eval() ) {
+		float *freqValues = mFreq.getValueArray();
+		for( size_t i = 0; i < count; i++ ) {
+			data[i] = tableLookup( mTable.data(), mTable.size(), phase );
+			phase = fmodf( phase + freqValues[i] * phaseMul, 1 );
+		}
+	}
+	else {
+		const float phaseIncr = mFreq.getValue() * phaseMul;
+		for( size_t i = 0; i < count; i++ ) {
+			data[i] = tableLookup( mTable.data(), mTable.size(), phase );
+			phase = fmodf( phase + phaseIncr, 1 );
+		}
 	}
 
 	mPhase = phase;
