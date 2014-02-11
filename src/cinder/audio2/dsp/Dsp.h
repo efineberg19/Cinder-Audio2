@@ -60,9 +60,15 @@ void mul( const float *array, float scalar, float *result, size_t length );
 void mul( const float *arrayA, const float *arrayB, float *result, size_t length );
 //! sums \a length elements of \a arrayA by \a arrayB (element-wise), then scales by \a scalar and leaves the result at \a result.
 void addMul( const float *arrayA, const float *arrayB, float scalar, float *result, size_t length );
+//! divides \a length elements of \a array by \a scalar and leaves the result at \a result.
+void divide( const float *array, float scalar, float *result, size_t length );
 //! returns the sum of \a array
 float sum( const float *array, size_t length );
 //! returns the Root-Mean-Squared value of \a array
 float rms( const float *array, size_t length );
+//! fills \a array with a sum of sines that have partial coefficients specified in \a partialCoeffs. Also known as additive synthesis.
+void sinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
+//! normalizes \a array to \a maxValue (default = 1)
+void normalize( float *array, float length, float maxValue = 1 );
 
 } } } // namespace cinder::audio2::dsp

@@ -151,7 +151,9 @@ class GenWaveTable : public Gen {
 	GenWaveTable( const Format &format = Format() );
 	void process( Buffer *buffer ) override;
 
-	enum Type { SINE, SAWTOOTH, SQUARE, TRIANGLE, USER };
+	enum WaveformType { SINE, SQUARE, SAWTOOTH, TRIANGLE, PULSE, CUSTOM };
+
+	void setWaveformType( WaveformType type, size_t length = 0 );
 
 	size_t getTableSize() const	{ return mTable.size(); }
 
@@ -159,9 +161,9 @@ class GenWaveTable : public Gen {
 	void copyToTable( const float *array, size_t length = 0 );
 
   protected:
-	void fillTable( Type type, size_t length );
+	void fillTableImpl( WaveformType type );
 
-	Type				mType;
+	WaveformType		mType;
 	std::vector<float>	mTable;
 };
 

@@ -70,6 +70,7 @@ void WaveTableTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "sawtooth" );
 	mTestSelector.mSegments.push_back( "square" );
 	mTestSelector.mSegments.push_back( "triangle" );
+	mTestSelector.mSegments.push_back( "pulse" );
 	mTestSelector.mSegments.push_back( "user" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 180 );
 	mWidgets.push_back( &mTestSelector );
@@ -122,16 +123,18 @@ void WaveTableTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V( "selected: " << currentTest );
 
-//		if( currentTest == "sine" )
-//			setupGen();
-//		else if( currentTest == "2 to 1" )
-//			setup2to1();
-//		else if( currentTest == "1 to 2" )
-//			setup1to2();
-//		else if( currentTest == "interleave pass-thru" )
-//			setupInterleavedPassThru();
-//		else if( currentTest == "auto-pulled" )
-//			setupAutoPulled();
+		if( currentTest == "sine" )
+			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::SINE );
+		else if( currentTest == "square" )
+			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::SQUARE );
+		else if( currentTest == "sawtooth" )
+			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::SAWTOOTH );
+		else if( currentTest == "triangle" )
+			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::TRIANGLE );
+		else if( currentTest == "pulse" )
+			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::PULSE );
+
+		mGen->copyFromTable( mTableCopy.getData() );
 	}
 }
 

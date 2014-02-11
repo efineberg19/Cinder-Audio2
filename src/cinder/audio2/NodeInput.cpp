@@ -23,10 +23,13 @@
 
 #include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/Context.h"
+#include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/Exception.h"
 #include "cinder/audio2/Debug.h"
 
 #include "cinder/Rand.h"
+
+#define DEFAULT_WAVETABLE_SIZE 512
 
 using namespace ci;
 using namespace std;
@@ -205,7 +208,21 @@ void GenTriangle::process( Buffer *buffer )
 GenWaveTable::GenWaveTable( const Format &format )
 : Gen( format ), mType( SINE )
 {
-	fillTable( SINE, 512 );
+//	fillTable( SINE, 512 );
+//	fillTable( SQUARE, 512 );
+
+	setWaveformType( SQUARE );
+}
+
+void GenWaveTable::setWaveformType( WaveformType type, size_t length )
+{
+	if( ! length )
+		length = DEFAULT_WAVETABLE_SIZE;
+
+	if( length != mTable.size() )
+		mTable.resize( length );
+
+	fillTableImpl( type );
 }
 
 namespace {
@@ -262,16 +279,45 @@ void GenWaveTable::process( Buffer *buffer )
 	mPhase = phase;
 }
 
-void GenWaveTable::fillTable( Type type, size_t length )
+void GenWaveTable::fillTableImpl( WaveformType type )
 {
-	mTable.resize( length );
+	vector<float> partials;
+	if( type == SINE )
+		partials.resize( 1 );
+	else
+		partials.resize( 40 ); // TODO: expose, also consider how best to go up to nyquist
 
-	double phase = 0;
-	const double phaseIncr = ( 2.0 * M_PI ) / (double)length;
-	for( size_t i = 0; i < length; i++ ) {
-		mTable[i] = (float)sin( phase );
-		phase += phaseIncr;
+	switch( type ) {
+		case SINE:
+			partials[0] = 1;
+			break;
+		case SQUARE:
+			// 1 / x for odd x
+			for( size_t x = 1; x <= partials.size(); x += 2 )
+				partials[x - 1] =  1.0f / float( x );
+			break;
+		case SAWTOOTH:
+			// 1 / x
+			for( size_t x = 1; x <= partials.size(); x += 1 )
+				partials[x - 1] =  1.0f / float( x );
+			break;
+		case TRIANGLE: {
+			// 1 / x^2, alternating + and -
+			float t = 1;
+			for( size_t x = 1; x <= partials.size(); x += 2 ) {
+				partials[x - 1] =  t / float( x * x );
+				t *= -1;
+			}
+			break;
+		}
+		case PULSE:
+			// TODO
+		default:
+			CI_ASSERT_NOT_REACHABLE();
 	}
+
+	dsp::sinesum( mTable.data(), mTable.size(), partials );
+	dsp::normalize( mTable.data(), mTable.size() );
 }
 
 // TODO: consider using our own lock for updating the wavetable so that it can try and fail without blocking
