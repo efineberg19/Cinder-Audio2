@@ -30,6 +30,7 @@
 #include "cinder/Rand.h"
 
 #define DEFAULT_WAVETABLE_SIZE 512
+#define DEFAULT_WAVETABLE_NUM_COEFFS 100
 
 using namespace ci;
 using namespace std;
@@ -206,15 +207,19 @@ void GenTriangle::process( Buffer *buffer )
 
 
 GenWaveTable::GenWaveTable( const Format &format )
-: Gen( format ), mType( SINE )
+: Gen( format ), mWaveformType( format.getWaveform() ), mNumPartialCoeffs( DEFAULT_WAVETABLE_NUM_COEFFS )
 {
-//	fillTable( SINE, 512 );
-//	fillTable( SQUARE, 512 );
-
-	setWaveformType( SQUARE );
 }
 
-void GenWaveTable::setWaveformType( WaveformType type, size_t length )
+void GenWaveTable::initialize()
+{
+	Gen::initialize();
+
+//	setWaveformBandlimit( float( getContext()->getSampleRate() / 2 - 4000 ) );
+	setWaveform( mWaveformType );
+}
+
+void GenWaveTable::setWaveform( WaveformType type, size_t length )
 {
 	if( ! length )
 		length = DEFAULT_WAVETABLE_SIZE;
@@ -222,7 +227,24 @@ void GenWaveTable::setWaveformType( WaveformType type, size_t length )
 	if( length != mTable.size() )
 		mTable.resize( length );
 
+	mWaveformType = type;
 	fillTableImpl( type );
+}
+
+void GenWaveTable::setWaveformBandlimit( float hertz, bool reload )
+{
+	// TODO: is this even practical?
+	//	- What is the band limit related to, the current mFreq, or user provides a reference frequency?
+
+//	float maxFreq = ;
+	setWaveformNumPartials( hertz / 440, reload );
+}
+
+void GenWaveTable::setWaveformNumPartials( size_t numPartials, bool reload )
+{
+	mNumPartialCoeffs = numPartials;
+	if( reload )
+		setWaveform( mWaveformType );
 }
 
 namespace {
@@ -285,7 +307,7 @@ void GenWaveTable::fillTableImpl( WaveformType type )
 	if( type == SINE )
 		partials.resize( 1 );
 	else
-		partials.resize( 40 ); // TODO: expose, also consider how best to go up to nyquist
+		partials.resize( mNumPartialCoeffs );
 
 	switch( type ) {
 		case SINE:
@@ -294,18 +316,18 @@ void GenWaveTable::fillTableImpl( WaveformType type )
 		case SQUARE:
 			// 1 / x for odd x
 			for( size_t x = 1; x <= partials.size(); x += 2 )
-				partials[x - 1] =  1.0f / float( x );
+				partials[x - 1] = 1.0f / float( x );
 			break;
 		case SAWTOOTH:
 			// 1 / x
 			for( size_t x = 1; x <= partials.size(); x += 1 )
-				partials[x - 1] =  1.0f / float( x );
+				partials[x - 1] = 1.0f / float( x );
 			break;
 		case TRIANGLE: {
 			// 1 / x^2, alternating + and -
 			float t = 1;
 			for( size_t x = 1; x <= partials.size(); x += 2 ) {
-				partials[x - 1] =  t / float( x * x );
+				partials[x - 1] = t / float( x * x );
 				t *= -1;
 			}
 			break;
@@ -330,6 +352,8 @@ void GenWaveTable::copyFromTable( float *array ) const
 
 void GenWaveTable::copyToTable( const float *array, size_t length )
 {
+	mWaveformType = CUSTOM;
+
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	if( mTable.size() != length )

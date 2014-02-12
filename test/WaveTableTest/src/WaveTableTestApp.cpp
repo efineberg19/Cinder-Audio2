@@ -17,15 +17,17 @@ using namespace std;
 
 class WaveTableTestApp : public AppNative {
 public:
+	void prepareSettings( Settings *settings );
 	void setup();
 	void draw();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
+	void keyDown( KeyEvent event );
 
 	audio2::GainRef				mGain;
-	audio2::ScopeRef			mScope;
+	audio2::ScopeSpectralRef	mScope;
 	audio2::GenWaveTableRef		mGen;
 
 	audio2::BufferDynamic		mTableCopy;
@@ -34,8 +36,15 @@ public:
 	Button					mPlayButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mFreqSlider;
+	TextInput				mNumPartialsInput;
+	SpectrumPlot			mSpectrumPlot;
 
 };
+
+void WaveTableTestApp::prepareSettings( Settings *settings )
+{
+	settings->setWindowSize( 800, 800 );
+}
 
 void WaveTableTestApp::setup()
 {
@@ -43,17 +52,18 @@ void WaveTableTestApp::setup()
 	mGain = ctx->makeNode( new audio2::Gain );
 	mGain->setValue( 0.5f );
 
-	mGen = ctx->makeNode( new audio2::GenWaveTable );
-	mGen->setFreq( 440 );
+//	mGen = ctx->makeNode( new audio2::GenWaveTable );
+	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SQUARE ) ) );
+	mGen->setFreq( 200 );
 
-	mTableCopy.setNumFrames( mGen->getTableSize() );
-	mGen->copyFromTable( mTableCopy.getData() );
-
-	mScope = audio2::Context::master()->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
+	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().windowSize( 2048 ) ) );
 
 	mGen >> mScope >> mGain >> ctx->getOutput();
 
 	ctx->printGraph();
+
+	mTableCopy.setNumFrames( mGen->getTableSize() );
+	mGen->copyFromTable( mTableCopy.getData() );
 
 	setupUI();
 
@@ -72,7 +82,7 @@ void WaveTableTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "triangle" );
 	mTestSelector.mSegments.push_back( "pulse" );
 	mTestSelector.mSegments.push_back( "user" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 180 );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.75f, 0, (float)getWindowWidth(), 180 );
 	mWidgets.push_back( &mTestSelector );
 
 //	float width = std::min( (float)getWindowWidth() - 20,  440.0f );
@@ -92,6 +102,13 @@ void WaveTableTestApp::setupUI()
 	mFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mFreqSlider );
 
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
+	mNumPartialsInput.mBounds = sliderRect;
+	mNumPartialsInput.mTitle = "num partials";
+	mNumPartialsInput.setValue( mGen->getWaveformNumPartials() );
+
+	mWidgets.push_back( &mNumPartialsInput );
+
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
 	getWindow()->getSignalTouchesBegan().connect( [this] ( TouchEvent &event ) { processTap( event.getTouches().front().getPos() ); } );
@@ -99,6 +116,8 @@ void WaveTableTestApp::setupUI()
 		for( const TouchEvent::Touch &touch : getActiveTouches() )
 			processDrag( touch.getPos() );
 	} );
+
+	mSpectrumPlot.setBorderColor( ColorA( 0, 0.9f, 0, 1 ) );
 
 	gl::enableAlphaBlending();
 }
@@ -117,6 +136,8 @@ void WaveTableTestApp::processTap( Vec2i pos )
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
+	else if( mNumPartialsInput.hitTest( pos ) ) {
+	}
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
@@ -124,17 +145,39 @@ void WaveTableTestApp::processTap( Vec2i pos )
 		LOG_V( "selected: " << currentTest );
 
 		if( currentTest == "sine" )
-			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::SINE );
+			mGen->setWaveform( audio2::GenWaveTable::WaveformType::SINE );
 		else if( currentTest == "square" )
-			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::SQUARE );
+			mGen->setWaveform( audio2::GenWaveTable::WaveformType::SQUARE );
 		else if( currentTest == "sawtooth" )
-			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::SAWTOOTH );
+			mGen->setWaveform( audio2::GenWaveTable::WaveformType::SAWTOOTH );
 		else if( currentTest == "triangle" )
-			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::TRIANGLE );
+			mGen->setWaveform( audio2::GenWaveTable::WaveformType::TRIANGLE );
 		else if( currentTest == "pulse" )
-			mGen->setWaveformType( audio2::GenWaveTable::WaveformType::PULSE );
+			mGen->setWaveform( audio2::GenWaveTable::WaveformType::PULSE );
 
 		mGen->copyFromTable( mTableCopy.getData() );
+	}
+}
+
+void WaveTableTestApp::keyDown( KeyEvent event )
+{
+	TextInput *currentSelected = TextInput::getCurrentSelected();
+	if( ! currentSelected )
+		return;
+
+	if( event.getCode() == KeyEvent::KEY_RETURN ) {
+		if( currentSelected == &mNumPartialsInput ) {
+			int numPartials = currentSelected->getValue();
+			LOG_V( "updating num partials from: " << mGen->getWaveformNumPartials() << " to: " << numPartials );
+			mGen->setWaveformNumPartials( numPartials, true );
+			mGen->copyFromTable( mTableCopy.getData() );
+		}
+	}
+	else {
+		if( event.getCode() == KeyEvent::KEY_BACKSPACE )
+			currentSelected->processBackspace();
+		else
+			currentSelected->processChar( event.getChar() );
 	}
 }
 
@@ -143,12 +186,17 @@ void WaveTableTestApp::draw()
 	gl::clear();
 
 	const float padding = 20;
-	Rectf scopeRect( padding, padding, getWindowWidth() - padding, getWindowHeight() / 2 - padding );
+	const float scopeHeight = ( getWindowHeight() - padding * 4 ) / 3;
 
-	drawAudioBuffer( mTableCopy, scopeRect, true );
+	Rectf rect( padding, padding, getWindowWidth() - padding, scopeHeight + padding );
+	drawAudioBuffer( mTableCopy, rect, true );
 
-	scopeRect += Vec2f( 0, getWindowHeight() / 2 );
-	drawAudioBuffer( mScope->getBuffer(), scopeRect, true );
+	rect += Vec2f( 0, scopeHeight + padding );
+	drawAudioBuffer( mScope->getBuffer(), rect, true );
+
+	rect += Vec2f( 0, scopeHeight + padding );
+	mSpectrumPlot.setBounds( rect );
+	mSpectrumPlot.draw( mScope->getMagSpectrum() );
 
 	drawWidgets( mWidgets );
 }
