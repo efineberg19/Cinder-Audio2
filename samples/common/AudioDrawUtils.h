@@ -67,15 +67,15 @@ class WaveformPlot {
 
 	void clear()	{ 	mWaveforms.clear(); }
 
-private:
+  private:
 	std::vector<Waveform> mWaveforms;
 	ci::Rectf mBounds;
 	ci::ColorA mColorMinMax, mColorAverage;
 };
 
 class SpectrumPlot {
-public:
-	SpectrumPlot() : mScaleDecibels( true ), mBorderEnabled( true ) {}
+  public:
+	SpectrumPlot();
 	
 	void setBounds( const ci::Rectf &bounds )	{ mBounds = bounds; }
 	const ci::Rectf& getBounds() const			{ return mBounds; }
@@ -86,11 +86,15 @@ public:
 	void enableBorder( bool b = true )			{ mBorderEnabled = b; }
 	bool getBorderEnabled() const				{ return mBorderEnabled; }
 
+	void setBorderColor( const ci::ColorA &color )	{ mBorderColor = color; }
+	const ci::ColorA& getBorderColor() const		{ return mBorderColor; }
+
 	void draw( const std::vector<float> &magSpectrum );
 
-private:
+  private:
 	ci::Rectf				mBounds;
 	bool					mScaleDecibels, mBorderEnabled;
+	ci::ColorA				mBorderColor;
 	std::vector<ci::Vec2f>	mVerts;
 	std::vector<ci::ColorA>	mColors;
 };

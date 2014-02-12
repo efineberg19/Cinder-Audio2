@@ -171,6 +171,11 @@ void WaveformPlot::draw()
 // MARK: - SpectrumPlot
 // ----------------------------------------------------------------------------------------------------
 
+SpectrumPlot::SpectrumPlot()
+: mScaleDecibels( true ), mBorderEnabled( true ), mBorderColor( 0.5f, 0.5f, 0.5f, 1 )
+{
+}
+
 void SpectrumPlot::draw( const vector<float> &magSpectrum )
 {
 	if( magSpectrum.empty() )
@@ -224,7 +229,7 @@ void SpectrumPlot::draw( const vector<float> &magSpectrum )
 	glDisableClientState( GL_COLOR_ARRAY );
 
 	if( mBorderEnabled ) {
-		gl::color( Color::gray( 0.5f ) );
+		gl::color( mBorderColor );
 		gl::drawStrokedRect( mBounds );
 	}
 }
