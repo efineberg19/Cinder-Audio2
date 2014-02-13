@@ -36,24 +36,24 @@ public:
 	Button					mPlayButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mFreqSlider;
-	TextInput				mNumPartialsInput;
+	TextInput				mNumPartialsInput, mTableSizeInput;
 	SpectrumPlot			mSpectrumPlot;
 
 };
 
 void WaveTableTestApp::prepareSettings( Settings *settings )
 {
-	settings->setWindowSize( 800, 800 );
+	settings->setWindowSize( 1000, 800 );
 }
 
 void WaveTableTestApp::setup()
 {
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain );
-	mGain->setValue( 0.5f );
+	mGain->setValue( 0.1f );
 
-//	mGen = ctx->makeNode( new audio2::GenWaveTable );
-	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SQUARE ) ) );
+	mGen = ctx->makeNode( new audio2::GenWaveTable );
+//	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SAWTOOTH ) ) );
 	mGen->setFreq( 200 );
 
 	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().windowSize( 2048 ) ) );
@@ -73,7 +73,7 @@ void WaveTableTestApp::setup()
 void WaveTableTestApp::setupUI()
 {
 	mPlayButton = Button( true, "stopped", "playing" );
-	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
+	mPlayButton.mBounds = Rectf( (float)getWindowWidth() - 200, 10, (float)getWindowWidth(), 60 );
 	mWidgets.push_back( &mPlayButton );
 
 	mTestSelector.mSegments.push_back( "sine" );
@@ -82,22 +82,21 @@ void WaveTableTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "triangle" );
 	mTestSelector.mSegments.push_back( "pulse" );
 	mTestSelector.mSegments.push_back( "user" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.75f, 0, (float)getWindowWidth(), 180 );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() - 200, mPlayButton.mBounds.y2 + 10, (float)getWindowWidth(), mPlayButton.mBounds.y2 + 190 );
 	mWidgets.push_back( &mTestSelector );
 
-//	float width = std::min( (float)getWindowWidth() - 20,  440.0f );
 	Rectf sliderRect = mTestSelector.mBounds;
 	sliderRect.y1 = sliderRect.y2 + 10;
 	sliderRect.y2 = sliderRect.y1 + 30;
 	mGainSlider.mBounds = sliderRect;
-	mGainSlider.mTitle = "Gain";
+	mGainSlider.mTitle = "gain";
 	mGainSlider.mMax = 1;
 	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mFreqSlider.mBounds = sliderRect;
-	mFreqSlider.mTitle = "Freq";
+	mFreqSlider.mTitle = "freq";
 	mFreqSlider.mMax = 800;
 	mFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mFreqSlider );
@@ -106,8 +105,13 @@ void WaveTableTestApp::setupUI()
 	mNumPartialsInput.mBounds = sliderRect;
 	mNumPartialsInput.mTitle = "num partials";
 	mNumPartialsInput.setValue( mGen->getWaveformNumPartials() );
-
 	mWidgets.push_back( &mNumPartialsInput );
+
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
+	mTableSizeInput.mBounds = sliderRect;
+	mTableSizeInput.mTitle = "table size";
+	mTableSizeInput.setValue( mGen->getTableSize() );
+	mWidgets.push_back( &mTableSizeInput );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -137,6 +141,8 @@ void WaveTableTestApp::processTap( Vec2i pos )
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
 	else if( mNumPartialsInput.hitTest( pos ) ) {
+	}
+	else if( mTableSizeInput.hitTest( pos ) ) {
 	}
 
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
@@ -172,6 +178,14 @@ void WaveTableTestApp::keyDown( KeyEvent event )
 			mGen->setWaveformNumPartials( numPartials, true );
 			mGen->copyFromTable( mTableCopy.getData() );
 		}
+		else if( currentSelected == &mTableSizeInput ) {
+			int tableSize = currentSelected->getValue();
+			LOG_V( "updating table size from: " << mGen->getTableSize() << " to: " << tableSize );
+			mGen->setWaveform( mGen->getWaveForm(), tableSize );
+			mTableCopy.setNumFrames( tableSize );
+			mGen->copyFromTable( mTableCopy.getData() );
+		}
+
 	}
 	else {
 		if( event.getCode() == KeyEvent::KEY_BACKSPACE )
@@ -188,7 +202,7 @@ void WaveTableTestApp::draw()
 	const float padding = 20;
 	const float scopeHeight = ( getWindowHeight() - padding * 4 ) / 3;
 
-	Rectf rect( padding, padding, getWindowWidth() - padding, scopeHeight + padding );
+	Rectf rect( padding, padding, getWindowWidth() - padding - 200, scopeHeight + padding );
 	drawAudioBuffer( mTableCopy, rect, true );
 
 	rect += Vec2f( 0, scopeHeight + padding );
