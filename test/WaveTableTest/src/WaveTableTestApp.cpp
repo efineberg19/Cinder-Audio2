@@ -1,7 +1,7 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/Gen.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"
 #include "cinder/audio2/CinderAssert.h"
@@ -50,7 +50,7 @@ void WaveTableTestApp::setup()
 {
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain );
-	mGain->setValue( 0.1f );
+	mGain->setValue( 0.0f );
 
 	mGen = ctx->makeNode( new audio2::GenWaveTable );
 //	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SAWTOOTH ) ) );
@@ -97,7 +97,7 @@ void WaveTableTestApp::setupUI()
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mFreqSlider.mBounds = sliderRect;
 	mFreqSlider.mTitle = "freq";
-	mFreqSlider.mMax = 800;
+	mFreqSlider.mMax = 1200;
 	mFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mFreqSlider );
 
@@ -199,7 +199,7 @@ void WaveTableTestApp::draw()
 {
 	gl::clear();
 
-	const float padding = 20;
+	const float padding = 10;
 	const float scopeHeight = ( getWindowHeight() - padding * 4 ) / 3;
 
 	Rectf rect( padding, padding, getWindowWidth() - padding - 200, scopeHeight + padding );

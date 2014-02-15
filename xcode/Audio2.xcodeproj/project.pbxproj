@@ -279,6 +279,9 @@
 		119CD138184A7A1200853BEE /* fftsg.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD134184A7A1200853BEE /* fftsg.h */; };
 		119CD13A184A7E5E00853BEE /* Utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD139184A7E5E00853BEE /* Utilities.h */; };
 		119CD13B184A7E5E00853BEE /* Utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 119CD139184A7E5E00853BEE /* Utilities.h */; };
+		11B34E8118B0341E00527D39 /* Gen.h in Headers */ = {isa = PBXBuildFile; fileRef = 11B34E7F18B0341E00527D39 /* Gen.h */; };
+		11B34E8218B0341E00527D39 /* Gen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B34E8018B0341E00527D39 /* Gen.cpp */; };
+		11B34E8318B0355800527D39 /* Gen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11B34E8018B0341E00527D39 /* Gen.cpp */; };
 		11BC8394188BA61900F4B834 /* Target.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11BC8392188BA61900F4B834 /* Target.cpp */; };
 		11BC8395188BA61900F4B834 /* Target.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11BC8392188BA61900F4B834 /* Target.cpp */; };
 		11BC8396188BA61900F4B834 /* Target.h in Headers */ = {isa = PBXBuildFile; fileRef = 11BC8393188BA61900F4B834 /* Target.h */; };
@@ -436,6 +439,8 @@
 		119CD134184A7A1200853BEE /* fftsg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fftsg.h; sourceTree = "<group>"; };
 		119CD139184A7E5E00853BEE /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
 		11B0421C179B90450034BEE2 /* libaudio2-ios_d.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libaudio2-ios_d.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		11B34E7F18B0341E00527D39 /* Gen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gen.h; sourceTree = "<group>"; };
+		11B34E8018B0341E00527D39 /* Gen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gen.cpp; sourceTree = "<group>"; };
 		11BC8392188BA61900F4B834 /* Target.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Target.cpp; sourceTree = "<group>"; };
 		11BC8393188BA61900F4B834 /* Target.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Target.h; sourceTree = "<group>"; };
 		11C0B5C318544734001664F7 /* LineInWasapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LineInWasapi.cpp; sourceTree = "<group>"; };
@@ -715,6 +720,8 @@
 				119CD085184A793400853BEE /* Device.cpp */,
 				119CD086184A793400853BEE /* Device.h */,
 				119CD095184A793400853BEE /* Exception.h */,
+				11B34E7F18B0341E00527D39 /* Gen.h */,
+				11B34E8018B0341E00527D39 /* Gen.cpp */,
 				119CD096184A793400853BEE /* Source.cpp */,
 				119CD097184A793400853BEE /* Source.h */,
 				119CD098184A793400853BEE /* FileOggVorbis.cpp */,
@@ -892,6 +899,7 @@
 				114FE91118032BF100C5841B /* setup_32.h in Headers */,
 				119CD0F4184A793400853BEE /* RingBuffer.h in Headers */,
 				119CD0E2184A793400853BEE /* Converter.h in Headers */,
+				11B34E8118B0341E00527D39 /* Gen.h in Headers */,
 				119CD124184A793400853BEE /* NodeInput.h in Headers */,
 				1115502118026C9100D415BC /* vorbisfile.h in Headers */,
 				114FE8C118032BF100C5841B /* bitrate.h in Headers */,
@@ -1082,6 +1090,7 @@
 				119CD0FC184A793400853BEE /* FileOggVorbis.cpp in Sources */,
 				119CD0C2184A793400853BEE /* ContextAudioUnit.cpp in Sources */,
 				119CD0E4184A793400853BEE /* ConverterR8brain.cpp in Sources */,
+				11B34E8218B0341E00527D39 /* Gen.cpp in Sources */,
 				114FE8CD18032BF100C5841B /* codebook.c in Sources */,
 				119CD116184A793400853BEE /* Node.cpp in Sources */,
 				114FE93718032BF100C5841B /* vorbisenc.c in Sources */,
@@ -1140,6 +1149,7 @@
 				119CD0C3184A793400853BEE /* ContextAudioUnit.cpp in Sources */,
 				119CD0E5184A793400853BEE /* ConverterR8brain.cpp in Sources */,
 				114FE8CE18032BF100C5841B /* codebook.c in Sources */,
+				11B34E8318B0355800527D39 /* Gen.cpp in Sources */,
 				119CD117184A793400853BEE /* Node.cpp in Sources */,
 				114FE93818032BF100C5841B /* vorbisenc.c in Sources */,
 				114FE8B618032BF100C5841B /* bitwise.c in Sources */,

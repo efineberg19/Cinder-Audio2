@@ -31,8 +31,6 @@ namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class NodeInput>				NodeInputRef;
 typedef std::shared_ptr<class LineIn>					LineInRef;
-typedef std::shared_ptr<class Gen>						GenRef;
-typedef std::shared_ptr<class GenWaveTable>				GenWaveTableRef;
 typedef std::shared_ptr<class CallbackProcessor>		CallbackProcessorRef;
 
 //! \brief NodeInput is the base class for Node's that produce audio. It cannot have any inputs.
@@ -80,116 +78,6 @@ class CallbackProcessor : public NodeInput {
 
   private:
 	CallbackProcessorFn mCallbackFn;
-};
-
-//! Base class for NodeInput's that generate audio samples.
-class Gen : public NodeInput {
-  public:
-	Gen( const Format &format = Format() );
-
-	void initialize() override;
-
-	void setFreq( float freq )		{ mFreq.setValue( freq ); }
-	float getFreq() const			{ return mFreq.getValue(); }
-
-	Param* getParamFreq()			{ return &mFreq; }
-
-  protected:
-	float mSampleRate;
-
-	Param mFreq;
-	float mPhase;
-};
-
-//! Noise generator. \note freq param is ignored
-class GenNoise : public Gen {
-  public:
-	GenNoise( const Format &format = Format() ) : Gen( format ) {}
-
-	void process( Buffer *buffer ) override;
-};
-
-//! Phase generator, i.e. sawtooth waveform that runs from 0 to 1.
-class GenPhasor : public Gen {
-  public:
-	GenPhasor( const Format &format = Format() ) : Gen( format )
-	{}
-
-	void process( Buffer *buffer ) override;
-};
-
-//! Sinewave waveform generator.
-class GenSine : public Gen {
-  public:
-	GenSine( const Format &format = Format() ) : Gen( format )
-	{}
-
-	void process( Buffer *buffer ) override;
-};
-
-//! Triangle waveform generator.
-class GenTriangle : public Gen {
-  public:
-	GenTriangle( const Format &format = Format() ) : Gen( format ), mUpSlope( 1 ), mDownSlope( 1 )
-	{}
-
-	void setUpSlope( float up )			{ mUpSlope = up; }
-	void setDownSlope( float down )		{ mDownSlope = down; }
-
-	float getUpSlope() const		{ return mUpSlope; }
-	float getDownSlope() const		{ return mDownSlope; }
-
-	void process( Buffer *buffer ) override;
-
-  private:
-	std::atomic<float> mUpSlope, mDownSlope;
-};
-
-//! Generator that uses wavetable lookup.
-class GenWaveTable : public Gen {
-  public:
-	enum WaveformType { SINE, SQUARE, SAWTOOTH, TRIANGLE, PULSE, CUSTOM };
-
-	struct Format : public Node::Format {
-		Format() : mWaveformType( SINE )	{}
-		
-		Format&		waveform( WaveformType type )	{ mWaveformType = type; return *this; }
-
-		const WaveformType& getWaveform() const	{ return mWaveformType; }
-
-   	  private:
-		WaveformType mWaveformType;
-	};
-
-	GenWaveTable( const Format &format = Format() );
-
-	void initialize() override;
-	void process( Buffer *buffer ) override;
-
-
-	//! Fills the internal table with a waveform of type \a type, with optional \a length (default = 512 or the table's current size).
-	//! The waveform is created using band-limited additive synthesis in order to avoid foldover (aliasing). \see setWaveformBandlimit
-	//! \note WaveformType CUSTOM does nothing here, it is used when filling the .
-	void setWaveform( WaveformType type, size_t length = 0 );
-	//! Sets the maximum frequency for partial coefficients when creating bandlimited waveforms. Default is the current nyqyst (Context's samplerate / 2) - 4k hertz.
-	void setWaveformBandlimit( float hertz, bool reload = false );
-	//! Sets the number of partials used when creating bandlimited waveforms. TODO: document default
-	void setWaveformNumPartials( size_t numPartials, bool reload = false );
-
-	size_t			getWaveformNumPartials() const	{ return mNumPartialCoeffs; }
-	WaveformType	getWaveForm() const				{ return mWaveformType; }
-
-	size_t getTableSize() const	{ return mTable.size(); }
-
-	void copyFromTable( float *array ) const;
-	void copyToTable( const float *array, size_t length = 0 );
-
-  protected:
-	void fillTableImpl( WaveformType type );
-
-	size_t				mNumPartialCoeffs;
-	WaveformType		mWaveformType;
-	std::vector<float>	mTable;
 };
 
 } } // namespace cinder::audio2
