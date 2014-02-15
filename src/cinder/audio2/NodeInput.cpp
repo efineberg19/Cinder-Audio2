@@ -30,7 +30,7 @@
 #include "cinder/Rand.h"
 
 #define DEFAULT_WAVETABLE_SIZE 512
-#define DEFAULT_WAVETABLE_NUM_COEFFS 100
+#define DEFAULT_WAVETABLE_NUM_COEFFS 40
 
 using namespace ci;
 using namespace std;
@@ -222,7 +222,7 @@ void GenWaveTable::initialize()
 void GenWaveTable::setWaveform( WaveformType type, size_t length )
 {
 	if( ! length )
-		length = DEFAULT_WAVETABLE_SIZE;
+		length = mTable.size() ? mTable.size() : DEFAULT_WAVETABLE_SIZE;
 
 	if( length != mTable.size() )
 		mTable.resize( length );
@@ -264,7 +264,7 @@ inline float tableLookup( float *table, size_t size, float phase )
 {
 	float lookup = phase * size;
 	size_t index1 = (size_t)lookup;
-	size_t index2 = ( index1 + 1 ) % size;
+	size_t index2 = ( index1 + 1 ) % size; // optimization: use boolean & operator instead
 	float val1 = table[index1];
 	float val2 = table[index2];
 	float frac = lookup - (float)index1;
@@ -315,8 +315,16 @@ void GenWaveTable::fillTableImpl( WaveformType type )
 			break;
 		case SQUARE:
 			// 1 / x for odd x
-			for( size_t x = 1; x <= partials.size(); x += 2 )
-				partials[x - 1] = 1.0f / float( x );
+//			for( size_t x = 1; x <= partials.size(); x += 2 )
+//				partials[x - 1] = 1.0f / float( x );
+
+			// gibbs effect reduction based on http://www.musicdsp.org/files/bandlimited.pdf
+			for( size_t x = 1; x <= partials.size(); x += 2 ) {
+				float gibbsReduce = cos( (float)x * M_PI * 0.5f / partials.size() );
+				gibbsReduce *= gibbsReduce;
+				partials[x - 1] = gibbsReduce / float( x );
+			}
+
 			break;
 		case SAWTOOTH:
 			// 1 / x
