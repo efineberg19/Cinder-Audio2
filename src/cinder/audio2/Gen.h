@@ -119,6 +119,10 @@ class GenWaveTable : public Gen {
 	//! The waveform is created using band-limited additive synthesis in order to avoid foldover (aliasing). \see setWaveformBandlimit
 	//! \note WaveformType CUSTOM does nothing here, it is used when filling the .
 	void setWaveform( WaveformType type, size_t length = 0 );
+
+	void setGibbsReductionEnabled( bool b = true, bool reload = false );
+	bool isGibbsReductionEnabled() const			{ return mReduceGibbs; }
+
 	//! Sets the maximum frequency for partial coefficients when creating bandlimited waveforms. Default is the current nyqyst (Context's samplerate / 2) - 4k hertz.
 	void setWaveformBandlimit( float hertz, bool reload = false );
 	//! Sets the number of partials used when creating bandlimited waveforms. TODO: document default
@@ -139,6 +143,7 @@ class GenWaveTable : public Gen {
 
 	size_t								mTableSize, mNumTables;
 	WaveformType						mWaveformType;
+	bool								mReduceGibbs;
 	std::vector<std::vector<float> >	mTables;
 };
 

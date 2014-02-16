@@ -33,7 +33,7 @@ public:
 	audio2::BufferDynamic		mTableCopy;
 
 	vector<TestWidget *>	mWidgets;
-	Button					mPlayButton;
+	Button					mPlayButton, mGibbsButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mFreqSlider;
 	TextInput				mNumPartialsInput, mTableSizeInput;
@@ -73,9 +73,16 @@ void WaveTableTestApp::setup()
 
 void WaveTableTestApp::setupUI()
 {
+	Rectf buttonRect( (float)getWindowWidth() - 200, 10, (float)getWindowWidth(), 60 );
 	mPlayButton = Button( true, "stopped", "playing" );
-	mPlayButton.mBounds = Rectf( (float)getWindowWidth() - 200, 10, (float)getWindowWidth(), 60 );
+	mPlayButton.mBounds = buttonRect;
 	mWidgets.push_back( &mPlayButton );
+
+	buttonRect += Vec2f( 0, buttonRect.getHeight() + 10 );
+	mGibbsButton = Button( true, "reduce gibbs", "reduce gibbs" );
+	mGibbsButton.mBounds = buttonRect;
+	mGibbsButton.setEnabled( mGen->isGibbsReductionEnabled() );
+	mWidgets.push_back( &mGibbsButton );
 
 	mTestSelector.mSegments.push_back( "sine" );
 	mTestSelector.mSegments.push_back( "sawtooth" );
@@ -83,7 +90,7 @@ void WaveTableTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "triangle" );
 	mTestSelector.mSegments.push_back( "pulse" );
 	mTestSelector.mSegments.push_back( "user" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() - 200, mPlayButton.mBounds.y2 + 10, (float)getWindowWidth(), mPlayButton.mBounds.y2 + 190 );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() - 200, buttonRect.y2 + 10, (float)getWindowWidth(), buttonRect.y2 + 190 );
 	mWidgets.push_back( &mTestSelector );
 
 	Rectf sliderRect = mTestSelector.mBounds;
@@ -141,6 +148,10 @@ void WaveTableTestApp::processTap( Vec2i pos )
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
+	else if( mGibbsButton.hitTest( pos ) ) {
+		mGen->setGibbsReductionEnabled( ! mGen->isGibbsReductionEnabled(), true );
+		mGen->copyFromTable( mTableCopy.getData() );
+	}
 	else if( mNumPartialsInput.hitTest( pos ) ) {
 	}
 	else if( mTableSizeInput.hitTest( pos ) ) {

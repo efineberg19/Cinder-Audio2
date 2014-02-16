@@ -24,6 +24,7 @@
 #include "cinder/audio2/Gen.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/Debug.h"
 #include "cinder/Rand.h"
 
 #define DEFAULT_WAVETABLE_SIZE 4096
@@ -167,7 +168,7 @@ void GenTriangle::process( Buffer *buffer )
 
 GenWaveTable::GenWaveTable( const Format &format )
 	: Gen( format ), mWaveformType( format.getWaveform() ), mTableSize( DEFAULT_WAVETABLE_SIZE ),
-	mNumTables( 40 )
+	mNumTables( 40 ), mReduceGibbs( true )
 {
 }
 
@@ -185,6 +186,13 @@ void GenWaveTable::setWaveform( WaveformType type, size_t length )
 
 	mWaveformType = type;
 	fillTables();
+}
+
+void GenWaveTable::setGibbsReductionEnabled( bool b, bool reload )
+{
+	mReduceGibbs = b;
+	if( reload )
+		setWaveform( mWaveformType );
 }
 
 void GenWaveTable::setWaveformBandlimit( float hertz, bool reload )
@@ -230,6 +238,13 @@ inline float tableLookup( float *table, size_t size, float phase )
 }
 
 #endif
+
+// gibbs effect reduction based on http://www.musicdsp.org/files/bandlimited.pdf
+inline float calcGibbsReduceCoeff( size_t partial, size_t numPartials )
+{
+	float result = math<float>::cos( (float)partial * M_PI * 0.5f / numPartials );
+	return result * result;
+}
 
 } // anonymous namespace
 
@@ -277,6 +292,8 @@ void GenWaveTable::fillTables()
 {
 	CI_ASSERT( mNumTables > 0 );
 
+	LOG_V( "filling " << mNumTables << " tables of size: " << mTableSize << "..." );
+
 	if( mTables.size() != mNumTables )
 		mTables.resize( mNumTables );
 
@@ -288,6 +305,8 @@ void GenWaveTable::fillTables()
 		// naive partial spacing - add one per table (doesn't make much sense for square and triangle, since they only use odd partials
 		fillBandLimitedTable( table.data(), i + 1 );
 	}
+
+	LOG_V( "..done" );
 }
 
 void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
@@ -304,28 +323,24 @@ void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
 			break;
 		case SQUARE:
 			// 1 / x for odd x
-#if 0
-			for( size_t x = 1; x <= partials.size(); x += 2 )
-				partials[x - 1] = 1.0f / float( x );
-#else
-			// gibbs effect reduction based on http://www.musicdsp.org/files/bandlimited.pdf
 			for( size_t x = 1; x <= partials.size(); x += 2 ) {
-				float gibbsReduce = cos( (float)x * M_PI * 0.5f / partials.size() );
-				gibbsReduce *= gibbsReduce;
-				partials[x - 1] = gibbsReduce / float( x );
+				float m = mReduceGibbs ? calcGibbsReduceCoeff( x, partials.size() ) : 1;
+				partials[x - 1] = m / float( x );
 			}
-#endif
 			break;
 		case SAWTOOTH:
 			// 1 / x
-			for( size_t x = 1; x <= numPartials; x += 1 )
-				partials[x - 1] = 1.0f / float( x );
+			for( size_t x = 1; x <= numPartials; x += 1 ) {
+				float m = mReduceGibbs ? calcGibbsReduceCoeff( x, partials.size() ) : 1;
+				partials[x - 1] = m / float( x );
+			}
 			break;
 		case TRIANGLE: {
 			// 1 / x^2 for odd x, alternating + and -
 			float t = 1;
 			for( size_t x = 1; x <= partials.size(); x += 2 ) {
-				partials[x - 1] = t / float( x * x );
+				float m = mReduceGibbs ? calcGibbsReduceCoeff( x, partials.size() ) : t;
+				partials[x - 1] = m / float( x * x );
 				t *= -1;
 			}
 			break;
