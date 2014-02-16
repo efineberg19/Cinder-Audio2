@@ -52,11 +52,12 @@ void WaveTableTestApp::setup()
 	mGain = ctx->makeNode( new audio2::Gain );
 	mGain->setValue( 0.0f );
 
-	mGen = ctx->makeNode( new audio2::GenWaveTable );
-//	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SAWTOOTH ) ) );
-	mGen->setFreq( 200 );
+//	mGen = ctx->makeNode( new audio2::GenWaveTable );
+	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SAWTOOTH ) ) );
+	mGen->setFreq( 100 );
 
 	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().windowSize( 2048 ) ) );
+	mScope->setSmoothingFactor( 0 );
 
 	mGen >> mScope >> mGain >> ctx->getOutput();
 
@@ -104,7 +105,7 @@ void WaveTableTestApp::setupUI()
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
 	mNumPartialsInput.mBounds = sliderRect;
 	mNumPartialsInput.mTitle = "num partials";
-	mNumPartialsInput.setValue( mGen->getWaveformNumPartials() );
+//	mNumPartialsInput.setValue( mGen->getWaveformNumPartials() );
 	mWidgets.push_back( &mNumPartialsInput );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
@@ -172,13 +173,13 @@ void WaveTableTestApp::keyDown( KeyEvent event )
 		return;
 
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
-		if( currentSelected == &mNumPartialsInput ) {
-			int numPartials = currentSelected->getValue();
-			LOG_V( "updating num partials from: " << mGen->getWaveformNumPartials() << " to: " << numPartials );
-			mGen->setWaveformNumPartials( numPartials, true );
-			mGen->copyFromTable( mTableCopy.getData() );
-		}
-		else if( currentSelected == &mTableSizeInput ) {
+//		if( currentSelected == &mNumPartialsInput ) {
+//			int numPartials = currentSelected->getValue();
+//			LOG_V( "updating num partials from: " << mGen->getWaveformNumPartials() << " to: " << numPartials );
+//			mGen->setWaveformNumPartials( numPartials, true );
+//			mGen->copyFromTable( mTableCopy.getData() );
+//		}
+		if( currentSelected == &mTableSizeInput ) {
 			int tableSize = currentSelected->getValue();
 			LOG_V( "updating table size from: " << mGen->getTableSize() << " to: " << tableSize );
 			mGen->setWaveform( mGen->getWaveForm(), tableSize );

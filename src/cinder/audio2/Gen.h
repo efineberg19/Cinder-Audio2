@@ -32,7 +32,7 @@ typedef std::shared_ptr<class GenWaveTable>				GenWaveTableRef;
 
 //! Base class for NodeInput's that generate audio samples.
 class Gen : public NodeInput {
-public:
+  public:
 	Gen( const Format &format = Format() );
 
 	void initialize() override;
@@ -42,7 +42,7 @@ public:
 
 	Param* getParamFreq()			{ return &mFreq; }
 
-protected:
+  protected:
 	float mSampleRate;
 
 	Param mFreq;
@@ -51,15 +51,15 @@ protected:
 
 //! Noise generator. \note freq param is ignored
 class GenNoise : public Gen {
-public:
+  public:
 	GenNoise( const Format &format = Format() ) : Gen( format ) {}
 
 	void process( Buffer *buffer ) override;
 };
 
-//! Phase generator, i.e. sawtooth waveform that runs from 0 to 1.
+//! Phase generator, i.e. ramping waveform that runs from 0 to 1.
 class GenPhasor : public Gen {
-public:
+  public:
 	GenPhasor( const Format &format = Format() ) : Gen( format )
 	{}
 
@@ -68,7 +68,7 @@ public:
 
 //! Sine waveform generator.
 class GenSine : public Gen {
-public:
+  public:
 	GenSine( const Format &format = Format() ) : Gen( format )
 	{}
 
@@ -77,7 +77,7 @@ public:
 
 //! Triangle waveform generator.
 class GenTriangle : public Gen {
-public:
+  public:
 	GenTriangle( const Format &format = Format() ) : Gen( format ), mUpSlope( 1 ), mDownSlope( 1 )
 	{}
 
@@ -89,13 +89,13 @@ public:
 
 	void process( Buffer *buffer ) override;
 
-private:
+  private:
 	std::atomic<float> mUpSlope, mDownSlope;
 };
 
 //! Generator that uses wavetable lookup.
 class GenWaveTable : public Gen {
-public:
+  public:
 	enum WaveformType { SINE, SQUARE, SAWTOOTH, TRIANGLE, PULSE, CUSTOM };
 
 	struct Format : public Node::Format {
@@ -122,22 +122,24 @@ public:
 	//! Sets the maximum frequency for partial coefficients when creating bandlimited waveforms. Default is the current nyqyst (Context's samplerate / 2) - 4k hertz.
 	void setWaveformBandlimit( float hertz, bool reload = false );
 	//! Sets the number of partials used when creating bandlimited waveforms. TODO: document default
-	void setWaveformNumPartials( size_t numPartials, bool reload = false );
+//	void setWaveformNumPartials( size_t numPartials, bool reload = false );
 
-	size_t			getWaveformNumPartials() const	{ return mNumPartialCoeffs; }
+//	size_t			getWaveformNumPartials() const	{ return mNumPartialCoeffs; }
 	WaveformType	getWaveForm() const				{ return mWaveformType; }
 
-	size_t getTableSize() const	{ return mTable.size(); }
+	size_t getTableSize() const	{ return mTableSize; }
 
-	void copyFromTable( float *array ) const;
-	void copyToTable( const float *array, size_t length = 0 );
+	// TODO: decide best way to default copied table to the one with most partials. may change once a switch is made to log-based ranges
+	void copyFromTable( float *array, size_t tableIndex = 39 ) const;
+//	void copyToTable( const float *array, size_t length = 0 );
 
-protected:
-	void fillTableImpl( WaveformType type );
+  protected:
+	void fillTables();
+	void fillBandLimitedTable( float *table, size_t numPartials );
 
-	size_t				mNumPartialCoeffs;
-	WaveformType		mWaveformType;
-	std::vector<float>	mTable;
+	size_t								mTableSize, mNumTables;
+	WaveformType						mWaveformType;
+	std::vector<std::vector<float> >	mTables;
 };
 
 } } // namespace cinder::audio2

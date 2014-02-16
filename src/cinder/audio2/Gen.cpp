@@ -26,8 +26,7 @@
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/Rand.h"
 
-#define DEFAULT_WAVETABLE_SIZE 512
-#define DEFAULT_WAVETABLE_NUM_COEFFS 40
+#define DEFAULT_WAVETABLE_SIZE 4096
 
 using namespace ci;
 using namespace std;
@@ -39,7 +38,7 @@ namespace cinder { namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 Gen::Gen( const Format &format )
-: NodeInput( format ), mFreq( this ), mPhase( 0 )
+	: NodeInput( format ), mFreq( this ), mPhase( 0 )
 {
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 1 );
@@ -127,12 +126,12 @@ void GenPhasor::process( Buffer *buffer )
 
 namespace {
 
-	inline float calcTriangleSignal( float phase, float upSlope, float downSlope )
-	{
-		// if up slope = down slope = 1, signal ranges from 0 to 0.5. so normalize this from -1 to 1
-		float signal = std::min( phase * upSlope, ( 1 - phase ) * downSlope );
-		return signal * 4 - 1;
-	}
+inline float calcTriangleSignal( float phase, float upSlope, float downSlope )
+{
+	// if up slope = down slope = 1, signal ranges from 0 to 0.5. so normalize this from -1 to 1
+	float signal = std::min( phase * upSlope, ( 1 - phase ) * downSlope );
+	return signal * 4 - 1;
+}
 
 } // anonymous namespace
 
@@ -167,7 +166,8 @@ void GenTriangle::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 GenWaveTable::GenWaveTable( const Format &format )
-: Gen( format ), mWaveformType( format.getWaveform() ), mNumPartialCoeffs( DEFAULT_WAVETABLE_NUM_COEFFS )
+	: Gen( format ), mWaveformType( format.getWaveform() ), mTableSize( DEFAULT_WAVETABLE_SIZE ),
+	mNumTables( 40 )
 {
 }
 
@@ -175,62 +175,59 @@ void GenWaveTable::initialize()
 {
 	Gen::initialize();
 
-	//	setWaveformBandlimit( float( getContext()->getSampleRate() / 2 - 4000 ) );
 	setWaveform( mWaveformType );
 }
 
 void GenWaveTable::setWaveform( WaveformType type, size_t length )
 {
-	if( ! length )
-		length = mTable.size() ? mTable.size() : DEFAULT_WAVETABLE_SIZE;
-
-	if( length != mTable.size() )
-		mTable.resize( length );
+	if( length )
+		mTableSize = length;
 
 	mWaveformType = type;
-	fillTableImpl( type );
+	fillTables();
 }
 
 void GenWaveTable::setWaveformBandlimit( float hertz, bool reload )
 {
-	// TODO: is this even practical?
-	//	- What is the band limit related to, the current mFreq, or user provides a reference frequency?
+	CI_ASSERT_MSG( 0, "not yet implemented" );
 
 	//	float maxFreq = ;
-	setWaveformNumPartials( hertz / 440, reload );
+//	setWaveformNumPartials( hertz / 440, reload );
 }
 
+/*
 void GenWaveTable::setWaveformNumPartials( size_t numPartials, bool reload )
 {
 	mNumPartialCoeffs = numPartials;
 	if( reload )
 		setWaveform( mWaveformType );
 }
+*/
 
 namespace {
 
 #if 0
 
-	// truncate, phase range: 0-1
-	inline float tableLookup( float *table, size_t size, float phase )
-	{
-		return table[(size_t)( phase * size )];
-	}
+// truncate, phase range: 0-1
+inline float tableLookup( float *table, size_t size, float phase )
+{
+	return table[(size_t)( phase * size )];
+}
 
 #else
 
-	// linear interpolation, phase range: 0-1
-	inline float tableLookup( float *table, size_t size, float phase )
-	{
-		float lookup = phase * size;
-		size_t index1 = (size_t)lookup;
-		size_t index2 = ( index1 + 1 ) % size; // optimization: use boolean & operator instead
-		float val1 = table[index1];
-		float val2 = table[index2];
-		float frac = lookup - (float)index1;
+// linear interpolation, phase range: 0-1
+inline float tableLookup( float *table, size_t size, float phase )
+{
+	float lookup = phase * size;
+	size_t index1 = (size_t)lookup;
+	size_t index2 = ( index1 + 1 ) % size; // optimization: use boolean & operator instead
+	float val1 = table[index1];
+	float val2 = table[index2];
+	float frac = lookup - (float)index1;
 
-		return val2 + frac * ( val2 - val1 );
-	}
+	return val2 + frac * ( val2 - val1 );
+}
 
 #endif
 
@@ -238,22 +235,35 @@ namespace {
 
 void GenWaveTable::process( Buffer *buffer )
 {
+	const size_t count = buffer->getSize();
+	const float tableSize = mTableSize;
+	const float numTables = mNumTables;
+	const float nyquist = mSampleRate / 2.0f;
+	const float samplePeriod = 1.0f / mSampleRate;
 	float *data = buffer->getData();
-	size_t count = buffer->getSize();
 	float phase = mPhase;
-	const float phaseMul = float( 1.0 / (double)mSampleRate );
 
 	if( mFreq.eval() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
-			data[i] = tableLookup( mTable.data(), mTable.size(), phase );
-			phase = fmodf( phase + freqValues[i] * phaseMul, 1 );
+
+			float f0 = freqValues[i];
+			size_t tableIndex = min<size_t>( numTables - 1, floorf( nyquist / f0 ) - 1 );
+			float *table = mTables[tableIndex].data();
+
+			data[i] = tableLookup( table, tableSize, phase );
+			phase = fmodf( phase + freqValues[i] * samplePeriod, 1 );
 		}
 	}
 	else {
-		const float phaseIncr = mFreq.getValue() * phaseMul;
+		// pick table based on the one with the most partials that won't alias
+		float f0 = mFreq.getValue();
+		size_t tableIndex = min<size_t>( numTables - 1, floorf( nyquist / f0 ) - 1 );
+		float *table = mTables[tableIndex].data();
+
+		const float phaseIncr = f0 * samplePeriod;
 		for( size_t i = 0; i < count; i++ ) {
-			data[i] = tableLookup( mTable.data(), mTable.size(), phase );
+			data[i] = tableLookup( table, tableSize, phase );
 			phase = fmodf( phase + phaseIncr, 1 );
 		}
 	}
@@ -261,38 +271,58 @@ void GenWaveTable::process( Buffer *buffer )
 	mPhase = phase;
 }
 
-void GenWaveTable::fillTableImpl( WaveformType type )
+// TODO: space partials based on human hearing
+//	- web audio uses 3 per octave up to nyquist
+void GenWaveTable::fillTables()
+{
+	CI_ASSERT( mNumTables > 0 );
+
+	if( mTables.size() != mNumTables )
+		mTables.resize( mNumTables );
+
+	for( size_t i = 0; i < mNumTables; i++ ) {
+		auto &table = mTables[i];
+		if( table.size() != mTableSize )
+			table.resize( mTableSize );
+
+		// naive partial spacing - add one per table (doesn't make much sense for square and triangle, since they only use odd partials
+		fillBandLimitedTable( table.data(), i + 1 );
+	}
+}
+
+void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
 {
 	vector<float> partials;
-	if( type == SINE )
+	if( mWaveformType == SINE )
 		partials.resize( 1 );
 	else
-		partials.resize( mNumPartialCoeffs );
+		partials.resize( numPartials );
 
-	switch( type ) {
+	switch( mWaveformType ) {
 		case SINE:
 			partials[0] = 1;
 			break;
 		case SQUARE:
 			// 1 / x for odd x
-			//			for( size_t x = 1; x <= partials.size(); x += 2 )
-			//				partials[x - 1] = 1.0f / float( x );
-
+#if 0
+			for( size_t x = 1; x <= partials.size(); x += 2 )
+				partials[x - 1] = 1.0f / float( x );
+#else
 			// gibbs effect reduction based on http://www.musicdsp.org/files/bandlimited.pdf
 			for( size_t x = 1; x <= partials.size(); x += 2 ) {
 				float gibbsReduce = cos( (float)x * M_PI * 0.5f / partials.size() );
 				gibbsReduce *= gibbsReduce;
 				partials[x - 1] = gibbsReduce / float( x );
 			}
-
+#endif
 			break;
 		case SAWTOOTH:
 			// 1 / x
-			for( size_t x = 1; x <= partials.size(); x += 1 )
+			for( size_t x = 1; x <= numPartials; x += 1 )
 				partials[x - 1] = 1.0f / float( x );
 			break;
 		case TRIANGLE: {
-			// 1 / x^2, alternating + and -
+			// 1 / x^2 for odd x, alternating + and -
 			float t = 1;
 			for( size_t x = 1; x <= partials.size(); x += 2 ) {
 				partials[x - 1] = t / float( x * x );
@@ -306,18 +336,20 @@ void GenWaveTable::fillTableImpl( WaveformType type )
 			CI_ASSERT_NOT_REACHABLE();
 	}
 
-	dsp::sinesum( mTable.data(), mTable.size(), partials );
-	dsp::normalize( mTable.data(), mTable.size() );
+	dsp::sinesum( table, mTableSize, partials );
+	dsp::normalize( table, mTableSize );
 }
 
 // TODO: consider using our own lock for updating the wavetable so that it can try and fail without blocking
-void GenWaveTable::copyFromTable( float *array ) const
+void GenWaveTable::copyFromTable( float *array, size_t tableIndex ) const
 {
-	lock_guard<mutex> lock( getContext()->getMutex() );
+	CI_ASSERT( tableIndex < mTables.size() );
 
-	memcpy( array, mTable.data(), mTable.size() * sizeof( float ) );
+	lock_guard<mutex> lock( getContext()->getMutex() );
+	memcpy( array, mTables[tableIndex].data(), mTableSize * sizeof( float ) );
 }
 
+/*
 void GenWaveTable::copyToTable( const float *array, size_t length )
 {
 	mWaveformType = CUSTOM;
@@ -329,5 +361,5 @@ void GenWaveTable::copyToTable( const float *array, size_t length )
 
 	memcpy( mTable.data(), array, length * sizeof( float ) );
 }
-
+*/
 } } // namespace cinder::audio2
