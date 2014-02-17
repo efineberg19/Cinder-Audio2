@@ -140,6 +140,7 @@ class GenWaveTable : public Gen {
   protected:
 	void fillTables();
 	void fillBandLimitedTable( float *table, size_t numPartials );
+	void fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 
 	size_t								mTableSize, mNumTables;
 	WaveformType						mWaveformType;

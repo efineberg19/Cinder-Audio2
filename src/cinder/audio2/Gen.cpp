@@ -309,6 +309,9 @@ void GenWaveTable::fillTables()
 	LOG_V( "..done" );
 }
 
+// TODO: try making pulse with offset two sawtooth sinesums
+//	- is this worth it? if you just use one sawtooth and index it twice, can do pulse width modulation
+//	- this would be easier if there were a WaveTable class and a custom Gen could do the indexing twice, rather than muddying this Gen's process()
 void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
 {
 	vector<float> partials;
@@ -351,8 +354,26 @@ void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
 			CI_ASSERT_NOT_REACHABLE();
 	}
 
-	dsp::sinesum( table, mTableSize, partials );
+	fillSinesum( table, mTableSize, partials );
 	dsp::normalize( table, mTableSize );
+}
+
+void GenWaveTable::fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs )
+{
+	memset( array, 0, length * sizeof( float ) );
+
+	double phase = 0;
+	const double phaseIncr = ( 2.0 * M_PI ) / (double)length;
+
+	for( size_t i = 0; i < length; i++ ) {
+		double partialPhase = phase;
+		for( size_t p = 0; p < partialCoeffs.size(); p++ ) {
+			array[i] += partialCoeffs[p] * math<float>::sin( partialPhase );
+			partialPhase += phase;
+		}
+
+		phase += phaseIncr;
+	}
 }
 
 // TODO: consider using our own lock for updating the wavetable so that it can try and fail without blocking

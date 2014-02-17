@@ -35,7 +35,7 @@ public:
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton, mGibbsButton;
 	VSelector				mTestSelector;
-	HSlider					mGainSlider, mFreqSlider;
+	HSlider					mGainSlider, mFreqSlider, mFreqRampSlider;
 	TextInput				mNumPartialsInput, mTableSizeInput;
 	SpectrumPlot			mSpectrumPlot;
 
@@ -93,6 +93,13 @@ void WaveTableTestApp::setupUI()
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() - 200, buttonRect.y2 + 10, (float)getWindowWidth(), buttonRect.y2 + 190 );
 	mWidgets.push_back( &mTestSelector );
 
+	// freq slider is longer, along top
+	mFreqSlider.mBounds = Rectf( 10, 10, getWindowWidth() - 210, 40 );
+	mFreqSlider.mTitle = "freq";
+	mFreqSlider.mMax = 5000;
+	mFreqSlider.set( mGen->getFreq() );
+	mWidgets.push_back( &mFreqSlider );
+
 	Rectf sliderRect = mTestSelector.mBounds;
 	sliderRect.y1 = sliderRect.y2 + 10;
 	sliderRect.y2 = sliderRect.y1 + 30;
@@ -103,11 +110,13 @@ void WaveTableTestApp::setupUI()
 	mWidgets.push_back( &mGainSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mFreqSlider.mBounds = sliderRect;
-	mFreqSlider.mTitle = "freq";
-	mFreqSlider.mMax = 1200;
-	mFreqSlider.set( mGen->getFreq() );
-	mWidgets.push_back( &mFreqSlider );
+	mFreqRampSlider.mBounds = sliderRect;
+	mFreqRampSlider.mTitle = "freq ramp";
+	mFreqRampSlider.mMax = 10;
+	mFreqRampSlider.set( 0.05f );
+	mWidgets.push_back( &mFreqRampSlider );
+
+
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
 	mNumPartialsInput.mBounds = sliderRect;
@@ -138,13 +147,17 @@ void WaveTableTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
 		mGain->getParam()->applyRamp( mGainSlider.mValueScaled, 0.03f );
-	if( mFreqSlider.hitTest( pos ) )
-		mGen->getParamFreq()->applyRamp( mFreqSlider.mValueScaled, 0.03f );
+	else if( mFreqSlider.hitTest( pos ) )
+		mGen->getParamFreq()->applyRamp( mFreqSlider.mValueScaled, mFreqRampSlider.mValue );
+	else if( mFreqRampSlider.hitTest( pos ) ) {
+	}
+
 }
 
 void WaveTableTestApp::processTap( Vec2i pos )
 {
 	auto ctx = audio2::Context::master();
+	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
@@ -156,9 +169,7 @@ void WaveTableTestApp::processTap( Vec2i pos )
 	}
 	else if( mTableSizeInput.hitTest( pos ) ) {
 	}
-
-	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
+	else if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
 		LOG_V( "selected: " << currentTest );
 
@@ -175,6 +186,8 @@ void WaveTableTestApp::processTap( Vec2i pos )
 
 		mGen->copyFromTable( mTableCopy.getData() );
 	}
+	else
+		processDrag( pos );
 }
 
 void WaveTableTestApp::keyDown( KeyEvent event )
@@ -212,9 +225,9 @@ void WaveTableTestApp::draw()
 	gl::clear();
 
 	const float padding = 10;
-	const float scopeHeight = ( getWindowHeight() - padding * 4 ) / 3;
+	const float scopeHeight = ( getWindowHeight() - padding * 4 - mFreqSlider.mBounds.y2 ) / 3;
 
-	Rectf rect( padding, padding, getWindowWidth() - padding - 200, scopeHeight + padding );
+	Rectf rect( padding, padding + mFreqSlider.mBounds.y2, getWindowWidth() - padding - 200, mFreqSlider.mBounds.y2 + scopeHeight + padding );
 	drawAudioBuffer( mTableCopy, rect, true );
 
 	rect += Vec2f( 0, scopeHeight + padding );

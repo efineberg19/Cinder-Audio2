@@ -187,24 +187,6 @@ void generateWindow( WindowType windowType, float *window, size_t length )
 	}
 }
 
-void sinesum( float *array, size_t length, const std::vector<float> &partialCoeffs )
-{
-	memset( array, 0, length * sizeof( float ) );
-
-	double phase = 0;
-	const double phaseIncr = ( 2.0 * M_PI ) / (double)length;
-
-	for( size_t i = 0; i < length; i++ ) {
-		float partialPhase = phase;
-		for( size_t p = 0; p < partialCoeffs.size(); p++ ) {
-			array[i] += partialCoeffs[p] * (float)sin( partialPhase );
-			partialPhase += phase;
-		}
-
-		phase += phaseIncr;
-	}
-}
-
 void divide( const float *array, float scalar, float *result, size_t length )
 {
 	mul( array, 1 / scalar, result, length );
