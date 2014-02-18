@@ -134,17 +134,23 @@ class GenWaveTable : public Gen {
 	size_t getTableSize() const	{ return mTableSize; }
 
 	// TODO: decide best way to default copied table to the one with most partials. may change once a switch is made to log-based ranges
-	void copyFromTable( float *array, size_t tableIndex = 39 ) const;
+	void copyFromTable( float *array, size_t tableIndex = 0 ) const;
 //	void copyToTable( const float *array, size_t length = 0 );
 
   protected:
+	// table generation
 	void fillTables();
 	void fillBandLimitedTable( float *table, size_t numPartials );
 	void fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 
-	size_t								mTableSize, mNumTables;
-	WaveformType						mWaveformType;
-	bool								mReduceGibbs;
+	// table picking
+//	size_t			getMaxPartialsOrRangeBlarg
+	const float* getTableForFundamentalFreq( float f0 ) const;
+
+	size_t			mTableSize, mNumTables;
+	WaveformType	mWaveformType;
+	bool			mReduceGibbs;
+
 	std::vector<std::vector<float> >	mTables;
 };
 

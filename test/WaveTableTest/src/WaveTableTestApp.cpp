@@ -7,6 +7,8 @@
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 
+#include "cinder/audio2/Utilities.h"
+
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
@@ -56,7 +58,7 @@ void WaveTableTestApp::setup()
 	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SAWTOOTH ) ) );
 	mGen->setFreq( 100 );
 
-	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().windowSize( 2048 ) ) );
+	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
 	mScope->setSmoothingFactor( 0 );
 
 	mGen >> mScope >> mGain >> ctx->getOutput();

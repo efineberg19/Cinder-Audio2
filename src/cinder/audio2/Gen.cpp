@@ -24,10 +24,12 @@
 #include "cinder/audio2/Gen.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/Utilities.h"
 #include "cinder/audio2/Debug.h"
 #include "cinder/Rand.h"
 
 #define DEFAULT_WAVETABLE_SIZE 4096
+#define DEFAULT_NUM_WAVETABLES 40
 
 using namespace ci;
 using namespace std;
@@ -168,7 +170,7 @@ void GenTriangle::process( Buffer *buffer )
 
 GenWaveTable::GenWaveTable( const Format &format )
 	: Gen( format ), mWaveformType( format.getWaveform() ), mTableSize( DEFAULT_WAVETABLE_SIZE ),
-	mNumTables( 40 ), mReduceGibbs( true )
+	mNumTables( DEFAULT_NUM_WAVETABLES ), mReduceGibbs( true )
 {
 }
 
@@ -217,7 +219,7 @@ namespace {
 #if 0
 
 // truncate, phase range: 0-1
-inline float tableLookup( float *table, size_t size, float phase )
+inline float tableLookup( const float *table, size_t size, float phase )
 {
 	return table[(size_t)( phase * size )];
 }
@@ -225,7 +227,7 @@ inline float tableLookup( float *table, size_t size, float phase )
 #else
 
 // linear interpolation, phase range: 0-1
-inline float tableLookup( float *table, size_t size, float phase )
+inline float tableLookup( const float *table, size_t size, float phase )
 {
 	float lookup = phase * size;
 	size_t index1 = (size_t)lookup;
@@ -252,8 +254,6 @@ void GenWaveTable::process( Buffer *buffer )
 {
 	const size_t count = buffer->getSize();
 	const float tableSize = mTableSize;
-	const float numTables = mNumTables;
-	const float nyquist = mSampleRate / 2.0f;
 	const float samplePeriod = 1.0f / mSampleRate;
 	float *data = buffer->getData();
 	float phase = mPhase;
@@ -263,20 +263,19 @@ void GenWaveTable::process( Buffer *buffer )
 		for( size_t i = 0; i < count; i++ ) {
 
 			float f0 = freqValues[i];
-			size_t tableIndex = min<size_t>( numTables - 1, floorf( nyquist / f0 ) - 1 );
-			float *table = mTables[tableIndex].data();
+			const float *table = getTableForFundamentalFreq( f0 );
 
 			data[i] = tableLookup( table, tableSize, phase );
 			phase = fmodf( phase + freqValues[i] * samplePeriod, 1 );
 		}
 	}
 	else {
-		// pick table based on the one with the most partials that won't alias
+
 		float f0 = mFreq.getValue();
-		size_t tableIndex = min<size_t>( numTables - 1, floorf( nyquist / f0 ) - 1 );
-		float *table = mTables[tableIndex].data();
+		const float *table = getTableForFundamentalFreq( f0 );
 
 		const float phaseIncr = f0 * samplePeriod;
+
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = tableLookup( table, tableSize, phase );
 			phase = fmodf( phase + phaseIncr, 1 );
@@ -286,8 +285,22 @@ void GenWaveTable::process( Buffer *buffer )
 	mPhase = phase;
 }
 
-// TODO: space partials based on human hearing
-//	- web audio uses 3 per octave up to nyquist
+const float* GenWaveTable::getTableForFundamentalFreq( float f0 ) const
+{
+	const float nyquistMidi = toMidi( mSampleRate / 2.0f );
+	const float f0Midi = toMidi( f0 );
+
+	size_t tableIndex = mNumTables * float( f0Midi / nyquistMidi );
+	return mTables[tableIndex].data();
+}
+
+//const float* GenWaveTable::getTableForFundamentalFreq( float f0 ) const
+//{
+//	const float nyquist = mSampleRate / 2.0f;
+//	size_t tableIndex = min<size_t>( mNumTables - 1, floorf( nyquist / f0 ) - 1 );
+//	return mTables[tableIndex].data();
+//}
+
 void GenWaveTable::fillTables()
 {
 	CI_ASSERT( mNumTables > 0 );
@@ -297,23 +310,36 @@ void GenWaveTable::fillTables()
 	if( mTables.size() != mNumTables )
 		mTables.resize( mNumTables );
 
+	const float nyquist = mSampleRate / 2.0f;
+	const float nyquistMidi = toMidi( nyquist );
+	const float midiRangePerTable = nyquistMidi / mNumTables;
+
 	for( size_t i = 0; i < mNumTables; i++ ) {
 		auto &table = mTables[i];
 		if( table.size() != mTableSize )
 			table.resize( mTableSize );
 
+		// TODO NEXT: improve num partial picking per range
+		// - partials are now based on human hearing, but range is horrible
+		// - largest table has very small amp harmonics
+		// - last 4 tables only have one partial
+
+		float maxMidi = ( i + 1 ) * midiRangePerTable;
+		float maxFreq = toFreq( maxMidi );
+
+		float maxPartialsForFreq = nyquist / maxFreq;
+
 		// naive partial spacing - add one per table (doesn't make much sense for square and triangle, since they only use odd partials
-		fillBandLimitedTable( table.data(), i + 1 );
+		fillBandLimitedTable( table.data(), maxPartialsForFreq );
 	}
 
 	LOG_V( "..done" );
 }
 
-// TODO: try making pulse with offset two sawtooth sinesums
-//	- is this worth it? if you just use one sawtooth and index it twice, can do pulse width modulation
-//	- this would be easier if there were a WaveTable class and a custom Gen could do the indexing twice, rather than muddying this Gen's process()
 void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
 {
+	LOG_V( "num partials: " << numPartials );
+	
 	vector<float> partials;
 	if( mWaveformType == SINE )
 		partials.resize( 1 );
@@ -349,7 +375,9 @@ void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
 			break;
 		}
 		case PULSE:
-			// TODO
+			// TODO: try making pulse with offset two sawtooth sinesums
+			//	- is this worth it? if you just use one sawtooth and index it twice, can do pulse width modulation
+			//	- this would be easier if there were a WaveTable class and a custom Gen could do the indexing twice, rather than muddying this Gen's process()
 		default:
 			CI_ASSERT_NOT_REACHABLE();
 	}
