@@ -44,14 +44,14 @@ class SamplePlayer : public NodeInput {
 public:
 	virtual ~SamplePlayer() {}
 
-	//! Seek the read position to \a readPositionFrames
-	virtual void seek( size_t readPositionFrames ) = 0;
+	//! Seek the read position to \a readPositionFrames.
+	virtual void seek( size_t positionFrames ) = 0;
 
-	//! Seek to read position \a readPositionSeconds
-	void seekToTime( double readPositionSeconds );
-	//! Gets the current read position in frames
+	//! Seek to read position \a readPositionSeconds,
+	void seekToTime( double positionSeconds );
+	//! Returns the current read position in frames.
 	size_t getReadPosition() const	{ return mReadPos; }
-	//! Gets the current read position in seconds.
+	//! Returns the current read position in seconds.
 	double getReadPositionTime() const;
 	//! Returns whether the SamplePlayer has reached EOF (end of file). If true, isEnabled() will also return false.
 	bool isEof() const				{ return mIsEof; }
@@ -60,18 +60,34 @@ public:
 	void setLoop( bool b = true )	{ mLoop = b; }
 	//! Gets whether playing continues from beginning after the end is reached (default = false)
 	bool getLoop() const			{ return mLoop; }
+
+
+	void setLoopBegin( size_t positionFrames );
+	void setLoopEnd( size_t positionFrames );
+
+	void setLoopBeginTime( double positionSeconds );
+	void setLoopEndTime( double positionSeconds );
+
+	size_t getLoopBegin() const	{ return mLoopBegin; }
+	size_t getLoopEnd() const	{ return mLoopEnd;	}
+
+	double getLoopBeginTime() const;
+	double getLoopEndTime() const;
+
 	//! Sets whether start() resets the read position to zero (default = true).
 	void setStartAtBeginning( bool b = true )	{ mStartAtBeginning = b; }
 	//! Gets whether start() resets the read position to zero (default = true).
 	bool getStartAtBeginning() const			{ return mStartAtBeginning; }
+	//! Returns the total number of seconds this SamplePlayer will play from beginning to end.
+	size_t getNumSeconds() const;
 	//! Returns the total number of frames this SamplePlayer will play from beginning to end.
 	size_t getNumFrames() const	{ return mNumFrames; }
 
 protected:
 	SamplePlayer( const Format &format = Format() );
 
-	size_t mNumFrames;
-	std::atomic<size_t> mReadPos;
+	size_t				mNumFrames;
+	std::atomic<size_t> mReadPos, mLoopBegin, mLoopEnd;
 	std::atomic<bool>	mLoop, mIsEof;
 	bool				mStartAtBeginning;
 };

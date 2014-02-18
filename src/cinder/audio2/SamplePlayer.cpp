@@ -36,13 +36,37 @@ namespace cinder { namespace audio2 {
 // ----------------------------------------------------------------------------------------------------
 
 SamplePlayer::SamplePlayer( const Format &format )
-: NodeInput( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ), mStartAtBeginning( true )
+	: NodeInput( format ), mNumFrames( 0 ), mReadPos( 0 ), mLoop( false ), mStartAtBeginning( true ),
+		mLoopBegin( 0 ), mLoopEnd( 0 )
 {
+}
+
+void SamplePlayer::setLoopBegin( size_t positionFrames )
+{
+	mLoopBegin = positionFrames < mLoopEnd ? positionFrames : mLoopEnd.load();
+}
+
+void SamplePlayer::setLoopEnd( size_t positionFrames )
+{
+	mLoopEnd = positionFrames < mNumFrames ? positionFrames : mNumFrames;
+
+	if( mLoopBegin > mLoopEnd )
+		mLoopBegin = mLoopEnd.load();
 }
 
 void SamplePlayer::seekToTime( double readPositionSeconds )
 {
-	return seek( size_t( readPositionSeconds * (double)getContext()->getSampleRate() ) );
+	seek( size_t( readPositionSeconds * (double)getContext()->getSampleRate() ) );
+}
+
+void SamplePlayer::setLoopBeginTime( double positionSeconds )
+{
+	setLoopBegin( size_t( positionSeconds * (double)getContext()->getSampleRate() ) );
+}
+
+void SamplePlayer::setLoopEndTime( double positionSeconds )
+{
+	setLoopEnd( size_t( positionSeconds * (double)getContext()->getSampleRate() ) );
 }
 
 double SamplePlayer::getReadPositionTime() const
@@ -50,19 +74,34 @@ double SamplePlayer::getReadPositionTime() const
 	return (double)mReadPos / (double)getContext()->getSampleRate();
 }
 
+double SamplePlayer::getLoopBeginTime() const
+{
+	return (double)mLoopBegin / (double)getContext()->getSampleRate();
+}
+
+double SamplePlayer::getLoopEndTime() const
+{
+	return (double)mLoopEnd / (double)getContext()->getSampleRate();
+}
+
+size_t SamplePlayer::getNumSeconds() const
+{
+	return (double)mNumFrames / (double)getContext()->getSampleRate();
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - BufferPlayer
 // ----------------------------------------------------------------------------------------------------
 
 BufferPlayer::BufferPlayer( const Format &format )
-: SamplePlayer( format )
+	: SamplePlayer( format )
 {
 }
 
 BufferPlayer::BufferPlayer( const BufferRef &buffer, const Format &format )
-: SamplePlayer( format ), mBuffer( buffer )
+	: SamplePlayer( format ), mBuffer( buffer )
 {
-	mNumFrames = mBuffer->getNumFrames();
+	mNumFrames = mLoopEnd = mBuffer->getNumFrames();
 
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
@@ -110,6 +149,9 @@ void BufferPlayer::setBuffer( const BufferRef &buffer )
 	mBuffer = buffer;
 	mNumFrames = buffer->getNumFrames();
 
+	if( ! mLoopEnd  || mLoopEnd > mNumFrames )
+		mLoopEnd = mNumFrames;
+
 	if( enabled )
 		start();
 }
@@ -126,16 +168,17 @@ void BufferPlayer::process( Buffer *buffer )
 {
 	size_t readPos = mReadPos;
 	size_t numFrames = buffer->getNumFrames();
-	size_t readCount = std::min( mNumFrames - readPos, numFrames );
+	size_t readEnd = mLoop ? mLoopEnd.load() : mNumFrames;
+	size_t readCount = readEnd < readPos ? 0 : min( readEnd - readPos, numFrames );
 
-	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ )
-		memcpy( buffer->getChannel( ch ), &mBuffer->getChannel( ch )[readPos], readCount * sizeof( float ) );
+	buffer->copyOffset( *mBuffer, readCount, 0, readPos );
 
 	if( readCount < numFrames  ) {
+		// TODO: if looping, copy from mLoopBegin instead of zero'ing
 		buffer->zero( readCount, numFrames - readCount );
 
 		if( mLoop ) {
-			mReadPos = 0;
+			mReadPos.store( mLoopBegin );
 			return;
 		} else {
 			mIsEof = true;
@@ -151,19 +194,20 @@ void BufferPlayer::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 FilePlayer::FilePlayer( const Format &format )
-: SamplePlayer( format ), mRingBufferPaddingFactor( 2 )
+	: SamplePlayer( format ), mRingBufferPaddingFactor( 2 )
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
 }
 
 FilePlayer::FilePlayer( const SourceFileRef &sourceFile, bool isReadAsync, const Format &format )
-: SamplePlayer( format ), mSourceFile( sourceFile ), mIsReadAsync( isReadAsync ), mRingBufferPaddingFactor( 2 )
+	: SamplePlayer( format ), mSourceFile( sourceFile ), mIsReadAsync( isReadAsync ), mRingBufferPaddingFactor( 2 )
 {
 	// force channel mode to match buffer
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( mSourceFile->getNumChannels() );
-	mNumFrames = 0; // will be updated once SourceFile's output samplerate is set
+
+	// framerate will be updated once SourceFile's output samplerate is set, in initialize().
 }
 
 FilePlayer::~FilePlayer()
@@ -179,6 +223,9 @@ void FilePlayer::initialize()
 		mNumFrames = mSourceFile->getNumFrames();
 	}
 
+	if( ! mLoopEnd  || mLoopEnd > mNumFrames )
+		mLoopEnd = mNumFrames;
+
 	mIoBuffer.setSize( mSourceFile->getMaxFramesPerRead(), mNumChannels );
 
 	for( size_t i = 0; i < mNumChannels; i++ )
@@ -190,8 +237,6 @@ void FilePlayer::initialize()
 		mAsyncReadShouldQuit = false;
 		mReadThread = unique_ptr<thread>( new thread( bind( &FilePlayer::readAsyncImpl, this ) ) );
 	}
-
-	LOG_V( " multithreaded: " << boolalpha << mIsReadAsync << dec << ", ringbufer frames: " << mRingBuffers[0].getSize() << ", mBufferFramesThreshold: " << mBufferFramesThreshold << ", source file max frames per read: " << mSourceFile->getMaxFramesPerRead() );
 }
 
 void FilePlayer::uninitialize()
@@ -257,6 +302,9 @@ void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 	mSourceFile = sourceFile;
 	mNumFrames = sourceFile->getNumFrames();
 
+	if( ! mLoopEnd  || mLoopEnd > mNumFrames )
+		mLoopEnd = mNumFrames;
+
 	if( enabled )
 		start();
 }
@@ -295,21 +343,18 @@ void FilePlayer::process( Buffer *buffer )
 			mLastUnderrun = getContext()->getNumProcessedFrames();
 	}
 
-	// zero any unused frames
+	// zero any unused frames, handle loop or EOF
 	if( readCount < numFrames ) {
+		// TODO: if looping, should fill with samples from the beginning of file
+		// - these should also already be in the ringbuffer, since a seek is done there as well. Rethink this path.
 		buffer->zero( readCount, numFrames - readCount );
 
-		// check if end of file
-		if( readPos + readCount >= mNumFrames ) {
-			if( mLoop ) {
-				// TODO: instead of zeroing above, should fill with samples from the beginning of file
-				// - these should also already be in the ringbuffer, since a seek is done there as well. Rethink this path.
-				seekImpl( 0 );
-			}
-			else {
-				mIsEof = true;
-				mEnabled = false;
-			}
+		readPos += readCount;
+		if( mLoop && readPos >= mLoopEnd )
+			seekImpl( mLoopBegin );
+		else if( readPos >= mNumFrames ) {
+			mIsEof = true;
+			mEnabled = false;
 		}
 	}
 }
@@ -335,8 +380,10 @@ void FilePlayer::readAsyncImpl()
 
 void FilePlayer::readImpl()
 {
+	size_t readPos = mReadPos;
 	size_t availableWrite = mRingBuffers[0].getAvailableWrite();
-	size_t numFramesToRead = min( availableWrite, mNumFrames - mReadPos );
+	size_t readEnd = mLoop ? mLoopEnd.load() : mNumFrames;
+	size_t numFramesToRead = readEnd < readPos ? 0 : min( availableWrite, readEnd - readPos );
 
 	if( ! numFramesToRead ) {
 		mLastOverrun = getContext()->getNumProcessedFrames();

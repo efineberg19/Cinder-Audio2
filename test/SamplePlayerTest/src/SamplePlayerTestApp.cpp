@@ -16,6 +16,8 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
+// FIXME: FilePlayer + async + looping is misbehaving.
+
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_MP3
@@ -65,7 +67,7 @@ class SamplePlayerTestApp : public AppNative {
 	vector<TestWidget *>		mWidgets;
 	Button						mEnableGraphButton, mStartPlaybackButton, mLoopButton, mAsyncButton;
 	VSelector					mTestSelector;
-	HSlider						mGainSlider, mPanSlider;
+	HSlider						mGainSlider, mPanSlider, mLoopBeginSlider, mLoopEndSlider;
 
 	Anim<float>					mUnderrunFade, mOverrunFade;
 	Rectf						mUnderrunRect, mOverrunRect;
@@ -238,6 +240,20 @@ void SamplePlayerTestApp::setupUI()
 	mPanSlider.set( mPan->getPos() );
 	mWidgets.push_back( &mPanSlider );
 
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + padding );
+	mLoopBeginSlider.mBounds = sliderRect;
+	mLoopBeginSlider.mTitle = "Loop Begin";
+	mLoopBeginSlider.mMax = mSamplePlayer->getNumSeconds();
+	mLoopBeginSlider.set( mSamplePlayer->getLoopBeginTime() );
+	mWidgets.push_back( &mLoopBeginSlider );
+
+	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + padding );
+	mLoopEndSlider.mBounds = sliderRect;
+	mLoopEndSlider.mTitle = "Loop Begin";
+	mLoopEndSlider.mMax = mSamplePlayer->getNumSeconds();
+	mLoopEndSlider.set( mSamplePlayer->getLoopEndTime() );
+	mWidgets.push_back( &mLoopEndSlider );
+
 	Vec2f xrunSize( 80.0f, 26.0f );
 	mUnderrunRect = Rectf( padding, getWindowHeight() - xrunSize.y - padding, xrunSize.x + padding, getWindowHeight() - padding );
 	mOverrunRect = mUnderrunRect + Vec2f( xrunSize.x + padding, 0.0f );
@@ -257,8 +273,12 @@ void SamplePlayerTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
 		mGain->setValue( mGainSlider.mValueScaled );
-	if( mPanSlider.hitTest( pos ) )
+	else if( mPanSlider.hitTest( pos ) )
 		mPan->setPos( mPanSlider.mValueScaled );
+	else if( mLoopBeginSlider.hitTest( pos ) )
+		mSamplePlayer->setLoopBeginTime( mLoopBeginSlider.mValueScaled );
+	else if( mLoopEndSlider.hitTest( pos ) )
+		mSamplePlayer->setLoopEndTime( mLoopEndSlider.mValueScaled );
 	else if( pos.y > getWindowCenter().y )
 		seek( pos.x );
 }
@@ -315,7 +335,7 @@ void SamplePlayerTestApp::printBufferSamples( size_t xPos )
 
 void SamplePlayerTestApp::mouseDown( MouseEvent event )
 {
-	printBufferSamples( event.getX() );
+//	printBufferSamples( event.getX() );
 }
 
 void SamplePlayerTestApp::keyDown( KeyEvent event )
@@ -349,6 +369,8 @@ void SamplePlayerTestApp::fileDrop( FileDropEvent event )
 
 		filePlayer->setSourceFile( mSourceFile );
 	}
+
+	mLoopBeginSlider.mMax = mLoopEndSlider.mMax = mSamplePlayer->getNumSeconds();
 
 	LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
 	audio2::Context::master()->printGraph();
