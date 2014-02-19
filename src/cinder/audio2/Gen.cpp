@@ -28,6 +28,8 @@
 #include "cinder/audio2/Debug.h"
 #include "cinder/Rand.h"
 
+#include "cinder/Timer.h" // TEMP
+
 #define DEFAULT_WAVETABLE_SIZE 4096
 #define DEFAULT_NUM_WAVETABLES 40
 
@@ -178,6 +180,9 @@ void GenWaveTable::initialize()
 {
 	Gen::initialize();
 
+	mMinMidiRange = toMidi( 20 );
+	mMaxMidiRange = toMidi( mSampleRate / 4.0f ); // everything above can only have one partial
+
 	setWaveform( mWaveformType );
 }
 
@@ -244,6 +249,9 @@ inline float tableLookup( const float *table, size_t size, float phase )
 // gibbs effect reduction based on http://www.musicdsp.org/files/bandlimited.pdf
 inline float calcGibbsReduceCoeff( size_t partial, size_t numPartials )
 {
+	if( numPartials <= 1 )
+		return 1;
+
 	float result = math<float>::cos( (float)partial * M_PI * 0.5f / numPartials );
 	return result * result;
 }
@@ -285,61 +293,75 @@ void GenWaveTable::process( Buffer *buffer )
 	mPhase = phase;
 }
 
-const float* GenWaveTable::getTableForFundamentalFreq( float f0 ) const
+size_t GenWaveTable::getMaxPartialsForTable( size_t tableIndex ) const
 {
-	const float nyquistMidi = toMidi( mSampleRate / 2.0f );
-	const float f0Midi = toMidi( f0 );
+	const float nyquist = mSampleRate / 2.0f;
+	const float midiRangePerTable = ( mMaxMidiRange - mMinMidiRange ) / ( mNumTables - 1 );
+	const float maxMidi = mMinMidiRange + tableIndex * midiRangePerTable;
+	const float maxF0 = toFreq( maxMidi );
 
-	size_t tableIndex = mNumTables * float( f0Midi / nyquistMidi );
-	return mTables[tableIndex].data();
+	size_t maxPartialsForFreq( nyquist / maxF0 );
+
+	LOG_V( "\t[" << tableIndex << "] midi: " << maxMidi << ", max f0: " << maxF0 << ", max partials: " << maxPartialsForFreq );
+	return maxPartialsForFreq;
 }
 
-//const float* GenWaveTable::getTableForFundamentalFreq( float f0 ) const
-//{
-//	const float nyquist = mSampleRate / 2.0f;
-//	size_t tableIndex = min<size_t>( mNumTables - 1, floorf( nyquist / f0 ) - 1 );
-//	return mTables[tableIndex].data();
-//}
+const float* GenWaveTable::getTableForFundamentalFreq( float f0 ) const
+{
+	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" );
+
+	const float f0Midi = toMidi( f0 );
+
+	if( f0Midi <= mMinMidiRange )
+		return mTables.front().data();
+	else if( f0Midi >= mMaxMidiRange )
+		return mTables.back().data();
+
+	const float midiRangePerTable = ( mMaxMidiRange - mMinMidiRange ) / ( mNumTables - 1 );
+	const float maxMidi = f0Midi;
+
+	size_t tableIndex = 1 + ( maxMidi - mMinMidiRange ) / midiRangePerTable;
+	return mTables[tableIndex].data();
+}
 
 void GenWaveTable::fillTables()
 {
 	CI_ASSERT( mNumTables > 0 );
 
 	LOG_V( "filling " << mNumTables << " tables of size: " << mTableSize << "..." );
+	Timer timer( true );
 
 	if( mTables.size() != mNumTables )
 		mTables.resize( mNumTables );
-
-	const float nyquist = mSampleRate / 2.0f;
-	const float nyquistMidi = toMidi( nyquist );
-	const float midiRangePerTable = nyquistMidi / mNumTables;
 
 	for( size_t i = 0; i < mNumTables; i++ ) {
 		auto &table = mTables[i];
 		if( table.size() != mTableSize )
 			table.resize( mTableSize );
 
-		// TODO NEXT: improve num partial picking per range
-		// - partials are now based on human hearing, but range is horrible
-		// - largest table has very small amp harmonics
-		// - last 4 tables only have one partial
-
-		float maxMidi = ( i + 1 ) * midiRangePerTable;
-		float maxFreq = toFreq( maxMidi );
-
-		float maxPartialsForFreq = nyquist / maxFreq;
-
-		// naive partial spacing - add one per table (doesn't make much sense for square and triangle, since they only use odd partials
+		// last table always has only one partial
+		if( i == mNumTables - 1 ) {
+			fillBandLimitedTable( table.data(), 1 );
+			LOG_V( "\t[" << i << "] LAST, nyquist / 4 and above, max partials: 1 " );
+			break;
+		}
+		
+		size_t maxPartialsForFreq = getMaxPartialsForTable( i );
 		fillBandLimitedTable( table.data(), maxPartialsForFreq );
 	}
 
-	LOG_V( "..done" );
+	auto &table = mTables[mNumTables - 1];
+	if( table.size() != mTableSize )
+		table.resize( mTableSize );
+
+	fillBandLimitedTable( table.data(), 1 );
+
+	LOG_V( "..done, seconds: " << timer.getSeconds() );
 }
 
 void GenWaveTable::fillBandLimitedTable( float *table, size_t numPartials )
 {
-	LOG_V( "num partials: " << numPartials );
-	
+
 	vector<float> partials;
 	if( mWaveformType == SINE )
 		partials.resize( 1 );

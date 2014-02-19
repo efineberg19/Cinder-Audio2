@@ -144,12 +144,13 @@ class GenWaveTable : public Gen {
 	void fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 
 	// table picking
-//	size_t			getMaxPartialsOrRangeBlarg
-	const float* getTableForFundamentalFreq( float f0 ) const;
+	size_t			getMaxPartialsForTable( size_t tableIndex ) const;
+	const float*	getTableForFundamentalFreq( float f0 ) const;
 
 	size_t			mTableSize, mNumTables;
 	WaveformType	mWaveformType;
 	bool			mReduceGibbs;
+	float			mMinMidiRange, mMaxMidiRange;
 
 	std::vector<std::vector<float> >	mTables;
 };
