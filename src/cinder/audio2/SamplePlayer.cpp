@@ -406,7 +406,10 @@ void FilePlayer::readImpl()
 void FilePlayer::seekImpl( size_t readPos )
 {
 	mReadPos = math<size_t>::clamp( readPos, 0, mNumFrames );
-	mSourceFile->seek( mReadPos );
+
+	// if async mode, readAsyncImpl() will notice mReadPos was updated and do the seek there.
+	if( ! mIsReadAsync )
+		mSourceFile->seek( mReadPos );
 }
 
 void FilePlayer::destroyReadThreadImpl()

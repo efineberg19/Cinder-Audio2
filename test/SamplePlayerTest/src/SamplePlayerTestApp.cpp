@@ -16,8 +16,6 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
-// FIXME: FilePlayer + async + looping is misbehaving.
-
 //#define INITIAL_AUDIO_RES	RES_TONE440_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440L220R_WAV
 //#define INITIAL_AUDIO_RES	RES_TONE440_MP3
@@ -116,12 +114,17 @@ void SamplePlayerTestApp::setupBufferPlayer()
 		bufferPlayer->loadBuffer( mSourceFile );
 		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
 		LOG_V( "loaded source buffer, frames: " << bufferPlayer->getBuffer()->getNumFrames() );
+
 	};
 
 	auto connectFn = [bufferPlayer, this] {
 		mSamplePlayer = bufferPlayer;
 		mSamplePlayer >> mGain >> mPan >> audio2::Context::master()->getOutput();
 		audio2::Context::master()->printGraph();
+
+		mSamplePlayer->setLoop( mLoopButton.mEnabled );
+		mSamplePlayer->setLoopBeginTime( mLoopBeginSlider.mValueScaled );
+		mSamplePlayer->setLoopEndTime( mLoopEndSlider.mValueScaled != 0 ? mLoopEndSlider.mValueScaled : mSamplePlayer->getNumSeconds() );
 	};
 
 	bool asyncLoad = mAsyncButton.mEnabled;
@@ -146,7 +149,6 @@ void SamplePlayerTestApp::setupFilePlayer()
 	auto ctx = audio2::Context::master();
 
 //	mSourceFile->setMaxFramesPerRead( 8192 );
-
 	bool asyncRead = mAsyncButton.mEnabled;
 	LOG_V( "async read: " << asyncRead );
 	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile, asyncRead ) );
@@ -168,6 +170,10 @@ void SamplePlayerTestApp::setupFilePlayer()
 
 	// this call blows the current pan -> target connection, so nothing gets to the speakers
 //	mPan->connect( mScope );
+
+	mSamplePlayer->setLoop( mLoopButton.mEnabled );
+	mSamplePlayer->setLoopBeginTime( mLoopBeginSlider.mValueScaled );
+	mSamplePlayer->setLoopEndTime( mLoopEndSlider.mValueScaled != 0 ? mLoopEndSlider.mValueScaled : mSamplePlayer->getNumSeconds() );
 
 	audio2::Context::master()->printGraph();
 }
@@ -210,6 +216,7 @@ void SamplePlayerTestApp::setupUI()
 	mLoopButton.mIsToggle = true;
 	mLoopButton.mTitleNormal = "loop off";
 	mLoopButton.mTitleEnabled = "loop on";
+	mLoopButton.setEnabled( mSamplePlayer->getLoop() );
 	mLoopButton.mBounds = buttonRect;
 	mWidgets.push_back( &mLoopButton );
 
@@ -249,7 +256,7 @@ void SamplePlayerTestApp::setupUI()
 
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + padding );
 	mLoopEndSlider.mBounds = sliderRect;
-	mLoopEndSlider.mTitle = "Loop Begin";
+	mLoopEndSlider.mTitle = "Loop End";
 	mLoopEndSlider.mMax = mSamplePlayer->getNumSeconds();
 	mLoopEndSlider.set( mSamplePlayer->getLoopEndTime() );
 	mWidgets.push_back( &mLoopEndSlider );
