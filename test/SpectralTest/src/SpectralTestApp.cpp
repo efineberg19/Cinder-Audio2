@@ -217,7 +217,7 @@ void SpectralTestApp::processTap( Vec2i pos )
 			mPlayerNode->setEnabled( ! mPlayerNode->isEnabled() );
 	}
 	else if( mLoopButton.hitTest( pos ) )
-		mPlayerNode->setLoop( ! mPlayerNode->getLoop() );
+		mPlayerNode->setLoopEnabled( ! mPlayerNode->isLoopEnabled() );
 	else if( mScaleDecibelsButton.hitTest( pos ) )
 		mSpectrumPlot.enableScaleDecibels( ! mSpectrumPlot.getScaleDecibels() );
 	else

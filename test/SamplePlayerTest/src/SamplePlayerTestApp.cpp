@@ -122,7 +122,7 @@ void SamplePlayerTestApp::setupBufferPlayer()
 		mSamplePlayer >> mGain >> mPan >> audio2::Context::master()->getOutput();
 		audio2::Context::master()->printGraph();
 
-		mSamplePlayer->setLoop( mLoopButton.mEnabled );
+		mSamplePlayer->setLoopEnabled( mLoopButton.mEnabled );
 		mSamplePlayer->setLoopBeginTime( mLoopBeginSlider.mValueScaled );
 		mSamplePlayer->setLoopEndTime( mLoopEndSlider.mValueScaled != 0 ? mLoopEndSlider.mValueScaled : mSamplePlayer->getNumSeconds() );
 	};
@@ -171,7 +171,7 @@ void SamplePlayerTestApp::setupFilePlayer()
 	// this call blows the current pan -> target connection, so nothing gets to the speakers
 //	mPan->connect( mScope );
 
-	mSamplePlayer->setLoop( mLoopButton.mEnabled );
+	mSamplePlayer->setLoopEnabled( mLoopButton.mEnabled );
 	mSamplePlayer->setLoopBeginTime( mLoopBeginSlider.mValueScaled );
 	mSamplePlayer->setLoopEndTime( mLoopEndSlider.mValueScaled != 0 ? mLoopEndSlider.mValueScaled : mSamplePlayer->getNumSeconds() );
 
@@ -216,7 +216,7 @@ void SamplePlayerTestApp::setupUI()
 	mLoopButton.mIsToggle = true;
 	mLoopButton.mTitleNormal = "loop off";
 	mLoopButton.mTitleEnabled = "loop on";
-	mLoopButton.setEnabled( mSamplePlayer->getLoop() );
+	mLoopButton.setEnabled( mSamplePlayer->isLoopEnabled() );
 	mLoopButton.mBounds = buttonRect;
 	mWidgets.push_back( &mLoopButton );
 
@@ -297,7 +297,7 @@ void SamplePlayerTestApp::processTap( Vec2i pos )
 	else if( mStartPlaybackButton.hitTest( pos ) )
 		mSamplePlayer->start();
 	else if( mLoopButton.hitTest( pos ) )
-		mSamplePlayer->setLoop( ! mSamplePlayer->getLoop() );
+		mSamplePlayer->setLoopEnabled( ! mSamplePlayer->isLoopEnabled() );
 	else if( mAsyncButton.hitTest( pos ) )
 		;
 	else if( pos.y > getWindowCenter().y )

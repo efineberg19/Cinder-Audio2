@@ -41,7 +41,7 @@ typedef std::shared_ptr<class FilePlayer>				FilePlayerRef;
 //! \note SamplePlayer itself doesn't process any audio, but contains the common interface for Node's that do.
 //! \see BufferPlayer, FilePlayer
 class SamplePlayer : public NodeInput {
-public:
+  public:
 	virtual ~SamplePlayer() {}
 
 	//! Seek the read position to \a readPositionFrames.
@@ -53,37 +53,40 @@ public:
 	size_t getReadPosition() const	{ return mReadPos; }
 	//! Returns the current read position in seconds.
 	double getReadPositionTime() const;
+	//! Returns the total number of seconds this SamplePlayer will play from beginning to end.
+	size_t getNumSeconds() const;
+	//! Returns the total number of frames this SamplePlayer will play from beginning to end.
+	size_t getNumFrames() const	{ return mNumFrames; }
 	//! Returns whether the SamplePlayer has reached EOF (end of file). If true, isEnabled() will also return false.
 	bool isEof() const				{ return mIsEof; }
 
 	//! Sets whether playing continues from beginning after the end is reached (default = false)
-	void setLoop( bool b = true )	{ mLoop = b; }
+	void setLoopEnabled( bool b = true )	{ mLoop = b; }
 	//! Gets whether playing continues from beginning after the end is reached (default = false)
-	bool getLoop() const			{ return mLoop; }
-
-
+	bool isLoopEnabled() const			{ return mLoop; }
+	//! Sets the begin loop marker in frames (default = 0).
 	void setLoopBegin( size_t positionFrames );
-	void setLoopEnd( size_t positionFrames );
-
+	//! Sets the begin loop marker in seconds (default = 0).
 	void setLoopBeginTime( double positionSeconds );
+	//! Sets the end loop marker in frames (default = getNumFrames()).
+	void setLoopEnd( size_t positionFrames );
+	//! Sets the end loop marker in seconds (default = getNumSeconds()).
 	void setLoopEndTime( double positionSeconds );
-
+	//! Returns the begin loop marker in frames (default = 0).
 	size_t getLoopBegin() const	{ return mLoopBegin; }
-	size_t getLoopEnd() const	{ return mLoopEnd;	}
-
+	//! Returns the begin loop marker in seconds (default = 0).
 	double getLoopBeginTime() const;
+	//! Returns the end loop marker in frames (default = getNumFrames()).
+	size_t getLoopEnd() const	{ return mLoopEnd;	}
+	//! Returns the end loop marker in seconds (default = getNumSeconds()).
 	double getLoopEndTime() const;
 
 	//! Sets whether start() resets the read position to zero (default = true).
 	void setStartAtBeginning( bool b = true )	{ mStartAtBeginning = b; }
 	//! Gets whether start() resets the read position to zero (default = true).
 	bool getStartAtBeginning() const			{ return mStartAtBeginning; }
-	//! Returns the total number of seconds this SamplePlayer will play from beginning to end.
-	size_t getNumSeconds() const;
-	//! Returns the total number of frames this SamplePlayer will play from beginning to end.
-	size_t getNumFrames() const	{ return mNumFrames; }
 
-protected:
+  protected:
 	SamplePlayer( const Format &format = Format() );
 
 	size_t				mNumFrames;
@@ -94,7 +97,7 @@ protected:
 
 //! Buffer-based sample player. In other words, all samples are loaded into memory before playback.
 class BufferPlayer : public SamplePlayer {
-public:
+  public:
 	//! Constructs a BufferPlayer without a buffer, with the assumption one will be set later. \note Format::channels() can still be used to allocate the expected channel count ahead of time.
 	BufferPlayer( const Format &format = Format() );
 	//! Constructs a BufferPlayer with \a buffer. \note Channel mode is always ChannelMode::SPECIFIED and num channels matches \a buffer. Format::channels() is ignored.
@@ -113,12 +116,12 @@ public:
 	void setBuffer( const BufferRef &buffer );
 	const BufferRef& getBuffer() const	{ return mBuffer; }
 
-protected:
+  protected:
 	BufferRef mBuffer;
 };
 
 class FilePlayer : public SamplePlayer {
-public:
+  public:
 	FilePlayer( const Format &format = Format() );
 	//! \note \a sourceFile's samplerate is forced to match this Node's Context.
 	FilePlayer( const SourceFileRef &sourceFile, bool isReadAsync = true, const Format &format = Node::Format() );
@@ -143,7 +146,7 @@ public:
 	//! Returns the frame of the last buffer overrun or 0 if none since the last time this method was called.
 	uint64_t getLastOverrun();
 
-protected:
+  protected:
 	void readAsyncImpl();
 	void readImpl();
 	void seekImpl( size_t readPos );
