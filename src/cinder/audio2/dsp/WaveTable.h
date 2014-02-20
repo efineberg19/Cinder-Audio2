@@ -43,6 +43,8 @@ class WaveTable {
 
 	const float*	getBandLimitedTable( float f0 ) const;
 
+	void getBandLimitedTables( float f0, float **table1, float **table2, float* interpFactor );
+
 	void copy( float *array, size_t tableIndex = 0 ) const;
 
 	size_t getSampleRate() const { return mSampleRate; }

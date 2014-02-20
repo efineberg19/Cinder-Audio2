@@ -45,7 +45,13 @@ inline float calcGibbsReduceCoeff( size_t partial, size_t numPartials )
 	float result = ci::math<float>::cos( (float)partial * M_PI * 0.5f / numPartials );
 	return result * result;
 }
-	
+
+inline float calcTableIndex( float f0Midi, float minRange, float maxRange, size_t numTables )
+{
+	const float midiRangePerTable = ( maxRange - minRange ) / ( numTables - 1 );
+	return 1 + ( f0Midi - minRange ) / midiRangePerTable;
+}
+
 } // anonymous namespace
 
 namespace cinder { namespace audio2 { namespace dsp {
@@ -186,11 +192,34 @@ const float* WaveTable::getBandLimitedTable( float f0 ) const
 	else if( f0Midi >= mMaxMidiRange )
 		return mTables.back().data();
 
-	const float midiRangePerTable = ( mMaxMidiRange - mMinMidiRange ) / ( mNumTables - 1 );
-	const float maxMidi = f0Midi;
+	size_t index = (size_t)calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
+	return mTables[index].data();
+}
 
-	size_t tableIndex = 1 + ( maxMidi - mMinMidiRange ) / midiRangePerTable;
-	return mTables[tableIndex].data();
+void WaveTable::getBandLimitedTables( float f0, float **table1, float **table2, float *interpFactor )
+{
+	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenWaveTable
+
+	const float f0Midi = toMidi( f0 );
+
+	if( f0Midi <= mMinMidiRange ) {
+		*table1 = *table2 = mTables.front().data();
+		*interpFactor = 0;
+	}
+	else if( f0Midi >= mMaxMidiRange ) {
+		*table1 = *table2 = mTables.back().data();
+		*interpFactor = 0;
+	}
+
+	float index = calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
+
+	size_t tableIndex1 = (size_t)index;
+	size_t tableIndex2 = ( tableIndex1 + 1 ) % mNumTables;
+//	size_t tableIndex2 = ( tableIndex1 + 1 ) & ( size - 1 );
+
+	*table1 = mTables[tableIndex1].data();
+	*table2 = mTables[tableIndex2].data();
+	*interpFactor = index - (float)tableIndex1;
 }
 
 void WaveTable::copy( float *array, size_t tableIndex ) const
