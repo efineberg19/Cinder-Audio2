@@ -236,7 +236,8 @@ inline float tableLookup( const float *table, size_t size, float phase )
 {
 	float lookup = phase * size;
 	size_t index1 = (size_t)lookup;
-	size_t index2 = ( index1 + 1 ) % size; // optimization: use boolean & operator instead
+//	size_t index2 = ( index1 + 1 ) % size;
+	size_t index2 = ( index1 + 1 ) & ( size - 1 );
 	float val1 = table[index1];
 	float val2 = table[index2];
 	float frac = lookup - (float)index1;
