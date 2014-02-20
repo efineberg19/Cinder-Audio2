@@ -171,6 +171,10 @@
 		114FE998180371F100C5841B /* r8bbase.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE983180371F100C5841B /* r8bbase.h */; };
 		114FE999180371F100C5841B /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE984180371F100C5841B /* r8bconf.h */; };
 		114FE99A180371F100C5841B /* r8bconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 114FE984180371F100C5841B /* r8bconf.h */; };
+		11850D4318B593FD00A933CE /* WaveTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 11850D4118B593FD00A933CE /* WaveTable.h */; };
+		11850D4418B593FD00A933CE /* WaveTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 11850D4118B593FD00A933CE /* WaveTable.h */; };
+		11850D4518B593FD00A933CE /* WaveTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11850D4218B593FD00A933CE /* WaveTable.cpp */; };
+		11850D4618B593FD00A933CE /* WaveTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11850D4218B593FD00A933CE /* WaveTable.cpp */; };
 		1185786F186D1F0E00C4A290 /* SamplePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */; };
 		11857870186D1F0E00C4A290 /* SamplePlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */; };
 		11857871186D1F0E00C4A290 /* SamplePlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1185786E186D1F0E00C4A290 /* SamplePlayer.h */; };
@@ -374,6 +378,9 @@
 		114FE982180371F100C5841B /* r8bbase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = r8bbase.cpp; sourceTree = "<group>"; };
 		114FE983180371F100C5841B /* r8bbase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r8bbase.h; sourceTree = "<group>"; };
 		114FE984180371F100C5841B /* r8bconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r8bconf.h; sourceTree = "<group>"; };
+		11850D4118B593FD00A933CE /* WaveTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WaveTable.h; sourceTree = "<group>"; };
+		11850D4218B593FD00A933CE /* WaveTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WaveTable.cpp; sourceTree = "<group>"; };
+		11850D5D18B5C06D00A933CE /* WaveformType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WaveformType.h; sourceTree = "<group>"; };
 		1185786D186D1F0E00C4A290 /* SamplePlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SamplePlayer.cpp; sourceTree = "<group>"; };
 		1185786E186D1F0E00C4A290 /* SamplePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SamplePlayer.h; sourceTree = "<group>"; };
 		119CD072184A793400853BEE /* Voice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Voice.cpp; sourceTree = "<group>"; };
@@ -748,6 +755,7 @@
 				110BF1F81879327800D7C54E /* Utilities.cpp */,
 				119CD072184A793400853BEE /* Voice.cpp */,
 				119CD073184A793400853BEE /* Voice.h */,
+				11850D5D18B5C06D00A933CE /* WaveformType.h */,
 			);
 			path = audio2;
 			sourceTree = "<group>";
@@ -784,6 +792,8 @@
 				119CD090184A793400853BEE /* Fft.cpp */,
 				119CD091184A793400853BEE /* Fft.h */,
 				119CD094184A793400853BEE /* RingBuffer.h */,
+				11850D4218B593FD00A933CE /* WaveTable.cpp */,
+				11850D4118B593FD00A933CE /* WaveTable.h */,
 			);
 			path = dsp;
 			sourceTree = "<group>";
@@ -843,6 +853,7 @@
 				119CD0D6184A793400853BEE /* Debug.h in Headers */,
 				119CD0C8184A793400853BEE /* DeviceManagerAudioSession.h in Headers */,
 				114FE98F180371F100C5841B /* CDSPSincFilterGen.h in Headers */,
+				11850D4318B593FD00A933CE /* WaveTable.h in Headers */,
 				114FE92718032BF100C5841B /* registry.h in Headers */,
 				1115501D18026C9100D415BC /* codec.h in Headers */,
 				114FE8F918032BF100C5841B /* psych_11.h in Headers */,
@@ -977,6 +988,7 @@
 				114FE92218032BF100C5841B /* psy.h in Headers */,
 				114FE90A18032BF100C5841B /* residue_8.h in Headers */,
 				114FE91A18032BF100C5841B /* setup_8.h in Headers */,
+				11850D4418B593FD00A933CE /* WaveTable.h in Headers */,
 				119CD0DB184A793400853BEE /* Device.h in Headers */,
 				114FE8FC18032BF100C5841B /* psych_16.h in Headers */,
 				114FE8DC18032BF100C5841B /* highlevel.h in Headers */,
@@ -1100,6 +1112,7 @@
 				114FE8DD18032BF100C5841B /* info.c in Sources */,
 				114FE8C318032BF100C5841B /* block.c in Sources */,
 				114FE8BF18032BF100C5841B /* bitrate.c in Sources */,
+				11850D4518B593FD00A933CE /* WaveTable.cpp in Sources */,
 				119CD0D8184A793400853BEE /* Device.cpp in Sources */,
 				114FE8D318032BF100C5841B /* envelope.c in Sources */,
 				119CD0F8184A793400853BEE /* Source.cpp in Sources */,
@@ -1159,6 +1172,7 @@
 				114FE8C418032BF100C5841B /* block.c in Sources */,
 				114FE8C018032BF100C5841B /* bitrate.c in Sources */,
 				119CD0D9184A793400853BEE /* Device.cpp in Sources */,
+				11850D4618B593FD00A933CE /* WaveTable.cpp in Sources */,
 				114FE8D418032BF100C5841B /* envelope.c in Sources */,
 				119CD0F9184A793400853BEE /* Source.cpp in Sources */,
 				119CD0BB184A793400853BEE /* CinderAssert.cpp in Sources */,

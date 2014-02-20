@@ -35,7 +35,7 @@ public:
 	audio2::BufferDynamic		mTableCopy;
 
 	vector<TestWidget *>	mWidgets;
-	Button					mPlayButton, mGibbsButton;
+	Button					mPlayButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mFreqSlider, mFreqRampSlider;
 	TextInput				mNumPartialsInput, mTableSizeInput;
@@ -55,7 +55,7 @@ void WaveTableTestApp::setup()
 	mGain->setValue( 0.0f );
 
 //	mGen = ctx->makeNode( new audio2::GenWaveTable );
-	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::GenWaveTable::WaveformType::SAWTOOTH ) ) );
+	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::WaveformType::SAWTOOTH ) ) );
 	mGen->setFreq( 100 );
 
 	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
@@ -66,7 +66,7 @@ void WaveTableTestApp::setup()
 	ctx->printGraph();
 
 	mTableCopy.setNumFrames( mGen->getTableSize() );
-	mGen->copyFromTable( mTableCopy.getData() );
+	mGen->getWaveTable()->copy( mTableCopy.getData() );
 
 	setupUI();
 
@@ -80,11 +80,11 @@ void WaveTableTestApp::setupUI()
 	mPlayButton.mBounds = buttonRect;
 	mWidgets.push_back( &mPlayButton );
 
-	buttonRect += Vec2f( 0, buttonRect.getHeight() + 10 );
-	mGibbsButton = Button( true, "reduce gibbs", "reduce gibbs" );
-	mGibbsButton.mBounds = buttonRect;
-	mGibbsButton.setEnabled( mGen->isGibbsReductionEnabled() );
-	mWidgets.push_back( &mGibbsButton );
+//	buttonRect += Vec2f( 0, buttonRect.getHeight() + 10 );
+//	mGibbsButton = Button( true, "reduce gibbs", "reduce gibbs" );
+//	mGibbsButton.mBounds = buttonRect;
+//	mGibbsButton.setEnabled( mGen->isGibbsReductionEnabled() );
+//	mWidgets.push_back( &mGibbsButton );
 
 	mTestSelector.mSegments.push_back( "sine" );
 	mTestSelector.mSegments.push_back( "sawtooth" );
@@ -163,10 +163,10 @@ void WaveTableTestApp::processTap( Vec2i pos )
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
-	else if( mGibbsButton.hitTest( pos ) ) {
-		mGen->setGibbsReductionEnabled( ! mGen->isGibbsReductionEnabled(), true );
-		mGen->copyFromTable( mTableCopy.getData() );
-	}
+//	else if( mGibbsButton.hitTest( pos ) ) {
+//		mGen->setGibbsReductionEnabled( ! mGen->isGibbsReductionEnabled(), true );
+//		mGen->copyFromTable( mTableCopy.getData() );
+//	}
 	else if( mNumPartialsInput.hitTest( pos ) ) {
 	}
 	else if( mTableSizeInput.hitTest( pos ) ) {
@@ -176,17 +176,17 @@ void WaveTableTestApp::processTap( Vec2i pos )
 		LOG_V( "selected: " << currentTest );
 
 		if( currentTest == "sine" )
-			mGen->setWaveform( audio2::GenWaveTable::WaveformType::SINE );
+			mGen->setWaveform( audio2::WaveformType::SINE );
 		else if( currentTest == "square" )
-			mGen->setWaveform( audio2::GenWaveTable::WaveformType::SQUARE );
+			mGen->setWaveform( audio2::WaveformType::SQUARE );
 		else if( currentTest == "sawtooth" )
-			mGen->setWaveform( audio2::GenWaveTable::WaveformType::SAWTOOTH );
+			mGen->setWaveform( audio2::WaveformType::SAWTOOTH );
 		else if( currentTest == "triangle" )
-			mGen->setWaveform( audio2::GenWaveTable::WaveformType::TRIANGLE );
-		else if( currentTest == "pulse" )
-			mGen->setWaveform( audio2::GenWaveTable::WaveformType::PULSE );
+			mGen->setWaveform( audio2::WaveformType::TRIANGLE );
+//		else if( currentTest == "pulse" )
+//			mGen->setWaveform( audio2::WaveformType::PULSE );
 
-		mGen->copyFromTable( mTableCopy.getData() );
+		mGen->getWaveTable()->copy( mTableCopy.getData() );
 	}
 	else
 		processDrag( pos );
@@ -199,19 +199,13 @@ void WaveTableTestApp::keyDown( KeyEvent event )
 		return;
 
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
-//		if( currentSelected == &mNumPartialsInput ) {
-//			int numPartials = currentSelected->getValue();
-//			LOG_V( "updating num partials from: " << mGen->getWaveformNumPartials() << " to: " << numPartials );
-//			mGen->setWaveformNumPartials( numPartials, true );
+//		if( currentSelected == &mTableSizeInput ) {
+//			int tableSize = currentSelected->getValue();
+//			LOG_V( "updating table size from: " << mGen->getTableSize() << " to: " << tableSize );
+//			mGen->setWaveform( mGen->getWaveForm(), tableSize );
+//			mTableCopy.setNumFrames( tableSize );
 //			mGen->copyFromTable( mTableCopy.getData() );
 //		}
-		if( currentSelected == &mTableSizeInput ) {
-			int tableSize = currentSelected->getValue();
-			LOG_V( "updating table size from: " << mGen->getTableSize() << " to: " << tableSize );
-			mGen->setWaveform( mGen->getWaveForm(), tableSize );
-			mTableCopy.setNumFrames( tableSize );
-			mGen->copyFromTable( mTableCopy.getData() );
-		}
 
 	}
 	else {

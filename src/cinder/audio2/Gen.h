@@ -24,6 +24,7 @@
 #pragma once
 
 #include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/dsp/WaveTable.h"
 
 namespace cinder { namespace audio2 {
 
@@ -96,10 +97,9 @@ class GenTriangle : public Gen {
 //! Generator that uses wavetable lookup.
 class GenWaveTable : public Gen {
   public:
-	enum WaveformType { SINE, SQUARE, SAWTOOTH, TRIANGLE, PULSE, CUSTOM };
 
 	struct Format : public Node::Format {
-		Format() : mWaveformType( SINE )	{}
+		Format() : mWaveformType( WaveformType::SINE )	{}
 
 		Format&		waveform( WaveformType type )	{ mWaveformType = type; return *this; }
 
@@ -114,45 +114,17 @@ class GenWaveTable : public Gen {
 	void initialize() override;
 	void process( Buffer *buffer ) override;
 
+	void setWaveform( WaveformType type );
 
-	//! Fills the internal table with a waveform of type \a type, with optional \a length (default = 512 or the table's current size).
-	//! The waveform is created using band-limited additive synthesis in order to avoid foldover (aliasing). \see setWaveformBandlimit
-	//! \note WaveformType CUSTOM does nothing here, it is used when filling the .
-	void setWaveform( WaveformType type, size_t length = 0 );
+	const dsp::WaveTableRef getWaveTable() const	{ return mWaveTable; }
 
-	void setGibbsReductionEnabled( bool b = true, bool reload = false );
-	bool isGibbsReductionEnabled() const			{ return mReduceGibbs; }
-
-	//! Sets the maximum frequency for partial coefficients when creating bandlimited waveforms. Default is the current nyqyst (Context's samplerate / 2) - 4k hertz.
-	void setWaveformBandlimit( float hertz, bool reload = false );
-	//! Sets the number of partials used when creating bandlimited waveforms. TODO: document default
-//	void setWaveformNumPartials( size_t numPartials, bool reload = false );
-
-//	size_t			getWaveformNumPartials() const	{ return mNumPartialCoeffs; }
-	WaveformType	getWaveForm() const				{ return mWaveformType; }
-
-	size_t getTableSize() const	{ return mTableSize; }
-
-	// TODO: decide best way to default copied table to the one with most partials. may change once a switch is made to log-based ranges
-	void copyFromTable( float *array, size_t tableIndex = 0 ) const;
-//	void copyToTable( const float *array, size_t length = 0 );
+	WaveformType	getWaveForm() const		{ return mWaveformType; }
+	size_t			getTableSize() const		{ return mWaveTable->getTableSize(); }
 
   protected:
-	// table generation
-	void fillTables();
-	void fillBandLimitedTable( float *table, size_t numPartials );
-	void fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 
-	// table picking
-	size_t			getMaxPartialsForTable( size_t tableIndex ) const;
-	const float*	getTableForFundamentalFreq( float f0 ) const;
-
-	size_t			mTableSize, mNumTables;
-	WaveformType	mWaveformType;
-	bool			mReduceGibbs;
-	float			mMinMidiRange, mMaxMidiRange;
-
-	std::vector<std::vector<float> >	mTables;
+	WaveformType		mWaveformType;
+	dsp::WaveTableRef	mWaveTable;
 };
 
 } } // namespace cinder::audio2
