@@ -123,8 +123,9 @@ class GenWaveTable : public Gen {
 
   protected:
 
-	WaveformType		mWaveformType;
 	dsp::WaveTableRef	mWaveTable;
+	WaveformType		mWaveformType;
+	bool				mWaveTableDirty;
 };
 
 } } // namespace cinder::audio2

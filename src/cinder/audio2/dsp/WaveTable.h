@@ -33,7 +33,11 @@ typedef std::shared_ptr<class WaveTable> WaveTableRef;
 
 class WaveTable {
   public:
-	WaveTable( size_t sampleRate );
+	WaveTable( size_t sampleRate, size_t tableSize = 0, size_t numTables = 0 );
+
+	//! Adjusts the parameters effecting table size and calculate.
+	//! \note This does not update the data, call fill() afterwards to refresh the table contents.
+	void resize( size_t sampleRate, size_t tableSize = 0, size_t numTables = 0 );
 
 	void fill( WaveformType type );
 
@@ -41,17 +45,18 @@ class WaveTable {
 
 	void copy( float *array, size_t tableIndex = 0 ) const;
 
+	size_t getSampleRate() const { return mSampleRate; }
 	size_t getTableSize() const	{ return mTableSize; }
 	size_t getNumTables() const	{ return mNumTables; }
 
   protected:
-
+	void		calcLimits();
 	void		fillBandLimitedTable( WaveformType type, float *table, size_t numPartials );
 	void		fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 	size_t		getMaxHarmonicsForTable( size_t tableIndex ) const;
 
-	size_t			mTableSize, mNumTables;
-	float			mMinMidiRange, mMaxMidiRange, mNyquist;
+	size_t			mSampleRate, mTableSize, mNumTables;
+	float			mMinMidiRange, mMaxMidiRange;
 
 	std::vector<std::vector<float> >	mTables;
 };

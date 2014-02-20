@@ -50,18 +50,27 @@ inline float calcGibbsReduceCoeff( size_t partial, size_t numPartials )
 
 namespace cinder { namespace audio2 { namespace dsp {
 
-WaveTable::WaveTable( size_t sampleRate )
-	: mTableSize( DEFAULT_WAVETABLE_SIZE ), mNumTables( DEFAULT_NUM_WAVETABLES )
+WaveTable::WaveTable( size_t sampleRate, size_t tableSize, size_t numTables )
+	: mSampleRate( sampleRate )
 {
-	mNyquist = (float)sampleRate / 2.0f;
-	mMinMidiRange = toMidi( 20 );
-	mMaxMidiRange = toMidi( mNyquist / 2 ); // everything above can only have one partial
+	mTableSize = tableSize ? tableSize : DEFAULT_WAVETABLE_SIZE;
+	mNumTables = numTables ? numTables : DEFAULT_NUM_WAVETABLES;
+
+	calcLimits();
+}
+
+void WaveTable::resize( size_t sampleRate, size_t tableSize, size_t numTables )
+{
+	mSampleRate = sampleRate;
+	
+	if( tableSize )
+		mTableSize = tableSize;
+	if( numTables )
+		mNumTables = numTables;
 }
 
 void WaveTable::fill( WaveformType type )
 {
-	CI_ASSERT( mNumTables > 0 );
-
 	LOG_V( "filling " << mNumTables << " tables of size: " << mTableSize << "..." );
 	Timer timer( true );
 
@@ -87,38 +96,38 @@ void WaveTable::fill( WaveformType type )
 	LOG_V( "..done, seconds: " << timer.getSeconds() );
 }
 
-// TODO (optimization): only compute harmonicCoeffs once, pass the number for this table to fillSinesum
+// note: for at least sawtooth and square, this must be recomputed for every table so that gibbs reduction is accurate
 void WaveTable::fillBandLimitedTable( WaveformType type, float *table, size_t numPartials )
 {
-	vector<float> harmonicCoeffs;
+	vector<float> partials;
 	if( type == WaveformType::SINE )
-		harmonicCoeffs.resize( 1 );
+		partials.resize( 1 );
 	else
-		harmonicCoeffs.resize( numPartials );
+		partials.resize( numPartials );
 
 	switch( type ) {
 		case WaveformType::SINE:
-			harmonicCoeffs[0] = 1;
+			partials[0] = 1;
 			break;
 		case WaveformType::SQUARE:
 			// 1 / x for odd x
-			for( size_t x = 1; x <= harmonicCoeffs.size(); x += 2 ) {
-				float m = calcGibbsReduceCoeff( x, harmonicCoeffs.size() );
-				harmonicCoeffs[x - 1] = m / float( x );
+			for( size_t x = 1; x <= partials.size(); x += 2 ) {
+				float m = calcGibbsReduceCoeff( x, partials.size() );
+				partials[x - 1] = m / float( x );
 			}
 			break;
 		case WaveformType::SAWTOOTH:
 			// 1 / x
 			for( size_t x = 1; x <= numPartials; x += 1 ) {
-				float m = calcGibbsReduceCoeff( x, harmonicCoeffs.size() );
-				harmonicCoeffs[x - 1] = m / float( x );
+				float m = calcGibbsReduceCoeff( x, partials.size() );
+				partials[x - 1] = m / float( x );
 			}
 			break;
 		case WaveformType::TRIANGLE: {
 			// 1 / x^2 for odd x, alternating + and -
 			float t = 1;
-			for( size_t x = 1; x <= harmonicCoeffs.size(); x += 2 ) {
-				harmonicCoeffs[x - 1] = t / float( x * x );
+			for( size_t x = 1; x <= partials.size(); x += 2 ) {
+				partials[x - 1] = t / float( x * x );
 				t *= -1;
 			}
 			break;
@@ -131,11 +140,11 @@ void WaveTable::fillBandLimitedTable( WaveformType type, float *table, size_t nu
 			CI_ASSERT_NOT_REACHABLE();
 	}
 
-	fillSinesum( table, mTableSize, harmonicCoeffs );
+	fillSinesum( table, mTableSize, partials );
 	dsp::normalize( table, mTableSize );
 }
 
-void WaveTable::fillSinesum( float *array, size_t length, const std::vector<float> &harmonicCoeffs )
+void WaveTable::fillSinesum( float *array, size_t length, const std::vector<float> &partials )
 {
 	memset( array, 0, length * sizeof( float ) );
 
@@ -144,8 +153,8 @@ void WaveTable::fillSinesum( float *array, size_t length, const std::vector<floa
 
 	for( size_t i = 0; i < length; i++ ) {
 		double partialPhase = phase;
-		for( size_t p = 0; p < harmonicCoeffs.size(); p++ ) {
-			array[i] += harmonicCoeffs[p] * math<float>::sin( partialPhase );
+		for( size_t p = 0; p < partials.size(); p++ ) {
+			array[i] += partials[p] * math<float>::sin( partialPhase );
 			partialPhase += phase;
 		}
 		
@@ -155,11 +164,12 @@ void WaveTable::fillSinesum( float *array, size_t length, const std::vector<floa
 
 size_t WaveTable::getMaxHarmonicsForTable( size_t tableIndex ) const
 {
+	const float nyquist = (float)mSampleRate / 2.0f;
 	const float midiRangePerTable = ( mMaxMidiRange - mMinMidiRange ) / ( mNumTables - 1 );
 	const float maxMidi = mMinMidiRange + tableIndex * midiRangePerTable;
 	const float maxF0 = toFreq( maxMidi );
 
-	size_t maxPartialsForFreq( mNyquist / maxF0 );
+	size_t maxPartialsForFreq( nyquist / maxF0 );
 
 	LOG_V( "\t[" << tableIndex << "] midi: " << maxMidi << ", max f0: " << maxF0 << ", max partials: " << maxPartialsForFreq );
 	return maxPartialsForFreq;
@@ -190,6 +200,10 @@ void WaveTable::copy( float *array, size_t tableIndex ) const
 	memcpy( array, mTables[tableIndex].data(), mTableSize * sizeof( float ) );
 }
 
-
+void WaveTable::calcLimits()
+{
+	mMinMidiRange = toMidi( 20 );
+	mMaxMidiRange = toMidi( (float)mSampleRate / 4.0f ); // everything above can only have one partial
+}
 
 } } } // namespace cinder::audio2::dsp

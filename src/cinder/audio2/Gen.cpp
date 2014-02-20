@@ -164,7 +164,7 @@ void GenTriangle::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 GenWaveTable::GenWaveTable( const Format &format )
-	: Gen( format ), mWaveformType( format.getWaveform() )
+	: Gen( format ), mWaveformType( format.getWaveform() ), mWaveTableDirty( true )
 {
 }
 
@@ -172,10 +172,17 @@ void GenWaveTable::initialize()
 {
 	Gen::initialize();
 
-	// TODO: possible to avoid dealloc and realloc of WaveTable? it is pretty big
-	mWaveTable.reset( new dsp::WaveTable( getContext()->getSampleRate() ) );
+	if( ! mWaveTable )
+		mWaveTable.reset( new dsp::WaveTable( mSampleRate ) );
+	else if( mSampleRate != mWaveTable->getSampleRate() ) {
+		mWaveTable->resize( mSampleRate );
+		mWaveTableDirty = true;
+	}
 
-	mWaveTable->fill( mWaveformType );
+	if( mWaveTableDirty ) {
+		mWaveTableDirty = false;
+		mWaveTable->fill( mWaveformType );
+	}
 }
 
 void GenWaveTable::setWaveform( WaveformType type )
