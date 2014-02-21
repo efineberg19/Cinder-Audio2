@@ -116,7 +116,8 @@ class GenOscillator : public Gen {
 
 	void setWaveform( WaveformType type );
 
-	const dsp::WaveTableRef getWaveTable() const	{ return mWaveTable; }
+	void setWaveTable( const dsp::WaveTableRef &waveTable )	{ mWaveTable = waveTable; }
+	const dsp::WaveTableRef getWaveTable() const			{ return mWaveTable; }
 
 	WaveformType	getWaveForm() const		{ return mWaveformType; }
 	size_t			getTableSize() const		{ return mWaveTable->getTableSize(); }
@@ -125,7 +126,6 @@ class GenOscillator : public Gen {
 
 	dsp::WaveTableRef	mWaveTable;
 	WaveformType		mWaveformType;
-	bool				mWaveTableDirty;
 };
 
 } } // namespace cinder::audio2

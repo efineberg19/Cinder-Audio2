@@ -164,7 +164,7 @@ void GenTriangle::process( Buffer *buffer )
 // ----------------------------------------------------------------------------------------------------
 
 GenOscillator::GenOscillator( const Format &format )
-	: Gen( format ), mWaveformType( format.getWaveform() ), mWaveTableDirty( true )
+	: Gen( format ), mWaveformType( format.getWaveform() )
 {
 }
 
@@ -172,15 +172,12 @@ void GenOscillator::initialize()
 {
 	Gen::initialize();
 
-	if( ! mWaveTable )
+	if( ! mWaveTable ) {
 		mWaveTable.reset( new dsp::WaveTable( mSampleRate ) );
+		mWaveTable->fill( mWaveformType );
+	}
 	else if( mSampleRate != mWaveTable->getSampleRate() ) {
 		mWaveTable->resize( mSampleRate );
-		mWaveTableDirty = true;
-	}
-
-	if( mWaveTableDirty ) {
-		mWaveTableDirty = false;
 		mWaveTable->fill( mWaveformType );
 	}
 }
@@ -228,7 +225,7 @@ inline float tableLookup( const float *table, size_t size, float phase )
 
 } // anonymous namespace
 
-#if 0
+#if 1
 
 // no table interp
 void GenOscillator::process( Buffer *buffer )
