@@ -11,6 +11,9 @@
          location = "container:"
          name = "osx">
          <FileRef
+            location = "group:StressTest/xcode/StressTest.xcodeproj">
+         </FileRef>
+         <FileRef
             location = "group:NodeTest/xcode/NodeTest.xcodeproj">
          </FileRef>
          <FileRef
