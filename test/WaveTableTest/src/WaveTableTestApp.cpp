@@ -30,7 +30,7 @@ public:
 
 	audio2::GainRef				mGain;
 	audio2::ScopeSpectralRef	mScope;
-	audio2::GenWaveTableRef		mGen;
+	audio2::GenOscillatorRef		mGen;
 
 	audio2::BufferDynamic		mTableCopy;
 
@@ -54,8 +54,8 @@ void WaveTableTestApp::setup()
 	mGain = ctx->makeNode( new audio2::Gain );
 	mGain->setValue( 0.0f );
 
-//	mGen = ctx->makeNode( new audio2::GenWaveTable );
-	mGen = ctx->makeNode( new audio2::GenWaveTable( audio2::GenWaveTable::Format().waveform( audio2::WaveformType::SAWTOOTH ) ) );
+//	mGen = ctx->makeNode( new audio2::GenOscillator );
+	mGen = ctx->makeNode( new audio2::GenOscillator( audio2::GenOscillator::Format().waveform( audio2::WaveformType::SAWTOOTH ) ) );
 	mGen->setFreq( 100 );
 
 	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
@@ -98,7 +98,10 @@ void WaveTableTestApp::setupUI()
 	// freq slider is longer, along top
 	mFreqSlider.mBounds = Rectf( 10, 10, getWindowWidth() - 210, 40 );
 	mFreqSlider.mTitle = "freq";
-	mFreqSlider.mMax = 5000;
+//	mFreqSlider.mMax = 5000;
+	mFreqSlider.mMin = 400;
+	mFreqSlider.mMax = 500;
+
 	mFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mFreqSlider );
 

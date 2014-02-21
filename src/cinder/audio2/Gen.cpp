@@ -160,15 +160,15 @@ void GenTriangle::process( Buffer *buffer )
 }
 
 // ----------------------------------------------------------------------------------------------------
-// MARK: - GenWaveTable
+// MARK: - GenOscillator
 // ----------------------------------------------------------------------------------------------------
 
-GenWaveTable::GenWaveTable( const Format &format )
+GenOscillator::GenOscillator( const Format &format )
 	: Gen( format ), mWaveformType( format.getWaveform() ), mWaveTableDirty( true )
 {
 }
 
-void GenWaveTable::initialize()
+void GenOscillator::initialize()
 {
 	Gen::initialize();
 
@@ -185,7 +185,7 @@ void GenWaveTable::initialize()
 	}
 }
 
-void GenWaveTable::setWaveform( WaveformType type )
+void GenOscillator::setWaveform( WaveformType type )
 {
 	if( mWaveformType == type )
 		return;
@@ -228,9 +228,10 @@ inline float tableLookup( const float *table, size_t size, float phase )
 
 } // anonymous namespace
 
-#if 1 // no table interp
+#if 0
 
-void GenWaveTable::process( Buffer *buffer )
+// no table interp
+void GenOscillator::process( Buffer *buffer )
 {
 	const size_t count = buffer->getSize();
 	const float tableSize = mWaveTable->getTableSize();
@@ -265,9 +266,10 @@ void GenWaveTable::process( Buffer *buffer )
 	mPhase = phase;
 }
 
-#else // linear table interp
+#else
 
-void GenWaveTable::process( Buffer *buffer )
+// linear table interp
+void GenOscillator::process( Buffer *buffer )
 {
 	const size_t count = buffer->getSize();
 	const float tableSize = mWaveTable->getTableSize();

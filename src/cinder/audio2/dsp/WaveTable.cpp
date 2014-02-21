@@ -183,7 +183,7 @@ size_t WaveTable::getMaxHarmonicsForTable( size_t tableIndex ) const
 
 const float* WaveTable::getBandLimitedTable( float f0 ) const
 {
-	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenWaveTable
+	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenOscillator
 
 	const float f0Midi = toMidi( f0 );
 
@@ -198,7 +198,7 @@ const float* WaveTable::getBandLimitedTable( float f0 ) const
 
 void WaveTable::getBandLimitedTables( float f0, float **table1, float **table2, float *interpFactor )
 {
-	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenWaveTable
+	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenOscillator
 
 	const float f0Midi = toMidi( f0 );
 

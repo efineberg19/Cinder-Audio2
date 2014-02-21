@@ -29,7 +29,7 @@
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Gen>						GenRef;
-typedef std::shared_ptr<class GenWaveTable>				GenWaveTableRef;
+typedef std::shared_ptr<class GenOscillator>				GenOscillatorRef;
 
 //! Base class for NodeInput's that generate audio samples.
 class Gen : public NodeInput {
@@ -94,8 +94,8 @@ class GenTriangle : public Gen {
 	std::atomic<float> mUpSlope, mDownSlope;
 };
 
-//! Generator that uses wavetable lookup.
-class GenWaveTable : public Gen {
+//! General purpose oscillator Gen using wavetable lookup.
+class GenOscillator : public Gen {
   public:
 
 	struct Format : public Node::Format {
@@ -109,7 +109,7 @@ class GenWaveTable : public Gen {
 		WaveformType mWaveformType;
 	};
 
-	GenWaveTable( const Format &format = Format() );
+	GenOscillator( const Format &format = Format() );
 
 	void initialize() override;
 	void process( Buffer *buffer ) override;
