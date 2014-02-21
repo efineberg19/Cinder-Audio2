@@ -134,6 +134,16 @@ const NodeOutputRef& Context::getOutput()
 	return mOutput;
 }
 
+void Context::initializeNode( const NodeRef &node )
+{
+	node->initializeImpl();
+}
+
+void Context::uninitializeNode( const NodeRef &node )
+{
+	node->uninitializeImpl();
+}
+
 //void Context::startRecursive( const NodeRef &node )
 //{
 //	if( ! node )

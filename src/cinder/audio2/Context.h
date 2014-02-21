@@ -75,6 +75,9 @@ class Context : public std::enable_shared_from_this<Context> {
 
 	std::mutex& getMutex() const			{ return mMutex; }
 
+	void initializeNode( const NodeRef &node );
+	void uninitializeNode( const NodeRef &node );
+
 	//! Initialize all Node's related by this Context
 	void initializeAllNodes()				{ initRecursisve( mOutput ); }
 	//! Uninitialize all Node's related by this Context
