@@ -138,10 +138,6 @@ void WaveTable::fillBandLimitedTable( WaveformType type, float *table, size_t nu
 			}
 			break;
 		}
-//		case PULSE:
-			// TODO: try making pulse with offset two sawtooth sinesums
-			//	- is this worth it? if you just use one sawtooth and index it twice, can do pulse width modulation
-			//	- this would be easier if there were a WaveTable class and a custom Gen could do the indexing twice, rather than muddying this Gen's process()
 		default:
 			CI_ASSERT_NOT_REACHABLE();
 	}
@@ -196,31 +192,141 @@ const float* WaveTable::getBandLimitedTable( float f0 ) const
 	return mTables[index].data();
 }
 
-void WaveTable::getBandLimitedTables( float f0, float **table1, float **table2, float *interpFactor )
+std::tuple<const float*, const float*, float> WaveTable::getBandLimitedTablesLerp( float f0 ) const
 {
 	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenOscillator
+
+	float *table1, *table2;
+	float factor;
 
 	const float f0Midi = toMidi( f0 );
 
 	if( f0Midi <= mMinMidiRange ) {
-		*table1 = *table2 = mTables.front().data();
-		*interpFactor = 0;
+		table1 = table2 = const_cast<float *>( mTables.front().data() );
+		factor = 0;
 	}
 	else if( f0Midi >= mMaxMidiRange ) {
-		*table1 = *table2 = mTables.back().data();
-		*interpFactor = 0;
+		table1 = table2 = const_cast<float *>( mTables.back().data() );
+		factor = 0;
 	}
 
 	float index = calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
 
 	size_t tableIndex1 = (size_t)index;
-	size_t tableIndex2 = ( tableIndex1 + 1 ) % mNumTables;
-//	size_t tableIndex2 = ( tableIndex1 + 1 ) & ( size - 1 );
+	size_t tableIndex2 = ( tableIndex1 + 1 ) & ( mTableSize - 1 );
 
-	*table1 = mTables[tableIndex1].data();
-	*table2 = mTables[tableIndex2].data();
-	*interpFactor = index - (float)tableIndex1;
+	table1 = const_cast<float *>( mTables[tableIndex1].data() );
+	table2 = const_cast<float *>( mTables[tableIndex2].data() );
+	factor = index - (float)tableIndex1;
+
+	return make_tuple( table1, table2, factor );
 }
+
+namespace {
+
+#if 0
+
+// truncate, phase range: 0-1
+inline float tableLookup( const float *table, size_t size, float phase )
+{
+	return table[ size_t( phase * size ) ];
+}
+
+#else
+
+// linear interpolation, phase range: 0-1
+// TODO (optimization): store phase in range 0-size
+inline float tableLookup( const float *table, size_t size, float phase )
+{
+	float lookup = phase * size;
+	size_t index1 = (size_t)lookup;
+	size_t index2 = ( index1 + 1 ) & ( size - 1 );
+	float val1 = table[index1];
+	float val2 = table[index2];
+	float frac = lookup - (float)index1;
+
+	return val2 + frac * ( val2 - val1 );
+}
+
+#endif
+		
+} // anonymous namespace
+
+#if 0
+
+// no table interpolation
+
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
+{
+	const float phaseIncr = f0 / (float)mSampleRate;
+	const float *table = getBandLimitedTable( f0 );
+	const size_t tableSize = mTableSize;
+
+	for( size_t i = 0; i < outputLength; i++ ) {
+		outputArray[i] = tableLookup( table, tableSize, currentPhase );
+		currentPhase = fmodf( currentPhase + phaseIncr, 1 );
+	}
+
+	return currentPhase;
+}
+
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
+{
+	const size_t tableSize = mTableSize;
+	const float samplePeriod = 1.0f / mSampleRate;
+
+	for( size_t i = 0; i < outputLength; i++ ) {
+		const float f0 = f0Array[i];
+		const float *table = getBandLimitedTable( f0 );
+
+		outputArray[i] = tableLookup( table, tableSize, currentPhase );
+		currentPhase = fmodf( currentPhase + f0 * samplePeriod, 1 );
+	}
+
+	return currentPhase;
+}
+
+#else
+
+// table inerpoloation
+
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
+{
+	const float phaseIncr = f0 / (float)mSampleRate;
+	const size_t tableSize = mTableSize;
+	auto tables = getBandLimitedTablesLerp( f0 );
+
+
+	for( size_t i = 0; i < outputLength; i++ ) {
+		float a = tableLookup( get<0>( tables ), tableSize, currentPhase );
+		float b = tableLookup( get<1>( tables ), tableSize, currentPhase );
+		outputArray[i] = lerp( a, b, get<2>( tables ) );
+		currentPhase = fmodf( currentPhase + phaseIncr, 1 );
+	}
+
+
+	return currentPhase;
+}
+
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
+{
+	const size_t tableSize = mTableSize;
+	const float samplePeriod = 1.0f / mSampleRate;
+
+	for( size_t i = 0; i < outputLength; i++ ) {
+		const float f0 = f0Array[i];
+		auto tables = getBandLimitedTablesLerp( f0 );
+
+		float a = tableLookup( get<0>( tables ), tableSize, currentPhase );
+		float b = tableLookup( get<1>( tables ), tableSize, currentPhase );
+		outputArray[i] = lerp( a, b, get<2>( tables ) );
+		currentPhase = fmodf( currentPhase + f0 * samplePeriod, 1 );
+	}
+
+	return currentPhase;
+}
+
+#endif
 
 void WaveTable::copy( float *array, size_t tableIndex ) const
 {

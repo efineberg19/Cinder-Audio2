@@ -41,9 +41,8 @@ class WaveTable {
 
 	void fill( WaveformType type );
 
-	const float*	getBandLimitedTable( float f0 ) const;
-
-	void getBandLimitedTables( float f0, float **table1, float **table2, float* interpFactor );
+	float lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
+	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
 
 	void copy( float *array, size_t tableIndex = 0 ) const;
 
@@ -56,6 +55,9 @@ class WaveTable {
 	void		fillBandLimitedTable( WaveformType type, float *table, size_t numPartials );
 	void		fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 	size_t		getMaxHarmonicsForTable( size_t tableIndex ) const;
+
+	const float*	getBandLimitedTable( float f0 ) const;
+	std::tuple<const float*, const float*, float> getBandLimitedTablesLerp( float f0 ) const;
 
 	size_t			mSampleRate, mTableSize, mNumTables;
 	float			mMinMidiRange, mMaxMidiRange;

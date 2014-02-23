@@ -194,122 +194,13 @@ void GenOscillator::setWaveform( WaveformType type )
 	mWaveTable->fill( type );
 }
 
-namespace {
-
-#if 0
-
-// truncate, phase range: 0-1
-inline float tableLookup( const float *table, size_t size, float phase )
-{
-	return table[ size_t( phase * size ) ];
-}
-
-#else
-
-// linear interpolation, phase range: 0-1
-// TODO (optimization): store phase in range 0-size
-inline float tableLookup( const float *table, size_t size, float phase )
-{
-	float lookup = phase * size;
-	size_t index1 = (size_t)lookup;
-//	size_t index2 = ( index1 + 1 ) % size;
-	size_t index2 = ( index1 + 1 ) & ( size - 1 );
-	float val1 = table[index1];
-	float val2 = table[index2];
-	float frac = lookup - (float)index1;
-
-	return val2 + frac * ( val2 - val1 );
-}
-
-#endif
-
-} // anonymous namespace
-
-#if 1
-
 // no table interp
 void GenOscillator::process( Buffer *buffer )
 {
-	const size_t count = buffer->getSize();
-	const float tableSize = mWaveTable->getTableSize();
-	const float samplePeriod = 1.0f / mSampleRate;
-	float *data = buffer->getData();
-	float phase = mPhase;
-
-	if( mFreq.eval() ) {
-		float *freqValues = mFreq.getValueArray();
-		for( size_t i = 0; i < count; i++ ) {
-
-			float f0 = freqValues[i];
-			const float *table = mWaveTable->getBandLimitedTable( f0 );
-
-			data[i] = tableLookup( table, tableSize, phase );
-			phase = fmodf( phase + freqValues[i] * samplePeriod, 1 );
-		}
-	}
-	else {
-
-		float f0 = mFreq.getValue();
-		const float *table = mWaveTable->getBandLimitedTable( f0 );
-
-		const float phaseIncr = f0 * samplePeriod;
-
-		for( size_t i = 0; i < count; i++ ) {
-			data[i] = tableLookup( table, tableSize, phase );
-			phase = fmodf( phase + phaseIncr, 1 );
-		}
-	}
-
-	mPhase = phase;
+	if( mFreq.eval() )
+		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValueArray() );
+	else
+		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValue() );
 }
-
-#else
-
-// linear table interp
-void GenOscillator::process( Buffer *buffer )
-{
-	const size_t count = buffer->getSize();
-	const float tableSize = mWaveTable->getTableSize();
-	const float samplePeriod = 1.0f / mSampleRate;
-	float *data = buffer->getData();
-	float phase = mPhase;
-
-	if( mFreq.eval() ) {
-		float *freqValues = mFreq.getValueArray();
-		float *table1, *table2;
-		float factor;
-
-		for( size_t i = 0; i < count; i++ ) {
-
-			float f0 = freqValues[i];
-			mWaveTable->getBandLimitedTables( f0, &table1, &table2, &factor );
-
-			float a = tableLookup( table1, tableSize, phase );
-			float b = tableLookup( table2, tableSize, phase );
-			data[i] = lerp( a, b, factor );
-			phase = fmodf( phase + freqValues[i] * samplePeriod, 1 );
-		}
-	}
-	else {
-		float f0 = mFreq.getValue();
-
-		float *table1, *table2;
-		float factor;
-		mWaveTable->getBandLimitedTables( f0, &table1, &table2, &factor );
-
-		const float phaseIncr = f0 * samplePeriod;
-
-		for( size_t i = 0; i < count; i++ ) {
-			float a = tableLookup( table1, tableSize, phase );
-			float b = tableLookup( table2, tableSize, phase );
-			data[i] = lerp( a, b, factor );
-			phase = fmodf( phase + phaseIncr, 1 );
-		}
-	}
-	
-	mPhase = phase;
-}
-
-#endif
 
 } } // namespace cinder::audio2

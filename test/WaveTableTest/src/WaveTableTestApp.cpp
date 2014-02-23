@@ -92,9 +92,9 @@ void WaveTableTestApp::setupUI()
 	// freq slider is longer, along top
 	mFreqSlider.mBounds = Rectf( 10, 10, getWindowWidth() - 210, 40 );
 	mFreqSlider.mTitle = "freq";
-//	mFreqSlider.mMax = 5000;
-	mFreqSlider.mMin = 400;
-	mFreqSlider.mMax = 500;
+	mFreqSlider.mMax = 5000;
+//	mFreqSlider.mMin = 400;
+//	mFreqSlider.mMax = 500;
 
 	mFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mFreqSlider );

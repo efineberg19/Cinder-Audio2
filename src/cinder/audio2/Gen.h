@@ -94,7 +94,7 @@ class GenTriangle : public Gen {
 	std::atomic<float> mUpSlope, mDownSlope;
 };
 
-//! General purpose oscillator Gen using wavetable lookup.
+//! General purpose oscillator Gen using wavetable lookup. bandlimited.
 class GenOscillator : public Gen {
   public:
 
