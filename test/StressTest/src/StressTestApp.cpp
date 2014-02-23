@@ -47,7 +47,7 @@ public:
 	vector<TestWidget *>	mWidgets;
 	Button					mPlayButton, mAddGens, mRemoveGens, mClearGens;
 	VSelector				mTestSelector;
-	HSlider					mGainSlider, mFreqRampSlider;
+	HSlider					mGainSlider;
 	TextInput				mAddIncrInput;
 	SpectrumPlot			mSpectrumPlot;
 
@@ -65,7 +65,7 @@ void StressTestApp::setup()
 {
 	mAddIncr = 1;
 	mEnableDrawing = true;
-	mSelectedGenType = SINE;
+	mSelectedGenType = OSC_SQUARE;
 
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain );
@@ -127,10 +127,10 @@ audio2::GenRef StressTestApp::makeSelectedGenType()
 	switch( mSelectedGenType ) {
 		case SINE: return audio2::Context::master()->makeNode( new audio2::GenSine );
 		case TRIANGLE: return audio2::Context::master()->makeNode( new audio2::GenTriangle );
-		case OSC_SINE: return makeOsc( audio2::WaveformType::SAWTOOTH );
+		case OSC_SINE: return makeOsc( audio2::WaveformType::SINE );
 		case OSC_SAW: return makeOsc( audio2::WaveformType::SAWTOOTH );
-		case OSC_SQUARE: return makeOsc( audio2::WaveformType::SAWTOOTH );
-		case OSC_TRIANGLE: return makeOsc( audio2::WaveformType::SAWTOOTH );
+		case OSC_SQUARE: return makeOsc( audio2::WaveformType::SQUARE );
+		case OSC_TRIANGLE: return makeOsc( audio2::WaveformType::TRIANGLE );
 
 		default: CI_ASSERT_NOT_REACHABLE();
 	}
@@ -194,27 +194,12 @@ void StressTestApp::setupUI()
 	mGainSlider.set( mGain->getValue() );
 	mWidgets.push_back( &mGainSlider );
 
-	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mFreqRampSlider.mBounds = sliderRect;
-	mFreqRampSlider.mTitle = "freq ramp";
-	mFreqRampSlider.mMax = 10;
-	mFreqRampSlider.set( 0.05f );
-	mWidgets.push_back( &mFreqRampSlider );
-
-
-
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
 	mAddIncrInput.mBounds = sliderRect;
 	mAddIncrInput.mFormat = TextInput::Format::NUMERICAL;
 	mAddIncrInput.mTitle = "add incr";
 	mAddIncrInput.setValue( mAddIncr );
 	mWidgets.push_back( &mAddIncrInput );
-
-//	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
-//	mTableSizeInput.mBounds = sliderRect;
-//	mTableSizeInput.mTitle = "table size";
-//	mTableSizeInput.setValue( mGenOscillator->getTableSize() );
-//	mWidgets.push_back( &mTableSizeInput );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -233,10 +218,6 @@ void StressTestApp::processDrag( Vec2i pos )
 {
 	if( mGainSlider.hitTest( pos ) )
 		mGain->getParam()->applyRamp( mGainSlider.mValueScaled, 0.03f );
-//	else if( mFreqSlider.hitTest( pos ) )
-//		mGen->getParamFreq()->applyRamp( mFreqSlider.mValueScaled, mFreqRampSlider.mValue );
-	else if( mFreqRampSlider.hitTest( pos ) ) {
-	}
 
 }
 
@@ -330,6 +311,9 @@ void StressTestApp::draw()
 	mSpectrumPlot.draw( mScope->getMagSpectrum() );
 
 	drawWidgets( mWidgets );
+
+	string countStr = string( "Gen count: " ) + to_string( mGenBank.size() );
+	getTestWidgetTexFont()->drawString( countStr, Vec2f( mAddIncrInput.mBounds.x1, mAddIncrInput.mBounds.y2 + padding + getTestWidgetTexFont()->getFont().getAscent() + getTestWidgetTexFont()->getFont().getDescent() ) );
 }
 
 CINDER_APP_NATIVE( StressTestApp, RendererGl )

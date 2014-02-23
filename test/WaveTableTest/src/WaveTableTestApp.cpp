@@ -80,12 +80,6 @@ void WaveTableTestApp::setupUI()
 	mPlayButton.mBounds = buttonRect;
 	mWidgets.push_back( &mPlayButton );
 
-//	buttonRect += Vec2f( 0, buttonRect.getHeight() + 10 );
-//	mGibbsButton = Button( true, "reduce gibbs", "reduce gibbs" );
-//	mGibbsButton.mBounds = buttonRect;
-//	mGibbsButton.setEnabled( mGen->isGibbsReductionEnabled() );
-//	mWidgets.push_back( &mGibbsButton );
-
 	mTestSelector.mSegments.push_back( "sine" );
 	mTestSelector.mSegments.push_back( "sawtooth" );
 	mTestSelector.mSegments.push_back( "square" );
@@ -166,10 +160,6 @@ void WaveTableTestApp::processTap( Vec2i pos )
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
-//	else if( mGibbsButton.hitTest( pos ) ) {
-//		mGen->setGibbsReductionEnabled( ! mGen->isGibbsReductionEnabled(), true );
-//		mGen->copyFromTable( mTableCopy.getData() );
-//	}
 	else if( mNumPartialsInput.hitTest( pos ) ) {
 	}
 	else if( mTableSizeInput.hitTest( pos ) ) {
