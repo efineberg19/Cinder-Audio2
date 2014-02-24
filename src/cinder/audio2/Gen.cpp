@@ -194,13 +194,89 @@ void GenOscillator::setWaveform( WaveformType type )
 	mWaveTable->fill( type );
 }
 
-// no table interp
 void GenOscillator::process( Buffer *buffer )
 {
 	if( mFreq.eval() )
 		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValueArray() );
 	else
 		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValue() );
+}
+
+GenPulse::GenPulse( const Format &format )
+	: Gen( format ), mWidth( this, 0.5f )
+{
+}
+
+void GenPulse::initialize()
+{
+	Gen::initialize();
+
+	mBuffer2.setNumFrames( getContext()->getFramesPerBlock() );
+
+	if( ! mWaveTable ) {
+		mWaveTable.reset( new dsp::WaveTable( mSampleRate ) );
+		mWaveTable->fill( WaveformType::SAWTOOTH );
+	}
+	else if( mSampleRate != mWaveTable->getSampleRate() ) {
+		mWaveTable->resize( mSampleRate );
+		mWaveTable->fill( WaveformType::SAWTOOTH );
+	}
+}
+
+void GenPulse::process( Buffer *buffer )
+{
+	float phase = mPhase;
+	size_t numFrames = buffer->getNumFrames();
+
+	if( mWidth.eval() ) {
+		float *data2 = mBuffer2.getData();
+		float *widthArray = mWidth.getValueArray();
+
+		if( mFreq.eval() ) {
+			float *f0Array = mFreq.getValueArray();
+			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, f0Array );
+
+			for( size_t i = 0; i < numFrames; i++ ) {
+				float f0 = f0Array[i];
+				float phaseIncr = f0 / (float)mSampleRate;
+				float phaseOffset = widthArray[i];
+				float phase2 = fmodf( phase + phaseOffset, 1.0f );
+				float phaseCorrect = 1 - 2 * phaseOffset;
+				data2[i] = mWaveTable->lookup( phase2, f0 ) - phaseCorrect;
+				phase = fmodf( phase + phaseIncr, 1 );;
+			}
+		} else {
+			float f0 = mFreq.getValue();
+			float phaseIncr = f0 / (float)mSampleRate;
+			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, f0 );
+
+			for( size_t i = 0; i < numFrames; i++ ) {
+				float phaseOffset = widthArray[i];
+				float phase2 = fmodf( phase + phaseOffset, 1.0f );
+				float phaseCorrect = 1 - 2 * phaseOffset;
+				data2[i] = mWaveTable->lookup( phase2, f0 ) - phaseCorrect;
+				phase += phaseIncr;
+			}
+		}
+	}
+	else {
+		float phaseOffset = mWidth.getValue();
+		float phase2 = fmodf( phase + phaseOffset, 1.0f );
+
+		if( mFreq.eval() ) {
+			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, mFreq.getValueArray() );
+			mWaveTable->lookup( mBuffer2.getData(), numFrames, phase2, mFreq.getValueArray() );
+		} else {
+			float f0 = mFreq.getValue();
+			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, f0 );
+			mWaveTable->lookup( mBuffer2.getData(), numFrames, phase2, f0 );
+		}
+
+		float phaseCorrect = 1 - 2 * phaseOffset;
+		dsp::add( buffer->getData(), phaseCorrect, buffer->getData(), buffer->getSize() );
+	}
+
+	dsp::sub( buffer->getData(), mBuffer2.getData(), buffer->getData(), buffer->getSize() );
 }
 
 } } // namespace cinder::audio2

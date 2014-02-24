@@ -29,7 +29,8 @@
 namespace cinder { namespace audio2 {
 
 typedef std::shared_ptr<class Gen>						GenRef;
-typedef std::shared_ptr<class GenOscillator>				GenOscillatorRef;
+typedef std::shared_ptr<class GenOscillator>			GenOscillatorRef;
+typedef std::shared_ptr<class GenPulse>					GenPulseRef;
 
 //! Base class for NodeInput's that generate audio samples.
 class Gen : public NodeInput {
@@ -126,6 +127,25 @@ class GenOscillator : public Gen {
 
 	dsp::WaveTableRef	mWaveTable;
 	WaveformType		mWaveformType;
+};
+
+//! Pulse waveform generator with variable pulse width.
+class GenPulse : public Gen {
+  public:
+	GenPulse( const Format &format = Format() );
+
+	void			setWidth( float width )	{ mWidth.setValue( width ); }
+
+	Param* getParamWidth()			{ return &mWidth; }
+
+  protected:
+	void initialize() override;
+	void process( Buffer *buffer ) override;
+
+	dsp::WaveTableRef	mWaveTable;
+	BufferDynamic		mBuffer2;
+
+	Param				mWidth;
 };
 
 } } // namespace cinder::audio2

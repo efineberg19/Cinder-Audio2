@@ -252,7 +252,13 @@ inline float tableLookup( const float *table, size_t size, float phase )
 		
 } // anonymous namespace
 
-#if 0
+float WaveTable::lookup( float phase, float f0 ) const
+{
+	const float *table = getBandLimitedTable( f0 );
+	return tableLookup( table, mTableSize, phase );
+}
+
+#if 1
 
 // no table interpolation
 
@@ -288,7 +294,7 @@ float WaveTable::lookup( float *outputArray, size_t outputLength, float currentP
 
 #else
 
-// table inerpoloation
+// table interpoloation
 
 float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
 {

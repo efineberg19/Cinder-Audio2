@@ -62,9 +62,19 @@ float sum( const float *array, size_t length )
 	return result;
 }
 
+void add( const float *array, float scalar, float *result, size_t length )
+{
+	vDSP_vsadd( array, 1, &scalar, result, 1, length );
+}
+
 void add( const float *arrayA, const float *arrayB, float *result, size_t length )
 {
 	vDSP_vadd( arrayA, 1, arrayB, 1, result, 1, length );
+}
+
+void sub( const float *arrayA, const float *arrayB, float *result, size_t length )
+{
+	vDSP_vsub( arrayB, 1, arrayA, 1, result, 1, length );
 }
 
 float rms( const float *array, size_t length )

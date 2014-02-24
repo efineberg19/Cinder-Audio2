@@ -48,12 +48,19 @@ enum WindowType {
 	RECT		//! no window
 };
 
+// TODO: consider prepending 'v' to vector variants
+//	- it is easy to mistake the two by arguments alone
+
 //! fills \a window array with a windowing function specified by \a windowType
 void generateWindow( WindowType windowType, float *window, size_t length );
 //! fills \a array with value \a value
 void fill( float value, float *array, size_t length );
 //! add \a length elements of \a arrayA and \a arrayB (element-wise) into \a result.
+void add( const float *array, float scalar, float *result, size_t length );
+//! add \a length elements of \a arrayA and \a arrayB (element-wise) into \a result.
 void add( const float *arrayA, const float *arrayB, float *result, size_t length );
+//! subtract \a length elements of \a arrayB from \a arrayA (element-wise) into \a result.
+void sub( const float *arrayA, const float *arrayB, float *result, size_t length );
 //! multiplies \a length elements of \a array by \a scalar and leaves the result at \a result.
 void mul( const float *array, float scalar, float *result, size_t length );
 //! multiplies \a length elements of \a arrayA by \a arrayB and leaves the result at \a result.

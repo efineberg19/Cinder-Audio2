@@ -41,6 +41,8 @@ class WaveTable {
 
 	void fill( WaveformType type );
 
+	float lookup( float phase, float f0 ) const;
+
 	float lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
 	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
 
