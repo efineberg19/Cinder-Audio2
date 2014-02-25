@@ -51,6 +51,9 @@ class WaveTable {
 	float lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
 	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
 
+	void copyTo( float *array ) const;
+	void copyFrom( const float *array );
+
   protected:
 	void		fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 

@@ -112,12 +112,23 @@ void WaveTableTestApp::setupPulse()
 	mGenPulse >> mScope;
 	mGen = mGenPulse;
 
-#if 0
+#if 1
 	// pwm
-	auto sinMod = audio2::Context::master()->makeNode( new audio2::GenPhasor );
-	sinMod->setFreq( 0.6f );
-	sinMod->start();
-	mGenPulse->getParamWidth()->setProcessor( sinMod );
+	auto mod = audio2::Context::master()->makeNode( new audio2::GenTable );
+
+	audio2::Context::master()->initializeNode( mod );
+
+	vector<float> table( mod->getWaveTable()->getTableSize() );
+
+	mod->getWaveTable()->copyTo( table.data() );
+	audio2::dsp::mul( table.data(), 0.3f, table.data(), table.size() );
+	audio2::dsp::add( table.data(), 0.5f, table.data(), table.size() );
+
+	mod->getWaveTable()->copyFrom( table.data() );
+	mod->setFreq( 0.6f );
+	mod->start();
+
+	mGenPulse->getParamWidth()->setProcessor( mod );
 #endif
 
 	audio2::Context::master()->printGraph();
@@ -274,6 +285,8 @@ void WaveTableTestApp::update()
 		mTableCopy.setNumFrames( mGenOsc->getTableSize() );
 		mGenOsc->getWaveTable()->copyTo( mTableCopy.getData(), mGenOsc->getWaveTable()->calcBandlimitedTableIndex( mGenOsc->getFreq() ) );
 	}
+	if( mGenPulse )
+		mPulseWidthSlider.set( mGenPulse->getWidth() );
 }
 
 void WaveTableTestApp::draw()

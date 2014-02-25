@@ -100,6 +100,9 @@ class GenTable : public Gen {
   public:
 	GenTable( const Format &format = Format() );
 
+	void setWaveTable( const dsp::WaveTableRef &waveTable )	{ mWaveTable = waveTable; }
+	const dsp::WaveTableRef&	getWaveTable()	{ return mWaveTable; }
+
   protected:
 	void initialize() override;
 	void process( Buffer *buffer ) override;
@@ -137,7 +140,7 @@ class GenOscillator : public Gen {
 	void process( Buffer *buffer ) override;
 
 
-	dsp::WaveTable2dRef	mWaveTable;
+	dsp::WaveTable2dRef		mWaveTable;
 	WaveformType			mWaveformType;
 };
 
@@ -147,6 +150,7 @@ class GenPulse : public Gen {
 	GenPulse( const Format &format = Format() );
 
 	void			setWidth( float width )	{ mWidth.setValue( width ); }
+	float			getWidth() const		{ return mWidth.getValue(); }
 
 	Param* getParamWidth()			{ return &mWidth; }
 
@@ -154,10 +158,9 @@ class GenPulse : public Gen {
 	void initialize() override;
 	void process( Buffer *buffer ) override;
 
-	dsp::WaveTable2dRef	mWaveTable;
+	dsp::WaveTable2dRef		mWaveTable;
 	BufferDynamic			mBuffer2;
-
-	Param				mWidth;
+	Param					mWidth;
 };
 
 } } // namespace cinder::audio2

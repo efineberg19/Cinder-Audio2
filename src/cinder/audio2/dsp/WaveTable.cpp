@@ -159,6 +159,16 @@ float WaveTable::lookup( float *outputArray, size_t outputLength, float currentP
 	return currentPhase;
 }
 
+void WaveTable::copyTo( float *array ) const
+{
+	memcpy( array, mBuffer.getData(), mTableSize * sizeof( float ) );
+}
+
+void WaveTable::copyFrom( const float *array )
+{
+	memcpy( mBuffer.getData(), array, mTableSize * sizeof( float ) );
+}
+
 // ----------------------------------------------------------------------------------------------------
 // MARK: - WaveTable2d
 // ----------------------------------------------------------------------------------------------------

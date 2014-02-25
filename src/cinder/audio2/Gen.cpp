@@ -78,14 +78,14 @@ void GenSine::process( Buffer *buffer )
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase );
-			phase = fmodf( phase + freqValues[i] * phaseMul, float( M_PI * 2 ) );
+			phase = fmodf( phase + freqValues[i] * phaseMul, float( 2 * M_PI ) );
 		}
 	}
 	else {
 		const float phaseIncr = mFreq.getValue() * phaseMul;
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase );
-			phase = fmodf( phase + phaseIncr, float( M_PI * 2 ) );
+			phase = fmodf( phase + phaseIncr, float( 2 * M_PI ) );
 		}
 	}
 
