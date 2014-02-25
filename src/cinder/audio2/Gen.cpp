@@ -173,12 +173,12 @@ void GenOscillator::initialize()
 	Gen::initialize();
 
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable( mSampleRate ) );
-		mWaveTable->fill( mWaveformType );
+		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate ) );
+		mWaveTable->fillBandlimited( mWaveformType );
 	}
 	else if( mSampleRate != mWaveTable->getSampleRate() ) {
-		mWaveTable->resize( mSampleRate );
-		mWaveTable->fill( mWaveformType );
+		mWaveTable->setSampleRate( mSampleRate );
+		mWaveTable->fillBandlimited( mWaveformType );
 	}
 }
 
@@ -191,15 +191,15 @@ void GenOscillator::setWaveform( WaveformType type )
 	lock_guard<mutex> lock( getContext()->getMutex() );
 
 	mWaveformType = type;
-	mWaveTable->fill( type );
+	mWaveTable->fillBandlimited( type );
 }
 
 void GenOscillator::process( Buffer *buffer )
 {
 	if( mFreq.eval() )
-		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValueArray() );
+		mPhase = mWaveTable->lookupBandlimited( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValueArray() );
 	else
-		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValue() );
+		mPhase = mWaveTable->lookupBandlimited( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValue() );
 }
 
 GenPulse::GenPulse( const Format &format )
@@ -214,12 +214,12 @@ void GenPulse::initialize()
 	mBuffer2.setNumFrames( getContext()->getFramesPerBlock() );
 
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable( mSampleRate ) );
-		mWaveTable->fill( WaveformType::SAWTOOTH );
+		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate ) );
+		mWaveTable->fillBandlimited( WaveformType::SAWTOOTH );
 	}
 	else if( mSampleRate != mWaveTable->getSampleRate() ) {
-		mWaveTable->resize( mSampleRate );
-		mWaveTable->fill( WaveformType::SAWTOOTH );
+		mWaveTable->setSampleRate( mSampleRate );
+		mWaveTable->fillBandlimited( WaveformType::SAWTOOTH );
 	}
 }
 
@@ -234,7 +234,7 @@ void GenPulse::process( Buffer *buffer )
 
 		if( mFreq.eval() ) {
 			float *f0Array = mFreq.getValueArray();
-			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, f0Array );
+			mPhase = mWaveTable->lookupBandlimited( buffer->getData(), numFrames, phase, f0Array );
 
 			for( size_t i = 0; i < numFrames; i++ ) {
 				float f0 = f0Array[i];
@@ -242,19 +242,19 @@ void GenPulse::process( Buffer *buffer )
 				float phaseOffset = widthArray[i];
 				float phase2 = fmodf( phase + phaseOffset, 1.0f );
 				float phaseCorrect = 1 - 2 * phaseOffset;
-				data2[i] = mWaveTable->lookup( phase2, f0 ) - phaseCorrect;
+				data2[i] = mWaveTable->lookupBandlimited( phase2, f0 ) - phaseCorrect;
 				phase = fmodf( phase + phaseIncr, 1 );;
 			}
 		} else {
 			float f0 = mFreq.getValue();
 			float phaseIncr = f0 / (float)mSampleRate;
-			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, f0 );
+			mPhase = mWaveTable->lookupBandlimited( buffer->getData(), numFrames, phase, f0 );
 
 			for( size_t i = 0; i < numFrames; i++ ) {
 				float phaseOffset = widthArray[i];
 				float phase2 = fmodf( phase + phaseOffset, 1.0f );
 				float phaseCorrect = 1 - 2 * phaseOffset;
-				data2[i] = mWaveTable->lookup( phase2, f0 ) - phaseCorrect;
+				data2[i] = mWaveTable->lookupBandlimited( phase2, f0 ) - phaseCorrect;
 				phase += phaseIncr;
 			}
 		}
@@ -264,12 +264,12 @@ void GenPulse::process( Buffer *buffer )
 		float phase2 = fmodf( phase + phaseOffset, 1.0f );
 
 		if( mFreq.eval() ) {
-			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, mFreq.getValueArray() );
-			mWaveTable->lookup( mBuffer2.getData(), numFrames, phase2, mFreq.getValueArray() );
+			mPhase = mWaveTable->lookupBandlimited( buffer->getData(), numFrames, phase, mFreq.getValueArray() );
+			mWaveTable->lookupBandlimited( mBuffer2.getData(), numFrames, phase2, mFreq.getValueArray() );
 		} else {
 			float f0 = mFreq.getValue();
-			mPhase = mWaveTable->lookup( buffer->getData(), numFrames, phase, f0 );
-			mWaveTable->lookup( mBuffer2.getData(), numFrames, phase2, f0 );
+			mPhase = mWaveTable->lookupBandlimited( buffer->getData(), numFrames, phase, f0 );
+			mWaveTable->lookupBandlimited( mBuffer2.getData(), numFrames, phase2, f0 );
 		}
 
 		float phaseCorrect = 1 - 2 * phaseOffset;

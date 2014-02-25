@@ -106,7 +106,7 @@ class GenOscillator : public Gen {
 
 		const WaveformType& getWaveform() const	{ return mWaveformType; }
 
-	private:
+      private:
 		WaveformType mWaveformType;
 	};
 
@@ -117,19 +117,19 @@ class GenOscillator : public Gen {
 
 	void setWaveform( WaveformType type );
 
-	void setWaveTable( const dsp::WaveTableRef &waveTable )	{ mWaveTable = waveTable; }
-	const dsp::WaveTableRef getWaveTable() const			{ return mWaveTable; }
+	void setWaveTable( const dsp::WaveTable2dRef &waveTable )	{ mWaveTable = waveTable; }
+	const dsp::WaveTable2dRef getWaveTable() const				{ return mWaveTable; }
 
-	WaveformType	getWaveForm() const		{ return mWaveformType; }
+	WaveformType	getWaveForm() const			{ return mWaveformType; }
 	size_t			getTableSize() const		{ return mWaveTable->getTableSize(); }
 
   protected:
 
-	dsp::WaveTableRef	mWaveTable;
-	WaveformType		mWaveformType;
+	dsp::WaveTable2dRef	mWaveTable;
+	WaveformType			mWaveformType;
 };
 
-//! Pulse waveform generator with variable pulse width.
+//! Pulse waveform generator with variable pulse width. Based on wavetable lookup of two band-limited sawtooth waveforms, subtracted from each other.
 class GenPulse : public Gen {
   public:
 	GenPulse( const Format &format = Format() );
@@ -142,8 +142,8 @@ class GenPulse : public Gen {
 	void initialize() override;
 	void process( Buffer *buffer ) override;
 
-	dsp::WaveTableRef	mWaveTable;
-	BufferDynamic		mBuffer2;
+	dsp::WaveTable2dRef	mWaveTable;
+	BufferDynamic			mBuffer2;
 
 	Param				mWidth;
 };

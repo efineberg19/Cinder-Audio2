@@ -24,34 +24,54 @@
 #pragma once
 
 #include "cinder/audio2/WaveformType.h"
+#include "cinder/audio2/Buffer.h"
 
 #include <vector>
 
 namespace cinder { namespace audio2 { namespace dsp {
 
-typedef std::shared_ptr<class WaveTable> WaveTableRef;
+typedef std::shared_ptr<class WaveTable>		WaveTableRef;
+typedef std::shared_ptr<class WaveTable2d>	WaveTable2dRef;
 
+// ???: samplerate needed in WaveTable?
 class WaveTable {
   public:
-	WaveTable( size_t sampleRate, size_t tableSize = 0, size_t numTables = 0 );
+	WaveTable( size_t sampleRate, size_t tableSize = 0 );
+
+	void resize( size_t tableSize );
+
+	size_t getSampleRate() const { return mSampleRate; }
+	size_t getTableSize() const	{ return mTableSize; }
+
+	void setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
+
+  protected:
+
+	size_t			mSampleRate, mTableSize;
+	BufferDynamic	mBuffer;
+};
+
+class WaveTable2d : public WaveTable {
+  public:
+	WaveTable2d( size_t sampleRate, size_t tableSize = 0, size_t numTables = 0 );
 
 	//! Adjusts the parameters effecting table size and calculate.
 	//! \note This does not update the data, call fill() afterwards to refresh the table contents.
-	void resize( size_t sampleRate, size_t tableSize = 0, size_t numTables = 0 );
+	void resize( size_t tableSize, size_t numTables );
 
-	void fill( WaveformType type );
+	//! \note updating the samplerate will causes the bandlimited calculations to be out of sync. call fill() aftewards.
+	void setSampleRate( size_t sampleRate );
 
-	float lookup( float phase, float f0 ) const;
+	void fillBandlimited( WaveformType type );
 
-	float lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
-	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
+	float lookupBandlimited( float phase, float f0 ) const;
+	float lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
+	float lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
 
 	void copyTo( float *array, size_t tableIndex = 0 ) const;
 
 	float calcBandlimitedTableIndex( float f0 ) const;
 
-	size_t getSampleRate() const { return mSampleRate; }
-	size_t getTableSize() const	{ return mTableSize; }
 	size_t getNumTables() const	{ return mNumTables; }
 
   protected:
@@ -63,10 +83,8 @@ class WaveTable {
 	const float*	getBandLimitedTable( float f0 ) const;
 	std::tuple<const float*, const float*, float> getBandLimitedTablesLerp( float f0 ) const;
 
-	size_t			mSampleRate, mTableSize, mNumTables;
+	size_t			mNumTables;
 	float			mMinMidiRange, mMaxMidiRange;
-
-	std::vector<std::vector<float> >	mTables;
 };
 
 } } } // namespace cinder::audio2::dsp
