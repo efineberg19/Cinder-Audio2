@@ -46,7 +46,9 @@ class WaveTable {
 	float lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
 	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
 
-	void copy( float *array, size_t tableIndex = 0 ) const;
+	void copyTo( float *array, size_t tableIndex = 0 ) const;
+
+	float calcBandlimitedTableIndex( float f0 ) const;
 
 	size_t getSampleRate() const { return mSampleRate; }
 	size_t getTableSize() const	{ return mTableSize; }

@@ -21,6 +21,7 @@ class WaveTableTestApp : public AppNative {
 public:
 	void prepareSettings( Settings *settings );
 	void setup();
+	void update();
 	void draw();
 
 	void setupUI();
@@ -68,11 +69,6 @@ void WaveTableTestApp::setup()
 	mGen >> mScope >> mGain >> ctx->getOutput();
 
 	ctx->printGraph();
-
-	if( mGenOsc ) {
-		mTableCopy.setNumFrames( mGenOsc->getTableSize() );
-		mGenOsc->getWaveTable()->copy( mTableCopy.getData() );
-	}
 
 	setupUI();
 }
@@ -229,7 +225,7 @@ void WaveTableTestApp::processTap( Vec2i pos )
 		else if( currentTest == "pulse" )
 			setupPulse();
 
-		mGenOsc->getWaveTable()->copy( mTableCopy.getData() );
+//		mGenOsc->getWaveTable()->copyTo( mTableCopy.getData() );
 	}
 	else
 		processDrag( pos );
@@ -256,6 +252,14 @@ void WaveTableTestApp::keyDown( KeyEvent event )
 			currentSelected->processBackspace();
 		else
 			currentSelected->processChar( event.getChar() );
+	}
+}
+
+void WaveTableTestApp::update()
+{
+	if( mGenOsc ) {
+		mTableCopy.setNumFrames( mGenOsc->getTableSize() );
+		mGenOsc->getWaveTable()->copyTo( mTableCopy.getData(), mGenOsc->getWaveTable()->calcBandlimitedTableIndex( mGenOsc->getFreq() ) );
 	}
 }
 

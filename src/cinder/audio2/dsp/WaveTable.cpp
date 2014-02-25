@@ -177,18 +177,23 @@ size_t WaveTable::getMaxHarmonicsForTable( size_t tableIndex ) const
 	return maxPartialsForFreq;
 }
 
-const float* WaveTable::getBandLimitedTable( float f0 ) const
+float WaveTable::calcBandlimitedTableIndex( float f0 ) const
 {
 	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenOscillator
 
 	const float f0Midi = toMidi( f0 );
 
 	if( f0Midi <= mMinMidiRange )
-		return mTables.front().data();
+		return 0;
 	else if( f0Midi >= mMaxMidiRange )
-		return mTables.back().data();
+		return mNumTables - 1;
 
-	size_t index = (size_t)calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
+	return calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
+}
+
+const float* WaveTable::getBandLimitedTable( float f0 ) const
+{
+	size_t index = (size_t)calcBandlimitedTableIndex( f0 );
 	return mTables[index].data();
 }
 
@@ -207,18 +212,20 @@ std::tuple<const float*, const float*, float> WaveTable::getBandLimitedTablesLer
 	}
 	else if( f0Midi >= mMaxMidiRange ) {
 		table1 = table2 = const_cast<float *>( mTables.back().data() );
-		factor = 0;
+		factor = 1;
 	}
+	else {
 
-	float index = calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
+		float index = calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
 
-	size_t tableIndex1 = (size_t)index;
-	size_t tableIndex2 = ( tableIndex1 + 1 ) & ( mTableSize - 1 );
+		size_t tableIndex1 = (size_t)index;
+		size_t tableIndex2 = ( tableIndex1 + 1 ) & ( mTableSize - 1 );
 
-	table1 = const_cast<float *>( mTables[tableIndex1].data() );
-	table2 = const_cast<float *>( mTables[tableIndex2].data() );
-	factor = index - (float)tableIndex1;
-
+		table1 = const_cast<float *>( mTables[tableIndex1].data() );
+		table2 = const_cast<float *>( mTables[tableIndex2].data() );
+		factor = index - (float)tableIndex1;
+	}
+	
 	return make_tuple( table1, table2, factor );
 }
 
@@ -334,7 +341,7 @@ float WaveTable::lookup( float *outputArray, size_t outputLength, float currentP
 
 #endif
 
-void WaveTable::copy( float *array, size_t tableIndex ) const
+void WaveTable::copyTo( float *array, size_t tableIndex ) const
 {
 	CI_ASSERT( tableIndex < mTables.size() );
 
