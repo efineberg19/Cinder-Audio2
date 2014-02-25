@@ -4,6 +4,7 @@
 
 
 #include "cinder/audio2/Context.h"
+#include "cinder/audio2/Gen.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Scope.h"
 #include "cinder/audio2/dsp/Dsp.h"
