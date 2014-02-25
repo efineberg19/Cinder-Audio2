@@ -29,9 +29,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "cinder/Timer.h" // TEMP
 
-#define DEFAULT_WAVETABLE_SIZE 4096
-#define DEFAULT_NUM_WAVETABLES 40
-
 using namespace std;
 
 namespace {
@@ -52,12 +49,43 @@ inline float calcTableIndex( float f0Midi, float minRange, float maxRange, size_
 	return 1 + ( f0Midi - minRange ) / midiRangePerTable;
 }
 
+
+#if 0
+
+// truncate, phase range: 0-1
+inline float tableLookup( const float *table, size_t tableSize, float phase )
+{
+	return table[ size_t( phase * tableSize ) ];
+}
+
+#else
+
+// linear interpolation, phase range: 0 - 1
+// TODO (optimization): issue phase in range 0 - tableSize
+inline float tableLookup( const float *table, size_t tableSize, float phase )
+{
+	float lookup = phase * tableSize;
+	size_t index1 = (size_t)lookup;
+	size_t index2 = ( index1 + 1 ) & ( tableSize - 1 );
+	float val1 = table[index1];
+	float val2 = table[index2];
+	float frac = lookup - (float)index1;
+
+	return val2 + frac * ( val2 - val1 );
+}
+
+#endif
+
 } // anonymous namespace
 
 namespace cinder { namespace audio2 { namespace dsp {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - WaveTable
+// ----------------------------------------------------------------------------------------------------
+
 WaveTable::WaveTable( size_t sampleRate, size_t tableSize )
-	: mSampleRate( sampleRate ), mTableSize( tableSize ? tableSize : DEFAULT_WAVETABLE_SIZE )
+	:  mSampleRate( sampleRate ), mTableSize( tableSize )
 {
 }
 
@@ -67,19 +95,77 @@ void WaveTable::resize( size_t tableSize )
 		return;
 
 	mTableSize = tableSize;
-	mBuffer.setSize( tableSize, 0 );
+	mBuffer.setSize( tableSize, 1 );
 }
+
+void WaveTable::fillSine()
+{
+	resize( mTableSize );
+
+	vector<float> partials( 1, 1 );
+	fillSinesum( mBuffer.getData(), mTableSize, partials );
+}
+
+void WaveTable::fillSinesum( float *array, size_t length, const std::vector<float> &partials )
+{
+	memset( array, 0, length * sizeof( float ) );
+
+	double phase = 0;
+	const double phaseIncr = ( 2.0 * M_PI ) / (double)length;
+
+	for( size_t i = 0; i < length; i++ ) {
+		double partialPhase = phase;
+		for( size_t p = 0; p < partials.size(); p++ ) {
+			array[i] += partials[p] * math<float>::sin( partialPhase );
+			partialPhase += phase;
+		}
+
+		phase += phaseIncr;
+	}
+}
+
+float WaveTable::lookup( float phase ) const
+{
+	return tableLookup( mBuffer.getData(), mTableSize, phase );
+}
+
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
+{
+	const float phaseIncr = f0 / (float)mSampleRate;
+	const float *table = mBuffer.getData();
+	const size_t tableSize = mTableSize;
+
+	for( size_t i = 0; i < outputLength; i++ ) {
+		outputArray[i] = tableLookup( table, tableSize, currentPhase );
+		currentPhase = fmodf( currentPhase + phaseIncr, 1 );
+	}
+
+	return currentPhase;
+}
+
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
+{
+	const size_t tableSize = mTableSize;
+	const float samplePeriod = 1.0f / (float)mSampleRate;
+	const float *table = mBuffer.getData();
+
+	for( size_t i = 0; i < outputLength; i++ ) {
+		const float f0 = f0Array[i];
+
+		outputArray[i] = tableLookup( table, tableSize, currentPhase );
+		currentPhase = fmodf( currentPhase + f0 * samplePeriod, 1 );
+	}
+	
+	return currentPhase;
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - WaveTable2d
+// ----------------------------------------------------------------------------------------------------
 
 WaveTable2d::WaveTable2d( size_t sampleRate, size_t tableSize, size_t numTables )
-	: WaveTable( sampleRate, tableSize ), mNumTables( numTables ? numTables : DEFAULT_NUM_WAVETABLES )
+	: WaveTable( sampleRate, tableSize ), mNumTables( numTables )
 {
-	calcLimits();
-}
-
-void WaveTable2d::setSampleRate( size_t sampleRate )
-{
-	mSampleRate = sampleRate;
-	calcLimits();
 }
 
 void WaveTable2d::resize( size_t tableSize, size_t numTables )
@@ -100,6 +186,8 @@ void WaveTable2d::resize( size_t tableSize, size_t numTables )
 
 void WaveTable2d::fillBandlimited( WaveformType type )
 {
+	calcLimits();
+
 	LOG_V( "filling " << mNumTables << " tables of size: " << mTableSize << "..." );
 	Timer timer( true );
 
@@ -164,24 +252,6 @@ void WaveTable2d::fillBandLimitedTable( WaveformType type, float *table, size_t 
 
 	fillSinesum( table, mTableSize, partials );
 	dsp::normalize( table, mTableSize );
-}
-
-void WaveTable2d::fillSinesum( float *array, size_t length, const std::vector<float> &partials )
-{
-	memset( array, 0, length * sizeof( float ) );
-
-	double phase = 0;
-	const double phaseIncr = ( 2.0 * M_PI ) / (double)length;
-
-	for( size_t i = 0; i < length; i++ ) {
-		double partialPhase = phase;
-		for( size_t p = 0; p < partials.size(); p++ ) {
-			array[i] += partials[p] * math<float>::sin( partialPhase );
-			partialPhase += phase;
-		}
-		
-		phase += phaseIncr;
-	}
 }
 
 size_t WaveTable2d::getMaxHarmonicsForTable( size_t tableIndex ) const
@@ -249,36 +319,6 @@ std::tuple<const float*, const float*, float> WaveTable2d::getBandLimitedTablesL
 	return make_tuple( table1, table2, factor );
 }
 
-namespace {
-
-#if 0
-
-// truncate, phase range: 0-1
-inline float tableLookup( const float *table, size_t size, float phase )
-{
-	return table[ size_t( phase * size ) ];
-}
-
-#else
-
-// linear interpolation, phase range: 0-1
-// TODO (optimization): store phase in range 0-size
-inline float tableLookup( const float *table, size_t size, float phase )
-{
-	float lookup = phase * size;
-	size_t index1 = (size_t)lookup;
-	size_t index2 = ( index1 + 1 ) & ( size - 1 );
-	float val1 = table[index1];
-	float val2 = table[index2];
-	float frac = lookup - (float)index1;
-
-	return val2 + frac * ( val2 - val1 );
-}
-
-#endif
-		
-} // anonymous namespace
-
 float WaveTable2d::lookupBandlimited( float phase, float f0 ) const
 {
 	const float *table = getBandLimitedTable( f0 );
@@ -306,7 +346,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
 {
 	const size_t tableSize = mTableSize;
-	const float samplePeriod = 1.0f / mSampleRate;
+	const float samplePeriod = 1.0f / (float)mSampleRate;
 
 	for( size_t i = 0; i < outputLength; i++ ) {
 		const float f0 = f0Array[i];
@@ -323,7 +363,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 
 // table interpoloation
 
-float WaveTable2d::lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
+float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
 {
 	const float phaseIncr = f0 / (float)mSampleRate;
 	const size_t tableSize = mTableSize;
@@ -340,7 +380,7 @@ float WaveTable2d::lookup( float *outputArray, size_t outputLength, float curren
 	return currentPhase;
 }
 
-float WaveTable2d::lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
+float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
 {
 	const size_t tableSize = mTableSize;
 	const float samplePeriod = 1.0f / mSampleRate;

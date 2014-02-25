@@ -95,7 +95,19 @@ class GenTriangle : public Gen {
 	std::atomic<float> mUpSlope, mDownSlope;
 };
 
-//! General purpose oscillator Gen using wavetable lookup. bandlimited.
+//! Basic table-lookup oscillator. \note aliasing will occur at higher frequencies, in this case refer to GenOscillator which is more robust.
+class GenTable : public Gen {
+  public:
+	GenTable( const Format &format = Format() );
+
+  protected:
+	void initialize() override;
+	void process( Buffer *buffer ) override;
+
+	dsp::WaveTableRef	mWaveTable;
+};
+
+//! General purpose, band-limited oscillator using wavetable lookup.
 class GenOscillator : public Gen {
   public:
 
@@ -112,9 +124,6 @@ class GenOscillator : public Gen {
 
 	GenOscillator( const Format &format = Format() );
 
-	void initialize() override;
-	void process( Buffer *buffer ) override;
-
 	void setWaveform( WaveformType type );
 
 	void setWaveTable( const dsp::WaveTable2dRef &waveTable )	{ mWaveTable = waveTable; }
@@ -124,6 +133,9 @@ class GenOscillator : public Gen {
 	size_t			getTableSize() const		{ return mWaveTable->getTableSize(); }
 
   protected:
+	void initialize() override;
+	void process( Buffer *buffer ) override;
+
 
 	dsp::WaveTable2dRef	mWaveTable;
 	WaveformType			mWaveformType;

@@ -33,19 +33,26 @@ namespace cinder { namespace audio2 { namespace dsp {
 typedef std::shared_ptr<class WaveTable>		WaveTableRef;
 typedef std::shared_ptr<class WaveTable2d>	WaveTable2dRef;
 
-// ???: samplerate needed in WaveTable?
 class WaveTable {
   public:
-	WaveTable( size_t sampleRate, size_t tableSize = 0 );
+	WaveTable( size_t mSampleRate, size_t tableSize );
 
 	void resize( size_t tableSize );
 
-	size_t getSampleRate() const { return mSampleRate; }
+	void fillSine();
+
+	//! \a Does not update data, lookup will be inaccurate until next fill.
+	void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
+	size_t	getSampleRate() const { return mSampleRate; }
+
 	size_t getTableSize() const	{ return mTableSize; }
 
-	void setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
+	float lookup( float phase ) const;
+	float lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
+	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
 
   protected:
+	void		fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 
 	size_t			mSampleRate, mTableSize;
 	BufferDynamic	mBuffer;
@@ -53,14 +60,11 @@ class WaveTable {
 
 class WaveTable2d : public WaveTable {
   public:
-	WaveTable2d( size_t sampleRate, size_t tableSize = 0, size_t numTables = 0 );
+	WaveTable2d( size_t sampleRate, size_t tableSize, size_t numTables );
 
 	//! Adjusts the parameters effecting table size and calculate.
 	//! \note This does not update the data, call fill() afterwards to refresh the table contents.
 	void resize( size_t tableSize, size_t numTables );
-
-	//! \note updating the samplerate will causes the bandlimited calculations to be out of sync. call fill() aftewards.
-	void setSampleRate( size_t sampleRate );
 
 	void fillBandlimited( WaveformType type );
 
@@ -77,7 +81,6 @@ class WaveTable2d : public WaveTable {
   protected:
 	void		calcLimits();
 	void		fillBandLimitedTable( WaveformType type, float *table, size_t numPartials );
-	void		fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 	size_t		getMaxHarmonicsForTable( size_t tableIndex ) const;
 
 	const float*	getBandLimitedTable( float f0 ) const;

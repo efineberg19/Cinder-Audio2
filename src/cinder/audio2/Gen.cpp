@@ -27,6 +27,9 @@
 #include "cinder/audio2/Debug.h"
 #include "cinder/Rand.h"
 
+#define DEFAULT_TABLE_SIZE 4096
+#define DEFAULT_BANDLIMITED_TABLES 40
+
 using namespace std;
 
 namespace cinder { namespace audio2 {
@@ -160,6 +163,34 @@ void GenTriangle::process( Buffer *buffer )
 }
 
 // ----------------------------------------------------------------------------------------------------
+// MARK: - GenTable
+// ----------------------------------------------------------------------------------------------------
+
+GenTable::GenTable( const Format &format )
+	: Gen( format )
+{
+
+}
+
+void GenTable::initialize()
+{
+	Gen::initialize();
+
+	if( ! mWaveTable ) {
+		mWaveTable.reset( new dsp::WaveTable( mSampleRate, DEFAULT_TABLE_SIZE ) );
+		mWaveTable->fillSine();
+	}
+}
+
+void GenTable::process( Buffer *buffer )
+{
+	if( mFreq.eval() )
+		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValueArray() );
+	else
+		mPhase = mWaveTable->lookup( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValue() );
+}
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - GenOscillator
 // ----------------------------------------------------------------------------------------------------
 
@@ -172,14 +203,16 @@ void GenOscillator::initialize()
 {
 	Gen::initialize();
 
+	bool needsFill = false;
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate ) );
-		mWaveTable->fillBandlimited( mWaveformType );
+		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );
+		needsFill = true;
 	}
-	else if( mSampleRate != mWaveTable->getSampleRate() ) {
-		mWaveTable->setSampleRate( mSampleRate );
+	else if( mSampleRate != mWaveTable->getSampleRate() )
+		needsFill = true;
+
+	if( needsFill )
 		mWaveTable->fillBandlimited( mWaveformType );
-	}
 }
 
 void GenOscillator::setWaveform( WaveformType type )
@@ -213,14 +246,16 @@ void GenPulse::initialize()
 
 	mBuffer2.setNumFrames( getContext()->getFramesPerBlock() );
 
+	bool needsFill = false;
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate ) );
-		mWaveTable->fillBandlimited( WaveformType::SAWTOOTH );
+		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );
+		needsFill = true;
 	}
-	else if( mSampleRate != mWaveTable->getSampleRate() ) {
-		mWaveTable->setSampleRate( mSampleRate );
+	else if( mSampleRate != mWaveTable->getSampleRate() )
+		needsFill = true;
+
+	if( needsFill )
 		mWaveTable->fillBandlimited( WaveformType::SAWTOOTH );
-	}
 }
 
 void GenPulse::process( Buffer *buffer )

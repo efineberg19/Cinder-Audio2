@@ -29,6 +29,7 @@ public:
 	void processTap( Vec2i pos );
 	void keyDown( KeyEvent event );
 
+	void setupTable();
 	void setupOsc();
 	void setupPulse();
 
@@ -63,7 +64,8 @@ void WaveTableTestApp::setup()
 	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
 	mScope->setSmoothingFactor( 0 );
 
-	setupOsc();
+	setupTable();
+//	setupOsc();
 //	setupPulse();
 
 	mGen >> mScope >> mGain >> ctx->getOutput();
@@ -71,6 +73,17 @@ void WaveTableTestApp::setup()
 	ctx->printGraph();
 
 	setupUI();
+}
+
+void WaveTableTestApp::setupTable()
+{
+	auto ctx = audio2::Context::master();
+
+	auto gen = ctx->makeNode( new audio2::GenTable );
+	gen->setFreq( 100 );
+	gen->start();
+
+	mGen = gen;
 }
 
 void WaveTableTestApp::setupOsc()
@@ -168,7 +181,7 @@ void WaveTableTestApp::setupUI()
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 30 );
 	mTableSizeInput.mBounds = sliderRect;
 	mTableSizeInput.mTitle = "table size";
-	mTableSizeInput.setValue( mGenOsc->getTableSize() );
+	mTableSizeInput.setValue( mGenOsc ? mGenOsc->getTableSize() : 0 );
 	mWidgets.push_back( &mTableSizeInput );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
