@@ -46,7 +46,7 @@ void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, bool dr
 		float x = bounds.x1;
 		for( size_t i = 0; i < buffer.getNumFrames(); i++ ) {
 			x += xScale;
-			float y = ( channel[i] * 0.5f + 0.5f ) * waveHeight + yOffset;
+			float y = ( 1 - ( channel[i] * 0.5f + 0.5f ) ) * waveHeight + yOffset;
 			waveform.push_back( Vec2f( x, y ) );
 		}
 		gl::draw( waveform );
