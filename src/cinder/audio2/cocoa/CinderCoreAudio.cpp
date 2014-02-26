@@ -90,7 +90,6 @@ pair<size_t, size_t> ConverterImplCoreAudio::convert( const Buffer *sourceBuffer
 	mNumReadFramesNeeded = min( sourceBuffer->getNumFrames(), mSourceMaxFramesPerBlock );
 
 	// debug ensure that destBuffer is large enough
-	size_t minDestBufferSize = mNumReadFramesNeeded * (float)mDestSampleRate / (float)mSourceSampleRate;
 	CI_ASSERT( destBuffer->getNumFrames() >= ( mNumReadFramesNeeded * (float)mDestSampleRate / (float)mSourceSampleRate ) );
 
 	if( mSourceNumChannels <= mDestNumChannels )
