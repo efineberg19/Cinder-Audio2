@@ -188,6 +188,7 @@ bool Param::eval()
 {
 	if( mProcessor ) {
 		mProcessor->pullInputs( &mInternalBuffer );
+		mValue = mInternalBuffer[mInternalBuffer.getNumFrames() - 1]; // TODO: why not add last() ?
 		return true;
 	}
 	else {
