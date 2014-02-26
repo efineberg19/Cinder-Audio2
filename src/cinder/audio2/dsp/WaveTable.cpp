@@ -419,6 +419,13 @@ void WaveTable2d::copyTo( float *array, size_t tableIndex ) const
 	memcpy( array, mBuffer.getChannel( tableIndex ), mTableSize * sizeof( float ) );
 }
 
+void WaveTable2d::copyFrom( const float *array, size_t tableIndex )
+{
+	CI_ASSERT( tableIndex < mNumTables );
+
+	memcpy( mBuffer.getChannel( tableIndex ), array, mTableSize * sizeof( float ) );
+}
+
 void WaveTable2d::calcLimits()
 {
 	mMinMidiRange = toMidi( 20 );

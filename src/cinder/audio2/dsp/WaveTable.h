@@ -76,7 +76,8 @@ class WaveTable2d : public WaveTable {
 	float lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
 	float lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
 
-	void copyTo( float *array, size_t tableIndex = 0 ) const;
+	void copyTo( float *array, size_t tableIndex ) const;
+	void copyFrom( const float *array, size_t tableIndex );
 
 	float calcBandlimitedTableIndex( float f0 ) const;
 
