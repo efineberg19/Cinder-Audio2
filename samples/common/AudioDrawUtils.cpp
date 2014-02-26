@@ -53,8 +53,12 @@ void drawAudioBuffer( const audio2::Buffer &buffer, const Rectf &bounds, bool dr
 		yOffset += waveHeight;
 	}
 
-	if( drawFrame )
+	if( drawFrame ) {
 		gl::drawStrokedRect( bounds );
+
+		gl::color( ColorA( color.r, color.g, color.b, color.a * 0.5f ) );
+		gl::drawLine( Vec2f( bounds.x1, bounds.getCenter().y ), Vec2f( bounds.x2, bounds.getCenter().y ) );
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------
