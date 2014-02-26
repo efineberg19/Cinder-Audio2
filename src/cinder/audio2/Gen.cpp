@@ -24,6 +24,7 @@
 #include "cinder/audio2/Gen.h"
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/dsp/Dsp.h"
+#include "cinder/audio2/Utilities.h"
 #include "cinder/audio2/Debug.h"
 #include "cinder/Rand.h"
 
@@ -71,21 +72,21 @@ void GenSine::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	const size_t count = buffer->getSize();
-	const float phaseMul = float( 2 * M_PI / (double)mSampleRate );
+	const float samplePeriod = float( 1 / (double)mSampleRate );
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
-			data[i] = math<float>::sin( phase );
-			phase = fmodf( phase + freqValues[i] * phaseMul, float( 2 * M_PI ) );
+			data[i] = math<float>::sin( phase * float( 2 * M_PI ) );
+			phase = wrap( phase + freqValues[i] * samplePeriod );
 		}
 	}
 	else {
-		const float phaseIncr = mFreq.getValue() * phaseMul;
+		const float phaseIncr = mFreq.getValue() * samplePeriod;
 		for( size_t i = 0; i < count; i++ ) {
-			data[i] = math<float>::sin( phase );
-			phase = fmodf( phase + phaseIncr, float( 2 * M_PI ) );
+			data[i] = math<float>::sin( phase * float( 2 * M_PI ) );
+			phase = wrap( phase + phaseIncr );
 		}
 	}
 
@@ -100,21 +101,21 @@ void GenPhasor::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	const size_t count = buffer->getSize();
-	const float phaseMul = 1.0f / mSampleRate;
+	const float samplePeriod = 1.0f / mSampleRate;
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = phase;
-			phase = fmodf( phase + freqValues[i] * phaseMul, 1 );
+			phase = wrap( phase + freqValues[i] * samplePeriod );
 		}
 	}
 	else {
-		const float phaseIncr = mFreq.getValue() * phaseMul;
+		const float phaseIncr = mFreq.getValue() * samplePeriod;
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = phase;
-			phase = fmodf( phase + phaseIncr, 1 );
+			phase = wrap( phase + phaseIncr );
 		}
 	}
 
@@ -138,7 +139,7 @@ inline float calcTriangleSignal( float phase, float upSlope, float downSlope )
 
 void GenTriangle::process( Buffer *buffer )
 {
-	const float phaseMul = 1.0f / mSampleRate;
+	const float samplePeriod = 1.0f / mSampleRate;
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
 	float phase = mPhase;
@@ -147,15 +148,15 @@ void GenTriangle::process( Buffer *buffer )
 		float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ )	{
 			data[i] = calcTriangleSignal( phase, mUpSlope, mDownSlope );
-			phase = fmodf( phase + freqValues[i] * phaseMul, 1.0f );
+			phase = wrap( phase + freqValues[i] * samplePeriod );
 		}
 
 	}
 	else {
-		const float phaseIncr = mFreq.getValue() * phaseMul;
+		const float phaseIncr = mFreq.getValue() * samplePeriod;
 		for( size_t i = 0; i < count; i++ )	{
 			data[i] = calcTriangleSignal( phase, mUpSlope, mDownSlope );
-			phase = fmodf( phase + phaseIncr, 1 );
+			phase = wrap( phase + phaseIncr );
 		}
 	}
 
@@ -275,10 +276,10 @@ void GenPulse::process( Buffer *buffer )
 				float f0 = f0Array[i];
 				float phaseIncr = f0 / (float)mSampleRate;
 				float phaseOffset = widthArray[i];
-				float phase2 = fmodf( phase + phaseOffset, 1.0f );
+				float phase2 = wrap( phase + phaseOffset );
 				float phaseCorrect = 1 - 2 * phaseOffset;
 				data2[i] = mWaveTable->lookupBandlimited( phase2, f0 ) - phaseCorrect;
-				phase = fmodf( phase + phaseIncr, 1 );;
+				phase = wrap( phase + phaseIncr );
 			}
 		} else {
 			float f0 = mFreq.getValue();
@@ -287,7 +288,7 @@ void GenPulse::process( Buffer *buffer )
 
 			for( size_t i = 0; i < numFrames; i++ ) {
 				float phaseOffset = widthArray[i];
-				float phase2 = fmodf( phase + phaseOffset, 1.0f );
+				float phase2 = wrap( phase + phaseOffset );
 				float phaseCorrect = 1 - 2 * phaseOffset;
 				data2[i] = mWaveTable->lookupBandlimited( phase2, f0 ) - phaseCorrect;
 				phase += phaseIncr;
@@ -296,7 +297,7 @@ void GenPulse::process( Buffer *buffer )
 	}
 	else {
 		float phaseOffset = mWidth.getValue();
-		float phase2 = fmodf( phase + phaseOffset, 1.0f );
+		float phase2 = wrap( phase + phaseOffset );
 
 		if( mFreq.eval() ) {
 			mPhase = mWaveTable->lookupBandlimited( buffer->getData(), numFrames, phase, mFreq.getValueArray() );

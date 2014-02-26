@@ -48,8 +48,8 @@ class WaveTable {
 	size_t getTableSize() const	{ return mTableSize; }
 
 	float lookup( float phase ) const;
-	float lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const;
-	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const;
+	float lookup( float *outputArray, size_t outputLength, float currentPhase, float freq ) const;
+	float lookup( float *outputArray, size_t outputLength, float currentPhase, const float *freqArray ) const;
 
 	void copyTo( float *array ) const;
 	void copyFrom( const float *array );

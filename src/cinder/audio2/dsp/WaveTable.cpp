@@ -61,7 +61,6 @@ inline float tableLookup( const float *table, size_t tableSize, float phase )
 #else
 
 // linear interpolation, phase range: 0 - 1
-// TODO (optimization): issue phase in range 0 - tableSize
 inline float tableLookup( const float *table, size_t tableSize, float phase )
 {
 	float lookup = phase * tableSize;
@@ -129,31 +128,29 @@ float WaveTable::lookup( float phase ) const
 	return tableLookup( mBuffer.getData(), mTableSize, phase );
 }
 
-float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, float freq ) const
 {
-	const float phaseIncr = f0 / (float)mSampleRate;
+	const float phaseIncr = freq / (float)mSampleRate;
 	const float *table = mBuffer.getData();
 	const size_t tableSize = mTableSize;
 
 	for( size_t i = 0; i < outputLength; i++ ) {
 		outputArray[i] = tableLookup( table, tableSize, currentPhase );
-		currentPhase = fmodf( currentPhase + phaseIncr, 1 );
+		currentPhase = wrap( currentPhase + phaseIncr );
 	}
 
 	return currentPhase;
 }
 
-float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
+float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, const float *freqArray ) const
 {
 	const size_t tableSize = mTableSize;
 	const float samplePeriod = 1.0f / (float)mSampleRate;
 	const float *table = mBuffer.getData();
 
 	for( size_t i = 0; i < outputLength; i++ ) {
-		const float f0 = f0Array[i];
-
 		outputArray[i] = tableLookup( table, tableSize, currentPhase );
-		currentPhase = fmodf( currentPhase + f0 * samplePeriod, 1 );
+		currentPhase = wrap( currentPhase + freqArray[i] * samplePeriod );
 	}
 	
 	return currentPhase;
@@ -279,9 +276,7 @@ size_t WaveTable2d::getMaxHarmonicsForTable( size_t tableIndex ) const
 
 float WaveTable2d::calcBandlimitedTableIndex( float f0 ) const
 {
-	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenOscillator
-
-	const float f0Midi = toMidi( f0 );
+	const float f0Midi = toMidi( fabsf( f0 ) );
 
 	if( f0Midi <= mMinMidiRange )
 		return 0;
@@ -299,12 +294,10 @@ const float* WaveTable2d::getBandLimitedTable( float f0 ) const
 
 std::tuple<const float*, const float*, float> WaveTable2d::getBandLimitedTablesLerp( float f0 ) const
 {
-	CI_ASSERT_MSG( f0 >= 0, "negative frequencies not yet handled" ); // TODO: negate in GenOscillator
-
 	float *table1, *table2;
 	float factor;
 
-	const float f0Midi = toMidi( f0 );
+	const float f0Midi = toMidi( fabsf( f0 ) );
 
 	if( f0Midi <= mMinMidiRange ) {
 		table1 = table2 = const_cast<float *>( mBuffer.getChannel( 0 ) );
@@ -347,7 +340,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 
 	for( size_t i = 0; i < outputLength; i++ ) {
 		outputArray[i] = tableLookup( table, tableSize, currentPhase );
-		currentPhase = fmodf( currentPhase + phaseIncr, 1 );
+		currentPhase = wrap( currentPhase + phaseIncr );
 	}
 
 	return currentPhase;
@@ -363,7 +356,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 		const float *table = getBandLimitedTable( f0 );
 
 		outputArray[i] = tableLookup( table, tableSize, currentPhase );
-		currentPhase = fmodf( currentPhase + f0 * samplePeriod, 1 );
+		currentPhase = wrap( currentPhase + f0 * samplePeriod );
 	}
 
 	return currentPhase;
@@ -384,7 +377,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 		float a = tableLookup( get<0>( tables ), tableSize, currentPhase );
 		float b = tableLookup( get<1>( tables ), tableSize, currentPhase );
 		outputArray[i] = lerp( a, b, get<2>( tables ) );
-		currentPhase = fmodf( currentPhase + phaseIncr, 1 );
+		currentPhase = wrap( currentPhase + phaseIncr );
 	}
 
 	return currentPhase;
@@ -402,7 +395,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 		float a = tableLookup( get<0>( tables ), tableSize, currentPhase );
 		float b = tableLookup( get<1>( tables ), tableSize, currentPhase );
 		outputArray[i] = lerp( a, b, get<2>( tables ) );
-		currentPhase = fmodf( currentPhase + f0 * samplePeriod, 1 );
+		currentPhase = wrap( currentPhase + f0 * samplePeriod );
 	}
 
 	return currentPhase;
