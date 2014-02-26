@@ -30,8 +30,9 @@ public:
 	void keyDown( KeyEvent event );
 
 	void setupTable();
-	void setupOsc();
+	void setupOsc( audio2::WaveformType type );
 	void setupPulse();
+	void setupTriangleCalc();
 
 	audio2::GainRef				mGain;
 	audio2::ScopeSpectralRef	mScope;
@@ -64,8 +65,10 @@ void WaveTableTestApp::setup()
 	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
 	mScope->setSmoothingFactor( 0 );
 
-	setupTable();
-//	setupOsc();
+	mFreqSlider.set( 100 );
+
+	setupOsc( audio2::WaveformType::SINE );
+//	setupTable();
 //	setupPulse();
 
 	mGen >> mScope >> mGain >> ctx->getOutput();
@@ -80,19 +83,18 @@ void WaveTableTestApp::setupTable()
 	auto ctx = audio2::Context::master();
 
 	auto gen = ctx->makeNode( new audio2::GenTable );
-	gen->setFreq( 100 );
+	gen->setFreq( mFreqSlider.mValueScaled );
 	gen->start();
 
 	mGen = gen;
 }
 
-void WaveTableTestApp::setupOsc()
+void WaveTableTestApp::setupOsc( audio2::WaveformType type )
 {
 	auto ctx = audio2::Context::master();
 
-//	mGenOsc = ctx->makeNode( new audio2::GenOscillator );
-	mGenOsc = ctx->makeNode( new audio2::GenOscillator( audio2::GenOscillator::Format().waveform( audio2::WaveformType::SAWTOOTH ) ) );
-	mGenOsc->setFreq( 100 );
+	mGenOsc = ctx->makeNode( new audio2::GenOscillator( audio2::GenOscillator::Format().waveform( type ) ) );
+	mGenOsc->setFreq( mFreqSlider.mValueScaled );
 	mGenOsc->start();
 
 	mGen = mGenOsc;
@@ -121,8 +123,13 @@ void WaveTableTestApp::setupPulse()
 	vector<float> table( mod->getWaveTable()->getTableSize() );
 
 	mod->getWaveTable()->copyTo( table.data() );
-	audio2::dsp::mul( table.data(), 0.3f, table.data(), table.size() );
+
+	// scale to [0.05 : 0.95]
+	audio2::dsp::mul( table.data(), 0.45f, table.data(), table.size() );
 	audio2::dsp::add( table.data(), 0.5f, table.data(), table.size() );
+
+//	mTableCopy.setNumFrames( table.size() );
+//	memmove( mTableCopy.getData(), table.data(), table.size() * sizeof( float ) );
 
 	mod->getWaveTable()->copyFrom( table.data() );
 	mod->setFreq( 0.6f );
@@ -134,6 +141,18 @@ void WaveTableTestApp::setupPulse()
 	audio2::Context::master()->printGraph();
 }
 
+// for comparison with GenOscillator's triangle spectra
+void WaveTableTestApp::setupTriangleCalc()
+{
+	auto ctx = audio2::Context::master();
+
+	auto gen = ctx->makeNode( new audio2::GenTriangle );
+	gen->setFreq( mFreqSlider.mValueScaled );
+	gen->start();
+
+	mGen = gen;
+}
+
 void WaveTableTestApp::setupUI()
 {
 	Rectf buttonRect( (float)getWindowWidth() - 200, 10, (float)getWindowWidth(), 60 );
@@ -142,20 +161,20 @@ void WaveTableTestApp::setupUI()
 	mWidgets.push_back( &mPlayButton );
 
 	mTestSelector.mSegments.push_back( "sine" );
-	mTestSelector.mSegments.push_back( "sawtooth" );
 	mTestSelector.mSegments.push_back( "square" );
+	mTestSelector.mSegments.push_back( "sawtooth" );
 	mTestSelector.mSegments.push_back( "triangle" );
 	mTestSelector.mSegments.push_back( "pulse" );
-	mTestSelector.mSegments.push_back( "user" );
+	mTestSelector.mSegments.push_back( "sine (table)" );
+	mTestSelector.mSegments.push_back( "triangle (calc)" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() - 200, buttonRect.y2 + 10, (float)getWindowWidth(), buttonRect.y2 + 190 );
 	mWidgets.push_back( &mTestSelector );
 
 	// freq slider is longer, along top
 	mFreqSlider.mBounds = Rectf( 10, 10, getWindowWidth() - 210, 40 );
 	mFreqSlider.mTitle = "freq";
+	mFreqSlider.mMin = -220;
 	mFreqSlider.mMax = 5000;
-//	mFreqSlider.mMin = 400;
-//	mFreqSlider.mMax = 500;
 
 	mFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mFreqSlider );
@@ -172,8 +191,9 @@ void WaveTableTestApp::setupUI()
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mFreqRampSlider.mBounds = sliderRect;
 	mFreqRampSlider.mTitle = "freq ramp";
+	mFreqRampSlider.mMin = -5;
 	mFreqRampSlider.mMax = 10;
-	mFreqRampSlider.set( 4.00f );
+	mFreqRampSlider.set( 1.00f );
 	mWidgets.push_back( &mFreqRampSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
@@ -215,6 +235,9 @@ void WaveTableTestApp::processDrag( Vec2i pos )
 	else if( mFreqSlider.hitTest( pos ) )
 		mGen->getParamFreq()->applyRamp( mFreqSlider.mValueScaled, mFreqRampSlider.mValueScaled );
 	else if( mFreqRampSlider.hitTest( pos ) ) {
+		float val = mFreqRampSlider.mValueScaled;
+		float wrapped = audio2::wrap( val );
+		LOG_V( "val: " << val << ", wrapped: " << wrapped );
 	}
 	else if( mGenPulse && mPulseWidthSlider.hitTest( pos ) ) {
 //		mGenPulse->setWidth( mPulseWidthSlider.mValueScaled );
@@ -238,18 +261,24 @@ void WaveTableTestApp::processTap( Vec2i pos )
 		string currentTest = mTestSelector.currentSection();
 		LOG_V( "selected: " << currentTest );
 
+		mScope->disconnectAllInputs();
+
 		if( currentTest == "sine" )
-			mGenOsc->setWaveform( audio2::WaveformType::SINE );
+			setupOsc( audio2::WaveformType::SINE );
 		else if( currentTest == "square" )
-			mGenOsc->setWaveform( audio2::WaveformType::SQUARE );
+			setupOsc( audio2::WaveformType::SQUARE );
 		else if( currentTest == "sawtooth" )
-			mGenOsc->setWaveform( audio2::WaveformType::SAWTOOTH );
+			setupOsc( audio2::WaveformType::SAWTOOTH );
 		else if( currentTest == "triangle" )
-			mGenOsc->setWaveform( audio2::WaveformType::TRIANGLE );
+			setupOsc( audio2::WaveformType::TRIANGLE );
 		else if( currentTest == "pulse" )
 			setupPulse();
+		else if( currentTest == "sine (table)" )
+			setupTable();
+		else if( currentTest == "triangle (calc)" )
+			setupTriangleCalc();
 
-//		mGenOsc->getWaveTable()->copyTo( mTableCopy.getData() );
+		mGen >> mScope;
 	}
 	else
 		processDrag( pos );
@@ -287,6 +316,8 @@ void WaveTableTestApp::update()
 	}
 	if( mGenPulse )
 		mPulseWidthSlider.set( mGenPulse->getWidth() );
+
+	mFreqSlider.set( mGen->getFreq() );
 }
 
 void WaveTableTestApp::draw()

@@ -3,7 +3,7 @@
 #include "cinder/Rand.h"
 #include "cinder/Timeline.h"
 
-#include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/Gen.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Filter.h"
 #include "cinder/audio2/Target.h"
@@ -11,8 +11,6 @@
 #include "cinder/audio2/Debug.h"
 
 #include "../../common/AudioTestGui.h"
-
-// FIXME: delay test froze UI
 
 using namespace ci;
 using namespace ci::app;
@@ -54,19 +52,14 @@ class ParamTestApp : public AppNative {
 
 void ParamTestApp::setup()
 {
-	// TODO: ask afb his thoughs about this..
-//	Anim<Vec2f> pos = Vec2f( 1, 1 );
-//	timeline().apply( &pos, Vec2f::zero(), 1, EaseInQuad() );
-//	timeline().appendRamp( &pos, Vec2f( 10, 20 ), 2 ); // ???: Tween's mStartValue = (1,1) here?
-
 	auto ctx = audio2::Context::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.8f );
 
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 
-//	mGen = ctx->makeNode( new audio2::GenSine() );
-	mGen = ctx->makeNode( new audio2::GenTriangle() );
+	mGen = ctx->makeNode( new audio2::GenSine() );
+//	mGen = ctx->makeNode( new audio2::GenTriangle() );
 //	mGen = ctx->makeNode( new audio2::GenPhasor() );
 
 	mGen->setFreq( 220 );
@@ -219,7 +212,7 @@ void ParamTestApp::setupUI()
 	sliderRect += Vec2f( 0.0f, sliderRect.getHeight() + 10.0f );
 	mGenFreqSlider.mBounds = sliderRect;
 	mGenFreqSlider.mTitle = "Gen Freq";
-	mGenFreqSlider.mMin = 0.0f;
+	mGenFreqSlider.mMin = -200.0f;
 	mGenFreqSlider.mMax = 1200.0f;
 	mGenFreqSlider.set( mGen->getFreq() );
 	mWidgets.push_back( &mGenFreqSlider );

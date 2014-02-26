@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cinder/audio2/Buffer.h"
+#include "cinder/audio2/dsp/Converter.h"
 #include "utils.h"
 
 BOOST_AUTO_TEST_SUITE( test_buffer )
@@ -43,7 +44,7 @@ BOOST_AUTO_TEST_CASE( test_interleave_out_of_place )
 	nonInterleaved[6] = 22;
 	nonInterleaved[7] = 23;
 
-	interleaveStereoBuffer( &nonInterleaved, &interleaved );
+	dsp::interleaveStereoBuffer( &nonInterleaved, &interleaved );
 
     BOOST_CHECK_EQUAL( interleaved[0], 10 );
     BOOST_CHECK_EQUAL( interleaved[1], 20 );
@@ -54,7 +55,7 @@ BOOST_AUTO_TEST_CASE( test_interleave_out_of_place )
     BOOST_CHECK_EQUAL( interleaved[6], 13 );
     BOOST_CHECK_EQUAL( interleaved[7], 23 );
 
-	deinterleaveStereoBuffer( &interleaved, &nonInterleaved );
+	dsp::deinterleaveStereoBuffer( &interleaved, &nonInterleaved );
 
 	BOOST_CHECK_EQUAL( nonInterleaved[0], 10 );
     BOOST_CHECK_EQUAL( nonInterleaved[1], 11 );
@@ -80,7 +81,7 @@ BOOST_AUTO_TEST_CASE( test_mismatched_deinterleave )
 	interleaved[6] = 13;
 	interleaved[7] = 23;
 
-	deinterleaveStereoBuffer( &interleaved, &nonInterleaved );
+	dsp::deinterleaveStereoBuffer( &interleaved, &nonInterleaved );
 
 	BOOST_CHECK_EQUAL( nonInterleaved[0], 10 );
     BOOST_CHECK_EQUAL( nonInterleaved[1], 11 );
@@ -104,7 +105,7 @@ BOOST_AUTO_TEST_CASE( test_mismatched_interleave )
 	nonInterleaved[6] = 22;
 	nonInterleaved[7] = 23;
 
-	interleaveStereoBuffer( &nonInterleaved, &interleaved );
+	dsp::interleaveStereoBuffer( &nonInterleaved, &interleaved );
 
     BOOST_CHECK_EQUAL( interleaved[0], 10 );
     BOOST_CHECK_EQUAL( interleaved[1], 20 );

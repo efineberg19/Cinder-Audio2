@@ -2,7 +2,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Utilities.h"
 
-
+#include "cinder/audio2/Gen.h"
 #include "cinder/audio2/Scope.h"
 #include "cinder/audio2/SamplePlayer.h"
 #include "cinder/audio2/Debug.h"

@@ -2,7 +2,7 @@
 #include "cinder/gl/gl.h"
 
 
-#include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/Gen.h"
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 

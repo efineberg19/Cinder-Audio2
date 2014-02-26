@@ -41,7 +41,7 @@ public:
 
 	audio2::GainRef				mGain;
 	audio2::ScopeSpectralRef	mScope;
-	audio2::dsp::WaveTableRef	mWaveTable;
+	audio2::dsp::WaveTable2dRef	mWaveTable;
 	vector<audio2::GenRef>		mGenBank;
 
 	vector<TestWidget *>	mWidgets;
