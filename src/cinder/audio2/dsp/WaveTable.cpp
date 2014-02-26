@@ -84,8 +84,17 @@ namespace cinder { namespace audio2 { namespace dsp {
 // ----------------------------------------------------------------------------------------------------
 
 WaveTable::WaveTable( size_t sampleRate, size_t tableSize )
-	:  mSampleRate( sampleRate ), mTableSize( tableSize )
+	: mTableSize( tableSize )
 {
+	setSampleRate( sampleRate );
+}
+
+void WaveTable::setSampleRate( size_t sampleRate )
+{
+	CI_ASSERT( sampleRate );
+
+	mSampleRate = sampleRate;
+	mSamplePeriod = 1.0f / (float)sampleRate;
 }
 
 void WaveTable::resize( size_t tableSize )
@@ -130,7 +139,7 @@ float WaveTable::lookup( float phase ) const
 
 float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, float freq ) const
 {
-	const float phaseIncr = freq / (float)mSampleRate;
+	const float phaseIncr = freq * mSamplePeriod;
 	const float *table = mBuffer.getData();
 	const size_t tableSize = mTableSize;
 
@@ -145,7 +154,7 @@ float WaveTable::lookup( float *outputArray, size_t outputLength, float currentP
 float WaveTable::lookup( float *outputArray, size_t outputLength, float currentPhase, const float *freqArray ) const
 {
 	const size_t tableSize = mTableSize;
-	const float samplePeriod = 1.0f / (float)mSampleRate;
+	const float samplePeriod = mSamplePeriod;
 	const float *table = mBuffer.getData();
 
 	for( size_t i = 0; i < outputLength; i++ ) {
@@ -263,7 +272,7 @@ void WaveTable2d::fillBandLimitedTable( WaveformType type, float *table, size_t 
 
 size_t WaveTable2d::getMaxHarmonicsForTable( size_t tableIndex ) const
 {
-	const float nyquist = (float)mSampleRate / 2.0f;
+	const float nyquist = (float)mSampleRate * 0.5f;
 	const float midiRangePerTable = ( mMaxMidiRange - mMinMidiRange ) / ( mNumTables - 1 );
 	const float maxMidi = mMinMidiRange + tableIndex * midiRangePerTable;
 	const float maxF0 = toFreq( maxMidi );
@@ -334,7 +343,7 @@ float WaveTable2d::lookupBandlimited( float phase, float f0 ) const
 
 float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
 {
-	const float phaseIncr = f0 / (float)mSampleRate;
+	const float phaseIncr = f0 * mSamplePeriod;
 	const float *table = getBandLimitedTable( f0 );
 	const size_t tableSize = mTableSize;
 
@@ -349,7 +358,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
 {
 	const size_t tableSize = mTableSize;
-	const float samplePeriod = 1.0f / (float)mSampleRate;
+	const float samplePeriod = mSamplePeriod;
 
 	for( size_t i = 0; i < outputLength; i++ ) {
 		const float f0 = f0Array[i];
@@ -368,7 +377,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 
 float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, float f0 ) const
 {
-	const float phaseIncr = f0 / (float)mSampleRate;
+	const float phaseIncr = f0 * mSamplePeriod;
 	const size_t tableSize = mTableSize;
 	auto tables = getBandLimitedTablesLerp( f0 );
 
@@ -386,7 +395,7 @@ float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, f
 float WaveTable2d::lookupBandlimited( float *outputArray, size_t outputLength, float currentPhase, const float *f0Array ) const
 {
 	const size_t tableSize = mTableSize;
-	const float samplePeriod = 1.0f / mSampleRate;
+	const float samplePeriod = mSamplePeriod;
 
 	for( size_t i = 0; i < outputLength; i++ ) {
 		const float f0 = f0Array[i];

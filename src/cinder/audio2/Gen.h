@@ -45,7 +45,7 @@ class Gen : public NodeInput {
 	Param* getParamFreq()			{ return &mFreq; }
 
   protected:
-	float mSampleRate;
+	float mSamplePeriod;
 
 	Param mFreq;
 	float mPhase;
@@ -149,9 +149,11 @@ class GenPulse : public Gen {
   public:
 	GenPulse( const Format &format = Format() );
 
+	//! Set the pulse width (aka 'duty cycle'). Expected range is between [0:1] (default = 0.5, creating a square wave).
 	void			setWidth( float width )	{ mWidth.setValue( width ); }
+	//! Get the current pulse width. \see setWidth()
 	float			getWidth() const		{ return mWidth.getValue(); }
-
+	//! Returns the Param associated with the width (aka 'duty cycle').  Expected range is between [0:1].
 	Param* getParamWidth()			{ return &mWidth; }
 
   protected:

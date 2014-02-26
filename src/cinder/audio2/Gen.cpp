@@ -48,7 +48,7 @@ Gen::Gen( const Format &format )
 
 void Gen::initialize()
 {
-	mSampleRate = (float)getContext()->getSampleRate();
+	mSamplePeriod = 1.0f / (float)getContext()->getSampleRate();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ void GenSine::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	const size_t count = buffer->getSize();
-	const float samplePeriod = float( 1 / (double)mSampleRate );
+	const float samplePeriod = mSamplePeriod;
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
@@ -101,7 +101,7 @@ void GenPhasor::process( Buffer *buffer )
 {
 	float *data = buffer->getData();
 	const size_t count = buffer->getSize();
-	const float samplePeriod = 1.0f / mSampleRate;
+	const float samplePeriod = mSamplePeriod;
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
@@ -139,9 +139,9 @@ inline float calcTriangleSignal( float phase, float upSlope, float downSlope )
 
 void GenTriangle::process( Buffer *buffer )
 {
-	const float samplePeriod = 1.0f / mSampleRate;
 	float *data = buffer->getData();
 	size_t count = buffer->getSize();
+	const float samplePeriod = mSamplePeriod;
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
@@ -170,7 +170,6 @@ void GenTriangle::process( Buffer *buffer )
 GenTable::GenTable( const Format &format )
 	: Gen( format )
 {
-
 }
 
 void GenTable::initialize()
@@ -178,7 +177,7 @@ void GenTable::initialize()
 	Gen::initialize();
 
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable( mSampleRate, DEFAULT_TABLE_SIZE ) );
+		mWaveTable.reset( new dsp::WaveTable( getContext()->getSampleRate(), DEFAULT_TABLE_SIZE ) );
 		mWaveTable->fillSine();
 	}
 }
@@ -204,12 +203,13 @@ void GenOscillator::initialize()
 {
 	Gen::initialize();
 
+	size_t sampleRate = getContext()->getSampleRate();
 	bool needsFill = false;
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );
+		mWaveTable.reset( new dsp::WaveTable2d( sampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );
 		needsFill = true;
 	}
-	else if( mSampleRate != mWaveTable->getSampleRate() )
+	else if( sampleRate != mWaveTable->getSampleRate() )
 		needsFill = true;
 
 	if( needsFill )
@@ -247,12 +247,13 @@ void GenPulse::initialize()
 
 	mBuffer2.setNumFrames( getContext()->getFramesPerBlock() );
 
+	size_t sampleRate = getContext()->getSampleRate();
 	bool needsFill = false;
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable2d( mSampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );
+		mWaveTable.reset( new dsp::WaveTable2d( sampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );
 		needsFill = true;
 	}
-	else if( mSampleRate != mWaveTable->getSampleRate() )
+	else if( sampleRate != mWaveTable->getSampleRate() )
 		needsFill = true;
 
 	if( needsFill )
@@ -261,8 +262,9 @@ void GenPulse::initialize()
 
 void GenPulse::process( Buffer *buffer )
 {
-	float phase = mPhase;
 	size_t numFrames = buffer->getNumFrames();
+	const float samplePeriod = mSamplePeriod;
+	float phase = mPhase;
 
 	if( mWidth.eval() ) {
 		float *data2 = mBuffer2.getData();
@@ -274,7 +276,7 @@ void GenPulse::process( Buffer *buffer )
 
 			for( size_t i = 0; i < numFrames; i++ ) {
 				float f0 = f0Array[i];
-				float phaseIncr = f0 / (float)mSampleRate;
+				float phaseIncr = f0 * samplePeriod;
 				float phaseOffset = widthArray[i];
 				float phase2 = wrap( phase + phaseOffset );
 				float phaseCorrect = 1 - 2 * phaseOffset;
@@ -283,7 +285,7 @@ void GenPulse::process( Buffer *buffer )
 			}
 		} else {
 			float f0 = mFreq.getValue();
-			float phaseIncr = f0 / (float)mSampleRate;
+			float phaseIncr = f0 * samplePeriod;
 			mPhase = mWaveTable->lookupBandlimited( buffer->getData(), numFrames, phase, f0 );
 
 			for( size_t i = 0; i < numFrames; i++ ) {

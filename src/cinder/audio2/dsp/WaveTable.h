@@ -42,7 +42,7 @@ class WaveTable {
 	void fillSine();
 
 	//! \a Does not update data, lookup will be inaccurate until next fill.
-	void	setSampleRate( size_t sampleRate )	{ mSampleRate = sampleRate; }
+	void	setSampleRate( size_t sampleRate );
 	size_t	getSampleRate() const { return mSampleRate; }
 
 	size_t getTableSize() const	{ return mTableSize; }
@@ -58,6 +58,7 @@ class WaveTable {
 	void		fillSinesum( float *array, size_t length, const std::vector<float> &partialCoeffs );
 
 	size_t			mSampleRate, mTableSize;
+	float			mSamplePeriod;
 	BufferDynamic	mBuffer;
 };
 
