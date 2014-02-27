@@ -72,6 +72,12 @@ void add( const float *arrayA, const float *arrayB, float *result, size_t length
 	vDSP_vadd( arrayA, 1, arrayB, 1, result, 1, length );
 }
 
+void sub( const float *array, float scalar, float *result, size_t length )
+{
+	scalar *= -1;
+	vDSP_vsadd( array, 1, &scalar, result, 1, length );
+}
+
 void sub( const float *arrayA, const float *arrayB, float *result, size_t length )
 {
 	vDSP_vsub( arrayB, 1, arrayA, 1, result, 1, length );
@@ -140,10 +146,28 @@ float sum( const float *array, size_t length )
 	return result;
 }
 
+void add( const float *array, float scalar, float *result, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		result[i] = array[i] + scalar;
+}
+
 void add( const float *arrayA, const float *arrayB, float *result, size_t length )
 {
 	for( size_t i = 0; i < length; i++ )
 		result[i] = arrayA[i] + arrayB[i];
+}
+
+void sub( const float *array, float scalar, float *result, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		result[i] = array[i] - scalar;
+}
+
+void sub( const float *arrayA, const float *arrayB, float *result, size_t length )
+{
+	for( size_t i = 0; i < length; i++ )
+		result[i] = arrayA[i] - arrayB[i];
 }
 
 float rms( const float *array, size_t length )
@@ -202,7 +226,7 @@ void divide( const float *array, float scalar, float *result, size_t length )
 	mul( array, 1 / scalar, result, length );
 }
 
-void normalize( float *array, float length, float maxValue )
+void normalize( float *array, size_t length, float maxValue )
 {
 	float max = 0;
 	for( size_t i = 0; i < length; i++ ) {

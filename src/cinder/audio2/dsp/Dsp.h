@@ -55,10 +55,12 @@ enum WindowType {
 void generateWindow( WindowType windowType, float *window, size_t length );
 //! fills \a array with value \a value
 void fill( float value, float *array, size_t length );
-//! add \a length elements of \a arrayA and \a arrayB (element-wise) into \a result.
+//! add \a scalar to \a array of length \a length, into \a result.
 void add( const float *array, float scalar, float *result, size_t length );
 //! add \a length elements of \a arrayA and \a arrayB (element-wise) into \a result.
 void add( const float *arrayA, const float *arrayB, float *result, size_t length );
+//! subtract \a scalar from \a array of length \a length, into \a result.
+void sub( const float *array, float scalar, float *result, size_t length );
 //! subtract \a length elements of \a arrayB from \a arrayA (element-wise) into \a result.
 void sub( const float *arrayA, const float *arrayB, float *result, size_t length );
 //! multiplies \a length elements of \a array by \a scalar and leaves the result at \a result.
@@ -74,6 +76,6 @@ float sum( const float *array, size_t length );
 //! returns the Root-Mean-Squared value of \a array
 float rms( const float *array, size_t length );
 //! normalizes \a array to \a maxValue (default = 1)
-void normalize( float *array, float length, float maxValue = 1 );
+void normalize( float *array, size_t length, float maxValue = 1 );
 
 } } } // namespace cinder::audio2::dsp
