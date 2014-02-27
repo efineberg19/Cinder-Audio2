@@ -100,7 +100,7 @@ class Param {
 	float	getValue() const	{ return mValue; }
 	//! Returns a pointer to the buffer used when evaluating a Param that is varying over the current processing block, of equal size to the owning Context's frames per block.
 	//! \note If not varying (eval() returns false), the returned pointer will be invalid.
-	float*	getValueArray();
+	const float*	getValueArray() const;
 
 	//! Replaces any existing Ramp's with a Ramp from the current value to \a valueEnd over \a rampSeconds, according to \a options. Any existing processing Node is disconnected.
 	RampRef applyRamp( float valueEnd, float rampSeconds, const Options &options = Options() );

@@ -76,7 +76,7 @@ void GenSine::process( Buffer *buffer )
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
-		float *freqValues = mFreq.getValueArray();
+		const float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = math<float>::sin( phase * float( 2 * M_PI ) );
 			phase = wrap( phase + freqValues[i] * samplePeriod );
@@ -105,7 +105,7 @@ void GenPhasor::process( Buffer *buffer )
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
-		float *freqValues = mFreq.getValueArray();
+		const float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ ) {
 			data[i] = phase;
 			phase = wrap( phase + freqValues[i] * samplePeriod );
@@ -145,7 +145,7 @@ void GenTriangle::process( Buffer *buffer )
 	float phase = mPhase;
 
 	if( mFreq.eval() ) {
-		float *freqValues = mFreq.getValueArray();
+		const float *freqValues = mFreq.getValueArray();
 		for( size_t i = 0; i < count; i++ )	{
 			data[i] = calcTriangleSignal( phase, mUpSlope, mDownSlope );
 			phase = wrap( phase + freqValues[i] * samplePeriod );
@@ -268,10 +268,10 @@ void GenPulse::process( Buffer *buffer )
 
 	if( mWidth.eval() ) {
 		float *data2 = mBuffer2.getData();
-		float *widthArray = mWidth.getValueArray();
+		const float *widthArray = mWidth.getValueArray();
 
 		if( mFreq.eval() ) {
-			float *f0Array = mFreq.getValueArray();
+			const float *f0Array = mFreq.getValueArray();
 			mPhase = mWaveTable->lookupBandlimited( buffer->getData(), numFrames, phase, f0Array );
 
 			for( size_t i = 0; i < numFrames; i++ ) {

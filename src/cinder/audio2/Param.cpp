@@ -177,7 +177,7 @@ pair<float, float> Param::findEndTimeAndValue() const
 	}
 }
 
-float* Param::getValueArray()
+const float* Param::getValueArray() const
 {
 	CI_ASSERT( ! mInternalBuffer.isEmpty() );
 
