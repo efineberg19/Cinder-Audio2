@@ -75,10 +75,10 @@ class Scope : public NodeAutoPullable {
 	//! Compute the average (RMS) volume across \a channel
 	float getVolume( size_t channel );
 
-	virtual void initialize() override;
-	virtual void process( Buffer *buffer ) override;
-
   protected:
+	void initialize()				override;
+	void process( Buffer *buffer )	override;
+
 	//! Copies audio frames from the RingBuffer into mCopiedBuffer, which is suitable for operation on the main thread.
 	void fillCopiedBuffer();
 	
@@ -113,8 +113,6 @@ class ScopeSpectral : public Scope {
 	ScopeSpectral( const Format &format = Format() );
 	virtual ~ScopeSpectral();
 
-	virtual void initialize() override;
-
 	//! Returns the magnitude spectrum of the currently sampled audio stream, suitable for consuming on the main UI thread.
 	const	std::vector<float>& getMagSpectrum();
 	//! Returns the number of frequency bins in the analyzed magnitude spectrum. Equivilant to fftSize / 2.
@@ -127,6 +125,9 @@ class ScopeSpectral : public Scope {
 	float	getSmoothingFactor() const		{ return mSmoothingFactor; }
 	//! Sets the factor (0 - 1, default = 0.5) used when smoothing the magnitude spectrum between sequential calls to getMagSpectrum()
 	void	setSmoothingFactor( float factor );
+
+  protected:
+	void initialize() override;
 
   private:
 	std::unique_ptr<dsp::Fft>	mFft;

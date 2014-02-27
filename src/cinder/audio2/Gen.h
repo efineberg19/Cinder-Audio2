@@ -37,14 +37,14 @@ class Gen : public NodeInput {
   public:
 	Gen( const Format &format = Format() );
 
-	void initialize() override;
-
 	void setFreq( float freq )		{ mFreq.setValue( freq ); }
 	float getFreq() const			{ return mFreq.getValue(); }
 
 	Param* getParamFreq()			{ return &mFreq; }
 
   protected:
+	void initialize() override;
+
 	float mSamplePeriod;
 
 	Param mFreq;
@@ -56,6 +56,7 @@ class GenNoise : public Gen {
   public:
 	GenNoise( const Format &format = Format() ) : Gen( format ) {}
 
+  protected:
 	void process( Buffer *buffer ) override;
 };
 
@@ -65,6 +66,7 @@ class GenPhasor : public Gen {
 	GenPhasor( const Format &format = Format() ) : Gen( format )
 	{}
 
+  protected:
 	void process( Buffer *buffer ) override;
 };
 
@@ -74,6 +76,7 @@ class GenSine : public Gen {
 	GenSine( const Format &format = Format() ) : Gen( format )
 	{}
 
+  protected:
 	void process( Buffer *buffer ) override;
 };
 
@@ -89,6 +92,7 @@ class GenTriangle : public Gen {
 	float getUpSlope() const		{ return mUpSlope; }
 	float getDownSlope() const		{ return mDownSlope; }
 
+  protected:
 	void process( Buffer *buffer ) override;
 
   private:
@@ -104,8 +108,8 @@ class GenTable : public Gen {
 	const dsp::WaveTableRef&	getWaveTable()	{ return mWaveTable; }
 
   protected:
-	void initialize() override;
-	void process( Buffer *buffer ) override;
+	void initialize()				override;
+	void process( Buffer *buffer )	override;
 
 	dsp::WaveTableRef	mWaveTable;
 };

@@ -37,18 +37,16 @@ class LineInWasapi : public LineIn {
 	LineInWasapi( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineInWasapi();
 
-	std::string virtual getName()				{ return "LineInWasapi"; }
-
-	void initialize() override;
-	void uninitialize() override;
-
 	void start() override;
 	void stop() override;
 
-	uint64_t getLastUnderrun() override;
-	uint64_t getLastOverrun() override;
+	uint64_t getLastUnderrun()		override;
+	uint64_t getLastOverrun()		override;
 
-	void process( Buffer *buffer ) override;
+  protected:
+	void initialize()				override;
+	void uninitialize()				override;
+	void process( Buffer *buffer )	override;
 
   private:
 

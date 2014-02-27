@@ -108,7 +108,6 @@ class BufferPlayer : public SamplePlayer {
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void seek( size_t readPositionFrames ) override;
-	virtual void process( Buffer *buffer ) override;
 
 	//! Loads and stores a reference to a Buffer created from the entire contents of \a sourceFile.
 	void loadBuffer( const SourceFileRef &sourceFile );
@@ -117,6 +116,8 @@ class BufferPlayer : public SamplePlayer {
 	const BufferRef& getBuffer() const	{ return mBuffer; }
 
   protected:
+	virtual void process( Buffer *buffer )	override;
+
 	BufferRef mBuffer;
 };
 
@@ -127,13 +128,9 @@ class FilePlayer : public SamplePlayer {
 	FilePlayer( const SourceFileRef &sourceFile, bool isReadAsync = true, const Format &format = Node::Format() );
 	virtual ~FilePlayer();
 
-	void initialize() override;
-	void uninitialize() override;
-
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void seek( size_t readPositionFrames ) override;
-	virtual void process( Buffer *buffer ) override;
 
 	bool isReadAsync() const	{ return mIsReadAsync; }
 
@@ -147,6 +144,10 @@ class FilePlayer : public SamplePlayer {
 	uint64_t getLastOverrun();
 
   protected:
+	void initialize()				override;
+	void uninitialize()				override;
+	void process( Buffer *buffer )	override;
+
 	void readAsyncImpl();
 	void readImpl();
 	void seekImpl( size_t readPos );

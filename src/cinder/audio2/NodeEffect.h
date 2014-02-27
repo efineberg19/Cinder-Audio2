@@ -48,8 +48,6 @@ class Gain : public NodeEffect {
 	Gain( float initialValue, const Format &format = Format() );
 	virtual ~Gain() {}
 
-	void process( Buffer *buffer ) override;
-
 	void setValue( float linear )	{ mParam.setValue( ci::math<float>::clamp( linear, mMin, mMax ) ); }
 	float getValue() const			{ return mParam.getValue(); }
 
@@ -59,6 +57,9 @@ class Gain : public NodeEffect {
 	float getMin() const			{ return mMin; }
 	void setMax( float max )		{ mMax = max; }
 	float getMax() const			{ return mMax; }
+
+  protected:
+	void process( Buffer *buffer ) override;
 
   private:
 	Param				mParam;
@@ -72,13 +73,6 @@ class Pan2d : public NodeEffect {
 	Pan2d( const Format &format = Format() );
 	virtual ~Pan2d() {}
 
-//	//! Overridden to handle mono input without upmixing
-//	bool supportsInputNumChannels( size_t numChannels ) override;
-//	//! Overridden to handle mono input without upmixing
-//	void pullInputs( Buffer *destBuffer ) override;
-
-	void process( Buffer *buffer ) override;
-
 	//! Sets the panning position in range of [0:1]: 0 = left, 1 = right, and 0.5 = center.
 	void setPos( float pos );
 	//! Gets the current
@@ -86,6 +80,14 @@ class Pan2d : public NodeEffect {
 
 	void enableMonoInputMode( bool enable = true )	{ mMonoInputMode = enable; }
 	bool isMonoInputModeEnabled() const				{ return mMonoInputMode; }
+
+protected:
+	void process( Buffer *buffer ) override;
+
+//	//! Overridden to handle mono input without upmixing
+//	bool supportsInputNumChannels( size_t numChannels ) override;
+//	//! Overridden to handle mono input without upmixing
+//	void pullInputs( Buffer *destBuffer ) override;
 
   private:
 	std::atomic<float>	mPos;

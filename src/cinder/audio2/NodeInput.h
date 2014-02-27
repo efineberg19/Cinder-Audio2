@@ -74,6 +74,7 @@ class CallbackProcessor : public NodeInput {
 	CallbackProcessor( const CallbackProcessorFn &callbackFn, const Format &format = Format() ) : NodeInput( format ), mCallbackFn( callbackFn ) {}
 	virtual ~CallbackProcessor() {}
 
+  protected:
 	void process( Buffer *buffer ) override;
 
   private:

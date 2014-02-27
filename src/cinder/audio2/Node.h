@@ -84,10 +84,6 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 
 	virtual ~Node();
 
-	//! Called before audio buffers need to be used. There is always a valid Context at this point.
-	virtual void initialize()	{}
-	//! Called once the contents of initialize are no longer relevant, i.e. connections have changed. \note Not guaranteed to be called at Node destruction.
-	virtual void uninitialize()	{}
 	//! Enables this Node for processing. Same as setEnabled( true ).
 	virtual void start()		{ mEnabled = true; }
 	//! Disables this Node for processing. Same as setEnabled( false ).
@@ -137,13 +133,6 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	//! Returns whether this Node is automatically enabled / disabled when connected
 	bool	isAutoEnabled() const				{ return mAutoEnabled; }
 
-	//! Default implementation returns true if numChannels match our format
-	virtual bool supportsInputNumChannels( size_t numChannels )	{ return mNumChannels == numChannels; }
-	//! Override to perform custom processing on \t buffer
-	virtual void process( Buffer *buffer )	{}
-	//! Called prior to process(), override to control how this Node manages input channel mixing, summing and / or processing. The processed samples must eventually be in \t destBuffer (will be used in-place if possible).
-	virtual void pullInputs( Buffer *destBuffer );
-
 	// TODO: consider doing custom iterators and hiding these container types
 	InputsContainerT&			getInputs()				{ return mInputs; }
 	const InputsContainerT&		getInputs() const		{ return mInputs; }
@@ -189,6 +178,17 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 
   protected:
 	Node( const Format &format );
+
+	//! Called before audio buffers need to be used. There is always a valid Context at this point.
+	virtual void initialize()	{}
+	//! Called once the contents of initialize are no longer relevant, i.e. connections have changed. \note Not guaranteed to be called at Node destruction.
+	virtual void uninitialize()	{}
+	//! Called prior to process(), override to control how this Node manages input channel mixing, summing and / or processing. The processed samples must eventually be in \t destBuffer (will be used in-place if possible).
+	virtual void pullInputs( Buffer *destBuffer );
+	//! Override to perform audio processing on \t buffer
+	virtual void process( Buffer *buffer )	{}
+	//! Default implementation returns true if numChannels match our format
+	virtual bool supportsInputNumChannels( size_t numChannels )	{ return mNumChannels == numChannels; }
 
 	//! Stores \a input at bus \a inputBus, replacing any Node currently existing there. Stores this Node at input's output bus \a outputBus. Returns whether a new connection was made or not.
 	//! \note Must be called on a non-audio thread and synchronized with the Context's mutex.

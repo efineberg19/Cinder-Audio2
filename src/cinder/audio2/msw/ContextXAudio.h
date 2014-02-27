@@ -46,13 +46,8 @@ class NodeXAudio {
 struct VoiceCallbackImpl;
 
 class NodeXAudioSourceVoice : public Node, public NodeXAudio {
-public:
+  public:
 	virtual	~NodeXAudioSourceVoice();
-
-	std::string virtual getName()				{ return "SourceVoiceXAudio"; }
-
-	void initialize() override;
-	void uninitialize() override;
 
 	void start() override;
 	void stop() override;
@@ -62,7 +57,11 @@ public:
 
 	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
 
-private:
+  protected:
+	void initialize() override;
+	void uninitialize() override;
+
+  private:
 	NodeXAudioSourceVoice();
 
 	void initSourceVoice();
@@ -87,17 +86,16 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	LineOutXAudio( DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutXAudio();
 
-	std::string virtual getName()				{ return "LineOutXAudio"; }
-
-	void initialize() override;
-	void uninitialize() override;
-
 	void start() override;
 	void stop() override;
 
 	bool supportsInputNumChannels( size_t numChannels ) override;
 
 	::IXAudio2* getXAudio() const	{ return mXAudio; }
+
+  protected:
+	void initialize() override;
+	void uninitialize() override;
 
   private:
 
@@ -115,16 +113,12 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 };
 
 class NodeEffectXAudioXapo : public NodeEffect, public NodeXAudio {
-public:
+  public:
 	//! These enum names match the class uuid names in xapofx.h. TODO: consider just passing in the REFCLSID
 	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
 
 	NodeEffectXAudioXapo( XapoType type, const Format &format = Format() );
 	virtual ~NodeEffectXAudioXapo();
-
-	std::string virtual getName()				{ return "EffectXAudioXapo"; }
-
-	void initialize() override;
 
 	// TODO: get/set params should throw if a bad HRESULT shows up because of this
 
@@ -133,8 +127,11 @@ public:
 
 	template<typename ParamsT>
 	void setParams( const ParamsT &params )		{ setParams( static_cast<const void *>( &params ), sizeof( params ) ); }
- 
-private:
+
+  protected:
+	void initialize() override;
+
+  private:
 	void getParams( void *params, size_t sizeParams );
 	void setParams( const void *params, size_t sizeParams );
 
@@ -151,18 +148,16 @@ private:
 
 //! \note Due to XAudio2 limitations, only one EffectXAudioFilter can be attached in series. Connecting another will simply overwrite the first and you will only hear the second filter.
 class NodeEffectXAudioFilter : public NodeEffect, public NodeXAudio {
-public:
-
+  public:
 	NodeEffectXAudioFilter( const Format &format = Format() );
 	virtual ~NodeEffectXAudioFilter();
 
-	std::string virtual getName()				{ return "EffectXAudioFilter"; }
-
-	void initialize() override;
-	void uninitialize() override;
-
 	void getParams( ::XAUDIO2_FILTER_PARAMETERS *params );
 	void setParams( const ::XAUDIO2_FILTER_PARAMETERS &params );
+
+  protected:
+	void initialize() override;
+	void uninitialize() override;
 };
 
 class ContextXAudio : public Context {

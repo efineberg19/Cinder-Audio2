@@ -46,10 +46,6 @@ class FilterBiquad : public NodeEffect {
 	FilterBiquad( Mode mode = LOWPASS, const Format &format = Format() ) : NodeEffect( format ), mMode( mode ), mCoeffsDirty( true ), mFreq( 200.0f ), mQ( 1.0f ), mGain( 0.0f ) {}
 	virtual ~FilterBiquad() {}
 
-	void initialize() override;
-	void uninitialize() override;
-	void process( Buffer *buffer ) override;
-
 	void setMode( Mode mode )	{ mMode = mode; mCoeffsDirty = true; }
 	Mode getMode() const		{ return mMode; }
 
@@ -63,6 +59,10 @@ class FilterBiquad : public NodeEffect {
 	float getGain() const		{ return mGain; }
 
   protected:
+	void initialize()				override;
+	void uninitialize()				override;
+	void process( Buffer *buffer )	override;
+
 	void updateBiquadParams();
 
 	std::vector<dsp::Biquad> mBiquads;

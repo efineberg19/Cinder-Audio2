@@ -61,11 +61,12 @@ class LineOutAudioUnit : public LineOut, public NodeAudioUnit {
 	LineOutAudioUnit( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineOutAudioUnit() = default;
 
-	void initialize() override;
-	void uninitialize() override;
+	void start()		override;
+	void stop()			override;
 
-	void start() override;
-	void stop() override;
+  protected:
+	void initialize()	override;
+	void uninitialize()	override;
 
   private:
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
@@ -80,16 +81,16 @@ class LineInAudioUnit : public LineIn, public NodeAudioUnit {
 	LineInAudioUnit( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineInAudioUnit();
 
-	void initialize() override;
-	void uninitialize() override;
-
 	void start() override;
 	void stop() override;
 
-	void process( Buffer *buffer ) override;
+	uint64_t getLastUnderrun()		override;
+	uint64_t getLastOverrun()		override;
 
-	uint64_t getLastUnderrun() override;
-	uint64_t getLastOverrun() override;
+  protected:
+	void initialize()				override;
+	void uninitialize()				override;
+	void process( Buffer *buffer )	override;
 
   private:
 	static OSStatus inputCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 bus, UInt32 numFrames, ::AudioBufferList *bufferList );
@@ -108,11 +109,12 @@ class NodeEffectAudioUnit : public NodeEffect, public NodeAudioUnit {
 	NodeEffectAudioUnit( UInt32 subType, const Format &format = Format() );
 	virtual ~NodeEffectAudioUnit();
 
-	void initialize() override;
-	void uninitialize() override;
-	void process( Buffer *buffer ) override;
-
 	void setParameter( ::AudioUnitParameterID paramId, float val );
+
+  protected:
+	void initialize()				override;
+	void uninitialize()				override;
+	void process( Buffer *buffer )	override;
 
   private:
 	static OSStatus renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList );
