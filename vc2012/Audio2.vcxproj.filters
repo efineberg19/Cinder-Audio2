@@ -217,6 +217,12 @@
     <ClCompile Include="..\src\cinder\audio2\msw\MswUtil.cpp">
       <Filter>Source Files\cinder\audio2\msw</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cinder\audio2\Gen.cpp">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\audio2\dsp\WaveTable.cpp">
+      <Filter>Source Files\cinder\audio2\dsp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\oggvorbis\vorbis\backends.h">
@@ -482,6 +488,12 @@
     </ClInclude>
     <ClInclude Include="..\src\cinder\audio2\msw\CinderXAudio.h">
       <Filter>Source Files\cinder\audio2\msw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cinder\audio2\Gen.h">
+      <Filter>Source Files\cinder\audio2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cinder\audio2\dsp\WaveTable.h">
+      <Filter>Source Files\cinder\audio2\dsp</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

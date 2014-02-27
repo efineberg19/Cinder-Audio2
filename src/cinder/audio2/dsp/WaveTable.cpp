@@ -39,7 +39,7 @@ inline float calcGibbsReduceCoeff( size_t partial, size_t numPartials )
 	if( numPartials <= 1 )
 		return 1;
 
-	float result = ci::math<float>::cos( (float)partial * M_PI * 0.5f / numPartials );
+	float result = ci::math<float>::cos( float( partial * M_PI  * 0.5 ) / (float)numPartials );
 	return result * result;
 }
 
@@ -124,7 +124,7 @@ void WaveTable::fillSinesum( float *array, size_t length, const std::vector<floa
 	for( size_t i = 0; i < length; i++ ) {
 		double partialPhase = phase;
 		for( size_t p = 0; p < partials.size(); p++ ) {
-			array[i] += partials[p] * math<float>::sin( partialPhase );
+			array[i] += partials[p] * math<float>::sin( (float)partialPhase );
 			partialPhase += phase;
 		}
 
@@ -277,7 +277,7 @@ size_t WaveTable2d::getMaxHarmonicsForTable( size_t tableIndex ) const
 	const float maxMidi = mMinMidiRange + tableIndex * midiRangePerTable;
 	const float maxF0 = toFreq( maxMidi );
 
-	size_t maxPartialsForFreq( nyquist / maxF0 );
+	size_t maxPartialsForFreq = size_t( nyquist / maxF0 );
 
 	CI_LOG_V( "\t[" << tableIndex << "] midi: " << maxMidi << ", max f0: " << maxF0 << ", max partials: " << maxPartialsForFreq );
 	return maxPartialsForFreq;
@@ -290,7 +290,7 @@ float WaveTable2d::calcBandlimitedTableIndex( float f0 ) const
 	if( f0Midi <= mMinMidiRange )
 		return 0;
 	else if( f0Midi >= mMaxMidiRange )
-		return mNumTables - 1;
+		return float( mNumTables - 1 );
 
 	return calcTableIndex( f0Midi, mMinMidiRange, mMaxMidiRange, mNumTables );
 }

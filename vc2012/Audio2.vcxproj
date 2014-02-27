@@ -20,8 +20,10 @@
     <ClCompile Include="..\src\cinder\audio2\dsp\Dsp.cpp" />
     <ClCompile Include="..\src\cinder\audio2\dsp\Fft.cpp" />
     <ClCompile Include="..\src\cinder\audio2\dsp\ooura\fftsg.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\dsp\WaveTable.cpp" />
     <ClCompile Include="..\src\cinder\audio2\FileOggVorbis.cpp" />
     <ClCompile Include="..\src\cinder\audio2\Filter.cpp" />
+    <ClCompile Include="..\src\cinder\audio2\Gen.cpp" />
     <ClCompile Include="..\src\cinder\audio2\msw\ContextXAudio.cpp" />
     <ClCompile Include="..\src\cinder\audio2\msw\DeviceManagerWasapi.cpp" />
     <ClCompile Include="..\src\cinder\audio2\msw\FileMediaFoundation.cpp" />
@@ -82,9 +84,11 @@
     <ClInclude Include="..\src\cinder\audio2\dsp\Fft.h" />
     <ClInclude Include="..\src\cinder\audio2\dsp\ooura\fftsg.h" />
     <ClInclude Include="..\src\cinder\audio2\dsp\RingBuffer.h" />
+    <ClInclude Include="..\src\cinder\audio2\dsp\WaveTable.h" />
     <ClInclude Include="..\src\cinder\audio2\Exception.h" />
     <ClInclude Include="..\src\cinder\audio2\FileOggVorbis.h" />
     <ClInclude Include="..\src\cinder\audio2\Filter.h" />
+    <ClInclude Include="..\src\cinder\audio2\Gen.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\ContextXAudio.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\DeviceManagerWasapi.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\FileMediaFoundation.h" />

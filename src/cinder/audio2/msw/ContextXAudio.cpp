@@ -167,8 +167,7 @@ void NodeXAudioSourceVoice::initSourceVoice()
 
 	// first ensure there is a valid mastering voice.
 	NodeOutputRef output = context->getOutput();
-	if( ! output->isInitialized() )
-		output->initialize();
+	context->initializeNode( output );
 
 	auto wfx = msw::interleavedFloatWaveFormat( context->getSampleRate(), getNumChannels() );
 
