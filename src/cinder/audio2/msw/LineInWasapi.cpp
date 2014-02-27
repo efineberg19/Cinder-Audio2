@@ -63,8 +63,6 @@ inline ::REFERENCE_TIME samplesToReferenceTime( size_t samples, size_t sampleRat
 // MARK: - InputWasapi
 // ----------------------------------------------------------------------------------------------------
 
-// TODO: default block sizes should be set in one place and propagate down the graph
-//  - update: it's now at getContext()->getFramesPerBlock() - can get it there
 LineInWasapi::LineInWasapi( const DeviceRef &device, const Format &format )
 : LineIn( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
@@ -79,7 +77,7 @@ void LineInWasapi::initialize()
 	CI_ASSERT( ! mImpl->mAudioClient );
 	mImpl->initAudioClient( mDevice );
 
-	size_t sampleRate = getContext()->getSampleRate();
+	size_t sampleRate = getSampleRate();
 
 	auto wfx = interleavedFloatWaveFormat( sampleRate, mNumChannels );
 	::WAVEFORMATEX *closestMatch;

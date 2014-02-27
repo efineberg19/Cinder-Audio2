@@ -276,6 +276,16 @@ size_t Node::getMaxNumInputChannels() const
 	return result;
 }
 
+size_t Node::getSampleRate() const
+{
+	return getContext()->getSampleRate();
+}
+
+size_t Node::getFramesPerBlock() const
+{
+	return getContext()->getFramesPerBlock();
+}
+
 void Node::configureConnections()
 {
 	CI_ASSERT( getContext() );
@@ -334,7 +344,7 @@ void Node::setupProcessWithSumming()
 	CI_ASSERT( getContext() );
 
 	mProcessInPlace = false;
-	size_t framesPerBlock = getContext()->getFramesPerBlock();
+	size_t framesPerBlock = getFramesPerBlock();
 
 	mInternalBuffer.setSize( framesPerBlock, mNumChannels );
 	mSummingBuffer.setSize( framesPerBlock, mNumChannels );

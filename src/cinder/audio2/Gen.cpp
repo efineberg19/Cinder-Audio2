@@ -48,7 +48,7 @@ Gen::Gen( const Format &format )
 
 void Gen::initialize()
 {
-	mSamplePeriod = 1.0f / (float)getContext()->getSampleRate();
+	mSamplePeriod = 1.0f / (float)getSampleRate();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -177,7 +177,7 @@ void GenTable::initialize()
 	Gen::initialize();
 
 	if( ! mWaveTable ) {
-		mWaveTable.reset( new dsp::WaveTable( getContext()->getSampleRate(), DEFAULT_TABLE_SIZE ) );
+		mWaveTable.reset( new dsp::WaveTable( getSampleRate(), DEFAULT_TABLE_SIZE ) );
 		mWaveTable->fillSine();
 	}
 }
@@ -203,7 +203,7 @@ void GenOscillator::initialize()
 {
 	Gen::initialize();
 
-	size_t sampleRate = getContext()->getSampleRate();
+	size_t sampleRate = getSampleRate();
 	bool needsFill = false;
 	if( ! mWaveTable ) {
 		mWaveTable.reset( new dsp::WaveTable2d( sampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );
@@ -245,9 +245,9 @@ void GenPulse::initialize()
 {
 	Gen::initialize();
 
-	mBuffer2.setNumFrames( getContext()->getFramesPerBlock() );
+	mBuffer2.setNumFrames( getFramesPerBlock() );
 
-	size_t sampleRate = getContext()->getSampleRate();
+	size_t sampleRate = getSampleRate();
 	bool needsFill = false;
 	if( ! mWaveTable ) {
 		mWaveTable.reset( new dsp::WaveTable2d( sampleRate, DEFAULT_TABLE_SIZE, DEFAULT_BANDLIMITED_TABLES ) );

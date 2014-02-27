@@ -82,7 +82,7 @@ LineIn::~LineIn()
 void CallbackProcessor::process( Buffer *buffer )
 {
 	if( mCallbackFn )
-		mCallbackFn( buffer, getContext()->getSampleRate() );
+		mCallbackFn( buffer, getSampleRate() );
 }
 
 } } // namespace cinder::audio2

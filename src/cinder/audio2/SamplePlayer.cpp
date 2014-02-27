@@ -56,37 +56,37 @@ void SamplePlayer::setLoopEnd( size_t positionFrames )
 
 void SamplePlayer::seekToTime( double readPositionSeconds )
 {
-	seek( size_t( readPositionSeconds * (double)getContext()->getSampleRate() ) );
+	seek( size_t( readPositionSeconds * (double)getSampleRate() ) );
 }
 
 void SamplePlayer::setLoopBeginTime( double positionSeconds )
 {
-	setLoopBegin( size_t( positionSeconds * (double)getContext()->getSampleRate() ) );
+	setLoopBegin( size_t( positionSeconds * (double)getSampleRate() ) );
 }
 
 void SamplePlayer::setLoopEndTime( double positionSeconds )
 {
-	setLoopEnd( size_t( positionSeconds * (double)getContext()->getSampleRate() ) );
+	setLoopEnd( size_t( positionSeconds * (double)getSampleRate() ) );
 }
 
 double SamplePlayer::getReadPositionTime() const
 {
-	return (double)mReadPos / (double)getContext()->getSampleRate();
+	return (double)mReadPos / (double)getSampleRate();
 }
 
 double SamplePlayer::getLoopBeginTime() const
 {
-	return (double)mLoopBegin / (double)getContext()->getSampleRate();
+	return (double)mLoopBegin / (double)getSampleRate();
 }
 
 double SamplePlayer::getLoopEndTime() const
 {
-	return (double)mLoopEnd / (double)getContext()->getSampleRate();
+	return (double)mLoopEnd / (double)getSampleRate();
 }
 
 size_t SamplePlayer::getNumSeconds() const
 {
-	return (double)mNumFrames / (double)getContext()->getSampleRate();
+	return (double)mNumFrames / (double)getSampleRate();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ void BufferPlayer::loadBuffer( const SourceFileRef &sourceFile )
 {
 	auto sf = sourceFile->clone();
 
-	sf->setOutputFormat( getContext()->getSampleRate() );
+	sf->setOutputFormat( getSampleRate() );
 	setBuffer( sf->loadBuffer() );
 }
 
@@ -219,7 +219,7 @@ FilePlayer::~FilePlayer()
 void FilePlayer::initialize()
 {
 	if( mSourceFile ) {
-		mSourceFile->setOutputFormat( getContext()->getSampleRate() );
+		mSourceFile->setOutputFormat( getSampleRate() );
 		mNumFrames = mSourceFile->getNumFrames();
 	}
 
@@ -282,7 +282,7 @@ void FilePlayer::seek( size_t readPositionFrames )
 void FilePlayer::setSourceFile( const SourceFileRef &sourceFile )
 {
 	// update source's samplerate to match context
-	sourceFile->setOutputFormat( getContext()->getSampleRate(), sourceFile->getNumChannels() );
+	sourceFile->setOutputFormat( getSampleRate(), sourceFile->getNumChannels() );
 
 	lock_guard<mutex> lock( getContext()->getMutex() );
 

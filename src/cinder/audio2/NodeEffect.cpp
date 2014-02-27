@@ -87,7 +87,7 @@ bool Pan2d::supportsInputNumChannels( size_t numChannels )
 	if( numChannels == 1 ) {
 		mMonoInputMode = true;
 		mProcessInPlace = false;
-		size_t framesPerBlock = getContext()->getFramesPerBlock();
+		size_t framesPerBlock = getFramesPerBlock();
 
 		// internal buffer is mono (which will be passed to inputs), while summing buffer is stereo
 		if( mInternalBuffer.getNumChannels() != 1 || mInternalBuffer.getNumFrames() != framesPerBlock )

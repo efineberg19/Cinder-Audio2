@@ -36,8 +36,8 @@ class NodeOutput : public Node {
   public:
 	virtual ~NodeOutput() {}
 
-	virtual size_t getSampleRate()				= 0;
-	virtual size_t getFramesPerBlock()			= 0;
+	virtual size_t getOutputSampleRate()				= 0;
+	virtual size_t getOutputFramesPerBlock()			= 0;
 
 	//! Enables clip detection, so that values over \a threshold will be interpreted as a clip (enabled by default).
 	//! \note if a clip is detected, the internal buffer will be silenced in order to prevent speaker / ear damage.
@@ -53,7 +53,7 @@ class NodeOutput : public Node {
 	NodeOutput( const Format &format = Format() );
 
 	//! Implementations should call this after each processing block to increment the processed frame count.
-	void incrementFrameCount()					{ mNumProcessedFrames += getFramesPerBlock(); }
+	void incrementFrameCount()					{ mNumProcessedFrames += getOutputFramesPerBlock(); }
 	//! Implementations may call this to detect if the internal audio buffer is clipping.
 	bool checkNotClipping();
 
@@ -73,8 +73,8 @@ class LineOut : public NodeOutput {
 
 	const DeviceRef& getDevice() const		{ return mDevice; }
 
-	size_t getSampleRate() override			{ return getDevice()->getSampleRate(); }
-	size_t getFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
+	size_t getOutputSampleRate() override			{ return getDevice()->getSampleRate(); }
+	size_t getOutputFramesPerBlock() override		{ return getDevice()->getFramesPerBlock(); }
 
 	virtual void deviceParamsWillChange();
 	virtual void deviceParamsDidChange();

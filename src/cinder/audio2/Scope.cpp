@@ -52,7 +52,7 @@ Scope::~Scope()
 void Scope::initialize()
 {
 	if( ! mWindowSize )
-		mWindowSize = getContext()->getFramesPerBlock();
+		mWindowSize = getFramesPerBlock();
 	else if( ! isPowerOf2( mWindowSize ) )
 		mWindowSize = nextPowerOf2( static_cast<uint32_t>( mWindowSize ) );
 
@@ -180,7 +180,7 @@ void ScopeSpectral::setSmoothingFactor( float factor )
 
 float ScopeSpectral::getFreqForBin( size_t bin )
 {
-	return bin * getContext()->getSampleRate() / (float)getFftSize();
+	return bin * getSampleRate() / (float)getFftSize();
 }
 
 } } // namespace cinder::audio2

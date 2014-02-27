@@ -121,7 +121,7 @@ class ScopeSpectral : public Scope {
 	size_t	getNumBins() const				{ return mFftSize / 2; }
 	//! Returns the size of the FFT used for spectral analysis.
 	size_t	getFftSize() const				{ return mFftSize; }
-	//! Returns the corresponding frequency for \a bin. Computed as \code bin * getContext()->getSampleRate() / getFftSize() \endcode
+	//! Returns the corresponding frequency for \a bin. Computed as \code bin * getSampleRate() / getFftSize() \endcode
 	float	getFreqForBin( size_t bin );
 	//! Returns the factor (0 - 1, default = 0.5) used when smoothing the magnitude spectrum between sequential calls to getMagSpectrum().
 	float	getSmoothingFactor() const		{ return mSmoothingFactor; }

@@ -30,9 +30,9 @@ namespace cinder { namespace audio2 {
 void FilterBiquad::initialize()
 {
 	// Convert from Hertz to normalized frequency 0 -> 1.
-	mNiquist = getContext()->getSampleRate() / 2;
+	mNiquist = getSampleRate() / 2;
 
-	mBufferd = BufferT<double>( getContext()->getFramesPerBlock(), mNumChannels );
+	mBufferd = BufferT<double>( getFramesPerBlock(), mNumChannels );
 	mBiquads.resize( mNumChannels );
 
 	if( mCoeffsDirty )

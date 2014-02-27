@@ -82,7 +82,7 @@ void LineOutAudioUnit::initialize()
 	mRenderData.node = this;
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
 
-	::AudioStreamBasicDescription asbd = createFloatAsbd( getSampleRate(), getNumChannels() );
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getOutputSampleRate(), getNumChannels() );
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Input, DeviceBus::OUTPUT );
 
 	UInt32 enableOutput = 1;
@@ -196,8 +196,8 @@ void LineInAudioUnit::initialize()
 		mOwnsAudioUnit = true;
 	}
 
-	size_t framesPerBlock = lineOutAu->getFramesPerBlock();
-	size_t sampleRate = lineOutAu->getSampleRate();
+	size_t framesPerBlock = lineOutAu->getOutputFramesPerBlock();
+	size_t sampleRate = lineOutAu->getOutputSampleRate();
 	::AudioStreamBasicDescription asbd = createFloatAsbd( sampleRate, getNumChannels() );
 
 	if( mSynchronousIO ) {
@@ -363,9 +363,9 @@ void NodeEffectAudioUnit::initialize()
 	comp.componentManufacturer = kAudioUnitManufacturer_Apple;
 	findAndCreateAudioComponent( comp, &mAudioUnit );
 
-	mBufferList = createNonInterleavedBufferList( getContext()->getFramesPerBlock(), getNumChannels() );
+	mBufferList = createNonInterleavedBufferList( getFramesPerBlock(), getNumChannels() );
 
-	::AudioStreamBasicDescription asbd = createFloatAsbd( getContext()->getSampleRate(), getNumChannels() );
+	::AudioStreamBasicDescription asbd = createFloatAsbd( getSampleRate(), getNumChannels() );
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Input, 0 );
 	setAudioUnitProperty( mAudioUnit, kAudioUnitProperty_StreamFormat, asbd, kAudioUnitScope_Output, 0 );
 

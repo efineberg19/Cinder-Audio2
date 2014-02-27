@@ -127,6 +127,11 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	//! Returns the maximum number of channels any input has.
 	size_t		getMaxNumInputChannels() const;
 
+	//! Returns the samplerate of this Node, which is governed by the Context's NodeOutput.
+	size_t		getSampleRate() const;
+	//! Returns the number of frames processed in one block by this Node, which is governed by the Context's NodeOutput.
+	size_t		getFramesPerBlock() const;
+
 	//! Sets whether this Node is automatically enabled / disabled when connected
 	void	setAutoEnabled( bool b = true )		{ mAutoEnabled = b; }
 	//! Returns whether this Node is automatically enabled / disabled when connected

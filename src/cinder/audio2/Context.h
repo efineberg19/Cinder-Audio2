@@ -66,9 +66,9 @@ class Context : public std::enable_shared_from_this<Context> {
 	virtual void connectionsDidChange( const NodeRef &node ) {} 
 
 	//! Returns the samplerate of this Context, which is governed by the current NodeOutput.
-	size_t		getSampleRate()				{ return getOutput()->getSampleRate(); }
+	size_t		getSampleRate()				{ return getOutput()->getOutputSampleRate(); }
 	//! Returns the number of frames processed in one block by this Node, which is governed by the current NodeOutput.
-	size_t		getFramesPerBlock()			{ return getOutput()->getFramesPerBlock(); }
+	size_t		getFramesPerBlock()			{ return getOutput()->getOutputFramesPerBlock(); }
 
 	uint64_t	getNumProcessedFrames()		{ return getOutput()->getNumProcessedFrames(); }
 	double		getNumProcessedSeconds()	{ return (double)getNumProcessedFrames() / (double)getSampleRate(); }
