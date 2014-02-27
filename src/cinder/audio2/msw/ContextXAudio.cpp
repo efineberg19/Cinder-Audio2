@@ -78,7 +78,7 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 	void _stdcall OnLoopEnd( void *pBufferContext ) {}
 	void _stdcall OnVoiceError( void *pBufferContext, HRESULT Error )
 	{
-		LOG_E( "error: " << Error );
+		CI_LOG_E( "error: " << Error );
 	}
 
 	::IXAudio2SourceVoice	*mSourceVoice;
@@ -96,7 +96,7 @@ struct EngineCallbackImpl : public IXAudio2EngineCallback {
 
 	void _stdcall OnCriticalError( HRESULT Error )
 	{
-		LOG_E( "error: " << Error );
+		CI_LOG_E( "error: " << Error );
 	}
 
 	LineOutXAudio *mLineOut;
@@ -262,7 +262,7 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 {
 
 #if defined( CINDER_XAUDIO_2_7 )
-	LOG_V( "CINDER_XAUDIO_2_7" );
+	CI_LOG_V( "CINDER_XAUDIO_2_7" );
 	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
 
 	//! CoInitializeEx is only required by XAudio2.7
@@ -272,7 +272,7 @@ LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
 	::CoInitializeEx( NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE );
 
 #else
-	LOG_V( "CINDER_XAUDIO_2_8" );
+	CI_LOG_V( "CINDER_XAUDIO_2_8" );
 	UINT32 flags = 0;
 #endif
 
@@ -413,7 +413,7 @@ void NodeEffectXAudioXapo::notifyConnected()
 	if( mChainIndex > 0 ) {
 		// An effect has already been connected and thereby SetEffectsChain has already been called.
 		// As it seems this can only be called once for the lifetime of an IXAUdio2SourceVoice, we re-init
-		LOG_V( "sourceVoice re-init, mChainIndex: " << mChainIndex );
+		CI_LOG_V( "sourceVoice re-init, mChainIndex: " << mChainIndex );
 		sourceVoice->uninitSourceVoice();
 		sourceVoice->initSourceVoice();
 	}
@@ -424,7 +424,7 @@ void NodeEffectXAudioXapo::notifyConnected()
 	effectsChain.EffectCount = effects.size();
 	effectsChain.pEffectDescriptors = effects.data();
 
-	LOG_V( "SetEffectChain, p: " << (void*)sourceVoice->getNative() << ", count: " << effectsChain.EffectCount );
+	CI_LOG_V( "SetEffectChain, p: " << (void*)sourceVoice->getNative() << ", count: " << effectsChain.EffectCount );
 	HRESULT hr = sourceVoice->getNative()->SetEffectChain( &effectsChain );
 	CI_ASSERT( hr == S_OK );
 }

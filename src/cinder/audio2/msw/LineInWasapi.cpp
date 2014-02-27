@@ -86,7 +86,7 @@ void LineInWasapi::initialize()
 	HRESULT hr = mImpl->mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
 	if( hr == S_FALSE ) {
 		CI_ASSERT( closestMatch );
-		LOG_V( "cannot use requested format. TODO: use closest" );
+		CI_LOG_V( "cannot use requested format. TODO: use closest" );
 	}
 	else if( hr != S_OK )
 		throw AudioFormatExc( "Could not find a suitable format for IAudioCaptureClient" );
@@ -106,8 +106,6 @@ void LineInWasapi::initialize()
 
 	mInterleavedBuffer = BufferInterleaved( numFrames, mNumChannels );
 	
-	//LOG_V( "numFrames: " << numFrames << ", buffer size: " << mInterleavedBuffer.getSize() << ", actual duration: " << captureDurationMs << "ms" );
-
 	mInitialized = true;
 }
 
@@ -124,7 +122,7 @@ void LineInWasapi::uninitialize()
 void LineInWasapi::start()
 {
 	if( ! mInitialized ) {
-		LOG_E( "not initialized" );
+		CI_LOG_E( "not initialized" );
 		return;
 	}
 	
@@ -137,7 +135,7 @@ void LineInWasapi::start()
 void LineInWasapi::stop()
 {
 	if( ! mInitialized ) {
-		LOG_E( "not initialized" );
+		CI_LOG_E( "not initialized" );
 		return;
 	}
 
@@ -145,7 +143,6 @@ void LineInWasapi::stop()
 	CI_ASSERT( hr == S_OK );
 
 	mEnabled = false;
-	LOG_V( "stopped " << mDevice->getName() );
 }
 
 uint64_t LineInWasapi::getLastUnderrun()
@@ -164,19 +161,14 @@ void LineInWasapi::process( Buffer *buffer )
 	mImpl->captureAudio();
 
 	size_t samplesNeeded = buffer->getSize();
-	if( mImpl->mNumSamplesBuffered < samplesNeeded ) {
-		//LOG_V( "BUFFER UNDERRUN. needed: " << samplesNeeded << ", available: " << mImpl->mNumSamplesBuffered );
+	if( mImpl->mNumSamplesBuffered < samplesNeeded )
 		return;
-	}
 
 	if( buffer->getNumChannels() == 2 ) {
 		size_t numRead = mImpl->mRingBuffer->read( mInterleavedBuffer.getData(), samplesNeeded );
-		//CI_ASSERT( numRead == samplesNeeded );
 		dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
-	} else {
+	} else
 		size_t numRead = mImpl->mRingBuffer->read( buffer->getData(), samplesNeeded );
-		//CI_ASSERT( numRead == samplesNeeded );
-	}
 
 	mImpl->mNumSamplesBuffered -= samplesNeeded;
 }
@@ -210,7 +202,6 @@ void LineInWasapi::Impl::initAudioClient( const DeviceRef &device )
 	// - index (ex 4, 5, 8, 9)
 	mNumChannels = mixFormat->nChannels;
 
-	//LOG_V( "initial mix format samplerate: " << mixFormat->nSamplesPerSec << ", num channels: " << mixFormat->nChannels );
 	::CoTaskMemFree( mixFormat );
 }
 
@@ -241,15 +232,13 @@ void LineInWasapi::Impl::captureAudio()
 		UINT32 numFramesAvailable; // ???: is this samples or samples * channels? I very well could only be reading half of the samples... enabling mono capture would tell
 		DWORD flags;
 		HRESULT hr = mCaptureClient->GetBuffer( &audioData, &numFramesAvailable, &flags, NULL, NULL );
-		if( hr == AUDCLNT_S_BUFFER_EMPTY ) {
-			//LOG_V( "AUDCLNT_S_BUFFER_EMPTY, returning" );
+		if( hr == AUDCLNT_S_BUFFER_EMPTY )
 			return;
-		}
 		else
 			CI_ASSERT( hr == S_OK );
 
 		if ( flags & AUDCLNT_BUFFERFLAGS_SILENT ) {
-			LOG_V( "silence. TODO: fill buffer with zeros." );
+			CI_LOG_V( "silence. TODO: fill buffer with zeros." );
 			// ???: ignore this? copying the samples is just about the same as setting to 0
 			//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
 		}
@@ -258,7 +247,7 @@ void LineInWasapi::Impl::captureAudio()
 			size_t numSamples = numFramesAvailable * mNumChannels;
 			size_t numDropped = mRingBuffer->write( samples, numSamples );
 			//if( numDropped )
-				//LOG_V( "BUFFER OVERRUN. dropped: " << numDropped );
+				//CI_LOG_V( "BUFFER OVERRUN. dropped: " << numDropped );
 
 			mNumSamplesBuffered += static_cast<size_t>( numSamples );
 		}

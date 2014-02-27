@@ -285,7 +285,7 @@ vector<wstring> DeviceManagerWasapi::parseDeviceIds( DeviceInfo::Usage usage )
 	CONST ::GUID *devInterfaceGuid = ( usage == DeviceInfo::Usage::INPUT ? &DEVINTERFACE_AUDIO_CAPTURE : &DEVINTERFACE_AUDIO_RENDER );
 	::HDEVINFO devInfoSet = ::SetupDiGetClassDevs( devInterfaceGuid, 0, 0, DIGCF_DEVICEINTERFACE | DIGCF_PRESENT );
 	if( devInfoSet == INVALID_HANDLE_VALUE ) {
-		LOG_E( "INVALID_HANDLE_VALUE, detailed error: " << GetLastError() );
+		CI_LOG_E( "INVALID_HANDLE_VALUE, detailed error: " << GetLastError() );
 		CI_ASSERT( false );
 		return result;
 	}
@@ -296,7 +296,7 @@ vector<wstring> DeviceManagerWasapi::parseDeviceIds( DeviceInfo::Usage usage )
 			if( error == ERROR_NO_MORE_ITEMS )
 				break;
 			else {
-				LOG_E( "SetupDiEnumDeviceInterfaces returned error: " << error );
+				CI_LOG_E( "SetupDiEnumDeviceInterfaces returned error: " << error );
 				CI_ASSERT( 0 );
 			}
 		}
@@ -315,7 +315,7 @@ vector<wstring> DeviceManagerWasapi::parseDeviceIds( DeviceInfo::Usage usage )
 		if( ! ::SetupDiGetDeviceInterfaceDetail( devInfoSet, &devInterface, interfaceDetail.get(), sizeDevInterface, 0, &devInfo ) ) {
 			continue;
 			DWORD error = ::GetLastError();
-			LOG_V( "get device returned false. error: " << error );
+			CI_LOG_E( "get device returned false. error: " << error );
 		}
 
 		result.push_back( wstring( interfaceDetail->DevicePath ) );

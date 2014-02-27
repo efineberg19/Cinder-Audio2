@@ -237,7 +237,7 @@ void WaveTableTestApp::processDrag( Vec2i pos )
 	else if( mFreqRampSlider.hitTest( pos ) ) {
 		float val = mFreqRampSlider.mValueScaled;
 		float wrapped = audio2::wrap( val );
-		LOG_V( "val: " << val << ", wrapped: " << wrapped );
+		CI_LOG_V( "val: " << val << ", wrapped: " << wrapped );
 	}
 	else if( mGenPulse && mPulseWidthSlider.hitTest( pos ) ) {
 //		mGenPulse->setWidth( mPulseWidthSlider.mValueScaled );
@@ -259,7 +259,7 @@ void WaveTableTestApp::processTap( Vec2i pos )
 	}
 	else if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V( "selected: " << currentTest );
+		CI_LOG_V( "selected: " << currentTest );
 
 		mScope->disconnectAllInputs();
 
@@ -293,7 +293,7 @@ void WaveTableTestApp::keyDown( KeyEvent event )
 	if( event.getCode() == KeyEvent::KEY_RETURN ) {
 //		if( currentSelected == &mTableSizeInput ) {
 //			int tableSize = currentSelected->getValue();
-//			LOG_V( "updating table size from: " << mGen->getTableSize() << " to: " << tableSize );
+//			CI_LOG_V( "updating table size from: " << mGen->getTableSize() << " to: " << tableSize );
 //			mGen->setWaveform( mGen->getWaveForm(), tableSize );
 //			mTableCopy.setNumFrames( tableSize );
 //			mGen->copyFromTable( mTableCopy.getData() );

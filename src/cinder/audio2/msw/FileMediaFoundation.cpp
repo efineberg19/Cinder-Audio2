@@ -67,8 +67,6 @@ SourceFileImplMediaFoundation::SourceFileImplMediaFoundation( const DataSourceRe
 {
 	initMediaFoundation();
 	initReader();
-
-	LOG_V( "complete. total seconds: " << mSeconds << ", frames: " << mNumFrames << ", can seek: " << mCanSeek );
 }
 
 SourceFileRef SourceFileImplMediaFoundation::clone() const
@@ -139,7 +137,7 @@ size_t SourceFileImplMediaFoundation::performRead( Buffer *buffer, size_t buffer
 void SourceFileImplMediaFoundation::performSeek( size_t readPositionFrames )
 {
 	if( ! mCanSeek ) {
-		LOG_E( "cannot seek." );
+		CI_LOG_E( "cannot seek." );
 		return;
 	}
 
@@ -147,7 +145,7 @@ void SourceFileImplMediaFoundation::performSeek( size_t readPositionFrames )
 
 	double positionSeconds = (double)readPositionFrames / (double)mSampleRate;
 	if( positionSeconds > mSeconds ) {
-		LOG_E( "cannot seek beyond end of file (" << positionSeconds << "s)." );
+		CI_LOG_E( "cannot seek beyond end of file (" << positionSeconds << "s)." );
 		return;
 	}
 
@@ -205,7 +203,6 @@ void SourceFileImplMediaFoundation::initReader()
 	GUID outputSubType = MFAudioFormat_PCM; // default to PCM, upgrade if we can.
 	mSampleFormat = Format::INT_16;
 	mBytesPerSample = 2;
-	LOG_V( "native bytes per sample: " << mBytesPerSample );
 
 	if( fileFormat->wBitsPerSample == 32 ) {
 		mSampleFormat = Format::FLOAT_32;
@@ -215,8 +212,6 @@ void SourceFileImplMediaFoundation::initReader()
 
 	mNumChannels = mNativeNumChannels = fileFormat->nChannels;
 	mSampleRate = mNativeSampleRate = fileFormat->nSamplesPerSec;
-
-	LOG_V( "file channels: " << mNumChannels << ", samplerate: " << mSampleRate );
 
 	::CoTaskMemFree( fileFormat );
 
@@ -271,15 +266,15 @@ size_t SourceFileImplMediaFoundation::processNextReadSample()
 	CI_ASSERT( hr == S_OK );
 
 	if( streamFlags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED ) {
-		LOG_E( "type change" );
+		CI_LOG_E( "type change unhandled" );
 		return 0;
 	}
 	if( streamFlags & MF_SOURCE_READERF_ENDOFSTREAM ) {
-		LOG_V( "end of file." );
+		// end of file
 		return 0;
 	}
 	if( ! mediaSample ) {
-		LOG_V( "no sample." );
+		// out of samples
 		mediaSample->Release();
 		return 0;
 	}

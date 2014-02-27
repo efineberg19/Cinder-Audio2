@@ -102,7 +102,7 @@ void ParamTestApp::testApply()
 	// - a bit shorter:
 //	audio2::timeline()->apply( mGen->getParamFreq(), 220, 440, 1 );
 
-	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
+	CI_LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 }
 
 // 2 events - first apply the ramp, blowing away anything else, then append another event to happen after that
@@ -111,7 +111,7 @@ void ParamTestApp::testApply2()
 	mGen->getParamFreq()->applyRamp( 220, 880, 1 );
 	mGen->getParamFreq()->appendRamp( 369.994f, 1 ); // F#4
 
-	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
+	CI_LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 
 //	writeParamEval( mGen->getParamFreq() );
 }
@@ -121,14 +121,14 @@ void ParamTestApp::testAppend()
 {
 	mGen->getParamFreq()->appendRamp( randFloat( 50, 800 ), 1.0f );
 
-	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
+	CI_LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 }
 
 // make a ramp after a 1 second delay
 void ParamTestApp::testDelay()
 {
 	mGen->getParamFreq()->applyRamp( 50, 440, 1, audio2::Param::Options().delay( 1 ) );
-	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
+	CI_LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 }
 
 // apply a ramp from 220 to 880 over 2 seconds and then after a 1 second delay, cancel it. result should be ~ 550: 220 + (880 - 220) / 2.
@@ -136,10 +136,10 @@ void ParamTestApp::testAppendCancel()
 {
 	audio2::RampRef ramp = mGen->getParamFreq()->applyRamp( 220, 880, 2 );
 
-	LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
+	CI_LOG_V( "num ramps: " << mGen->getParamFreq()->getNumRamps() );
 
 	timeline().add( [ramp] {
-		LOG_V( "canceling." );
+		CI_LOG_V( "canceling." );
 		ramp->cancel();
 	}, (float)getElapsedSeconds() + 1 );
 }
@@ -240,7 +240,7 @@ void ParamTestApp::processDrag( Vec2i pos )
 	if( mGainSlider.hitTest( pos ) ) {
 //		mGain->setValue( mGainSlider.mValueScaled );
 //		mGain->getParam()->applyRamp( mGainSlider.mValueScaled );
-		LOG_V( "applying ramp on gain from: " << mGain->getValue() << " to: " << mGainSlider.mValueScaled );
+		CI_LOG_V( "applying ramp on gain from: " << mGain->getValue() << " to: " << mGainSlider.mValueScaled );
 		mGain->getParam()->applyRamp( mGainSlider.mValueScaled, 0.15f );
 	}
 	if( mPanSlider.hitTest( pos ) )
@@ -275,7 +275,7 @@ void ParamTestApp::processTap( Vec2i pos )
 		testAppendCancel();
 	else if( mTestSelector.hitTest( pos ) && selectorIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V( "selected: " << currentTest );
+		CI_LOG_V( "selected: " << currentTest );
 
 		bool enabled = ctx->isEnabled();
 		ctx->stop();
@@ -297,7 +297,7 @@ void ParamTestApp::processTap( Vec2i pos )
 void ParamTestApp::keyDown( KeyEvent event )
 {
 	if( event.getCode() == KeyEvent::KEY_e )
-		LOG_V( "mGen freq events: " << mGen->getParamFreq()->getNumRamps() );
+		CI_LOG_V( "mGen freq events: " << mGen->getParamFreq()->getNumRamps() );
 }
 
 void ParamTestApp::update()
@@ -328,7 +328,7 @@ void ParamTestApp::writeParamEval( audio2::Param *param )
 	auto target = audio2::TargetFile::create( "param.wav", sampleRate, 1 );
 	target->write( &audioBuffer );
 
-	LOG_V( "write complete" );
+	CI_LOG_V( "write complete" );
 }
 
 CINDER_APP_NATIVE( ParamTestApp, RendererGl )

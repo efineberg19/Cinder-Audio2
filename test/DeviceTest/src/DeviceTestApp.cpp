@@ -80,7 +80,7 @@ void DeviceTestApp::setup()
 //	setupMultiChannelDevice( "PreSonus FIREPOD (1431)" );
 
 	// TODO: this should be set in setOutputDevice()
-	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
+	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	CI_LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
 
 //	setupSine();
 	setupIOClean();
@@ -90,7 +90,7 @@ void DeviceTestApp::setup()
 
 	setupUI();
 
-	LOG_V( "Context samplerate: " << ctx->getSampleRate() );
+	CI_LOG_V( "Context samplerate: " << ctx->getSampleRate() );
 }
 
 void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t numChannels )
@@ -117,7 +117,7 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t num
 
 	ctx->initializeAllNodes();
 
-	LOG_V( "LineOut device properties: " );
+	CI_LOG_V( "LineOut device properties: " );
 	printDeviceDetails( device );
 }
 
@@ -136,7 +136,7 @@ void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device, size_t numC
 
 	setupTest( mTestSelector.currentSection() );
 
-	LOG_V( "LineIn device properties: " );
+	CI_LOG_V( "LineIn device properties: " );
 	printDeviceDetails( device );
 }
 
@@ -319,7 +319,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 	size_t currentTestIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentTestIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V( "selected: " << currentTest );
+		CI_LOG_V( "selected: " << currentTest );
 
 		setupTest( currentTest );
 		return;
@@ -328,7 +328,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 	size_t currentOutputIndex = mOutputSelector.mCurrentSectionIndex;
 	if( mOutputSelector.hitTest( pos ) && currentOutputIndex != mOutputSelector.mCurrentSectionIndex ) {
 		auto dev = audio2::Device::findDeviceByName( mOutputSelector.mSegments[mOutputSelector.mCurrentSectionIndex] );
-		LOG_V( "selected output device named: " << dev->getName() << ", key: " << dev->getKey() );
+		CI_LOG_V( "selected output device named: " << dev->getName() << ", key: " << dev->getKey() );
 
 		setOutputDevice( dev );
 		return;
@@ -337,7 +337,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 	size_t currentInputIndex = mInputSelector.mCurrentSectionIndex;
 	if( mInputSelector.hitTest( pos ) && currentInputIndex != mInputSelector.mCurrentSectionIndex ) {
 		auto dev = audio2::Device::findDeviceByName( mInputSelector.mSegments[mInputSelector.mCurrentSectionIndex] );
-		LOG_V( "selected input named: " << dev->getName() << ", key: " << dev->getKey() );
+		CI_LOG_V( "selected input named: " << dev->getName() << ", key: " << dev->getKey() );
 
 		setInputDevice( dev );
 	}
@@ -373,29 +373,29 @@ void DeviceTestApp::keyDown( KeyEvent event )
 		try {
 			if( currentSelected == &mSamplerateInput ) {
 				int sr = currentSelected->getValue();
-				LOG_V( "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr );
+				CI_LOG_V( "updating samplerate from: " << mLineOut->getSampleRate() << " to: " << sr );
 				mLineOut->getDevice()->updateFormat( audio2::Device::Format().sampleRate( sr ) );
 			}
 			else if( currentSelected == &mFramesPerBlockInput ) {
 				int frames = currentSelected->getValue();
-				LOG_V( "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames );
+				CI_LOG_V( "updating frames per block from: " << mLineOut->getFramesPerBlock() << " to: " << frames );
 				mLineOut->getDevice()->updateFormat( audio2::Device::Format().framesPerBlock( frames ) );
 			}
 			else if( currentSelected == &mNumInChannelsInput ) {
 				int numChannels = currentSelected->getValue();
-				LOG_V( "updating nnm input channels from: " << mLineIn->getNumChannels() << " to: " << numChannels );
+				CI_LOG_V( "updating nnm input channels from: " << mLineIn->getNumChannels() << " to: " << numChannels );
 				setInputDevice( mLineIn->getDevice(), numChannels );
 			}
 			else if( currentSelected == &mNumOutChannelsInput ) {
 				int numChannels = currentSelected->getValue();
-				LOG_V( "updating nnm output channels from: " << mLineOut->getNumChannels() << " to: " << numChannels );
+				CI_LOG_V( "updating nnm output channels from: " << mLineOut->getNumChannels() << " to: " << numChannels );
 				setOutputDevice( mLineOut->getDevice(), numChannels );
 			}
 			else
-				LOG_E( "unhandled return for string: " << currentSelected->mInputString );
+				CI_LOG_E( "unhandled return for string: " << currentSelected->mInputString );
 		}
 		catch( audio2::AudioDeviceExc &exc ) {
-			LOG_E( "AudioDeviceExc caught, what: " << exc.what() );
+			CI_LOG_E( "AudioDeviceExc caught, what: " << exc.what() );
 			auto ctx = audio2::Context::master();
 			mSamplerateInput.setValue( ctx->getSampleRate() );
 			mFramesPerBlockInput.setValue( ctx->getFramesPerBlock() );

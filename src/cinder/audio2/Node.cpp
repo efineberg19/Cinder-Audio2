@@ -240,7 +240,6 @@ void Node::initializeImpl()
 
 	initialize();
 	mInitialized = true;
-//	LOG_V( getName() << " initialized." );
 
 	if( mAutoEnabled )
 		start();
@@ -257,7 +256,6 @@ void Node::uninitializeImpl()
 
 	uninitialize();
 	mInitialized = false;
-//	LOG_V( getName() << " un-initialized." );
 }
 
 void Node::setNumChannels( size_t numChannels )

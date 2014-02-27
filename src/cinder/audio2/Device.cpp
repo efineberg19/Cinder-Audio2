@@ -178,7 +178,7 @@ DeviceRef DeviceManager::findDeviceByName( const string &name )
 			return device;
 	}
 
-	LOG_E( "unknown device name: " << name );
+	CI_LOG_E( "unknown device name: " << name );
 	return DeviceRef();
 }
 
@@ -189,7 +189,7 @@ DeviceRef DeviceManager::findDeviceByKey( const string &key )
 			return device;
 	}
 
-	LOG_E( "unknown device key: " << key );
+	CI_LOG_E( "unknown device key: " << key );
 	return DeviceRef();
 }
 
@@ -197,7 +197,7 @@ DeviceRef DeviceManager::addDevice( const string &key )
 {
 	for( const auto& dev : mDevices ) {
 		if( dev->getKey() == key ) {
-			LOG_E( "device already exists with key: " << key );
+			CI_LOG_E( "device already exists with key: " << key );
 			return DeviceRef();
 		}
 	}

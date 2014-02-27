@@ -98,7 +98,6 @@ LineOut::LineOut( const DeviceRef &device, const Format &format )
 
 void LineOut::deviceParamsWillChange()
 {
-	LOG_V( "bang" );
 	mWasEnabledBeforeParamsChange = mEnabled;
 
 	getContext()->stop();
@@ -107,7 +106,6 @@ void LineOut::deviceParamsWillChange()
 
 void LineOut::deviceParamsDidChange()
 {
-	LOG_V( "bang" );
 	getContext()->initializeAllNodes();
 
 	getContext()->setEnabled( mWasEnabledBeforeParamsChange );

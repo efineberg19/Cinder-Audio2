@@ -81,7 +81,7 @@ void SpectralTestApp::setup()
 	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
 
 	auto audioBuffer = mSourceFile->loadBuffer(); // TODO: load async
-	LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
+	CI_LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
 
 	mPlayerNode = ctx->makeNode( new audio2::BufferPlayer( audioBuffer ) );
 
@@ -96,7 +96,7 @@ void SpectralTestApp::setup()
 
 	ctx->printGraph();
 
-	LOG_V( "ScopeSpectral fftSize: " << mScopeSpectral->getFftSize() << ", windowSize: " << mScopeSpectral->getWindowSize() );
+	CI_LOG_V( "ScopeSpectral fftSize: " << mScopeSpectral->getFftSize() << ", windowSize: " << mScopeSpectral->getWindowSize() );
 }
 
 void SpectralTestApp::setupSine()
@@ -200,7 +200,7 @@ void SpectralTestApp::printBinFreq( size_t xPos )
 	size_t bin = ( numBins * ( xPos - mSpectroMargin ) ) / spectroWidth;
 	float freq = bin * audio2::Context::master()->getSampleRate() / float( mScopeSpectral->getFftSize() );
 
-	LOG_V( "bin: " << bin << ", freq: " << freq );
+	CI_LOG_V( "bin: " << bin << ", freq: " << freq );
 }
 
 // TODO: currently makes sense to enable processor + tap together - consider making these enabled together.
@@ -226,7 +226,7 @@ void SpectralTestApp::processTap( Vec2i pos )
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V( "selected: " << currentTest );
+		CI_LOG_V( "selected: " << currentTest );
 
 		bool enabled = ctx->isEnabled();
 		ctx->disconnectAllNodes();
@@ -254,14 +254,14 @@ void SpectralTestApp::processDrag( Vec2i pos )
 void SpectralTestApp::fileDrop( FileDropEvent event )
 {
 	const fs::path &filePath = event.getFile( 0 );
-	LOG_V( "File dropped: " << filePath );
+	CI_LOG_V( "File dropped: " << filePath );
 
 	mSourceFile = audio2::load( loadFile( filePath ) );
 	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
 
 	mPlayerNode->setBuffer( mSourceFile->loadBuffer() );
 
-	LOG_V( "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() );
+	CI_LOG_V( "loaded and set new source buffer, frames: " << mSourceFile->getNumFrames() );
 }
 
 void SpectralTestApp::resize()

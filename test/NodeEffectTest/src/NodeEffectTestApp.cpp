@@ -162,7 +162,7 @@ void NodeEffectTestApp::processTap( Vec2i pos )
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V( "selected: " << currentTest );
+		CI_LOG_V( "selected: " << currentTest );
 
 		bool enabled = ctx->isEnabled();
 		ctx->stop();

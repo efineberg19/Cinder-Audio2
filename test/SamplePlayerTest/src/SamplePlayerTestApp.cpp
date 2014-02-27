@@ -103,7 +103,7 @@ void SamplePlayerTestApp::setup()
 	ctx->start();
 	mEnableGraphButton.setEnabled( true );
 
-	LOG_V( "context samplerate: " << ctx->getSampleRate() );
+	CI_LOG_V( "context samplerate: " << ctx->getSampleRate() );
 }
 
 void SamplePlayerTestApp::setupBufferPlayer()
@@ -113,7 +113,7 @@ void SamplePlayerTestApp::setupBufferPlayer()
 	auto loadFn = [bufferPlayer, this] {
 		bufferPlayer->loadBuffer( mSourceFile );
 		mWaveformPlot.load( bufferPlayer->getBuffer(), getWindowBounds() );
-		LOG_V( "loaded source buffer, frames: " << bufferPlayer->getBuffer()->getNumFrames() );
+		CI_LOG_V( "loaded source buffer, frames: " << bufferPlayer->getBuffer()->getNumFrames() );
 
 	};
 
@@ -128,7 +128,7 @@ void SamplePlayerTestApp::setupBufferPlayer()
 	};
 
 	bool asyncLoad = mAsyncButton.mEnabled;
-	LOG_V( "async load: " << boolalpha << asyncLoad << dec );
+	CI_LOG_V( "async load: " << boolalpha << asyncLoad << dec );
 	if( asyncLoad ) {
 		mWaveformPlot.clear();
 		mAsyncLoadFuture = std::async( [=] {
@@ -150,7 +150,7 @@ void SamplePlayerTestApp::setupFilePlayer()
 
 //	mSourceFile->setMaxFramesPerRead( 8192 );
 	bool asyncRead = mAsyncButton.mEnabled;
-	LOG_V( "async read: " << asyncRead );
+	CI_LOG_V( "async read: " << asyncRead );
 	mSamplePlayer = ctx->makeNode( new audio2::FilePlayer( mSourceFile, asyncRead ) );
 
 	// TODO: it is pretty surprising when you recreate mScope here without checking if there has already been one added.
@@ -184,7 +184,7 @@ void SamplePlayerTestApp::setSourceFile( const DataSourceRef &dataSource )
 
 	getWindow()->setTitle( dataSource->getFilePath().filename().string() );
 
-	LOG_V( "SourceFile info: " );
+	CI_LOG_V( "SourceFile info: " );
 	console() << "samplerate: " << mSourceFile->getSampleRate() << endl;
 	console() << "channels: " << mSourceFile->getNumChannels() << endl;
 	console() << "native samplerate: " << mSourceFile->getNativeSampleRate() << endl;
@@ -306,7 +306,7 @@ void SamplePlayerTestApp::processTap( Vec2i pos )
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V( "selected: " << currentTest );
+		CI_LOG_V( "selected: " << currentTest );
 
 		if( currentTest == "BufferPlayer" )
 			setupBufferPlayer();
@@ -329,7 +329,7 @@ void SamplePlayerTestApp::printBufferSamples( size_t xPos )
 	auto buffer = bufferPlayer->getBuffer();
 	size_t step = buffer->getNumFrames() / getWindowWidth();
 	size_t xScaled = xPos * step;
-	LOG_V( "samples starting at " << xScaled << ":" );
+	CI_LOG_V( "samples starting at " << xScaled << ":" );
 	for( int i = 0; i < 100; i++ ) {
 		if( buffer->getNumChannels() == 1 )
 			console() << buffer->getChannel( 0 )[xScaled + i] << ", ";
@@ -358,12 +358,12 @@ void SamplePlayerTestApp::keyDown( KeyEvent event )
 void SamplePlayerTestApp::fileDrop( FileDropEvent event )
 {
 	const fs::path &filePath = event.getFile( 0 );
-	LOG_V( "File dropped: " << filePath );
+	CI_LOG_V( "File dropped: " << filePath );
 
 	setSourceFile( loadFile( filePath ) );
 	mSamplePlayer->seek( 0 );
 
-	LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
+	CI_LOG_V( "output samplerate: " << mSourceFile->getSampleRate() );
 
 	auto bufferPlayer = dynamic_pointer_cast<audio2::BufferPlayer>( mSamplePlayer );
 	if( bufferPlayer ) {
@@ -379,7 +379,7 @@ void SamplePlayerTestApp::fileDrop( FileDropEvent event )
 
 	mLoopBeginSlider.mMax = mLoopEndSlider.mMax = mSamplePlayer->getNumSeconds();
 
-	LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
+	CI_LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
 	audio2::Context::master()->printGraph();
 }
 
@@ -400,7 +400,7 @@ void SamplePlayerTestApp::update()
 	if( mSamplePlayerEnabledState != mSamplePlayer->isEnabled() ) {
 		mSamplePlayerEnabledState = mSamplePlayer->isEnabled();
 		string stateStr = mSamplePlayerEnabledState ? "started" : "stopped";
-		LOG_V( "mSamplePlayer " << stateStr << " at " << to_string( getElapsedSeconds() ) );
+		CI_LOG_V( "mSamplePlayer " << stateStr << " at " << to_string( getElapsedSeconds() ) );
 	}
 }
 
@@ -441,8 +441,8 @@ void SamplePlayerTestApp::testConverter()
 	size_t sourceMaxFramesPerBlock = 512;
 	auto converter = audio2::dsp::Converter::create( mSourceFile->getSampleRate(), destSampleRate, mSourceFile->getNumChannels(), destChannels, sourceMaxFramesPerBlock );
 
-	LOG_V( "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceMaxFramesPerBlock() );
-	LOG_V( "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << converter->getDestMaxFramesPerBlock() );
+	CI_LOG_V( "FROM samplerate: " << converter->getSourceSampleRate() << ", channels: " << converter->getSourceNumChannels() << ", frames per block: " << converter->getSourceMaxFramesPerBlock() );
+	CI_LOG_V( "TO samplerate: " << converter->getDestSampleRate() << ", channels: " << converter->getDestNumChannels() << ", frames per block: " << converter->getDestMaxFramesPerBlock() );
 
 	audio2::BufferDynamic sourceBuffer( converter->getSourceMaxFramesPerBlock(), converter->getSourceNumChannels() );
 	audio2::Buffer destBuffer( converter->getDestMaxFramesPerBlock(), converter->getDestNumChannels() );
@@ -473,7 +473,7 @@ void SamplePlayerTestApp::testConverter()
 		target->write( &destBuffer, 0, result.second );
 	}
 
-	LOG_V( "seconds: " << timer.getSeconds() );
+	CI_LOG_V( "seconds: " << timer.getSeconds() );
 }
 
 void SamplePlayerTestApp::testWrite()
@@ -482,9 +482,9 @@ void SamplePlayerTestApp::testWrite()
 
 	audio2::TargetFileRef target = audio2::TargetFile::create( "out.wav", mSourceFile->getSampleRate(), mSourceFile->getNumChannels() );
 
-	LOG_V( "writing " << audioBuffer->getNumFrames() << " frames at samplerate: " << mSourceFile->getSampleRate() << ", num channels: " << mSourceFile->getNumChannels() );
+	CI_LOG_V( "writing " << audioBuffer->getNumFrames() << " frames at samplerate: " << mSourceFile->getSampleRate() << ", num channels: " << mSourceFile->getNumChannels() );
 	target->write( audioBuffer.get() );
-	LOG_V( "...complete." );
+	CI_LOG_V( "...complete." );
 
 //	size_t writeCount = 0;
 //	while( numFramesConverted < audioBuffer->getNumFrames() ) {

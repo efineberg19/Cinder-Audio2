@@ -111,7 +111,7 @@ BufferPlayer::BufferPlayer( const BufferRef &buffer, const Format &format )
 void BufferPlayer::start()
 {
 	if( ! mBuffer ) {
-		LOG_E( "no audio buffer, returning." );
+		CI_LOG_E( "no audio buffer, returning." );
 		return;
 	}
 
@@ -247,7 +247,7 @@ void FilePlayer::uninitialize()
 void FilePlayer::start()
 {
 	if( mEnabled || ! mSourceFile ) {
-		LOG_E( "no source file, returning." );
+		CI_LOG_E( "no source file, returning." );
 		return;
 	}
 
@@ -256,21 +256,17 @@ void FilePlayer::start()
 
 	mIsEof = false;
 	mEnabled = true;
-
-	LOG_V( "started" );
 }
 
 void FilePlayer::stop()
 {
 	mEnabled = false;
-
-	LOG_V( "stopped" );
 }
 
 void FilePlayer::seek( size_t readPositionFrames )
 {
 	if( ! mSourceFile ) {
-		LOG_E( "no source file, returning." );
+		CI_LOG_E( "no source file, returning." );
 		return;
 	}
 
@@ -415,7 +411,6 @@ void FilePlayer::seekImpl( size_t readPos )
 void FilePlayer::destroyReadThreadImpl()
 {
 	if( mIsReadAsync && mReadThread ) {
-		LOG_V( "destroying I/O thread" );
 		mAsyncReadShouldQuit = true;
 		mIssueAsyncReadCond.notify_one();
 		mReadThread->join();

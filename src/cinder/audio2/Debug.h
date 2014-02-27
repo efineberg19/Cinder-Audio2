@@ -28,16 +28,16 @@
 #include "cinder/audio2/CinderAssert.h"
 #include <boost/current_function.hpp>
 
-#if DEBUG || defined( _DEBUG )
+#if ! defined( NDEBUG )
 
 #include "cinder/app/App.h"
 
-#define LOG_V( stream )			do{ ci::app::console() << BOOST_CURRENT_FUNCTION << " | " << stream << std::endl; } while( 0 )
-#define LOG_E( errorStream )	do{ LOG_V( __LINE__ << " | ERROR | " << errorStream ); } while( 0 )
+	#define CI_LOG_V( stream )			do{ ci::app::console() << BOOST_CURRENT_FUNCTION << " | " << stream << std::endl; } while( 0 )
+	#define CI_LOG_E( errorStream )		do{ CI_LOG_V( __LINE__ << " | ERROR | " << errorStream ); } while( 0 )
 
 #else
 
-#define LOG_V( stream )			do{} while( 0 )
-#define LOG_E( errorStream )	do{} while( 0 )
+	#define CI_LOG_V( stream )			do{} while( 0 )
+	#define CI_LOG_E( errorStream )		do{} while( 0 )
 
 #endif // DEBUG

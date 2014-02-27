@@ -68,7 +68,7 @@ void SourceFile::setOutputFormat( size_t outputSampleRate, size_t outputNumChann
 			if( ! supportsConversion() ) {
 				mConverter = audio2::dsp::Converter::create( mNativeSampleRate, mSampleRate, mNativeNumChannels, mNumChannels, mMaxFramesPerRead );
 				mConverterReadBuffer.setSize( mMaxFramesPerRead, mNativeNumChannels );
-				LOG_V( "created Converter for samplerate: " << mNativeSampleRate << " -> " << mSampleRate << ", channels: " << mNativeNumChannels << " -> " << mNumChannels << ", output num frames: " << mNumFrames );
+				CI_LOG_V( "created Converter for samplerate: " << mNativeSampleRate << " -> " << mSampleRate << ", channels: " << mNativeNumChannels << " -> " << mNumChannels << ", output num frames: " << mNumFrames );
 			}
 
 			mNumFrames = (size_t)std::ceil( (float)mFileNumFrames * (float)mSampleRate / (float)mNativeSampleRate );

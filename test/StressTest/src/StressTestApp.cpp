@@ -97,7 +97,7 @@ void StressTestApp::addGens()
 	}
 
 	ctx->printGraph();
-	LOG_V( "gen count: " << mGenBank.size() );
+	CI_LOG_V( "gen count: " << mGenBank.size() );
 }
 
 void StressTestApp::removeGens()
@@ -108,7 +108,7 @@ void StressTestApp::removeGens()
 	}
 
 	audio2::Context::master()->printGraph();
-	LOG_V( "gen count: " << mGenBank.size() );
+	CI_LOG_V( "gen count: " << mGenBank.size() );
 }
 
 void StressTestApp::clearGens()
@@ -119,7 +119,7 @@ void StressTestApp::clearGens()
 	}
 
 	audio2::Context::master()->printGraph();
-	LOG_V( "gen count: " << mGenBank.size() );
+	CI_LOG_V( "gen count: " << mGenBank.size() );
 }
 
 audio2::GenRef StressTestApp::makeSelectedGenType()
@@ -238,7 +238,7 @@ void StressTestApp::processTap( Vec2i pos )
 	}
 	else if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
 		string currentTest = mTestSelector.currentSection();
-		LOG_V( "selected: " << currentTest );
+		CI_LOG_V( "selected: " << currentTest );
 
 		if( currentTest == "sine" )
 			mSelectedGenType = SINE;
@@ -272,7 +272,7 @@ void StressTestApp::keyDown( KeyEvent event )
 		if( event.getCode() == KeyEvent::KEY_RETURN ) {
 			if( currentSelected == &mAddIncrInput ) {
 				mAddIncr = currentSelected->getValue();
-				LOG_V( "add incriment: " << mAddIncr );
+				CI_LOG_V( "add incriment: " << mAddIncr );
 			}
 			TextInput::disableAll();
 		}
