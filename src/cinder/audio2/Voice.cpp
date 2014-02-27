@@ -210,7 +210,7 @@ bool Voice::isPlaying() const
 
 VoiceSamplePlayer::VoiceSamplePlayer( const SourceFileRef &sourceFile, const Options &options )
 {
-	sourceFile->setOutputFormat( audio2::Context::master()->getSampleRate(), options.getChannels() );
+	sourceFile->setOutputFormat( audio2::master()->getSampleRate(), options.getChannels() );
 
 	if( sourceFile->getNumFrames() <= options.getMaxFramesForBufferPlayback() ) {
 		BufferRef buffer = MixerImpl::get()->loadBuffer( sourceFile, options.getChannels() );

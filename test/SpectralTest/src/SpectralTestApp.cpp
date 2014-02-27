@@ -68,7 +68,7 @@ void SpectralTestApp::setup()
 {
 	mSpectroMargin = 40.0f;
 
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mScopeSpectral = ctx->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( FFT_SIZE ).windowSize( WINDOW_SIZE ).windowType( WINDOW_TYPE ) ) );
 	mScopeSpectral->setAutoEnabled();
@@ -78,7 +78,7 @@ void SpectralTestApp::setup()
 	mGen->setFreq( 440.0f );
 
 	mSourceFile = audio2::load( loadResource( RES_CASH_MP3 ) );
-	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
+	mSourceFile->setOutputFormat( audio2::master()->getSampleRate() );
 
 	auto audioBuffer = mSourceFile->loadBuffer(); // TODO: load async
 	CI_LOG_V( "loaded source buffer, frames: " << audioBuffer->getNumFrames() );
@@ -101,7 +101,7 @@ void SpectralTestApp::setup()
 
 void SpectralTestApp::setupSine()
 {
-	mGen >> mScopeSpectral >> audio2::Context::master()->getOutput();
+	mGen >> mScopeSpectral >> audio2::master()->getOutput();
 	if( mPlaybackButton.mEnabled )
 		mGen->start();
 }
@@ -115,7 +115,7 @@ void SpectralTestApp::setupSineNoOutput()
 
 void SpectralTestApp::setupSample()
 {
-	mPlayerNode >> mScopeSpectral >> audio2::Context::master()->getOutput();
+	mPlayerNode >> mScopeSpectral >> audio2::master()->getOutput();
 	if( mPlaybackButton.mEnabled )
 		mPlayerNode->start();
 }
@@ -198,7 +198,7 @@ void SpectralTestApp::printBinFreq( size_t xPos )
 	size_t numBins = mScopeSpectral->getFftSize() / 2;
 	size_t spectroWidth = getWindowWidth() - mSpectroMargin * 2;
 	size_t bin = ( numBins * ( xPos - mSpectroMargin ) ) / spectroWidth;
-	float freq = bin * audio2::Context::master()->getSampleRate() / float( mScopeSpectral->getFftSize() );
+	float freq = bin * audio2::master()->getSampleRate() / float( mScopeSpectral->getFftSize() );
 
 	CI_LOG_V( "bin: " << bin << ", freq: " << freq );
 }
@@ -207,7 +207,7 @@ void SpectralTestApp::printBinFreq( size_t xPos )
 // - possible solution: add a silent flag that is settable by client
 void SpectralTestApp::processTap( Vec2i pos )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	if( mEnableGraphButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
 	else if( mPlaybackButton.hitTest( pos ) ) {
@@ -257,7 +257,7 @@ void SpectralTestApp::fileDrop( FileDropEvent event )
 	CI_LOG_V( "File dropped: " << filePath );
 
 	mSourceFile = audio2::load( loadFile( filePath ) );
-	mSourceFile->setOutputFormat( audio2::Context::master()->getSampleRate() );
+	mSourceFile->setOutputFormat( audio2::master()->getSampleRate() );
 
 	mPlayerNode->setBuffer( mSourceFile->loadBuffer() );
 

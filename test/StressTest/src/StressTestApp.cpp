@@ -67,11 +67,11 @@ void StressTestApp::setup()
 	mEnableDrawing = true;
 	mSelectedGenType = OSC_SQUARE;
 
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	mGain = ctx->makeNode( new audio2::Gain );
 	mGain->setValue( 0.1f );
 
-	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
+	mScope = audio2::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
 	mScope->setSmoothingFactor( 0.4 );
 
 	mGain >> mScope >> ctx->getOutput();
@@ -84,7 +84,7 @@ void StressTestApp::setup()
 
 void StressTestApp::addGens()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	for( size_t i = 0; i < mAddIncr; i++ ) {
 		auto gen = makeSelectedGenType();
@@ -107,7 +107,7 @@ void StressTestApp::removeGens()
 		mGenBank.pop_back();
 	}
 
-	audio2::Context::master()->printGraph();
+	audio2::master()->printGraph();
 	CI_LOG_V( "gen count: " << mGenBank.size() );
 }
 
@@ -118,15 +118,15 @@ void StressTestApp::clearGens()
 		mGenBank.pop_back();
 	}
 
-	audio2::Context::master()->printGraph();
+	audio2::master()->printGraph();
 	CI_LOG_V( "gen count: " << mGenBank.size() );
 }
 
 audio2::GenRef StressTestApp::makeSelectedGenType()
 {
 	switch( mSelectedGenType ) {
-		case SINE: return audio2::Context::master()->makeNode( new audio2::GenSine );
-		case TRIANGLE: return audio2::Context::master()->makeNode( new audio2::GenTriangle );
+		case SINE: return audio2::master()->makeNode( new audio2::GenSine );
+		case TRIANGLE: return audio2::master()->makeNode( new audio2::GenTriangle );
 		case OSC_SINE: return makeOsc( audio2::WaveformType::SINE );
 		case OSC_SAW: return makeOsc( audio2::WaveformType::SAWTOOTH );
 		case OSC_SQUARE: return makeOsc( audio2::WaveformType::SQUARE );
@@ -140,7 +140,7 @@ audio2::GenRef StressTestApp::makeSelectedGenType()
 
 audio2::GenRef StressTestApp::makeOsc( audio2::WaveformType type )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	auto result = ctx->makeNode( new audio2::GenOscillator( audio2::GenOscillator::Format().waveform( type ) ) );
 
 	if( mWaveTable )
@@ -223,7 +223,7 @@ void StressTestApp::processDrag( Vec2i pos )
 
 void StressTestApp::processTap( Vec2i pos )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 
 	if( mPlayButton.hitTest( pos ) )

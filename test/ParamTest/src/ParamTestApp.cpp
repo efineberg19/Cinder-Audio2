@@ -52,7 +52,7 @@ class ParamTestApp : public AppNative {
 
 void ParamTestApp::setup()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.8f );
 
@@ -79,13 +79,13 @@ void ParamTestApp::setup()
 
 void ParamTestApp::setupBasic()
 {
-	mGen >> mGain >> audio2::Context::master()->getOutput();
+	mGen >> mGain >> audio2::master()->getOutput();
 	mGen->start();
 }
 
 void ParamTestApp::setupFilter()
 {
-	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getOutput();
+	mGen >> mLowPass >> mGain >> mPan >> audio2::master()->getOutput();
 	mGen->start();
 }
 
@@ -146,7 +146,7 @@ void ParamTestApp::testAppendCancel()
 
 void ParamTestApp::testProcessor()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
 	mod->setFreq( 2 );
 
@@ -256,7 +256,7 @@ void ParamTestApp::processDrag( Vec2i pos )
 
 void ParamTestApp::processTap( Vec2i pos )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	size_t selectorIndex = mTestSelector.mCurrentSectionIndex;
 
 	if( mPlayButton.hitTest( pos ) )
@@ -302,7 +302,7 @@ void ParamTestApp::keyDown( KeyEvent event )
 
 void ParamTestApp::update()
 {
-	if( audio2::Context::master()->isEnabled() ) {
+	if( audio2::master()->isEnabled() ) {
 		mGainSlider.set( mGain->getValue() );
 		mGenFreqSlider.set( mGen->getFreq() );
 	}
@@ -317,7 +317,7 @@ void ParamTestApp::draw()
 // TODO: this will be formalized once there is an offline audio context and NodeOutputFile.
 void ParamTestApp::writeParamEval( audio2::Param *param )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	float duration = param->findDuration();
 	float currTime = (float)ctx->getNumProcessedSeconds();
 	size_t sampleRate = ctx->getSampleRate();

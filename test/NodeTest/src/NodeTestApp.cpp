@@ -73,7 +73,7 @@ void NodeTestApp::setup()
 {
 	printDefaultOutput();
 	
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.5f );
 
@@ -91,7 +91,7 @@ void NodeTestApp::setupGen()
 {
 	mGain->disconnectAllInputs();
 
-	mGen >> mGain >> audio2::Context::master()->getOutput();
+	mGen >> mGain >> audio2::master()->getOutput();
 
 	mGen->start();
 
@@ -116,7 +116,7 @@ void NodeTestApp::setup2to1()
 	// ???: possible?
 //	mNoise->bus( 0 ) >> mGain->bus( GainInputBus::NOISE );
 
-	mGain >> audio2::Context::master()->getOutput();
+	mGain >> audio2::master()->getOutput();
 
 	mGen->start();
 	mNoise->start();
@@ -134,11 +134,11 @@ void NodeTestApp::setup1to2()
 
 	// TODO: this wants to connect at bus 0, but what if mGen is already connected at a different bus?
 	// - output bus should be updated to reflect the newly specified index
-	mGen >> mGain >> audio2::Context::master()->getOutput();
+	mGen >> mGain >> audio2::master()->getOutput();
 	mGen->start();
 
 	if( ! mScope )
-		mScope = audio2::Context::master()->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
+		mScope = audio2::master()->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
 	mGen->addConnection( mScope );
 
 	mEnableNoiseButton.setEnabled( false );
@@ -147,7 +147,7 @@ void NodeTestApp::setup1to2()
 
 void NodeTestApp::setupInterleavedPassThru()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mGain->disconnectAllInputs();
 
@@ -161,7 +161,7 @@ void NodeTestApp::setupInterleavedPassThru()
 
 void NodeTestApp::setupAutoPulled()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	ctx->disconnectAllNodes();
 
@@ -243,7 +243,7 @@ void NodeTestApp::processDrag( Vec2i pos )
 
 void NodeTestApp::processTap( Vec2i pos )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );

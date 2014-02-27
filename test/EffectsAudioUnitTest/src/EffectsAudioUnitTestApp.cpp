@@ -42,7 +42,7 @@ class EffectsAudioUnitTestApp : public AppNative {
 
 void EffectsAudioUnitTestApp::setup()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	auto noise = ctx->makeNode( new audio2::GenNoise() );
 	noise->setAutoEnabled();
@@ -60,7 +60,7 @@ void EffectsAudioUnitTestApp::setup()
 
 void EffectsAudioUnitTestApp::setupOne()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mEffect = ctx->makeNode( new audio2::cocoa::NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
 	mSource >> mEffect >> ctx->getOutput();
@@ -70,7 +70,7 @@ void EffectsAudioUnitTestApp::setupOne()
 
 void EffectsAudioUnitTestApp::setupTwo()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mEffect = ctx->makeNode( new audio2::cocoa::NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
 	mEffect2 = ctx->makeNode( new audio2::cocoa::NodeEffectAudioUnit( kAudioUnitSubType_BandPassFilter ) );
@@ -156,7 +156,7 @@ void EffectsAudioUnitTestApp::processDrag( Vec2i pos )
 
 void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );

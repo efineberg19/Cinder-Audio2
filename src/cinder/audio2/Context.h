@@ -38,9 +38,9 @@ class Context : public std::enable_shared_from_this<Context> {
   public:
 	virtual ~Context();
 
-	//! Returns the master, platform-specific \a Context that manages hardware I/O and real-time processing, or null if none is available.
+	//! Returns the master \a Context that manages hardware I/O and real-time processing, which is platform specific. If none is available, returns \a null.
 	static Context*				master();
-	//! Returns the platform-specific \a DeviceManager singleton instance. If none is available, returns \a nullptr.
+	//! Returns the platform-specific \a DeviceManager singleton instance, which is platform specific. If none is available, returns \a null.
 	static DeviceManager*		deviceManager();
 
 	virtual LineOutRef		createLineOut( const DeviceRef &device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
@@ -134,5 +134,8 @@ std::shared_ptr<NodeT> Context::makeNode( NodeT *node )
 	result->setContext( shared_from_this() );
 	return result;
 }
+
+//! Returns the master \a Context that manages hardware I/O and real-time processing, which is platform specific. If none is available, returns \a null.
+inline Context* master()	{ return Context::master(); }
 
 } } // namespace cinder::audio2

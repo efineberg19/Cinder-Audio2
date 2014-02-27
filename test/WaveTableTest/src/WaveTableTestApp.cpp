@@ -58,11 +58,11 @@ void WaveTableTestApp::prepareSettings( Settings *settings )
 
 void WaveTableTestApp::setup()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	mGain = ctx->makeNode( new audio2::Gain );
 	mGain->setValue( 0.075f );
 
-	mScope = audio2::Context::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
+	mScope = audio2::master()->makeNode( new audio2::ScopeSpectral( audio2::ScopeSpectral::Format().fftSize( 1024 ).windowSize( 2048 ) ) );
 	mScope->setSmoothingFactor( 0 );
 
 	mFreqSlider.set( 100 );
@@ -80,7 +80,7 @@ void WaveTableTestApp::setup()
 
 void WaveTableTestApp::setupTable()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	auto gen = ctx->makeNode( new audio2::GenTable );
 	gen->setFreq( mFreqSlider.mValueScaled );
@@ -91,7 +91,7 @@ void WaveTableTestApp::setupTable()
 
 void WaveTableTestApp::setupOsc( audio2::WaveformType type )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mGenOsc = ctx->makeNode( new audio2::GenOscillator( audio2::GenOscillator::Format().waveform( type ) ) );
 	mGenOsc->setFreq( mFreqSlider.mValueScaled );
@@ -103,7 +103,7 @@ void WaveTableTestApp::setupOsc( audio2::WaveformType type )
 void WaveTableTestApp::setupPulse()
 {
 	if( ! mGenPulse ) {
-		mGenPulse = audio2::Context::master()->makeNode( new audio2::GenPulse );
+		mGenPulse = audio2::master()->makeNode( new audio2::GenPulse );
 		mGenPulse->setFreq( mFreqSlider.mValueScaled );
 		mGenPulse->start();
 	}
@@ -116,9 +116,9 @@ void WaveTableTestApp::setupPulse()
 
 #if 1
 	// pwm
-	auto mod = audio2::Context::master()->makeNode( new audio2::GenTable );
+	auto mod = audio2::master()->makeNode( new audio2::GenTable );
 
-	audio2::Context::master()->initializeNode( mod );
+	audio2::master()->initializeNode( mod );
 
 	vector<float> table( mod->getWaveTable()->getTableSize() );
 
@@ -138,13 +138,13 @@ void WaveTableTestApp::setupPulse()
 	mGenPulse->getParamWidth()->setProcessor( mod );
 #endif
 
-	audio2::Context::master()->printGraph();
+	audio2::master()->printGraph();
 }
 
 // for comparison with GenOscillator's triangle spectra
 void WaveTableTestApp::setupTriangleCalc()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	auto gen = ctx->makeNode( new audio2::GenTriangle );
 	gen->setFreq( mFreqSlider.mValueScaled );
@@ -248,7 +248,7 @@ void WaveTableTestApp::processDrag( Vec2i pos )
 
 void WaveTableTestApp::processTap( Vec2i pos )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
 
 	if( mPlayButton.hitTest( pos ) )

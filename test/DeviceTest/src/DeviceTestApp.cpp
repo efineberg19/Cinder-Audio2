@@ -66,7 +66,7 @@ void DeviceTestApp::prepareSettings( Settings *settings )
 
 void DeviceTestApp::setup()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
 	mGain = ctx->makeNode( new audio2::Gain() );
@@ -98,7 +98,7 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t num
 	audio2::NodeInputRef currentSource = audio2::findFirstUpstreamNode<audio2::NodeInput>( mGain );
 	audio2::ScopedNodeEnabledState enabled( currentSource );
 
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	ctx->uninitializeAllNodes();
 
@@ -132,7 +132,7 @@ void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device, size_t numC
 	if( numChannels )
 		format.channels( numChannels );
 
-	mLineIn = audio2::Context::master()->createLineIn( device, format );
+	mLineIn = audio2::master()->createLineIn( device, format );
 
 	setupTest( mTestSelector.currentSection() );
 
@@ -163,7 +163,7 @@ void DeviceTestApp::printDeviceDetails( const audio2::DeviceRef &device )
 
 void DeviceTestApp::setupSine()
 {
-	auto sineGen = audio2::Context::master()->makeNode( new audio2::GenSine() );
+	auto sineGen = audio2::master()->makeNode( new audio2::GenSine() );
 	sineGen->setFreq( 440 );
 	mSourceNode = sineGen;
 
@@ -173,7 +173,7 @@ void DeviceTestApp::setupSine()
 
 void DeviceTestApp::setupNoise()
 {
-	auto noiseGen = audio2::Context::master()->makeNode( new audio2::GenNoise() );
+	auto noiseGen = audio2::master()->makeNode( new audio2::GenNoise() );
 	mSourceNode = noiseGen;
 
 	mSourceNode->connect( mGain );
@@ -188,11 +188,11 @@ void DeviceTestApp::setupIOClean()
 
 void DeviceTestApp::setupIOProcessed()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
 	mod->setFreq( 200 );
 
-	auto ringMod = audio2::Context::master()->makeNode( new audio2::Gain );
+	auto ringMod = audio2::master()->makeNode( new audio2::Gain );
 	ringMod->getParam()->setProcessor( mod );
 
 	mLineIn >> ringMod >> mGain;
@@ -248,13 +248,13 @@ void DeviceTestApp::setupUI()
 	Rectf textInputBounds( 0, getWindowCenter().y + 40, 200, getWindowCenter().y + 70  );
 	mSamplerateInput.mBounds = textInputBounds;
 	mSamplerateInput.mTitle = "samplerate";
-	mSamplerateInput.setValue( audio2::Context::master()->getSampleRate() );
+	mSamplerateInput.setValue( audio2::master()->getSampleRate() );
 	mWidgets.push_back( &mSamplerateInput );
 
 	textInputBounds += Vec2f( 0, textInputBounds.getHeight() + 24 );
 	mFramesPerBlockInput.mBounds = textInputBounds;
 	mFramesPerBlockInput.mTitle = "frames per block";
-	mFramesPerBlockInput.setValue( audio2::Context::master()->getFramesPerBlock() );
+	mFramesPerBlockInput.setValue( audio2::master()->getFramesPerBlock() );
 	mWidgets.push_back( &mFramesPerBlockInput );
 
 	textInputBounds += Vec2f( 0, textInputBounds.getHeight() + 24 );
@@ -300,7 +300,7 @@ void DeviceTestApp::processTap( Vec2i pos )
 {
 //	TextInput *selectedInput = false;
 	if( mPlayButton.hitTest( pos ) )
-		audio2::Context::master()->setEnabled( ! audio2::Context::master()->isEnabled() );
+		audio2::master()->setEnabled( ! audio2::master()->isEnabled() );
 	else if( mSamplerateInput.hitTest( pos ) ) {
 	}
 	else if( mFramesPerBlockInput.hitTest( pos ) ) {
@@ -356,7 +356,7 @@ void DeviceTestApp::setupTest( const string &test )
 	else
 		setupSine();
 
-	audio2::Context::master()->printGraph();
+	audio2::master()->printGraph();
 }
 
 void DeviceTestApp::keyDown( KeyEvent event )
@@ -396,7 +396,7 @@ void DeviceTestApp::keyDown( KeyEvent event )
 		}
 		catch( audio2::AudioDeviceExc &exc ) {
 			CI_LOG_E( "AudioDeviceExc caught, what: " << exc.what() );
-			auto ctx = audio2::Context::master();
+			auto ctx = audio2::master();
 			mSamplerateInput.setValue( ctx->getSampleRate() );
 			mFramesPerBlockInput.setValue( ctx->getFramesPerBlock() );
 			return;

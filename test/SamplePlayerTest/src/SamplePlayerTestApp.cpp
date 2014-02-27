@@ -85,7 +85,7 @@ void SamplePlayerTestApp::setup()
 
 	setSourceFile( loadResource( INITIAL_AUDIO_RES ) );
 
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 //	mPan->enableMonoInputMode( false );
@@ -108,7 +108,7 @@ void SamplePlayerTestApp::setup()
 
 void SamplePlayerTestApp::setupBufferPlayer()
 {
-	auto bufferPlayer = audio2::Context::master()->makeNode( new audio2::BufferPlayer() );
+	auto bufferPlayer = audio2::master()->makeNode( new audio2::BufferPlayer() );
 
 	auto loadFn = [bufferPlayer, this] {
 		bufferPlayer->loadBuffer( mSourceFile );
@@ -119,8 +119,8 @@ void SamplePlayerTestApp::setupBufferPlayer()
 
 	auto connectFn = [bufferPlayer, this] {
 		mSamplePlayer = bufferPlayer;
-		mSamplePlayer >> mGain >> mPan >> audio2::Context::master()->getOutput();
-		audio2::Context::master()->printGraph();
+		mSamplePlayer >> mGain >> mPan >> audio2::master()->getOutput();
+		audio2::master()->printGraph();
 
 		mSamplePlayer->setLoopEnabled( mLoopButton.mEnabled );
 		mSamplePlayer->setLoopBeginTime( mLoopBeginSlider.mValueScaled );
@@ -146,7 +146,7 @@ void SamplePlayerTestApp::setupBufferPlayer()
 
 void SamplePlayerTestApp::setupFilePlayer()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 //	mSourceFile->setMaxFramesPerRead( 8192 );
 	bool asyncRead = mAsyncButton.mEnabled;
@@ -175,7 +175,7 @@ void SamplePlayerTestApp::setupFilePlayer()
 	mSamplePlayer->setLoopBeginTime( mLoopBeginSlider.mValueScaled );
 	mSamplePlayer->setLoopEndTime( mLoopEndSlider.mValueScaled != 0 ? mLoopEndSlider.mValueScaled : mSamplePlayer->getNumSeconds() );
 
-	audio2::Context::master()->printGraph();
+	audio2::master()->printGraph();
 }
 
 void SamplePlayerTestApp::setSourceFile( const DataSourceRef &dataSource )
@@ -293,7 +293,7 @@ void SamplePlayerTestApp::processDrag( Vec2i pos )
 void SamplePlayerTestApp::processTap( Vec2i pos )
 {
 	if( mEnableGraphButton.hitTest( pos ) )
-		audio2::Context::master()->setEnabled( ! audio2::Context::master()->isEnabled() );
+		audio2::master()->setEnabled( ! audio2::master()->isEnabled() );
 	else if( mStartPlaybackButton.hitTest( pos ) )
 		mSamplePlayer->start();
 	else if( mLoopButton.hitTest( pos ) )
@@ -380,7 +380,7 @@ void SamplePlayerTestApp::fileDrop( FileDropEvent event )
 	mLoopBeginSlider.mMax = mLoopEndSlider.mMax = mSamplePlayer->getNumSeconds();
 
 	CI_LOG_V( "loaded and set new source buffer, channels: " << mSourceFile->getNumChannels() << ", frames: " << mSourceFile->getNumFrames() );
-	audio2::Context::master()->printGraph();
+	audio2::master()->printGraph();
 }
 
 

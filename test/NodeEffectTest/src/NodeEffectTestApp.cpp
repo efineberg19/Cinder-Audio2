@@ -40,7 +40,7 @@ class NodeEffectTestApp : public AppNative {
 
 void NodeEffectTestApp::setup()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	mGain = ctx->makeNode( new audio2::Gain() );
 	mGain->setValue( 0.6f );
@@ -63,17 +63,17 @@ void NodeEffectTestApp::setup()
 
 void NodeEffectTestApp::setupOne()
 {
-	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getOutput();
+	mGen >> mLowPass >> mGain >> mPan >> audio2::master()->getOutput();
 }
 
 void NodeEffectTestApp::setupForceStereo()
 {
-	mGen >> mLowPass >> mGain >> mPan >> audio2::Context::master()->getOutput();
+	mGen >> mLowPass >> mGain >> mPan >> audio2::master()->getOutput();
 }
 
 void NodeEffectTestApp::setupDownMix()
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 	auto mono = ctx->makeNode( new audio2::Gain( audio2::Node::Format().channels( 1 ) ) );
 	mGen >> mLowPass >> mGain >> mPan >> mono >> ctx->getOutput();
 }
@@ -86,7 +86,7 @@ void NodeEffectTestApp::setupCycle()
 	mGen->connect( mLowPass );
 	mLowPass->addConnection( mGain );
 	mGain->addConnection( mLowPass );
-	mLowPass->addConnection( audio2::Context::master()->getOutput() );
+	mLowPass->addConnection( audio2::master()->getOutput() );
 }
 
 void NodeEffectTestApp::setupUI()
@@ -154,7 +154,7 @@ void NodeEffectTestApp::processDrag( Vec2i pos )
 
 void NodeEffectTestApp::processTap( Vec2i pos )
 {
-	auto ctx = audio2::Context::master();
+	auto ctx = audio2::master();
 
 	if( mPlayButton.hitTest( pos ) )
 		ctx->setEnabled( ! ctx->isEnabled() );
