@@ -51,8 +51,9 @@ public:
 	void setup1to2();
 	void setupInterleavedPassThru();
 	void setupAutoPulled();
-	void printDefaultOutput();
+	void setupFunnelCase();
 
+	void printDefaultOutput();
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
@@ -66,7 +67,7 @@ public:
 	VSelector				mTestSelector;
 	HSlider					mGainSlider;
 
-	enum GainInputBus { NOISE, SINE };
+	enum InputBus { SINE, NOISE };
 };
 
 void NodeTestApp::setup()
@@ -74,12 +75,11 @@ void NodeTestApp::setup()
 	printDefaultOutput();
 	
 	auto ctx = audio2::master();
-	mGain = ctx->makeNode( new audio2::Gain() );
-	mGain->setValue( 0.5f );
-
+	mGain = ctx->makeNode( new audio2::Gain( 0.04f ) );
+	mGen = ctx->makeNode( new audio2::GenSine( 440 ) );
 	mNoise = ctx->makeNode( new audio2::GenNoise() );
-	mGen = ctx->makeNode( new audio2::GenTriangle() );
-	mGen->setFreq( 440 );
+
+	mScope = audio2::master()->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
 
 	setupGen();
 	ctx->printGraph();
@@ -106,15 +106,15 @@ void NodeTestApp::setup2to1()
 //	mGen->addConnection( mGain );
 
 	// connect by index
-//	mNoise->connect( mGain, 0, GainInputBus::NOISE );
-//	mGen->connect( mGain, 0, GainInputBus::SINE );
+//	mGen->connect( mGain, 0, InputBus::SINE );
+//	mNoise->connect( mGain, 0, InputBus::NOISE );
 
 	// connect by bus using operator>>
-	mNoise >> mGain->bus( GainInputBus::NOISE );
-	mGen >> mGain->bus( GainInputBus::SINE );
+	mGen >> mGain->bus( InputBus::SINE );
+	mNoise >> mGain->bus( InputBus::NOISE );
 
 	// ???: possible?
-//	mNoise->bus( 0 ) >> mGain->bus( GainInputBus::NOISE );
+//	mNoise->bus( 0 ) >> mGain->bus( InputBus::NOISE );
 
 	mGain >> audio2::master()->getOutput();
 
@@ -137,8 +137,6 @@ void NodeTestApp::setup1to2()
 	mGen >> mGain >> audio2::master()->getOutput();
 	mGen->start();
 
-	if( ! mScope )
-		mScope = audio2::master()->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
 	mGen->addConnection( mScope );
 
 	mEnableNoiseButton.setEnabled( false );
@@ -162,11 +160,7 @@ void NodeTestApp::setupInterleavedPassThru()
 void NodeTestApp::setupAutoPulled()
 {
 	auto ctx = audio2::master();
-
 	ctx->disconnectAllNodes();
-
-	if( ! mScope )
-		mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 2048 ) ) );
 
 	mGen >> mScope;
 
@@ -176,6 +170,26 @@ void NodeTestApp::setupAutoPulled()
 	// - don't stop context if not necessary
 	if( mPlayButton.mEnabled )
 		ctx->start();
+}
+
+void NodeTestApp::setupFunnelCase()
+{
+	auto ctx = audio2::master();
+	ctx->disconnectAllNodes();
+
+	auto gain1 = ctx->makeNode( new audio2::Gain );
+	auto gain2 = ctx->makeNode( new audio2::Gain );
+
+	mGen >> gain2 >> mScope->bus( InputBus::SINE );
+	mNoise >> gain1 >> mScope->bus( InputBus::NOISE );
+
+	mScope >> mGain >> ctx->getOutput();
+
+	mNoise->stop();
+	mGen->start();
+
+	mEnableNoiseButton.setEnabled( false );
+	mEnableSineButton.setEnabled( true );
 }
 
 void NodeTestApp::printDefaultOutput()
@@ -200,7 +214,8 @@ void NodeTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "1 to 2" );
 	mTestSelector.mSegments.push_back( "interleave pass-thru" );
 	mTestSelector.mSegments.push_back( "auto-pulled" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 180 );
+	mTestSelector.mSegments.push_back( "funnel case" );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 200 );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20,  440.0f );
@@ -270,6 +285,8 @@ void NodeTestApp::processTap( Vec2i pos )
 			setupInterleavedPassThru();
 		else if( currentTest == "auto-pulled" )
 			setupAutoPulled();
+		else if( currentTest == "funnel case" )
+			setupFunnelCase();
 
 		ctx->printGraph();
 	}
@@ -280,8 +297,8 @@ void NodeTestApp::draw()
 	gl::clear();
 
 	if( mScope && mScope->getNumConnectedInputs() ) {
-		const float padding = 20;
-		Rectf scopeRect( padding, padding, getWindowWidth() - padding, getWindowHeight() - padding );
+		Vec2f padding( 20, 130 );
+		Rectf scopeRect( padding.x, padding.y, getWindowWidth() - padding.x, getWindowHeight() - padding.y );
 		drawAudioBuffer( mScope->getBuffer(), scopeRect, true );
 	}
 
