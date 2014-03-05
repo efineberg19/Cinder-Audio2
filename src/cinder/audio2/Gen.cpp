@@ -42,6 +42,17 @@ namespace cinder { namespace audio2 {
 Gen::Gen( const Format &format )
 	: NodeInput( format ), mFreq( this ), mPhase( 0 )
 {
+	initImpl();
+}
+
+Gen::Gen( float freq, const Format &format )
+	: NodeInput( format ), mFreq( this, freq ), mPhase( 0 )
+{
+	initImpl();
+}
+
+void Gen::initImpl()
+{
 	mChannelMode = ChannelMode::SPECIFIED;
 	setNumChannels( 1 );
 }
@@ -126,6 +137,16 @@ void GenPhasor::process( Buffer *buffer )
 // MARK: - GenTriangle
 // ----------------------------------------------------------------------------------------------------
 
+GenTriangle::GenTriangle( const Format &format )
+	: Gen( format ), mUpSlope( 1 ), mDownSlope( 1 )
+{
+}
+
+GenTriangle::GenTriangle( float freq, const Format &format )
+	: Gen( freq, format ), mUpSlope( 1 ), mDownSlope( 1 )
+{
+}
+
 namespace {
 
 inline float calcTriangleSignal( float phase, float upSlope, float downSlope )
@@ -167,11 +188,6 @@ void GenTriangle::process( Buffer *buffer )
 // MARK: - GenTable
 // ----------------------------------------------------------------------------------------------------
 
-GenTable::GenTable( const Format &format )
-	: Gen( format )
-{
-}
-
 void GenTable::initialize()
 {
 	Gen::initialize();
@@ -196,6 +212,11 @@ void GenTable::process( Buffer *buffer )
 
 GenOscillator::GenOscillator( const Format &format )
 	: Gen( format ), mWaveformType( format.getWaveform() )
+{
+}
+
+GenOscillator::GenOscillator( float freq, const Format &format )
+	: Gen( freq, format ), mWaveformType( format.getWaveform() )
 {
 }
 
@@ -236,8 +257,17 @@ void GenOscillator::process( Buffer *buffer )
 		mPhase = mWaveTable->lookupBandlimited( buffer->getData(), buffer->getSize(), mPhase, mFreq.getValue() );
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - GenPulse
+// ----------------------------------------------------------------------------------------------------
+
 GenPulse::GenPulse( const Format &format )
 	: Gen( format ), mWidth( this, 0.5f )
+{
+}
+
+GenPulse::GenPulse( float freq, const Format &format )
+	: Gen( freq, format ), mWidth( this, 0.5f )
 {
 }
 

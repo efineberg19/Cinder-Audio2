@@ -36,6 +36,7 @@ typedef std::shared_ptr<class GenPulse>					GenPulseRef;
 class Gen : public NodeInput {
   public:
 	Gen( const Format &format = Format() );
+	Gen( float freq, const Format &format = Format() );
 
 	void setFreq( float freq )		{ mFreq.setValue( freq ); }
 	float getFreq() const			{ return mFreq.getValue(); }
@@ -44,6 +45,7 @@ class Gen : public NodeInput {
 
   protected:
 	void initialize() override;
+	void initImpl();
 
 	float mSamplePeriod;
 
@@ -63,8 +65,8 @@ class GenNoise : public Gen {
 //! Phase generator, i.e. ramping waveform that runs from 0 to 1.
 class GenPhasor : public Gen {
   public:
-	GenPhasor( const Format &format = Format() ) : Gen( format )
-	{}
+	GenPhasor( const Format &format = Format() ) : Gen( format ) {}
+	GenPhasor( float freq, const Format &format = Format() ) : Gen( freq, format ) {}
 
   protected:
 	void process( Buffer *buffer ) override;
@@ -73,8 +75,8 @@ class GenPhasor : public Gen {
 //! Sine waveform generator.
 class GenSine : public Gen {
   public:
-	GenSine( const Format &format = Format() ) : Gen( format )
-	{}
+	GenSine( const Format &format = Format() ) : Gen( format )	{}
+	GenSine( float freq, const Format &format = Format() ) : Gen( freq, format ) {}
 
   protected:
 	void process( Buffer *buffer ) override;
@@ -83,8 +85,8 @@ class GenSine : public Gen {
 //! Triangle waveform generator.
 class GenTriangle : public Gen {
   public:
-	GenTriangle( const Format &format = Format() ) : Gen( format ), mUpSlope( 1 ), mDownSlope( 1 )
-	{}
+	GenTriangle( const Format &format = Format() );
+	GenTriangle( float freq, const Format &format = Format() );
 
 	void setUpSlope( float up )			{ mUpSlope = up; }
 	void setDownSlope( float down )		{ mDownSlope = down; }
@@ -102,7 +104,8 @@ class GenTriangle : public Gen {
 //! Basic table-lookup oscillator. \note aliasing will occur at higher frequencies, in this case refer to GenOscillator which is more robust.
 class GenTable : public Gen {
   public:
-	GenTable( const Format &format = Format() );
+	GenTable( const Format &format = Format() )	: Gen( format )		{}
+	GenTable( float freq, const Format &format = Format() ) : Gen( freq, format )	{}
 
 	void setWaveTable( const dsp::WaveTableRef &waveTable )	{ mWaveTable = waveTable; }
 	const dsp::WaveTableRef&	getWaveTable()	{ return mWaveTable; }
@@ -130,6 +133,8 @@ class GenOscillator : public Gen {
 	};
 
 	GenOscillator( const Format &format = Format() );
+	GenOscillator( float freq, const Format &format = Format() );
+
 
 	void setWaveform( WaveformType type );
 
@@ -152,6 +157,7 @@ class GenOscillator : public Gen {
 class GenPulse : public Gen {
   public:
 	GenPulse( const Format &format = Format() );
+	GenPulse( float freq, const Format &format = Format() );
 
 	//! Set the pulse width (aka 'duty cycle'). Expected range is between [0:1] (default = 0.5, creating a square wave).
 	void			setWidth( float width )	{ mWidth.setValue( width ); }
