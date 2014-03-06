@@ -1,7 +1,7 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-#include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/Gen.h"
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Filter.h"
 #include "cinder/audio2/CinderAssert.h"
