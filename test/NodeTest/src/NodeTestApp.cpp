@@ -179,9 +179,13 @@ void NodeTestApp::setupFunnelCase()
 
 	auto gain1 = ctx->makeNode( new audio2::Gain );
 	auto gain2 = ctx->makeNode( new audio2::Gain );
+//	auto gain2 = ctx->makeNode( new audio2::Gain( audio2::Node::Format().autoEnable( false ) ) );
 
-	mGen >> gain2 >> mScope->bus( InputBus::SINE );
-	mNoise >> gain1 >> mScope->bus( InputBus::NOISE );
+	mGen >> gain1 >> mScope->bus( InputBus::SINE );
+	mNoise >> gain2 >> mScope->bus( InputBus::NOISE );
+
+//	mGen >> mScope->bus( InputBus::SINE );
+//	mNoise >> mScope->bus( InputBus::NOISE );
 
 	mScope >> mGain >> ctx->getOutput();
 
@@ -212,9 +216,9 @@ void NodeTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "sine" );
 	mTestSelector.mSegments.push_back( "2 to 1" );
 	mTestSelector.mSegments.push_back( "1 to 2" );
+	mTestSelector.mSegments.push_back( "funnel case" );
 	mTestSelector.mSegments.push_back( "interleave pass-thru" );
 	mTestSelector.mSegments.push_back( "auto-pulled" );
-	mTestSelector.mSegments.push_back( "funnel case" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 200 );
 	mWidgets.push_back( &mTestSelector );
 
