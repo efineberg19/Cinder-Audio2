@@ -96,11 +96,13 @@ void Node::disconnect( size_t outputBus )
 		return;
 
 	NodeRef output = outIt->second.lock();
-	CI_ASSERT( output );
-
 	mOutputs.erase( outIt );
-	output->disconnectInput( shared_from_this() );
-	output->notifyConnectionsDidChange();
+
+	// in some cases, the output may have been destroyed without disconnecting first.
+	if( output ) {
+		output->disconnectInput( shared_from_this() );
+		output->notifyConnectionsDidChange();
+	}
 }
 
 void Node::disconnectAll()
