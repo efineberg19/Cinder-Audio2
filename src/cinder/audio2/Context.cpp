@@ -108,9 +108,6 @@ void Context::stop()
 
 void Context::disconnectAllNodes()
 {
-	if( mEnabled )
-		stop();
-	
 	disconnectRecursive( mOutput );
 }
 
