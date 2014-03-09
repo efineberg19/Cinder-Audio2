@@ -185,7 +185,7 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	virtual void uninitialize()	{}
 	//! Called prior to process(), override to control how this Node manages input channel mixing, summing and / or processing.
 	//! The processed samples must eventually be in \t destBuffer (will be used in-place if possible). \return true if upstream processing was done, false otherwise.
-	virtual bool pullInputs( Buffer *destBuffer );
+	virtual void pullInputs( Buffer *destBuffer );
 	//! Override to perform audio processing on \t buffer
 	virtual void process( Buffer *buffer )	{}
 	//! Default implementation returns true if numChannels match our format
