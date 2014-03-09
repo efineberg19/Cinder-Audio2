@@ -30,9 +30,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace cinder { namespace audio2 {
 
-typedef std::shared_ptr<class NodeEffect>		NodeEffectRef;
+typedef std::shared_ptr<class NodeEffect>	NodeEffectRef;
 typedef std::shared_ptr<class Gain>			GainRef;
 typedef std::shared_ptr<class Pan2d>		Pan2dRef;
+typedef std::shared_ptr<class Delay>		DelayRef;
 
 //! Base class for Node's that process audio, they have both inputs and outputs.
 class NodeEffect : public Node {
@@ -92,6 +93,22 @@ protected:
   private:
 	std::atomic<float>	mPos;
 	bool				mMonoInputMode;
+};
+
+class Delay : public NodeEffect {
+  public:
+	Delay( const Format &format = Format() );
+
+	void	setDelaySeconds( float seconds );
+	float	getDelaySeconds() const				{ return mDelaySeconds; }
+
+  protected:
+	void initialize()				override;
+	void process( Buffer *buffer )	override;
+
+	size_t			mReadIndex, mDelayFrames;
+	float			mDelaySeconds;
+	BufferDynamic	mDelayBuffer;
 };
 
 } } // namespace cinder::audio2

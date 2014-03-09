@@ -182,4 +182,57 @@ void Pan2d::setPos( float pos )
 	mPos = math<float>::clamp( pos );
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Delay
+// ----------------------------------------------------------------------------------------------------
+
+Delay::Delay( const Format &format )
+	: NodeEffect( format ), mDelaySeconds( 0 ), mReadIndex( 0 ), mDelayFrames( 0 )
+{
+}
+
+void Delay::setDelaySeconds( float seconds )
+{
+	mDelayFrames = lroundf( seconds * getSampleRate() );
+	mDelaySeconds = seconds;
+
+	size_t delayBufferFrames = 1 + max( mDelayFrames, getFramesPerBlock() );
+	mDelayBuffer.setSize( delayBufferFrames, getNumChannels() );
+	mReadIndex = 0;
+
+	CI_LOG_V( "seconds: " << seconds << ", frames: " << mDelayFrames << ", delay buffer frames: " << delayBufferFrames );
+}
+
+void Delay::initialize()
+{
+	if( mDelayBuffer.getNumChannels() != getNumChannels() )
+		mDelayBuffer.setNumChannels( getNumChannels() );
+}
+
+void Delay::process( Buffer *buffer )
+{
+	size_t numFrames = buffer->getNumFrames();
+	size_t maxDelayFrames = mDelayBuffer.getNumFrames();
+	size_t readIndex = mReadIndex;
+	size_t delayIndex = readIndex + mDelayFrames;
+
+	for( size_t ch = 0; ch < buffer->getNumChannels(); ch++ ) {
+		float *inChannel = buffer->getChannel( ch );
+		float *delayChannel = mDelayBuffer.getChannel( ch );
+
+		for( size_t i = 0; i < numFrames; i++ ) {
+			if( delayIndex >= maxDelayFrames )
+				delayIndex -= maxDelayFrames;
+			if( readIndex >= maxDelayFrames )
+				readIndex -= maxDelayFrames;
+
+			float sample = *inChannel;
+			*inChannel++ = delayChannel[readIndex++];
+			delayChannel[delayIndex++] = sample;
+		}
+	}
+
+	mReadIndex = readIndex;
+}
+
 } } // namespace cinder::audio2
