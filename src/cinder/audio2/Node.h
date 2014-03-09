@@ -233,10 +233,10 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	friend class Param;
 };
 
-//! Enable connection syntax: \code input >> output; \endcode.  \return the connected \a output
+//! Enable connection syntax: \code input >> output; \endcode. Connects on the first available input and output bus.  \return the connected \a output
 inline const NodeRef& operator>>( const NodeRef &input, const NodeRef &output )
 {
-	input->connect( output );
+	input->addConnection( output );
 	return output;
 }
 
