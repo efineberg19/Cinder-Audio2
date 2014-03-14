@@ -28,6 +28,12 @@ The core of the design draws from concepts found in other popular modular audio 
 
 A modular api is advantagous because it is proven to be very flexible and allows for reusability without loss in performance.  Still, higher level constructs exist and more will be added as time permits.  The cinder philosophy remains, "easy things easy and hard things possible." 
 
+## Required Cinder Version:
+cinder from github, **[dev branch](https://github.com/cinder/Cinder/tree/dev) or newer**
+
+As this code is aimed at making it into the next cinder release (1.56), it is not tested against 1.55. While it may or may not work there for you, I can't spend the time to ensure it does. Look forward!
+
+
 ## Building
 
 The code is currently wrapped up as a cinderblock for easy testing, so the fastest way to get up and running is to clone it to your cinder/blocks path and use [Tinderbox][tinderbox].
