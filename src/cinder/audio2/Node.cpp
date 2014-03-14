@@ -68,6 +68,9 @@ void Node::connect( const NodeRef &output, size_t outputBus, size_t inputBus )
 	if( ! output->canConnectToInput( thisRef ) )
 		return;
 
+	if( checkCycle( thisRef, output ) )
+		throw NodeCycleExc( thisRef, output );
+
 	auto currentOutIt = mOutputs.find( outputBus );
 	if( currentOutIt != mOutputs.end() ) {
 		NodeRef currentOutput = currentOutIt->second.lock();
@@ -241,6 +244,19 @@ void Node::pullInputs( Buffer *destBuffer )
 		// If any processing took place upstream, copy the contents of the summing buffer to destBuffer (mixing, so handles channel mis-matches)
 		dsp::mixBuffers( &mSummingBuffer, destBuffer );
 	}
+}
+
+bool Node::checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) const
+{
+	if( sourceNode == destNode )
+		return true;
+
+	for( const auto &inIt : sourceNode->getInputs() ) {
+		if( checkCycle( inIt.second, destNode ) )
+			return true;
+	}
+
+	return false;
 }
 
 void Node::setEnabled( bool enabled )
@@ -478,6 +494,15 @@ void NodeAutoPullable::updatePullMethod()
 		mIsPulledByContext = false;
 		getContext()->removeAutoPulledNode( shared_from_this() );
 	}
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Exceptions
+// ----------------------------------------------------------------------------------------------------
+
+NodeCycleExc::NodeCycleExc( const NodeRef &sourceNode, const NodeRef &destNode )
+	: AudioExc( string( "cyclical connection between source: " ) + sourceNode->getName() + string( " and dest: " ) + destNode->getName() )
+{
 }
 
 } } // namespace cinder::audio2

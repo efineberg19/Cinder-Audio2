@@ -24,6 +24,7 @@
 #pragma once
 
 #include "cinder/audio2/Buffer.h"
+#include "cinder/audio2/Exception.h"
 
 #include <boost/noncopyable.hpp>
 #include <boost/logic/tribool.hpp>
@@ -208,6 +209,9 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	size_t getFirstAvailableOutputBus();
 	size_t getFirstAvailableInputBus();
 
+	//! Returns true if there is an unmanageable cycle betweeen \a sourceNode and \a destNode.
+	bool checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) const;
+
 	void initializeImpl();
 	void uninitializeImpl();
 
@@ -321,6 +325,11 @@ struct ScopedNodeEnabledState {
   private:
 	NodeRef mNode;
 	bool mEnabled;
+};
+
+class NodeCycleExc : public AudioExc {
+public:
+	NodeCycleExc( const NodeRef &sourceNode, const NodeRef &destNode );
 };
 
 } } // namespace cinder::audio2
