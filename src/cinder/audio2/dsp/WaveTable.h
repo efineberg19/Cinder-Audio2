@@ -27,6 +27,7 @@
 #include "cinder/audio2/Buffer.h"
 
 #include <vector>
+#include <tuple>
 
 namespace cinder { namespace audio2 { namespace dsp {
 
