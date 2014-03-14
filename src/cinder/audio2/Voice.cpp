@@ -102,7 +102,7 @@ void MixerImpl::addVoice( const VoiceRef &source )
 
 	source->getNode()->connect( bus.mGain );
 	bus.mGain->connect( bus.mPan );
-	bus.mPan->connect( mMasterGain );
+	bus.mPan->addConnection( mMasterGain );
 }
 
 BufferRef MixerImpl::loadBuffer( const SourceFileRef &sourceFile, size_t numChannels )
