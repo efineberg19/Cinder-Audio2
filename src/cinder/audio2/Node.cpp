@@ -183,7 +183,7 @@ vector<size_t> Node::getOccupiedOutputBusses() const
 	return result;
 }
 
-void Node::pullInputs( Buffer *destBuffer )
+bool Node::pullInputs( Buffer *inPlaceBuffer )
 {
 	CI_ASSERT( getContext() );
 
@@ -191,7 +191,8 @@ void Node::pullInputs( Buffer *destBuffer )
 		if( mInputs.empty() ) {
 			if( mEnabled ) {
 				// Fastest route: no inputs and process in-place.
-				process( destBuffer );
+				process( inPlaceBuffer );
+				return true;
 			}
 		}
 		else {
@@ -200,49 +201,48 @@ void Node::pullInputs( Buffer *destBuffer )
 			if( mLastProcessedFrame != numProcessedFrames ) {
 				mLastProcessedFrame = numProcessedFrames;
 
-				mInputs.begin()->second->pullInputs( destBuffer );
-				if( mEnabled )
-					process( destBuffer );
+				auto &input = mInputs.begin()->second;
+				bool didProcess = input->pullInputs( inPlaceBuffer );
+				if( didProcess && ! input->getProcessInPlace() )
+					dsp::mixBuffers( input->getInternalBuffer(), inPlaceBuffer );
+
+				if( mEnabled ) {
+					process( inPlaceBuffer );
+					return true;
+				}
 			}
 		}
+
+		return false;
 	}
 	else {
-		// Pull all inputs and sum the results of processing into the summing buffer.
-		// Only do this once per processing block, which is checked by the current number of processed frames.
+		bool didProcess = false;
+		// Pull all enabled inputs. Only do this once per processing block, which is checked by the current number of processed frames.
 		uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
 		if( mLastProcessedFrame != numProcessedFrames ) {
 			mLastProcessedFrame = numProcessedFrames;
-
 			mSummingBuffer.zero();
 
-			if( mInputs.empty() ) {
-				if( mEnabled ) {
-					process( &mSummingBuffer );
-				}
+			for( auto &in : mInputs ) {
+				NodeRef &input = in.second;
+
+				mInternalBuffer.zero();
+				didProcess |= input->pullInputs( &mInternalBuffer );
+
+				const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
+				dsp::sumBuffers( processedBuffer, &mSummingBuffer );
 			}
-			else {
-				// with inputs and summing, keep tally and only run our own process if any input has been processed.
-				for( auto &in : mInputs ) {
-					NodeRef &input = in.second;
 
-					mInternalBuffer.zero();
-
-					input->pullInputs( &mInternalBuffer );
-
-					// If input is in-place, sum from our own internal buffer. Otherwise, sum from input's internal buffer.
-					if( input->getProcessInPlace() )
-						dsp::sumBuffers( &mInternalBuffer, &mSummingBuffer );
-					else
-						dsp::sumBuffers( input->getInternalBuffer(), &mSummingBuffer );
-				}
-
-				if( mEnabled )
-					process( &mSummingBuffer );
+			if( mEnabled ) {
+				process( &mSummingBuffer );
+				didProcess = true;
 			}
+
+			// copy summed buffer back to internal so downstream can get it.
+			dsp::mixBuffers( &mSummingBuffer, &mInternalBuffer );
 		}
 
-		// If any processing took place upstream, copy the contents of the summing buffer to destBuffer (mixing, so handles channel mis-matches)
-		dsp::mixBuffers( &mSummingBuffer, destBuffer );
+		return didProcess;
 	}
 }
 

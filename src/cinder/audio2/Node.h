@@ -151,8 +151,8 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	bool getProcessInPlace() const				{ return mProcessInPlace; }
 
 	// TODO: make this protected if possible (or better yet, not-accessible)
-//	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
-	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
+	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
+//	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
 
 	//! Returns a string representing the name of this Node type. TODO: use typeid + abi de-mangling to ease the burden on sub-classes
 	virtual std::string getName();
@@ -184,10 +184,7 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	virtual void initialize()	{}
 	//! Called once the contents of initialize are no longer relevant, i.e. connections have changed. \note Not guaranteed to be called at Node destruction.
 	virtual void uninitialize()	{}
-	//! Called prior to process(), override to control how this Node manages input channel mixing, summing and / or processing.
-	//! The processed samples must eventually be in \t destBuffer (will be used in-place if possible). \return true if upstream processing was done, false otherwise.
-	virtual void pullInputs( Buffer *destBuffer );
-	//! Override to perform audio processing on \t buffer
+	//! Override to perform audio processing on \t buffer.
 	virtual void process( Buffer *buffer )	{}
 	//! Default implementation returns true if numChannels matches our format.
 	virtual bool supportsInputNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
@@ -200,6 +197,8 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	virtual void disconnectInput( const NodeRef &input );
 	virtual void disconnectOutput( const NodeRef &output );
 
+	//! Returns true if any processing took place.
+	bool pullInputs( Buffer *inPlaceBuffer );
 	virtual void configureConnections();
 	void setupProcessWithSumming();
 	void notifyConnectionsDidChange();
