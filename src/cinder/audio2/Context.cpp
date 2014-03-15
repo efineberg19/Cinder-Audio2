@@ -106,9 +106,22 @@ void Context::stop()
 	getOutput()->stop();
 }
 
+void Context::initializeAllNodes()
+{
+	set<NodeRef> traversedNodes;
+	initRecursisve( mOutput, traversedNodes );
+}
+
+void Context::uninitializeAllNodes()
+{
+	set<NodeRef> traversedNodes;
+	uninitRecursisve( mOutput, traversedNodes );
+}
+
 void Context::disconnectAllNodes()
 {
-	disconnectRecursive( mOutput );
+	std::set<NodeRef> traversedNodes;
+	disconnectRecursive( mOutput, traversedNodes );
 }
 
 void Context::setEnabled( bool enabled )
@@ -141,56 +154,41 @@ void Context::uninitializeNode( const NodeRef &node )
 	node->uninitializeImpl();
 }
 
-//void Context::startRecursive( const NodeRef &node )
-//{
-//	if( ! node )
-//		return;
-//	for( auto& input : node->getInputs() )
-//		startRecursive( input );
-//
-//	if( node->isAutoEnabled() )
-//		node->start();
-//}
-
-//void Context::stopRecursive( const NodeRef &node )
-//{
-//	if( ! node )
-//		return;
-//	for( auto& input : node->getInputs() )
-//		stopRecursive( input );
-//
-//	if( node->isAutoEnabled() )
-//		node->stop();
-//}
-
-void Context::disconnectRecursive( const NodeRef &node )
+void Context::disconnectRecursive( const NodeRef &node, set<NodeRef> &traversedNodes )
 {
-	if( ! node )
+	if( ! node || traversedNodes.count( node ) )
 		return;
+
+	traversedNodes.insert( node );
+
 	for( auto &in : node->getInputs() )
-		disconnectRecursive( in.second );
+		disconnectRecursive( in.second, traversedNodes );
 
 	node->disconnectAllInputs();
 }
 
-void Context::initRecursisve( const NodeRef &node )
+void Context::initRecursisve( const NodeRef &node, set<NodeRef> &traversedNodes )
 {
-	if( ! node )
+	if( ! node || traversedNodes.count( node ) )
 		return;
 
+	traversedNodes.insert( node );
+
 	for( auto &in : node->getInputs() )
-		initRecursisve( in.second );
+		initRecursisve( in.second, traversedNodes );
 
 	node->configureConnections();
 }
 
-void Context::uninitRecursisve( const NodeRef &node )
+void Context::uninitRecursisve( const NodeRef &node, set<NodeRef> &traversedNodes )
 {
-	if( ! node )
+	if( ! node || traversedNodes.count( node ) )
 		return;
 
+	traversedNodes.insert( node );
+
 	for( auto &in : node->getInputs() )
-		uninitRecursisve( in.second );
+		uninitRecursisve( in.second, traversedNodes );
 
 	node->uninitializeImpl();
 }
@@ -225,6 +223,8 @@ void Context::processAutoPulledNodes()
 	for( Node *node : getAutoPulledNodes() ) {
 		mAutoPullBuffer.setNumChannels( node->getNumChannels() );
 		node->pullInputs( &mAutoPullBuffer );
+		if( ! node->getProcessInPlace() )
+			dsp::mixBuffers( node->getInternalBuffer(), &mAutoPullBuffer );
 	}
 }
 
@@ -240,12 +240,19 @@ const std::vector<Node *>& Context::getAutoPulledNodes()
 
 namespace {
 
-void printRecursive( const NodeRef &node, size_t depth )
+void printRecursive( const NodeRef &node, size_t depth, set<NodeRef> &traversedNodes )
 {
 	if( ! node )
 		return;
 	for( size_t i = 0; i < depth; i++ )
 		app::console() << "-- ";
+
+	if( traversedNodes.count( node ) ) {
+		app::console() << " ** " << node->getName() << " already printed **" << endl;
+		return;
+	}
+
+	traversedNodes.insert( node );
 
 	string channelMode;
 	switch( node->getChannelMode() ) {
@@ -261,23 +268,24 @@ void printRecursive( const NodeRef &node, size_t depth )
 	app::console() << " ]" << endl;
 
 	for( const auto &in : node->getInputs() )
-		printRecursive( in.second, depth + 1 );
+		printRecursive( in.second, depth + 1, traversedNodes );
 };
 
 } // anonymous namespace
 
 void Context::printGraph()
 {
+	set<NodeRef> traversedNodes;
+
 	app::console() << "-------------- Graph configuration: --------------" << endl;
-	printRecursive( getOutput(), 0 );
+	printRecursive( getOutput(), 0, traversedNodes );
 
 	if( ! mAutoPulledNodes.empty() ) {
 		app::console() << "(auto-pulled:)" << endl;
 		for( const auto& node : mAutoPulledNodes )
-			printRecursive( node, 0 );
+			printRecursive( node, 0, traversedNodes );
 	}
 	app::console() << "--------------------------------------------------" << endl;
 }
-
 
 } } // namespace cinder::audio2

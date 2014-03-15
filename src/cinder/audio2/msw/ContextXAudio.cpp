@@ -361,7 +361,7 @@ void LineOutXAudio::stop()
 	mXAudio->StopEngine();
 }
 
-bool LineOutXAudio::supportsInputNumChannels( size_t numChannels )
+bool LineOutXAudio::supportsInputNumChannels( size_t numChannels ) const
 {
 	return true;
 }

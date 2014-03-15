@@ -79,9 +79,9 @@ class Context : public std::enable_shared_from_this<Context> {
 	void uninitializeNode( const NodeRef &node );
 
 	//! Initialize all Node's related by this Context
-	void initializeAllNodes()				{ initRecursisve( mOutput ); }
+	void initializeAllNodes();
 	//! Uninitialize all Node's related by this Context
-	void uninitializeAllNodes()				{ uninitRecursisve( mOutput ); }
+	void uninitializeAllNodes();
 	//! Disconnect all Node's related by this Context
 	virtual void disconnectAllNodes();
 
@@ -102,12 +102,6 @@ class Context : public std::enable_shared_from_this<Context> {
   protected:
 	Context() : mEnabled( false ), mAutoPullRequired( false ), mAutoPullCacheDirty( false ) {}
 
-	//void startRecursive( const NodeRef &node );
-	//void stopRecursive( const NodeRef &node );
-	void disconnectRecursive( const NodeRef &node );
-	void initRecursisve( const NodeRef &node );
-	void uninitRecursisve( const NodeRef &node );
-
 	const std::vector<Node *>& getAutoPulledNodes(); // called if there are any nodes besides output that need to be pulled
 
 	NodeOutputRef			mOutput;				// the 'heartbeat'
@@ -125,6 +119,12 @@ class Context : public std::enable_shared_from_this<Context> {
 	// - it's still stored in Node classes as a weak_ptr, so it needs to (for now) be created as a shared_ptr
 	static std::shared_ptr<Context>			sMasterContext;
 	static std::unique_ptr<DeviceManager>	sDeviceManager; // TODO: consider turning DeviceManager into a HardwareContext class
+
+
+  private:
+	void disconnectRecursive( const NodeRef &node, std::set<NodeRef> &traversedNodes );
+	void initRecursisve( const NodeRef &node, std::set<NodeRef> &traversedNodes  );
+	void uninitRecursisve( const NodeRef &node, std::set<NodeRef> &traversedNodes  );
 };
 
 template<typename NodeT>

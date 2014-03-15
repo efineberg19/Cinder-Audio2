@@ -251,6 +251,9 @@ bool Node::checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) cons
 	if( sourceNode == destNode )
 		return true;
 
+	if( sourceNode->supportsCycles() || destNode->supportsCycles() )
+		return false;
+
 	for( const auto &inIt : sourceNode->getInputs() ) {
 		if( checkCycle( inIt.second, destNode ) )
 			return true;

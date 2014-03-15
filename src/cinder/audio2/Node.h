@@ -189,8 +189,10 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	virtual void pullInputs( Buffer *destBuffer );
 	//! Override to perform audio processing on \t buffer
 	virtual void process( Buffer *buffer )	{}
-	//! Default implementation returns true if numChannels match our format
-	virtual bool supportsInputNumChannels( size_t numChannels )	{ return mNumChannels == numChannels; }
+	//! Default implementation returns true if numChannels matches our format.
+	virtual bool supportsInputNumChannels( size_t numChannels ) const	{ return mNumChannels == numChannels; }
+	//! Default implementation returns false, return true if it makes sense for the Node to be processed in a cycle (eg. Delay).
+	virtual bool supportsCycles() const									{ return false; }
 
 	//! Stores \a input at bus \a inputBus, replacing any Node currently existing there. Stores this Node at input's output bus \a outputBus. Returns whether a new connection was made or not.
 	//! \note Must be called on a non-audio thread and synchronized with the Context's mutex.

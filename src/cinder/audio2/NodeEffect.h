@@ -105,6 +105,7 @@ class Delay : public NodeEffect {
   protected:
 	void initialize()				override;
 	void process( Buffer *buffer )	override;
+	bool supportsCycles() const		override	{ return true; }
 
 	size_t			mReadIndex, mDelayFrames;
 	float			mDelaySeconds;

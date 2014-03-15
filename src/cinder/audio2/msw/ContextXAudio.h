@@ -89,7 +89,7 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
-	bool supportsInputNumChannels( size_t numChannels ) override;
+	bool supportsInputNumChannels( size_t numChannels ) const override;
 
 	::IXAudio2* getXAudio() const	{ return mXAudio; }
 
