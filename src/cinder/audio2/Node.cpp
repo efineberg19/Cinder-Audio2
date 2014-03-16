@@ -34,9 +34,6 @@
 
 #include <limits>
 
-//#define LOG_PULL( stream )	CI_LOG_V( stream )
-#define LOG_PULL( stream )	do{} while( 0 )
-
 using namespace std;
 
 namespace cinder { namespace audio2 {
@@ -190,25 +187,16 @@ void Node::pullInputs( Buffer *inPlaceBuffer )
 {
 	CI_ASSERT( getContext() );
 
-	if( dynamic_cast<LineOut *>( this ) )
-		LOG_PULL( "-------------------------------------" );
-
-	LOG_PULL( "pull: " << getName() );
-
 	if( mProcessInPlace ) {
-		LOG_PULL( "\tin place" );
-
 		if( mInputs.empty() ) {
-			if( mEnabled ) {
-				// Fastest route: no inputs and process in-place.
+			// Fastest route: no inputs and process in-place. If disabled, get rid of any previously processsed samples.
+			if( mEnabled )
 				process( inPlaceBuffer );
-			}
 			else
 				inPlaceBuffer->zero();
 		}
 		else {
-			// First need to pull the input (can only be one when in-place), then run process() if input did any processing.
-
+			// First pull the input (can only be one when in-place), then run process() if input did any processing.
 			auto &input = mInputs.begin()->second;
 			input->pullInputs( inPlaceBuffer );
 
@@ -220,40 +208,29 @@ void Node::pullInputs( Buffer *inPlaceBuffer )
 		}
 	}
 	else {
-
-		// Pull all enabled inputs. Only do this once per processing block, which is checked by the current number of processed frames.
+		// Pull and sum all enabled inputs. Only do this once per processing block, which is checked by the current number of processed frames.
 		uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
 		if( mLastProcessedFrame != numProcessedFrames ) {
 			mLastProcessedFrame = numProcessedFrames;
 
-			LOG_PULL( "\tsumming for frame: " << numProcessedFrames << ", zeroing summing buffer" );
 			mSummingBuffer.zero();
 
+			// Pull all inputs, summing the results from the buffer that input used for processing.
+			// mInternalBuffer is not zero'ed before pulling inputs to allow for feedback.
 			for( auto &in : mInputs ) {
 				NodeRef &input = in.second;
-
-				LOG_PULL( "\t\tpulling input: " << input->getName() );
-
-				// note: mInternalBuffer isn't zero'd before pulling inputs to allow for feedback.
 				input->pullInputs( &mInternalBuffer );
-
-				LOG_PULL( "\t\t" << input->getName() << " sum processed input: " << didProcessInput );
-
 				const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
 				dsp::sumBuffers( processedBuffer, &mSummingBuffer );
-
 			}
 
-			if( mEnabled ) {
-				LOG_PULL( "\t\tprocess -> summing buffer: " << getName() );
+			// Process the summed results if enabled.
+			if( mEnabled )
 				process( &mSummingBuffer );
-			}
 
 			// copy summed buffer back to internal so downstream can get it.
 			dsp::mixBuffers( &mSummingBuffer, &mInternalBuffer );
 		}
-		else
-			LOG_PULL( "\tskipped summing / processing for frame: " << numProcessedFrames );
 	}
 }
 
