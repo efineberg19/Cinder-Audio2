@@ -22,8 +22,10 @@ class NodeEffectTestApp : public AppNative {
 	void setupForceStereo();
 	void setupDownMix();
 	void setupDelay();
+	void setupFeedback();
 	void setupEcho();
 	void setupCycle();
+	void applyChirp();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
@@ -36,7 +38,7 @@ class NodeEffectTestApp : public AppNative {
 	audio2::DelayRef			mDelay;
 
 	vector<TestWidget *>	mWidgets;
-	Button					mPlayButton;
+	Button					mPlayButton, mChirpButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mFilterParam2Slider;
 };
@@ -56,25 +58,18 @@ void NodeEffectTestApp::setup()
 
 	mPan = ctx->makeNode( new audio2::Pan2d() );
 
-//	mGen = ctx->makeNode( new audio2::GenNoise( audio2::Node::Format().autoEnable() ) );
-	mGen = ctx->makeNode( new audio2::GenSine( 220, audio2::Node::Format().autoEnable() ) );
+	auto genFmt = audio2::Node::Format().autoEnable();
+	mGen = ctx->makeNode( new audio2::GenNoise( genFmt ) );
+//	mGen = ctx->makeNode( new audio2::GenSine( 220, genFmt );
 
 	mLowPass = ctx->makeNode( new audio2::FilterLowPass() );
 //	mLowPass = ctx->makeNode( new audio2::FilterHighPass() );
 
 	mDelay = ctx->makeNode( new audio2::Delay );
 
-//	float delaySeconds = 100.0f / ctx->getSampleRate();
-	float delaySeconds = 1.0f;
+	mDelay->setDelaySeconds( 1.0f );
 
-	mDelay->setDelaySeconds( delaySeconds );
-
-//	setupOne();
-	setupDelay();
-//	setupEcho();
-//	setupForceStereo();
-//	setupDownMix();
-//	setupCycle();
+	setupOne();
 
 	setupUI();
 
@@ -106,19 +101,26 @@ void NodeEffectTestApp::setupDelay()
 	mGen >> mGain >> mDelay >> audio2::master()->getOutput();
 }
 
-void NodeEffectTestApp::setupEcho()
+void NodeEffectTestApp::setupFeedback()
 {
+	// delay + feedback
+
 	auto feedbackGain = audio2::master()->makeNode( new audio2::Gain( 0.5f ) );
 
-//	mGen >> mGain;
-//	mGain >> audio2::master()->getOutput();										// dry
-//	mGain >> mDelay >> feedbackGain >> mDelay >> audio2::master()->getOutput(); // wet
+	mGen >> mGain >> mDelay >> feedbackGain >> mDelay >> audio2::master()->getOutput();
+}
 
-//	mGen >> audio2::master()->getOutput();										// dry
+void NodeEffectTestApp::setupEcho()
+{
+	// a more complex feedback graph, but more accurate to what you'd use in the real world
+	// (you immediately hear the original sound
 
-	mGen >> mDelay >> feedbackGain >> mDelay >> audio2::master()->getOutput(); // wet
+	auto feedbackGain = audio2::master()->makeNode( new audio2::Gain( 0.5f ) );
 
-//	mGen >> mGain >> mDelay >> feedbackGain >> mDelay >> audio2::master()->getOutput(); // wet
+	mGen >> mGain;
+
+	mGain >> audio2::master()->getOutput();										// dry
+	mGain >> mDelay >> feedbackGain >> mDelay >> audio2::master()->getOutput(); // wet
 }
 
 void NodeEffectTestApp::setupCycle()
@@ -127,15 +129,18 @@ void NodeEffectTestApp::setupCycle()
 
 	try {
 		mGen >> mLowPass >> mGain >> mLowPass;
-//		mGen->connect( mLowPass );
-//		mLowPass->addConnection( mGain );
-//		mGain->addConnection( mLowPass );
-		
 		mLowPass->addConnection( audio2::master()->getOutput() );
+
+		CI_ASSERT_NOT_REACHABLE();
 	}
 	catch( audio2::NodeCycleExc &exc ) {
 		CI_LOG_E( "audio2::NodeCycleExc: " << exc.what() );
 	}
+}
+
+void NodeEffectTestApp::applyChirp()
+{
+	mGen->getParamFreq()->applyRamp( 220, 0, 0.15f );
 }
 
 void NodeEffectTestApp::setupUI()
@@ -148,6 +153,7 @@ void NodeEffectTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "force stereo" );
 	mTestSelector.mSegments.push_back( "down-mix" );
 	mTestSelector.mSegments.push_back( "delay" );
+	mTestSelector.mSegments.push_back( "feedback" );
 	mTestSelector.mSegments.push_back( "echo" );
 	mTestSelector.mSegments.push_back( "cycle" );
 	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
@@ -228,16 +234,15 @@ void NodeEffectTestApp::processTap( Vec2i pos )
 			setupDownMix();
 		else if( currentTest == "delay" )
 			setupDelay();
+		else if( currentTest == "feedback" )
+			setupFeedback();
 		else if( currentTest == "echo" )
 			setupEcho();
 		else if( currentTest == "cycle" )
 			setupCycle();
 
 		ctx->setEnabled( enabled );
-
 		ctx->printGraph();
-
-		mGen->getParamFreq()->applyRamp( 220, 100, 0.1f );
 	}
 
 	processDrag( pos );
