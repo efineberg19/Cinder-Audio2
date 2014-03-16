@@ -69,6 +69,36 @@ void Gain::process( Buffer *buffer )
 }
 
 // ----------------------------------------------------------------------------------------------------
+// MARK: - Add
+// ----------------------------------------------------------------------------------------------------
+
+Add::Add( const Format &format )
+	: Node( format ), mParam( this, 0 )
+{
+	if( boost::indeterminate( format.getAutoEnable() ) )
+		setAutoEnabled();
+}
+
+Add::Add( float initialValue, const Format &format )
+	: Node( format ), mParam( this, initialValue )
+{
+	if( boost::indeterminate( format.getAutoEnable() ) )
+		setAutoEnabled();
+}
+
+void Add::process( Buffer *buffer )
+{
+	if( mParam.eval() ) {
+		for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+			float *channel = buffer->getChannel( ch );
+			dsp::add( channel, mParam.getValueArray(), channel, buffer->getNumFrames() );
+		}
+	}
+	else
+		dsp::add( buffer->getData(), mParam.getValue(), buffer->getData(), buffer->getSize() );
+}
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - Pan2d
 // ----------------------------------------------------------------------------------------------------
 

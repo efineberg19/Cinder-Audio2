@@ -67,6 +67,22 @@ class Gain : public NodeEffect {
 	std::atomic<float>	mMin, mMax;
 };
 
+// TODO: move this to NodeArithmetic, add other math types
+
+class Add : public Node {
+public:
+	Add( const Format &format = Format() );
+	Add( float initialValue, const Format &format = Format() );
+
+	Param* getParam()				{ return &mParam; }
+
+protected:
+	void process( Buffer *buffer ) override;
+
+private:
+	Param				mParam;
+};
+
 //! Simple stereo panning using an equal power cross-fade. The panning position is specified by a single position between the left and right speakers.
 class Pan2d : public NodeEffect {
   public:
