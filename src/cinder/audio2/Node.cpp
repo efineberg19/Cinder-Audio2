@@ -34,8 +34,8 @@
 
 #include <limits>
 
-#define LOG_PULL( stream )	CI_LOG_V( stream )
-//#define LOG_PULL( stream )	do{} while( 0 )
+//#define LOG_PULL( stream )	CI_LOG_V( stream )
+#define LOG_PULL( stream )	do{} while( 0 )
 
 using namespace std;
 
@@ -241,16 +241,17 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 
 				LOG_PULL( "\t\tpulling input: " << input->getName() );
 
-				mInternalBuffer.zero();
+				// note: zeroing the internal buffer here is what was prohibiting feedback
+				//mInternalBuffer.zero();
 				bool didProcessInput = input->pullInputs( &mInternalBuffer );
 
-				if( didProcessInput ) {
-					didProcess = true;
-					LOG_PULL( "\t\tsum  processed input: " << input->getName() << " to mInternalBuffer" );
+				didProcess |= didProcessInput;
 
-					const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
-					dsp::sumBuffers( processedBuffer, &mSummingBuffer );
-				}
+				LOG_PULL( "\t\t" << input->getName() << " sum processed input: " << didProcessInput );
+
+				const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
+				dsp::sumBuffers( processedBuffer, &mSummingBuffer );
+
 			}
 
 			if( mEnabled ) {
