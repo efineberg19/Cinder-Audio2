@@ -203,6 +203,8 @@ void Node::pullInputs( Buffer *inPlaceBuffer )
 				// Fastest route: no inputs and process in-place.
 				process( inPlaceBuffer );
 			}
+			else
+				inPlaceBuffer->zero();
 		}
 		else {
 			// First need to pull the input (can only be one when in-place), then run process() if input did any processing.
@@ -232,8 +234,7 @@ void Node::pullInputs( Buffer *inPlaceBuffer )
 
 				LOG_PULL( "\t\tpulling input: " << input->getName() );
 
-				// note: zeroing the internal buffer here is what was prohibiting feedback
-				//mInternalBuffer.zero();
+				// note: mInternalBuffer isn't zero'd before pulling inputs to allow for feedback.
 				input->pullInputs( &mInternalBuffer );
 
 				LOG_PULL( "\t\t" << input->getName() << " sum processed input: " << didProcessInput );
