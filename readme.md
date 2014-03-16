@@ -207,6 +207,15 @@ __note on non-working tests:__
 - sound file playback is broken on MSW at this time (but not for long!)
 - MixerTest is up in limbo, since `Node`'s can implicitly sum multiple inputs. 
 
+## Third Party Libraries
+
+There are a few libraries written by third parties, all redistributed in source form and liberally licensed:
+
+* [ooura] general purpose FFT algorithms.
+* [r8brain] sample rate converter library, designed by Aleksey Vaneev of Voxengo.
+* [oggvorbis] audio decoder / encoder for the ogg file format.
+
+To all of the people responsible for making these available and of such high quality, thank you!
 
 ## Feedback
 
@@ -224,3 +233,6 @@ Rich
 [puredata]: http://puredata.info/
 [coreaudio-file-types]: https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/CoreAudioOverview/SupportedAudioFormatsMacOSX/SupportedAudioFormatsMacOSX.html
 [mediafoundation-file-types]: http://msdn.microsoft.com/en-us/library/windows/desktop/dd757927(v=vs.85).aspx
+[ooura]: http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html
+[r8brain]: https://code.google.com/p/r8brain-free-src/
+[oggvorbis]: http://xiph.org/vorbis/
