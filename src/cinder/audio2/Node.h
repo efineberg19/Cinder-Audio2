@@ -197,9 +197,8 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	virtual void disconnectInput( const NodeRef &input );
 	virtual void disconnectOutput( const NodeRef &output );
 
-	//! Returns true if any processing took place.
-	bool pullInputs( Buffer *inPlaceBuffer );
 	virtual void configureConnections();
+	void pullInputs( Buffer *inPlaceBuffer );
 	void setupProcessWithSumming();
 	void notifyConnectionsDidChange();
 

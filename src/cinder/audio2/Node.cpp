@@ -186,7 +186,7 @@ vector<size_t> Node::getOccupiedOutputBusses() const
 	return result;
 }
 
-bool Node::pullInputs( Buffer *inPlaceBuffer )
+void Node::pullInputs( Buffer *inPlaceBuffer )
 {
 	CI_ASSERT( getContext() );
 
@@ -202,32 +202,23 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 			if( mEnabled ) {
 				// Fastest route: no inputs and process in-place.
 				process( inPlaceBuffer );
-				return true;
 			}
 		}
 		else {
 			// First need to pull the input (can only be one when in-place), then run process() if input did any processing.
-			uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
-			if( mLastProcessedFrame != numProcessedFrames ) {
-				mLastProcessedFrame = numProcessedFrames;
 
-				auto &input = mInputs.begin()->second;
-				bool didProcess = input->pullInputs( inPlaceBuffer );
-				if( didProcess && ! input->getProcessInPlace() )
-					dsp::mixBuffers( input->getInternalBuffer(), inPlaceBuffer );
+			auto &input = mInputs.begin()->second;
+			input->pullInputs( inPlaceBuffer );
 
-				if( mEnabled ) {
-					process( inPlaceBuffer );
-					return true;
-				}
-			}
+			if( ! input->getProcessInPlace() )
+				dsp::mixBuffers( input->getInternalBuffer(), inPlaceBuffer );
+
+			if( mEnabled )
+				process( inPlaceBuffer );
 		}
-
-		return false;
 	}
 	else {
 
-		bool didProcess = false;
 		// Pull all enabled inputs. Only do this once per processing block, which is checked by the current number of processed frames.
 		uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
 		if( mLastProcessedFrame != numProcessedFrames ) {
@@ -243,9 +234,7 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 
 				// note: zeroing the internal buffer here is what was prohibiting feedback
 				//mInternalBuffer.zero();
-				bool didProcessInput = input->pullInputs( &mInternalBuffer );
-
-				didProcess |= didProcessInput;
+				input->pullInputs( &mInternalBuffer );
 
 				LOG_PULL( "\t\t" << input->getName() << " sum processed input: " << didProcessInput );
 
@@ -257,7 +246,6 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 			if( mEnabled ) {
 				LOG_PULL( "\t\tprocess -> summing buffer: " << getName() );
 				process( &mSummingBuffer );
-				didProcess = true;
 			}
 
 			// copy summed buffer back to internal so downstream can get it.
@@ -265,8 +253,6 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 		}
 		else
 			LOG_PULL( "\tskipped summing / processing for frame: " << numProcessedFrames );
-
-		return didProcess;
 	}
 }
 
