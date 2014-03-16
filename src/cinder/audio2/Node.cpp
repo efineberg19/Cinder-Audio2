@@ -34,6 +34,9 @@
 
 #include <limits>
 
+#define LOG_PULL( stream )	CI_LOG_V( stream )
+//#define LOG_PULL( stream )	do{} while( 0 )
+
 using namespace std;
 
 namespace cinder { namespace audio2 {
@@ -187,7 +190,14 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 {
 	CI_ASSERT( getContext() );
 
+	if( dynamic_cast<LineOut *>( this ) )
+		LOG_PULL( "-------------------------------------" );
+
+	LOG_PULL( "pull: " << getName() );
+
 	if( mProcessInPlace ) {
+		LOG_PULL( "\tin place" );
+
 		if( mInputs.empty() ) {
 			if( mEnabled ) {
 				// Fastest route: no inputs and process in-place.
@@ -216,24 +226,35 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 		return false;
 	}
 	else {
+
 		bool didProcess = false;
 		// Pull all enabled inputs. Only do this once per processing block, which is checked by the current number of processed frames.
 		uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
 		if( mLastProcessedFrame != numProcessedFrames ) {
 			mLastProcessedFrame = numProcessedFrames;
+
+			LOG_PULL( "\tsumming for frame: " << numProcessedFrames << ", zeroing summing buffer" );
 			mSummingBuffer.zero();
 
 			for( auto &in : mInputs ) {
 				NodeRef &input = in.second;
 
-				mInternalBuffer.zero();
-				didProcess |= input->pullInputs( &mInternalBuffer );
+				LOG_PULL( "\t\tpulling input: " << input->getName() );
 
-				const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
-				dsp::sumBuffers( processedBuffer, &mSummingBuffer );
+				mInternalBuffer.zero();
+				bool didProcessInput = input->pullInputs( &mInternalBuffer );
+
+				if( didProcessInput ) {
+					didProcess = true;
+					LOG_PULL( "\t\tsum  processed input: " << input->getName() << " to mInternalBuffer" );
+
+					const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
+					dsp::sumBuffers( processedBuffer, &mSummingBuffer );
+				}
 			}
 
 			if( mEnabled ) {
+				LOG_PULL( "\t\tprocess -> summing buffer: " << getName() );
 				process( &mSummingBuffer );
 				didProcess = true;
 			}
@@ -241,6 +262,8 @@ bool Node::pullInputs( Buffer *inPlaceBuffer )
 			// copy summed buffer back to internal so downstream can get it.
 			dsp::mixBuffers( &mSummingBuffer, &mInternalBuffer );
 		}
+		else
+			LOG_PULL( "\tskipped summing / processing for frame: " << numProcessedFrames );
 
 		return didProcess;
 	}
@@ -254,8 +277,8 @@ bool Node::checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) cons
 	if( sourceNode->supportsCycles() || destNode->supportsCycles() )
 		return false;
 
-	for( const auto &inIt : sourceNode->getInputs() ) {
-		if( checkCycle( inIt.second, destNode ) )
+	for( const auto &in : sourceNode->getInputs() ) {
+		if( checkCycle( in.second, destNode ) )
 			return true;
 	}
 
