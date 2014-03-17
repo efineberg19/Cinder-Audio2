@@ -184,22 +184,6 @@ vector<size_t> Node::getOccupiedOutputBusses() const
 	return result;
 }
 
-bool Node::checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) const
-{
-	if( sourceNode == destNode )
-		return true;
-
-	if( sourceNode->supportsCycles() || destNode->supportsCycles() )
-		return false;
-
-	for( const auto &in : sourceNode->getInputs() ) {
-		if( checkCycle( in.second, destNode ) )
-			return true;
-	}
-
-	return false;
-}
-
 void Node::setEnabled( bool enabled )
 {
 	if( enabled )
@@ -339,17 +323,6 @@ void Node::configureConnections()
 	initializeImpl();
 }
 
-void Node::setupProcessWithSumming()
-{
-	CI_ASSERT( getContext() );
-
-	mProcessInPlace = false;
-	size_t framesPerBlock = getFramesPerBlock();
-
-	mInternalBuffer.setSize( framesPerBlock, mNumChannels );
-	mSummingBuffer.setSize( framesPerBlock, mNumChannels );
-}
-
 void Node::pullInputs( Buffer *inPlaceBuffer )
 {
 	CI_ASSERT( getContext() );
@@ -399,6 +372,33 @@ void Node::pullInputs( Buffer *inPlaceBuffer )
 			dsp::mixBuffers( &mSummingBuffer, &mInternalBuffer );
 		}
 	}
+}
+
+void Node::setupProcessWithSumming()
+{
+	CI_ASSERT( getContext() );
+
+	mProcessInPlace = false;
+	size_t framesPerBlock = getFramesPerBlock();
+
+	mInternalBuffer.setSize( framesPerBlock, mNumChannels );
+	mSummingBuffer.setSize( framesPerBlock, mNumChannels );
+}
+
+bool Node::checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) const
+{
+	if( sourceNode == destNode )
+		return true;
+
+	if( sourceNode->supportsCycles() || destNode->supportsCycles() )
+		return false;
+
+	for( const auto &in : sourceNode->getInputs() ) {
+		if( checkCycle( in.second, destNode ) )
+			return true;
+	}
+
+	return false;
 }
 
 void Node::notifyConnectionsDidChange()

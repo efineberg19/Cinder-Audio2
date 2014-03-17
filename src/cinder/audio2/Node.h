@@ -308,6 +308,9 @@ static std::shared_ptr<NodeT> findFirstUpstreamNode( NodeRef node )
 }
 
 //! RAII-style utility class to save the \a Node's current enabled state.
+//  TODO: make this more in-line with other Scoped utils:
+//	- pass in bool in constructor that does the enabling, disabling
+//	- also make this work for Context as well, or add a separate one for it.
 struct ScopedNodeEnabledState {
 	ScopedNodeEnabledState( const NodeRef &node )
 	: mNode( node )
