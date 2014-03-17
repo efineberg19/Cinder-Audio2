@@ -183,57 +183,6 @@ vector<size_t> Node::getOccupiedOutputBusses() const
 	return result;
 }
 
-void Node::pullInputs( Buffer *inPlaceBuffer )
-{
-	CI_ASSERT( getContext() );
-
-	if( mProcessInPlace ) {
-		if( mInputs.empty() ) {
-			// Fastest route: no inputs and process in-place. If disabled, get rid of any previously processsed samples.
-			if( mEnabled )
-				process( inPlaceBuffer );
-			else
-				inPlaceBuffer->zero();
-		}
-		else {
-			// First pull the input (can only be one when in-place), then run process() if input did any processing.
-			auto &input = mInputs.begin()->second;
-			input->pullInputs( inPlaceBuffer );
-
-			if( ! input->getProcessInPlace() )
-				dsp::mixBuffers( input->getInternalBuffer(), inPlaceBuffer );
-
-			if( mEnabled )
-				process( inPlaceBuffer );
-		}
-	}
-	else {
-		// Pull and sum all enabled inputs. Only do this once per processing block, which is checked by the current number of processed frames.
-		uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
-		if( mLastProcessedFrame != numProcessedFrames ) {
-			mLastProcessedFrame = numProcessedFrames;
-
-			mSummingBuffer.zero();
-
-			// Pull all inputs, summing the results from the buffer that input used for processing.
-			// mInternalBuffer is not zero'ed before pulling inputs to allow for feedback.
-			for( auto &in : mInputs ) {
-				NodeRef &input = in.second;
-				input->pullInputs( &mInternalBuffer );
-				const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
-				dsp::sumBuffers( processedBuffer, &mSummingBuffer );
-			}
-
-			// Process the summed results if enabled.
-			if( mEnabled )
-				process( &mSummingBuffer );
-
-			// copy summed buffer back to internal so downstream can get it.
-			dsp::mixBuffers( &mSummingBuffer, &mInternalBuffer );
-		}
-	}
-}
-
 bool Node::checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) const
 {
 	if( sourceNode == destNode )
@@ -383,6 +332,57 @@ void Node::setupProcessWithSumming()
 
 	mInternalBuffer.setSize( framesPerBlock, mNumChannels );
 	mSummingBuffer.setSize( framesPerBlock, mNumChannels );
+}
+
+void Node::pullInputs( Buffer *inPlaceBuffer )
+{
+	CI_ASSERT( getContext() );
+
+	if( mProcessInPlace ) {
+		if( mInputs.empty() ) {
+			// Fastest route: no inputs and process in-place. If disabled, get rid of any previously processsed samples.
+			if( mEnabled )
+				process( inPlaceBuffer );
+			else
+				inPlaceBuffer->zero();
+		}
+		else {
+			// First pull the input (can only be one when in-place), then run process() if input did any processing.
+			auto &input = mInputs.begin()->second;
+			input->pullInputs( inPlaceBuffer );
+
+			if( ! input->getProcessInPlace() )
+				dsp::mixBuffers( input->getInternalBuffer(), inPlaceBuffer );
+
+			if( mEnabled )
+				process( inPlaceBuffer );
+		}
+	}
+	else {
+		// Pull and sum all enabled inputs. Only do this once per processing block, which is checked by the current number of processed frames.
+		uint64_t numProcessedFrames = getContext()->getNumProcessedFrames();
+		if( mLastProcessedFrame != numProcessedFrames ) {
+			mLastProcessedFrame = numProcessedFrames;
+
+			mSummingBuffer.zero();
+
+			// Pull all inputs, summing the results from the buffer that input used for processing.
+			// mInternalBuffer is not zero'ed before pulling inputs to allow for feedback.
+			for( auto &in : mInputs ) {
+				NodeRef &input = in.second;
+				input->pullInputs( &mInternalBuffer );
+				const Buffer *processedBuffer = input->getProcessInPlace() ? &mInternalBuffer : input->getInternalBuffer();
+				dsp::sumBuffers( processedBuffer, &mSummingBuffer );
+			}
+
+			// Process the summed results if enabled.
+			if( mEnabled )
+				process( &mSummingBuffer );
+
+			// copy summed buffer back to internal so downstream can get it.
+			dsp::mixBuffers( &mSummingBuffer, &mInternalBuffer );
+		}
+	}
 }
 
 void Node::notifyConnectionsDidChange()

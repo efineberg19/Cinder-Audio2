@@ -248,7 +248,7 @@ void printRecursive( const NodeRef &node, size_t depth, set<NodeRef> &traversedN
 		app::console() << "-- ";
 
 	if( traversedNodes.count( node ) ) {
-		app::console() << " ** " << node->getName() << " already printed **" << endl;
+		app::console() << node->getName() << "\t[ ** already printed ** ]" << endl;
 		return;
 	}
 

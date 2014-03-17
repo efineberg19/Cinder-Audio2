@@ -150,10 +150,6 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	//! Returns whether this Node will process audio with an in-place Buffer.
 	bool getProcessInPlace() const				{ return mProcessInPlace; }
 
-	// TODO: make this protected if possible (or better yet, not-accessible)
-	const Buffer *getInternalBuffer() const		{ return &mInternalBuffer; }
-//	const Buffer *getInternalBuffer() const		{ return &mSummingBuffer; }
-
 	//! Returns a string representing the name of this Node type. TODO: use typeid + abi de-mangling to ease the burden on sub-classes
 	virtual std::string getName();
 
@@ -199,6 +195,7 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 
 	virtual void configureConnections();
 	void pullInputs( Buffer *inPlaceBuffer );
+	const Buffer* getInternalBuffer() const		{ return &mInternalBuffer; }
 	void setupProcessWithSumming();
 	void notifyConnectionsDidChange();
 
