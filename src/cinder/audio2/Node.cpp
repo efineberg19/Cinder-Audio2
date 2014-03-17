@@ -24,6 +24,7 @@
 
 #include "cinder/audio2/Node.h"
 #include "cinder/audio2/Context.h"
+#include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Debug.h"
@@ -270,6 +271,9 @@ size_t Node::getFramesPerBlock() const
 	return getContext()->getFramesPerBlock();
 }
 
+// TODO: Checking for Delay below is a kludge and will not work for other types that want to support feedback.
+//		 With more investigation it might be possible to avoid this, or at least define some interface that
+//       specifies whether this input needs to be summed.
 void Node::configureConnections()
 {
 	CI_ASSERT( getContext() );
@@ -279,8 +283,11 @@ void Node::configureConnections()
 	if( getNumConnectedInputs() > 1 || getNumConnectedOutputs() > 1 )
 		mProcessInPlace = false;
 
+	bool isDelay = ( dynamic_cast<Delay *>( this ) != nullptr ); // see note above
+
 	for( auto &in : mInputs ) {
 		NodeRef input = in.second;
+		bool inputProcessInPlace = true;
 
 		size_t inputNumChannels = input->getNumChannels();
 		if( ! supportsInputNumChannels( inputNumChannels ) ) {
@@ -292,12 +299,21 @@ void Node::configureConnections()
 			}
 			else {
 				mProcessInPlace = false;
-				input->setupProcessWithSumming();
+				inputProcessInPlace = false;
 			}
 		}
 
-		// inputs with more than one output cannot process in-place, so for them to sum
+		// inputs with more than one output cannot process in-place, so make them sum
 		if( input->getProcessInPlace() && input->getNumConnectedOutputs() > 1 )
+			inputProcessInPlace = false;
+
+		// if we're unable to process in-place and we're a Delay, its possible that the input may be part of a feedback loop, in which case input must sum.
+		if( ! mProcessInPlace && isDelay ) {
+			CI_LOG_V( "detected possible cycle with delay: " << getName() << ", disabling in-place processing for input: " << input->getName() );
+			inputProcessInPlace = false;
+		}
+
+		if( ! inputProcessInPlace )
 			input->setupProcessWithSumming();
 
 		input->initializeImpl();
