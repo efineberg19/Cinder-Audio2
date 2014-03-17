@@ -204,7 +204,6 @@ void WaveTable2d::fillBandlimited( WaveformType type )
 {
 	calcLimits();
 
-	CI_LOG_V( "filling " << mNumTables << " tables of size: " << mTableSize << "..." );
 	Timer timer( true );
 
 	resize( mTableSize, mNumTables );
@@ -215,7 +214,7 @@ void WaveTable2d::fillBandlimited( WaveformType type )
 		// last table always has only one partial
 		if( i == mNumTables - 1 ) {
 			fillBandLimitedTable( type, table, 1 );
-			CI_LOG_V( "\t[" << i << "] LAST, nyquist / 4 and above, max partials: 1 " );
+//			CI_LOG_V( "\t[" << i << "] LAST, nyquist / 4 and above, max partials: 1 " );
 			break;
 		}
 
@@ -223,7 +222,7 @@ void WaveTable2d::fillBandlimited( WaveformType type )
 		fillBandLimitedTable( type, table, maxPartialsForFreq );
 	}
 
-	CI_LOG_V( "..done, seconds: " << timer.getSeconds() );
+	CI_LOG_V( "filled " << mNumTables << " tables of size: " << mTableSize << ", seconds: " << timer.getSeconds() );
 }
 
 // note: for at least sawtooth and square, this must be recomputed for every table so that gibbs reduction is accurate
@@ -279,7 +278,7 @@ size_t WaveTable2d::getMaxHarmonicsForTable( size_t tableIndex ) const
 
 	size_t maxPartialsForFreq = size_t( nyquist / maxF0 );
 
-	CI_LOG_V( "\t[" << tableIndex << "] midi: " << maxMidi << ", max f0: " << maxF0 << ", max partials: " << maxPartialsForFreq );
+//	CI_LOG_V( "\t[" << tableIndex << "] midi: " << maxMidi << ", max f0: " << maxF0 << ", max partials: " << maxPartialsForFreq );
 	return maxPartialsForFreq;
 }
 
