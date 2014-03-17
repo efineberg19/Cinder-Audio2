@@ -147,6 +147,7 @@ audio2::GenRef StressTestApp::makeOsc( audio2::WaveformType type )
 		result->setWaveTable( mWaveTable );
 	else {
 		ctx->initializeNode( result );
+
 		mWaveTable = result->getWaveTable();
 	}
 

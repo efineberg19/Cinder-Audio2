@@ -9,8 +9,6 @@
 
 #include "../../common/AudioTestGui.h"
 
-// TODO NEXT: add gen enable button to test tails
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -43,7 +41,7 @@ class NodeEffectTestApp : public AppNative {
 	audio2::DelayRef			mDelay;
 
 	vector<TestWidget *>	mWidgets;
-	Button					mPlayButton, mGenButton, mChirpButton;
+	Button					mPlayButton, mGenButton, mGenEnabledButton, mChirpButton;
 	VSelector				mTestSelector;
 	HSlider					mGainSlider, mPanSlider, mLowPassFreqSlider, mFilterParam2Slider;
 };
@@ -87,6 +85,7 @@ void NodeEffectTestApp::makeNodes()
 		mGen = ctx->makeNode( new audio2::GenNoise( genFmt ) );
 
 	mLowPass = ctx->makeNode( new audio2::FilterLowPass() );
+	mLowPass->setCutoffFreq( 400 );
 //	mLowPass = ctx->makeNode( new audio2::FilterHighPass() );
 
 	mDelay = ctx->makeNode( new audio2::Delay );
@@ -180,8 +179,8 @@ void NodeEffectTestApp::applyChirp()
 
 void NodeEffectTestApp::setupUI()
 {
-	const float padding = 10;
-	Rectf buttonRect( 0, 0, 200, 60 );
+	const float padding = 8;
+	Rectf buttonRect( 0, 0, 200, 50 );
 
 	mPlayButton = Button( true, "stopped", "playing" );
 	mPlayButton.mBounds = buttonRect;
@@ -195,6 +194,14 @@ void NodeEffectTestApp::setupUI()
 	mWidgets.push_back( &mGenButton );
 
 	buttonRect += Vec2f( 0, buttonRect.getHeight() + padding );
+	mGenEnabledButton.mIsToggle = true;
+	mGenEnabledButton.mTitleNormal = "gen disabled";
+	mGenEnabledButton.mTitleEnabled = "gen enabled";
+	mGenEnabledButton.setEnabled( true );
+	mGenEnabledButton.mBounds = buttonRect;
+	mWidgets.push_back( &mGenEnabledButton );
+
+	buttonRect += Vec2f( 0, buttonRect.getHeight() + padding );
 	mChirpButton = Button( false, "chirp" );
 	mChirpButton.mBounds = buttonRect;
 	mWidgets.push_back( &mChirpButton );
@@ -206,11 +213,11 @@ void NodeEffectTestApp::setupUI()
 	mTestSelector.mSegments.push_back( "feedback" );
 	mTestSelector.mSegments.push_back( "echo" );
 	mTestSelector.mSegments.push_back( "cycle" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 160 );
+	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0, (float)getWindowWidth(), 200 );
 	mWidgets.push_back( &mTestSelector );
 
 	float width = std::min( (float)getWindowWidth() - 20,  440.0f );
-	Rectf sliderRect( getWindowCenter().x - width / 2, 200, getWindowCenter().x + width / 2, 250 );
+	Rectf sliderRect( getWindowCenter().x - width / 2, 250, getWindowCenter().x + width / 2, 300 );
 	mGainSlider.mBounds = sliderRect;
 	mGainSlider.mTitle = "Gain";
 	mGainSlider.set( mGain->getValue() );
@@ -272,6 +279,8 @@ void NodeEffectTestApp::processTap( Vec2i pos )
 		if( mGenButton.mEnabled )
 			applyChirp();
 	}
+	else if( mGenEnabledButton.hitTest( pos ) )
+		mGen->setEnabled( mGenEnabledButton.mEnabled );
 	else if( mChirpButton.hitTest( pos ) )
 		applyChirp();
 
