@@ -86,7 +86,7 @@ double SamplePlayer::getLoopEndTime() const
 
 size_t SamplePlayer::getNumSeconds() const
 {
-	return (double)mNumFrames / (double)getSampleRate();
+	return size_t( (double)mNumFrames / (double)getSampleRate() );
 }
 
 // ----------------------------------------------------------------------------------------------------

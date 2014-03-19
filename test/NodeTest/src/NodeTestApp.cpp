@@ -11,6 +11,8 @@
 #include "../../common/AudioTestGui.h"
 #include "../../../samples/common/AudioDrawUtils.h"
 
+#include "cinder/audio2/Utilities.h"
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;

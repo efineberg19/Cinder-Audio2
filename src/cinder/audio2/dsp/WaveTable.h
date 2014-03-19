@@ -32,7 +32,7 @@
 namespace cinder { namespace audio2 { namespace dsp {
 
 typedef std::shared_ptr<class WaveTable>		WaveTableRef;
-typedef std::shared_ptr<class WaveTable2d>	WaveTable2dRef;
+typedef std::shared_ptr<class WaveTable2d>		WaveTable2dRef;
 
 class WaveTable {
   public:

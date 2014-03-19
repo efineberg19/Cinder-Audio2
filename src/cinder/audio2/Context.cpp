@@ -24,6 +24,7 @@
 
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/dsp/Converter.h"
 #include "cinder/audio2/Debug.h"
 
 #include "cinder/Cinder.h"
