@@ -23,6 +23,7 @@
 
 #include "cinder/audio2/NodeEffect.h"
 #include "cinder/audio2/Debug.h"
+#include "cinder/audio2/Utilities.h"
 
 #include "cinder/CinderMath.h"
 
