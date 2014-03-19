@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F9F68040-3C5E-4DBE-B809-FD0BF117E5BA}</ProjectGuid>
+    <ProjectGuid>{276DA6AE-F82B-4757-9A51-9E1C9BCE12B2}</ProjectGuid>
     <RootNamespace>WaveTableTest</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>WaveTableTest</ProjectName>
