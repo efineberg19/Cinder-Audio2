@@ -38,10 +38,75 @@ using namespace std;
 
 namespace cinder { namespace audio2 { namespace msw {
 
+namespace {
+
 inline bool isNodeNativeXAudio( NodeRef node )
 {
 	return dynamic_pointer_cast<NodeXAudio>( node );
 }
+
+template <typename NodeT>
+std::shared_ptr<NodeT> findFirstDownstreamNodeRecursive( NodeRef node, set<NodeRef> &traversedNodes )
+{
+	if( ! node || traversedNodes.count( node ) )
+		return std::shared_ptr<NodeT>();
+
+	traversedNodes.insert( node );
+
+	for( auto &out : node->getOutputs() ) {
+		auto output = out.second.lock();
+		if( ! output )
+			continue;
+
+		auto castedNode = std::dynamic_pointer_cast<NodeT>( output );
+		if( castedNode )
+			return castedNode;
+
+		auto downstream = findFirstDownstreamNodeRecursive<NodeT>( output, traversedNodes ); 
+		if( downstream )
+			return downstream;
+	}
+
+	return std::shared_ptr<NodeT>();
+}
+
+template <typename NodeT>
+std::shared_ptr<NodeT> findFirstUpstreamNodeRecursive( NodeRef node, set<NodeRef> &traversedNodes )
+{
+	if( ! node || traversedNodes.count( node ) )
+		return std::shared_ptr<NodeT>();
+
+	traversedNodes.insert( node );
+
+	for( auto &in : node->getInputs() ) {
+		auto& input = in.second;
+		auto castedNode = std::dynamic_pointer_cast<NodeT>( input );
+		if( castedNode )
+			return castedNode;
+
+		auto upstream = findFirstUpstreamNodeRecursive<NodeT>( input, traversedNodes );
+		if( upstream )
+			return upstream;
+	}
+
+	return std::shared_ptr<NodeT>();
+}
+
+template <typename NodeT>
+std::shared_ptr<NodeT> findFirstDownstreamNode( const NodeRef &node )
+{
+	set<NodeRef> traversedNodes;
+	return findFirstDownstreamNodeRecursive<NodeT>( node, traversedNodes );
+}
+
+template <typename NodeT>
+std::shared_ptr<NodeT> findFirstUpstreamNode( const NodeRef &node )
+{
+	set<NodeRef> traversedNodes;
+	return findFirstUpstreamNodeRecursive<NodeT>( node, traversedNodes );
+}
+
+} // anonymous namespace
 
 struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 
@@ -552,8 +617,18 @@ void ContextXAudio::connectionsDidChange( const NodeRef &node )
 					// a SourceVoiceXAudio is needed
 					sourceVoice = makeNode( new NodeXAudioSourceVoice );
 
-					input->connect( sourceVoice );
+					//CI_LOG_V( "[before]" );
+					//printGraph();
+
+					input->connect( sourceVoice, input->getFirstAvailableOutputBus(), 0 );
+					//CI_LOG_V( "[midde]" );
+					//printGraph();
+
+
 					sourceVoice->connect( node, 0, bus );
+
+					//CI_LOG_V( "[before]" );
+					//printGraph();
 
 					sourceVoice->start();
 				}

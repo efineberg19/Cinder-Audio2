@@ -9,6 +9,8 @@
 
 #include "../../common/AudioTestGui.h"
 
+#define TEST_LOW_LATENCY 0
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -52,9 +54,11 @@ void NodeEffectTestApp::setup()
 
 //	auto outputDevice = ctx->getOutput()->getDevice();
 
+#if TEST_LOW_LATENCY
 	auto lineOut = ctx->createLineOut();
 	lineOut->getDevice()->updateFormat( audio2::Device::Format().framesPerBlock( 64 ) );
 	ctx->setOutput( lineOut );
+#endif
 
 //	mGenButton.setEnabled( true ); // set to start with GenSine
 

@@ -144,8 +144,12 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	std::vector<size_t> getOccupiedInputBusses() const;
 	//! Returns a vector of the currently occupied output busses.
 	std::vector<size_t> getOccupiedOutputBusses() const;
+	//! Returns the first available input bus.
+	size_t getFirstAvailableOutputBus();
+	//! Returns the first available output bus.
+	size_t getFirstAvailableInputBus();
 
-	//! Returns whether this Node is in an initialized state and is capabale of processing audio.
+	//! Returns whether this Node is in an initialized state and is capable of processing audio.
 	bool isInitialized() const					{ return mInitialized; }
 	//! Returns whether this Node will process audio with an in-place Buffer.
 	bool getProcessInPlace() const				{ return mProcessInPlace; }
@@ -203,8 +207,7 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 	void setNumChannels( size_t numChannels );
 	//! Returns whether it is possible to connect to \a input, example reasons of failure would be this == Node, or Node is already an input.
 	bool canConnectToInput( const NodeRef &input );
-	size_t getFirstAvailableOutputBus();
-	size_t getFirstAvailableInputBus();
+
 
 	//! Returns true if there is an unmanageable cycle betweeen \a sourceNode and \a destNode.
 	bool checkCycle( const NodeRef &sourceNode, const NodeRef &destNode ) const;
@@ -265,47 +268,6 @@ class NodeAutoPullable : public Node {
 
 	bool mIsPulledByContext;
 };
-
-//! Convenience routine for finding the first downstream \a Node of type \a NodeT (traverses outputs).
-template <typename NodeT>
-static std::shared_ptr<NodeT> findFirstDownstreamNode( NodeRef node )
-{
-	if( ! node )
-		return std::shared_ptr<NodeT>();
-
-	for( auto &out : node->getOutputs() ) {
-		auto output = out.second.lock();
-		if( ! output )
-			continue;
-
-		auto castedNode = std::dynamic_pointer_cast<NodeT>( output );
-		if( castedNode )
-			return castedNode;
-
-		return findFirstDownstreamNode<NodeT>( output );
-	}
-
-	return std::shared_ptr<NodeT>();
-}
-
-//! Convenience routine for finding the first upstream \a Node of type \a NodeT (traverses inputs).
-// TODO: pass as const&, for this and downstream
-template <typename NodeT>
-static std::shared_ptr<NodeT> findFirstUpstreamNode( NodeRef node )
-{
-	CI_ASSERT( node );
-
-	for( auto &in : node->getInputs() ) {
-		auto& input = in.second;
-		auto castedNode = std::dynamic_pointer_cast<NodeT>( input );
-		if( castedNode )
-			return castedNode;
-
-		return findFirstUpstreamNode<NodeT>( input );
-	}
-
-	return std::shared_ptr<NodeT>();
-}
 
 //! RAII-style utility class to save the \a Node's current enabled state.
 //  TODO: make this more in-line with other Scoped utils:
