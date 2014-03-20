@@ -31,24 +31,24 @@ class EffectsAudioUnitTestApp : public AppNative {
 	void processTap( Vec2i pos );
 	void initParams();
 
-	audio2::NodeInputRef mSource;
+	audio2::GenRef mGen;
 
 	shared_ptr<NodeEffectAudioUnit> mEffect, mEffect2;
 
 	VSelector mTestSelector;
 	Button mPlayButton;
-	HSlider mLowpassCutoffSlider, mBandpassSlider;
+	HSlider mGenFreqSlider, mLowpassCutoffSlider, mBandpassSlider;
 };
 
 void EffectsAudioUnitTestApp::setup()
 {
 	auto ctx = audio2::master();
 
-	auto noise = ctx->makeNode( new audio2::GenNoise() );
-	noise->setAutoEnabled();
-//	noise->getGen().setAmp( 0.25f );
-	//noise->getFormat().setNumChannels( 1 ); // force gen to be mono
-	mSource = noise;
+	auto gen = ctx->makeNode( new audio2::GenPulse( 100 ) );
+	gen->setAutoEnabled();
+
+	//gen->getFormat().setNumChannels( 1 ); // force gen to be mono
+	mGen = gen;
 
 	setupOne();
 
@@ -63,7 +63,7 @@ void EffectsAudioUnitTestApp::setupOne()
 	auto ctx = audio2::master();
 
 	mEffect = ctx->makeNode( new audio2::cocoa::NodeEffectAudioUnit( kAudioUnitSubType_LowPassFilter ) );
-	mSource >> mEffect >> ctx->getOutput();
+	mGen >> mEffect >> ctx->getOutput();
 
 	mBandpassSlider.mHidden = true;
 }
@@ -77,7 +77,7 @@ void EffectsAudioUnitTestApp::setupTwo()
 
 //	mEffect->getFormat().setNumChannels( 2 ); // force stereo
 
-	mSource >> mEffect >> mEffect2 >> ctx->getOutput();
+	mGen >> mEffect >> mEffect2 >> ctx->getOutput();
 
 	mBandpassSlider.mHidden = false;
 }
@@ -123,6 +123,12 @@ void EffectsAudioUnitTestApp::setupUI()
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
 
+	mGenFreqSlider.mTitle = "Gen Freq";
+	mGenFreqSlider.mMin = 30.0f;
+	mGenFreqSlider.mMax = 500.0f;
+	mGenFreqSlider.set( mGen->getFreq() );
+	mGenFreqSlider.mBounds = sliderRect;
+
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mLowpassCutoffSlider.mBounds = sliderRect;
 	mLowpassCutoffSlider.mTitle = "Lowpass Cutoff";
@@ -147,6 +153,9 @@ void EffectsAudioUnitTestApp::setupUI()
 
 void EffectsAudioUnitTestApp::processDrag( Vec2i pos )
 {
+	if( mGenFreqSlider.hitTest( pos ) )
+		mGen->getParamFreq()->applyRamp( mGenFreqSlider.mValueScaled, 0.02f );
+
 	if( mEffect && mLowpassCutoffSlider.hitTest( pos ) )
 		mEffect->setParameter( kLowPassParam_CutoffFrequency, mLowpassCutoffSlider.mValueScaled );
 
@@ -169,7 +178,7 @@ void EffectsAudioUnitTestApp::processTap( Vec2i pos )
 		bool enabled = ctx->isEnabled();
 		ctx->disconnectAllNodes();
 
-		mSource->disconnect();
+		mGen->disconnect();
 		mEffect->disconnect();
 		if( mEffect2 )
 			mEffect2->disconnect();
@@ -196,6 +205,7 @@ void EffectsAudioUnitTestApp::draw()
 	gl::clear();
 
 	mPlayButton.draw();
+	mGenFreqSlider.draw();
 
 	if( mEffect )
 		mLowpassCutoffSlider.draw();
