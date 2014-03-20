@@ -82,8 +82,8 @@ void DeviceTestApp::setup()
 	// TODO: this should be set in setOutputDevice()
 	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	CI_LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
 
-//	setupSine();
-	setupIOClean();
+	setupSine();
+//	setupIOClean();
 //	setupIOProcessed();
 
 	ctx->printGraph();
@@ -95,8 +95,7 @@ void DeviceTestApp::setup()
 
 void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t numChannels )
 {
-	audio2::NodeInputRef currentSource = audio2::findFirstUpstreamNode<audio2::NodeInput>( mGain );
-	audio2::ScopedNodeEnabledState enabled( currentSource );
+	audio2::ScopedNodeEnabledState enabled( mSourceNode );
 
 	auto ctx = audio2::master();
 
@@ -119,6 +118,11 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t num
 
 	CI_LOG_V( "LineOut device properties: " );
 	printDeviceDetails( device );
+
+	// TODO: considering doing this automatically in Context::setOutput, but then also have to worry about initialize()
+	// - also may do a ScopedEnable that handles Context as well.
+	if( mPlayButton.mEnabled )
+		mLineOut->start();
 }
 
 void DeviceTestApp::setInputDevice( const audio2::DeviceRef &device, size_t numChannels  )
