@@ -305,8 +305,10 @@ void Node::configureConnections()
 
 	for( auto &out : mOutputs ) {
 		NodeRef output = out.second.lock();
-		CI_ASSERT( output );
-
+		if( ! output ) {
+			CI_LOG_V( "WARNING: expired output on bus: " << out.first );
+			continue; // TODO: consider filtering these out before this method is reached.
+		}
 		if( ! output->supportsInputNumChannels( mNumChannels ) ) {
 			if( output->getChannelMode() == ChannelMode::MATCHES_INPUT ) {
 				output->setNumChannels( mNumChannels );
