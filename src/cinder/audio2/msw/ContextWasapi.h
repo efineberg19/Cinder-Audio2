@@ -24,16 +24,22 @@
 #pragma once
 
 #if( _WIN32_WINNT < _WIN32_WINNT_VISTA )
-	#error "WASAPI unsupported for deployment target less than Windows Vista"
+	#error "WASAPI only available on Windows Vista or newer"
 #endif
 
-#include "cinder/audio2/Device.h"
-#include "cinder/audio2/NodeInput.h"
+#include "cinder/audio2/Context.h"
+#include "cinder/audio2/msw/MswUtil.h"
 
 namespace cinder { namespace audio2 { namespace msw {
 
-class LineInWasapi : public LineIn {
+class LineOutWasapi : public LineOut {
   public:
+	LineOutWasapi( const DeviceRef &device, const Format &format );
+
+};
+
+class LineInWasapi : public LineIn {
+public:
 	LineInWasapi( const DeviceRef &device, const Format &format = Format() );
 	virtual ~LineInWasapi();
 
@@ -43,18 +49,25 @@ class LineInWasapi : public LineIn {
 	uint64_t getLastUnderrun()		override;
 	uint64_t getLastOverrun()		override;
 
-  protected:
+protected:
 	void initialize()				override;
 	void uninitialize()				override;
 	void process( Buffer *buffer )	override;
 
-  private:
+private:
 
 	struct Impl;
 	std::unique_ptr<Impl> mImpl;
 	BufferInterleaved mInterleavedBuffer;
 
 	size_t mCaptureBlockSize; // per channel. TODO: this should be user settable
+};
+
+class ContextWasapi : public Context {
+  public:
+	LineOutRef	createLineOut( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
+	LineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
+
 };
 
 } } } // namespace cinder::audio2::msw

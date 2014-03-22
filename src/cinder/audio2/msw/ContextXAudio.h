@@ -166,7 +166,7 @@ class ContextXAudio : public Context {
 	virtual ~ContextXAudio();
 
 	LineOutRef	createLineOut( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
-	//! If deployment target is 0x601 (win vista) or greater, uses \a LineInWasapi, else returns an empty \a LineInRef
+	//! No LineIn is available via XAudio2 path, returns an empty \a LineInRef
 	LineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
 
 	//! When connections change, ensure a NodeXAudioSourceVoice is in the right position to enable pulling audio samples.

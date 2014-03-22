@@ -22,7 +22,6 @@
 */
 
 #include "cinder/audio2/msw/ContextXAudio.h"
-#include "cinder/audio2/msw/LineInWasapi.h"
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/dsp/Converter.h"
@@ -574,7 +573,8 @@ LineOutRef ContextXAudio::createLineOut( const DeviceRef &device, const Node::Fo
 
 LineInRef ContextXAudio::createLineIn( const DeviceRef &device, const Node::Format &format )
 {
-	return makeNode( new LineInWasapi( device ) );
+	CI_LOG_E( "no LineIn available with XAudio2 path");
+	return LineInRef();
 }
 
 void ContextXAudio::setOutput( const NodeOutputRef &output )

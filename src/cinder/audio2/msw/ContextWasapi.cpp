@@ -21,7 +21,9 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "cinder/audio2/msw/LineInWasapi.h"
+#if( _WIN32_WINNT >= _WIN32_WINNT_VISTA )
+
+#include "cinder/audio2/msw/ContextWasapi.h"
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/msw/MswUtil.h"
 #include "cinder/audio2/Context.h"
@@ -39,6 +41,20 @@ using namespace std;
 
 namespace cinder { namespace audio2 { namespace msw {
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LineOutWasapi
+// ----------------------------------------------------------------------------------------------------
+
+LineOutWasapi::LineOutWasapi( const DeviceRef &device, const Format &format )
+	: LineOut( device, format )
+{
+
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LineInWasapi
+// ----------------------------------------------------------------------------------------------------
+
 struct LineInWasapi::Impl {
 	Impl() : mNumSamplesBuffered( 0 ) {}
 	~Impl() {}
@@ -50,7 +66,7 @@ struct LineInWasapi::Impl {
 	std::unique_ptr<::IAudioClient, ComReleaser>			mAudioClient;
 	std::unique_ptr<::IAudioCaptureClient, ComReleaser>		mCaptureClient;
 	std::unique_ptr<dsp::RingBuffer>						mRingBuffer;
-	
+
 	size_t	mNumSamplesBuffered, mNumChannels;
 };
 
@@ -59,12 +75,8 @@ inline ::REFERENCE_TIME samplesToReferenceTime( size_t samples, size_t sampleRat
 	return (::REFERENCE_TIME)( (double)samples * 10000000.0 / (double)sampleRate );
 }
 
-// ----------------------------------------------------------------------------------------------------
-// MARK: - InputWasapi
-// ----------------------------------------------------------------------------------------------------
-
 LineInWasapi::LineInWasapi( const DeviceRef &device, const Format &format )
-: LineIn( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
+	: LineIn( device, format ), mImpl( new LineInWasapi::Impl() ), mCaptureBlockSize( 1024 )
 {
 }
 
@@ -103,7 +115,7 @@ void LineInWasapi::initialize()
 	mImpl->initCapture( numFrames );
 
 	mInterleavedBuffer = BufferInterleaved( numFrames, mNumChannels );
-	
+
 	mInitialized = true;
 }
 
@@ -123,7 +135,7 @@ void LineInWasapi::start()
 		CI_LOG_E( "not initialized" );
 		return;
 	}
-	
+
 	HRESULT hr = mImpl->mAudioClient->Start();
 	CI_ASSERT( hr == S_OK );
 
@@ -245,7 +257,7 @@ void LineInWasapi::Impl::captureAudio()
 			size_t numSamples = numFramesAvailable * mNumChannels;
 			size_t numDropped = mRingBuffer->write( samples, numSamples );
 			//if( numDropped )
-				//CI_LOG_V( "BUFFER OVERRUN. dropped: " << numDropped );
+			//CI_LOG_V( "BUFFER OVERRUN. dropped: " << numDropped );
 
 			mNumSamplesBuffered += static_cast<size_t>( numSamples );
 		}
@@ -258,4 +270,20 @@ void LineInWasapi::Impl::captureAudio()
 	}
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - ContextWasapi
+// ----------------------------------------------------------------------------------------------------
+
+LineOutRef ContextWasapi::createLineOut( const DeviceRef &device, const Node::Format &format )
+{
+	return makeNode( new LineOutWasapi( device, format ) );
+}
+
+LineInRef ContextWasapi::createLineIn( const DeviceRef &device, const Node::Format &format )
+{
+	return makeNode( new LineInWasapi( device, format ) );
+}
+
 } } } // namespace cinder::audio2::msw
+
+#endif // ( _WIN32_WINNT >= _WIN32_WINNT_VISTA )

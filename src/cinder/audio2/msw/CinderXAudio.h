@@ -30,7 +30,7 @@
 
 #include "XAPOFX.h"
 
-#if( _WIN32_WINNT >= 0x0602 )   // _WIN32_WINNT_WIN8
+#if( _WIN32_WINNT >= _WIN32_WINNT_WIN8 )
 	#if defined( _USING_V110_SDK71_ )
 		#error "Wrong compiler toolset (v110_xp) for deployment target >= win 8. Switch to v110."
 	#endif

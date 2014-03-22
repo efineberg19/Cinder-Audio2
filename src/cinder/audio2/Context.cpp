@@ -39,7 +39,7 @@
 		#include "cinder/audio2/cocoa/DeviceManagerAudioSession.h"
 	#endif
 #elif defined( CINDER_MSW )
-	#include "cinder/audio2/msw/ContextXAudio.h"
+	#include "cinder/audio2/msw/ContextWasapi.h"
 	#include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #endif
 
@@ -56,7 +56,11 @@ Context* Context::master()
 #if defined( CINDER_COCOA )
 		sMasterContext.reset( new cocoa::ContextAudioUnit() );
 #elif defined( CINDER_MSW )
+	#if( _WIN32_WINNT >= _WIN32_WINNT_VISTA )
+		sMasterContext.reset( new msw::ContextWasapi() );
+	#else
 		sMasterContext.reset( new msw::ContextXAudio() );
+	#endif
 #endif
 	}
 	return sMasterContext.get();
@@ -70,7 +74,11 @@ DeviceManager* Context::deviceManager()
 #elif defined( CINDER_COCOA_TOUCH )
 		sDeviceManager.reset( new cocoa::DeviceManagerAudioSession() );
 #elif defined( CINDER_MSW )
+	#if( _WIN32_WINNT >= _WIN32_WINNT_VISTA )
 		sDeviceManager.reset( new msw::DeviceManagerWasapi() );
+	#else
+		CI_ASSERT( 0 && "TODO: simple DeviceManagerXp" );
+	#endif
 #endif
 	}
 	return sDeviceManager.get();

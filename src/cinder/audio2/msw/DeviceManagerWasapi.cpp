@@ -21,9 +21,9 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if( _WIN32_WINNT >= _WIN32_WINNT_VISTA )
+
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
-#include "cinder/audio2/msw/LineInWasapi.h"
-#include "cinder/audio2/msw/ContextXAudio.h"
 #include "cinder/audio2/msw/MswUtil.h"
 
 #include "cinder/audio2/CinderAssert.h"
@@ -38,12 +38,6 @@
 #include <initguid.h> // must be included before mmdeviceapi.h for the pkey defines to be properly instantiated. Both must be first included from a translation unit.
 #include <mmdeviceapi.h>
 #include <Functiondiscoverykeys_devpkey.h>
-
-#if defined( _USING_V110_SDK71_ )
-// The GUID's needed to query audio interfaces were not exposed in v110_xp sdk, for whatever reason, so I'm defining them here as they are when building with v110.
-DEFINE_GUID(DEVINTERFACE_AUDIO_RENDER , 0xe6327cad, 0xdcec, 0x4949, 0xae, 0x8a, 0x99, 0x1e, 0x97, 0x6a, 0x79, 0xd2);
-DEFINE_GUID(DEVINTERFACE_AUDIO_CAPTURE, 0x2eef81be, 0x33fa, 0x4800, 0x96, 0x70, 0x1c, 0xd4, 0x74, 0x97, 0x2c, 0x3f);
-#endif
 
 // TODO: I don't know of any way to get a device's preferred blocksize on windows, if it exists.
 // - if it doesn't need a way to tell the user they should not listen to this value,
@@ -327,5 +321,6 @@ vector<wstring> DeviceManagerWasapi::parseDeviceIds( DeviceInfo::Usage usage )
 	return result;
 }
 
+} } } // namespace cinder::audio2::msw
 
-}} } // namespace cinder::audio2::msw
+#endif // ( _WIN32_WINNT >= _WIN32_WINNT_VISTA )

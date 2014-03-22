@@ -23,6 +23,10 @@
 
 #pragma once
 
+#if( _WIN32_WINNT < _WIN32_WINNT_VISTA )
+	#error "WASAPI only available on Windows Vista or newer"
+#endif
+
 #include "cinder/audio2/Device.h"
 
 #include <map>
