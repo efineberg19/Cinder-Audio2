@@ -37,6 +37,9 @@
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
 
+#include <avrt.h>
+#pragma comment(lib, "avrt.lib")
+
 // TODO: should requestedDuration come from Device's frames per block?
 #define DEFAULT_AUDIOCLIENT_FRAMES 2048
 
@@ -56,6 +59,7 @@ struct LineOutWasapi::Impl {
 
 	void initAudioClient( const DeviceRef &device );
 	void initRender( size_t numFrames );
+	void increaseThreadPriority();
 
 	unique_ptr<::IAudioClient, ComReleaser>			mAudioClient;
 	unique_ptr<::IAudioRenderClient, ComReleaser>	mRenderClient;
@@ -169,6 +173,8 @@ void LineOutWasapi::stop()
 // - run function initiates capture into buffer, then calls render to do the pulling
 void LineOutWasapi::runRenderThread()
 {
+	mImpl->increaseThreadPriority();
+
 	HANDLE waitEvents[2] = { mImpl->mRenderShouldQuitEvent, mImpl->mRenderSamplesReadyEvent };
 	bool running = true;
 
@@ -277,6 +283,15 @@ void LineOutWasapi::Impl::initRender( size_t numFrames ) {
 	mRenderClient = makeComUnique( renderClient );
 
 	mRingBuffer.reset( new dsp::RingBuffer( numFrames * mNumChannels ) );
+}
+
+// TODO: also try SetThreadPriority() with THREAD_PRIORITY_TIME_CRITICAL
+void LineOutWasapi::Impl::increaseThreadPriority()
+{
+	DWORD taskIndex = 0;
+	HANDLE mmcssHandle = ::AvSetMmThreadCharacteristics( L"Pro Audio", &taskIndex );
+	if( ! mmcssHandle )
+		CI_LOG_W( "Unable to enable MMCSS for 'Pro Audio', error: " << GetLastError() );
 }
 
 // ----------------------------------------------------------------------------------------------------
