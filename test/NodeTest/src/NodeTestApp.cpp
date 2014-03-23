@@ -94,7 +94,6 @@ void NodeTestApp::setupGen()
 	mGain->disconnectAllInputs();
 
 	mGen >> mGain >> audio2::master()->getOutput();
-
 	mGen->start();
 
 	mEnableNoiseButton.setEnabled( false );

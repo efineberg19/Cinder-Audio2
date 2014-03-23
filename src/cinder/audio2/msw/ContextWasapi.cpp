@@ -67,7 +67,7 @@ struct LineOutWasapi::Impl {
 
 	::HANDLE      mRenderSamplesReadyEvent, mRenderShouldQuitEvent;
 
-	size_t	mNumSamplesBuffered, mNumChannels;
+	size_t	mNumFramesBuffered, mNumChannels;
 };
 
 struct LineInWasapi::Impl {
@@ -194,11 +194,9 @@ void LineOutWasapi::runRenderThread()
 }
 
 // TODO: sync with Context's mutex
-// TODO: move all processProcessing to virtual Context::postProcess() or postRender
 void LineOutWasapi::render()
 {
-	// Request a buffer from IAudioRenderClient
-
+	// the current padding represents the number of frames queued on the audio endpoint, waiting to be sent to hardware.
 	UINT32 numFramesPadding;
 	HRESULT hr = mImpl->mAudioClient->GetCurrentPadding( &numFramesPadding );
 	CI_ASSERT( hr == S_OK );
@@ -206,13 +204,14 @@ void LineOutWasapi::render()
 	size_t numWriteFramesAvailable = mBlockNumFrames - numFramesPadding;
 
 	// If there aren't enough buffered samples, pull inputs
-	while( mImpl->mNumSamplesBuffered < numWriteFramesAvailable ) {
+	while( mImpl->mNumFramesBuffered < numWriteFramesAvailable ) {
 		mInternalBuffer.zero();
 		pullInputs( &mInternalBuffer );
 
 		dsp::interleaveStereoBuffer( &mInternalBuffer, &mInterleavedBuffer );
-		mImpl->mRingBuffer->write( mInterleavedBuffer.getData(), mInterleavedBuffer.getSize() );
-		mImpl->mNumSamplesBuffered += mDevice->getFramesPerBlock();
+		bool writeSuccess = mImpl->mRingBuffer->write( mInterleavedBuffer.getData(), mInterleavedBuffer.getSize() );
+		CI_ASSERT( writeSuccess );
+		mImpl->mNumFramesBuffered += mInterleavedBuffer.getNumFrames();
 	}
 
 	float *renderBuffer;
@@ -220,15 +219,21 @@ void LineOutWasapi::render()
 	CI_ASSERT( hr == S_OK );
 
 	DWORD bufferFlags = 0;
-	size_t numSamples = numWriteFramesAvailable * mNumChannels;
-	mImpl->mRingBuffer->read( renderBuffer, numSamples );
+	size_t numReadSamples = numWriteFramesAvailable * mNumChannels;
+	bool readSuccess = mImpl->mRingBuffer->read( renderBuffer, numReadSamples );
+	CI_ASSERT( readSuccess );
+	mImpl->mNumFramesBuffered -= numWriteFramesAvailable;
 
 	hr = mImpl->mRenderClient->ReleaseBuffer( numWriteFramesAvailable, bufferFlags );
 	CI_ASSERT( hr == S_OK );
+
+	// TODO: move this stuff to Context::postProcess()
+	getContext()->processAutoPulledNodes();
+	incrementFrameCount();
 }
 
 LineOutWasapi::Impl::Impl()
-	: mNumSamplesBuffered( 0 )
+	: mNumFramesBuffered( 0 )
 {
 	// create render events
 	mRenderSamplesReadyEvent = ::CreateEvent( NULL, FALSE, FALSE, NULL );
@@ -382,6 +387,7 @@ uint64_t LineInWasapi::getLastOverrun()
 }
 
 // TODO: set buffer over/under run atomic flags when they occur
+// FIXME: RingBuffer read / write returns bool now, update
 void LineInWasapi::process( Buffer *buffer )
 {
 	mImpl->captureAudio();
