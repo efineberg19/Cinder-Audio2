@@ -33,11 +33,13 @@
 #include "cinder/app/App.h"
 
 	#define CI_LOG_V( stream )			do{ ci::app::console() << BOOST_CURRENT_FUNCTION << " | " << stream << std::endl; } while( 0 )
+	#define CI_LOG_W( warningStream )	do{ CI_LOG_V( __LINE__ << " | WARNING | " << warningStream ); } while( 0 )
 	#define CI_LOG_E( errorStream )		do{ CI_LOG_V( __LINE__ << " | ERROR | " << errorStream ); } while( 0 )
 
 #else
 
 	#define CI_LOG_V( stream )			do{} while( 0 )
+	#define CI_LOG_W( warningStream )	do{} while( 0 )
 	#define CI_LOG_E( errorStream )		do{} while( 0 )
 
 #endif // DEBUG
