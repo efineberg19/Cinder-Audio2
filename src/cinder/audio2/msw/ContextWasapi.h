@@ -30,12 +30,35 @@
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/msw/MswUtil.h"
 
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
 namespace cinder { namespace audio2 { namespace msw {
 
 class LineOutWasapi : public LineOut {
   public:
 	LineOutWasapi( const DeviceRef &device, const Format &format );
 
+	void start() override;
+	void stop() override;
+
+protected:
+	void initialize()				override;
+	void uninitialize()				override;
+
+  private:
+
+	void runRenderThread(); // TODO: move to impl
+	void render();
+
+	struct Impl;
+	std::unique_ptr<Impl> mImpl;
+	BufferInterleaved mInterleavedBuffer;
+
+	std::unique_ptr<std::thread>	mRenderThread;
+
+	size_t mBlockNumFrames; // TODO: Device has a property for this, but they currently aren't connected. Same for LineInWasapi
 };
 
 class LineInWasapi : public LineIn {
@@ -60,7 +83,7 @@ private:
 	std::unique_ptr<Impl> mImpl;
 	BufferInterleaved mInterleavedBuffer;
 
-	size_t mCaptureBlockSize; // per channel. TODO: this should be user settable
+	size_t mBlockNumFrames;
 };
 
 class ContextWasapi : public Context {
