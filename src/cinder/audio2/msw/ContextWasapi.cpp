@@ -37,7 +37,8 @@
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
 
-#define DEFAULT_AUDIOCLIENT_FRAMES 1024
+// TODO: should requestedDuration come from Device's frames per block?
+#define DEFAULT_AUDIOCLIENT_FRAMES 2048
 
 using namespace std;
 
@@ -120,12 +121,12 @@ void LineOutWasapi::initialize()
 	hr = mImpl->mAudioClient->GetBufferSize( &numFrames );
 	CI_ASSERT( hr == S_OK );
 
-	//double captureDurationMs = (double) numFrames * 1000.0 / (double) wfx->nSamplesPerSec;
+	CI_LOG_V( "requested frames: " << mBlockNumFrames << ", mAudioClient block size: " << numFrames );
 
 	mBlockNumFrames = numFrames; // update capture blocksize with the actual size
 	mImpl->initRender( numFrames );
 
-	mInterleavedBuffer = BufferInterleaved( numFrames, mNumChannels );
+	mInterleavedBuffer = BufferInterleaved( getFramesPerBlock(), mNumChannels );
 
 	mRenderThread = unique_ptr<thread>( new thread( bind( &LineOutWasapi::runRenderThread, this ) ) );
 }
@@ -190,31 +191,33 @@ void LineOutWasapi::runRenderThread()
 // TODO: move all processProcessing to virtual Context::postProcess() or postRender
 void LineOutWasapi::render()
 {
+	// Request a buffer from IAudioRenderClient
+
 	UINT32 numFramesPadding;
 	HRESULT hr = mImpl->mAudioClient->GetCurrentPadding( &numFramesPadding );
 	CI_ASSERT( hr == S_OK );
 
-	size_t numFramesAvailable = mInterleavedBuffer.getNumFrames() - numFramesPadding;
+	size_t numWriteFramesAvailable = mBlockNumFrames - numFramesPadding;
 
-	// TODO NEXT: this doesn't always match mInternalBuffer's size,
-	// need to make a plan for only copying to it when there is enough space, and what to do with remaining samples.
+	// If there aren't enough buffered samples, pull inputs
+	while( mImpl->mNumSamplesBuffered < numWriteFramesAvailable ) {
+		mInternalBuffer.zero();
+		pullInputs( &mInternalBuffer );
 
-	float *renderBuffer;
-	hr = mImpl->mRenderClient->GetBuffer( numFramesAvailable, (BYTE **)&renderBuffer );
-	CI_ASSERT( hr == S_OK );
-
-	mInternalBuffer.zero();
-	pullInputs( &mInternalBuffer );
-
-	// copy mInternalBuffer to renderBuffer, interleaving
-	const size_t numChannels = mNumChannels;
-	for( size_t ch = 0; ch < numChannels; ch++ ) {
-		float *channel = mInternalBuffer.getChannel( ch );
-		for( size_t i = 0; i < numFramesAvailable; i++ )
-			renderBuffer[numChannels * i + ch] = channel[i];
+		dsp::interleaveStereoBuffer( &mInternalBuffer, &mInterleavedBuffer );
+		mImpl->mRingBuffer->write( mInterleavedBuffer.getData(), mInterleavedBuffer.getSize() );
+		mImpl->mNumSamplesBuffered += mDevice->getFramesPerBlock();
 	}
 
-	hr = mImpl->mRenderClient->ReleaseBuffer( numFramesAvailable, 0 );
+	float *renderBuffer;
+	hr = mImpl->mRenderClient->GetBuffer( numWriteFramesAvailable, (BYTE **)&renderBuffer );
+	CI_ASSERT( hr == S_OK );
+
+	DWORD bufferFlags = 0;
+	size_t numSamples = numWriteFramesAvailable * mNumChannels;
+	mImpl->mRingBuffer->read( renderBuffer, numSamples );
+
+	hr = mImpl->mRenderClient->ReleaseBuffer( numWriteFramesAvailable, bufferFlags );
 	CI_ASSERT( hr == S_OK );
 }
 
