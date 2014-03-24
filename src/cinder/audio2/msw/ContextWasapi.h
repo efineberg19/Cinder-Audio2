@@ -28,13 +28,12 @@
 #endif
 
 #include "cinder/audio2/Context.h"
-#include "cinder/audio2/msw/MswUtil.h"
-
-#include <thread>
-#include <mutex>
-#include <condition_variable>
+//#include "cinder/audio2/msw/MswUtil.h"
 
 namespace cinder { namespace audio2 { namespace msw {
+
+struct RenderImplWasapi;
+struct CaptureImplWasapi;
 
 class LineOutWasapi : public LineOut {
   public:
@@ -48,17 +47,12 @@ protected:
 	void uninitialize()				override;
 
   private:
+	void renderInputs();
 
-	void runRenderThread(); // TODO: move to impl
-	void render();
-
-	struct Impl;
-	std::unique_ptr<Impl> mImpl;
+	std::unique_ptr<RenderImplWasapi> mRenderImpl;
 	BufferInterleaved mInterleavedBuffer;
 
-	std::unique_ptr<std::thread>	mRenderThread;
-
-	size_t mBlockNumFrames; // TODO: Device has a property for this, but they currently aren't connected. Same for LineInWasapi
+	friend RenderImplWasapi;
 };
 
 class LineInWasapi : public LineIn {
@@ -78,9 +72,7 @@ protected:
 	void process( Buffer *buffer )	override;
 
 private:
-
-	struct Impl;
-	std::unique_ptr<Impl> mImpl;
+	std::unique_ptr<CaptureImplWasapi> mCaptureImpl;
 	BufferInterleaved mInterleavedBuffer;
 
 	size_t mBlockNumFrames;
