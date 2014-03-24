@@ -34,8 +34,6 @@
 #include "cinder/audio2/CinderAssert.h"
 #include "cinder/audio2/Debug.h"
 
-#include <thread>
-
 #include <Audioclient.h>
 #include <mmdeviceapi.h>
 #include <avrt.h>
@@ -66,12 +64,14 @@ struct RenderImplWasapi {
 	void renderAudio();
 	void increaseThreadPriority();
 
+	static DWORD __stdcall renderThreadEntryPoint( LPVOID Context );
+
 	unique_ptr<::IAudioClient, ComReleaser>			mAudioClient;
 	unique_ptr<::IAudioRenderClient, ComReleaser>	mRenderClient;
 	unique_ptr<dsp::RingBuffer>						mRingBuffer;
-	unique_ptr<thread>								mRenderThread;
 
-	::HANDLE      mRenderSamplesReadyEvent, mRenderShouldQuitEvent;
+	::HANDLE	mRenderSamplesReadyEvent, mRenderShouldQuitEvent;
+	::HANDLE    mRenderThread;
 
 	size_t	mNumFramesBuffered, mNumRenderFrames, mNumChannels;
 	LineOutWasapi*	mLineOut; // weak pointer to parent
@@ -108,10 +108,14 @@ RenderImplWasapi::RenderImplWasapi( LineOutWasapi *lineOut )
 
 RenderImplWasapi::~RenderImplWasapi()
 {
-	if( mRenderSamplesReadyEvent )
-		::CloseHandle( mRenderSamplesReadyEvent );
-	if( mRenderShouldQuitEvent )
-		::CloseHandle( mRenderShouldQuitEvent );
+	if( mRenderSamplesReadyEvent ) {
+		BOOL success = ::CloseHandle( mRenderSamplesReadyEvent );
+		CI_ASSERT( success );
+	}
+	if( mRenderShouldQuitEvent ) {
+		BOOL success = ::CloseHandle( mRenderShouldQuitEvent );
+		CI_ASSERT( success );
+	}
 }
 
 void RenderImplWasapi::init()
@@ -123,14 +127,20 @@ void RenderImplWasapi::init()
 void RenderImplWasapi::uninit()
 {
 	// signal quit event and join the render thread once it completes.
-	SetEvent( mRenderShouldQuitEvent );
-	mRenderThread->join();
+	BOOL success = ::SetEvent( mRenderShouldQuitEvent );
+	CI_ASSERT( success );
 
-	// FIXME: thread is not joining, i must need to un-init something else first that WASAPI is waiting on.
+	::WaitForSingleObject( mRenderThread, INFINITE );
+	CloseHandle( mRenderThread );
+	mRenderThread = NULL;
 
 	// Release() IAudioRenderClient IAudioClient
 	mRenderClient.reset();
 	mAudioClient.reset();
+
+	// reset should quit event in case we are re-init'ed.
+	success = ::ResetEvent( mRenderShouldQuitEvent );
+	CI_ASSERT( success );
 }
 
 void RenderImplWasapi::initAudioClient()
@@ -197,7 +207,19 @@ void RenderImplWasapi::initRenderClient()
 
 	mRingBuffer.reset( new dsp::RingBuffer( mNumRenderFrames * mNumChannels ) );
 
-	mRenderThread = unique_ptr<thread>( new thread( bind( &RenderImplWasapi::runRenderThread, this ) ) );
+	//mRenderThread = unique_ptr<thread>( new thread( bind( &RenderImplWasapi::runRenderThread, this ) ) );
+
+	mRenderThread = ::CreateThread( NULL, 0, renderThreadEntryPoint, this, 0, NULL );
+	CI_ASSERT( mRenderThread );
+}
+
+// static
+DWORD RenderImplWasapi::renderThreadEntryPoint( LPVOID Context )
+{
+	RenderImplWasapi *renderer = static_cast<RenderImplWasapi *>( Context );
+	renderer->runRenderThread();
+
+	return 0;
 }
 
 void RenderImplWasapi::runRenderThread()
@@ -212,6 +234,7 @@ void RenderImplWasapi::runRenderThread()
 		switch( waitResult ) {
 			case WAIT_OBJECT_0 + 0:     // mRenderShouldQuitEvent
 				running = false;
+				//::CloseHandle( mRenderSamplesReadyEvent );
 				break;
 			case WAIT_OBJECT_0 + 1:		// mRenderSamplesReadyEvent
 				renderAudio();
@@ -253,8 +276,8 @@ void RenderImplWasapi::renderAudio()
 void RenderImplWasapi::increaseThreadPriority()
 {
 	DWORD taskIndex = 0;
-	HANDLE handle = ::AvSetMmThreadCharacteristics( L"Pro Audio", &taskIndex );
-	if( ! handle )
+	::HANDLE avrtHandle = ::AvSetMmThreadCharacteristics( L"Pro Audio", &taskIndex );
+	if( ! avrtHandle )
 		CI_LOG_W( "Unable to enable MMCSS for 'Pro Audio', error: " << GetLastError() );
 }
 

@@ -28,7 +28,6 @@
 #endif
 
 #include "cinder/audio2/Context.h"
-//#include "cinder/audio2/msw/MswUtil.h"
 
 namespace cinder { namespace audio2 { namespace msw {
 
