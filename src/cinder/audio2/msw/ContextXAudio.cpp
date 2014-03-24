@@ -155,7 +155,7 @@ struct EngineCallbackImpl : public IXAudio2EngineCallback {
 	void _stdcall OnProcessingPassStart() {}
 	void _stdcall OnProcessingPassEnd ()
 	{
-		mLineOut->incrementFrameCount();
+		//mLineOut->incrementFrameCount(); // done in LineOut::postProcess()
 	}
 
 	void _stdcall OnCriticalError( HRESULT Error )
@@ -305,15 +305,13 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 	if( lineOutXAudio->checkNotClipping() )
 		mInternalBuffer.zero();
 
-	// TODO: make sure this is only done once per process block.
-	// - still works fine though, since they will not process due to timestamps, but it would prevent unnecessary traversals
-	ctx->processAutoPulledNodes();
-
 	if( getNumChannels() == 2 )
 		dsp::interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
 
 	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudioBuffer );
 	CI_ASSERT( hr == S_OK );
+
+	lineOutXAudio->postProcess();
 }
 
 // ----------------------------------------------------------------------------------------------------

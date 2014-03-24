@@ -45,6 +45,12 @@ void NodeOutput::connect( const NodeRef &output, size_t outputBus, size_t inputB
 	CI_ASSERT_MSG( 0, "NodeOutput does not support outputs" );
 }
 
+void NodeOutput::postProcess()
+{
+	getContext()->processAutoPulledNodes();
+	incrementFrameCount();
+}
+
 uint64_t NodeOutput::getLastClip()
 {
 	uint64_t result = mLastClip;
@@ -71,6 +77,11 @@ bool NodeOutput::checkNotClipping()
 	}
 
 	return false;
+}
+
+void NodeOutput::incrementFrameCount()
+{
+	mNumProcessedFrames += getOutputFramesPerBlock();
 }
 
 // ----------------------------------------------------------------------------------------------------

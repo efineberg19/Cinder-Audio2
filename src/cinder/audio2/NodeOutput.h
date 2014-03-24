@@ -52,10 +52,10 @@ class NodeOutput : public Node {
   protected:
 	NodeOutput( const Format &format = Format() );
 
-	//! Implementations should call this after each processing block to increment the processed frame count.
-	void incrementFrameCount()					{ mNumProcessedFrames += getOutputFramesPerBlock(); }
-	//! Implementations may call this to detect if the internal audio buffer is clipping.
+	//! Implementations should call this to detect if the internal audio buffer is clipping. Always returns false if clip detection is disabled.
 	bool checkNotClipping();
+	//! Implementations should call this at the end of each rendering block.
+	void postProcess();
 
 	std::atomic<uint64_t>		mNumProcessedFrames, mLastClip;
 	bool						mClipDetectionEnabled;
@@ -64,6 +64,8 @@ class NodeOutput : public Node {
   private:
 	// NodeOutput does not have outputs, overridden to assert this method isn't called
 	void connect( const NodeRef &output, size_t outputBus, size_t inputBus ) override;
+
+	void incrementFrameCount();
 };
 
 //! Interface representing a Node that communicates with a hardware output device. This is typically speakers or a 'line-out' on an audio interface.

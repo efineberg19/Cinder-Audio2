@@ -42,7 +42,8 @@
 #pragma comment(lib, "avrt.lib")
 
 // TODO: should requestedDuration come from Device's frames per block?
-#define DEFAULT_AUDIOCLIENT_FRAMES 2048
+// - seems like this is fixed at 10ms in shared mode. (896 samples @ stereo 44100 s/r) 
+#define DEFAULT_AUDIOCLIENT_FRAMES 1024
 
 using namespace std;
 
@@ -121,13 +122,15 @@ void RenderImplWasapi::init()
 
 void RenderImplWasapi::uninit()
 {
+	// signal quit event and join the render thread once it completes.
+	SetEvent( mRenderShouldQuitEvent );
+	mRenderThread->join();
+
+	// FIXME: thread is not joining, i must need to un-init something else first that WASAPI is waiting on.
+
 	// Release() IAudioRenderClient IAudioClient
 	mRenderClient.reset();
 	mAudioClient.reset();
-
-	// signal quit event and join the thread once it completes.
-	SetEvent( mRenderShouldQuitEvent );
-	mRenderThread->join();
 }
 
 void RenderImplWasapi::initAudioClient()
@@ -207,14 +210,14 @@ void RenderImplWasapi::runRenderThread()
 	while( running ) {
 		DWORD waitResult = ::WaitForMultipleObjects( 2, waitEvents, FALSE, INFINITE );
 		switch( waitResult ) {
-		case WAIT_OBJECT_0 + 0:     // mRenderShouldQuitEvent
-			running = false;
-			break;
-		case WAIT_OBJECT_0 + 1:		// mRenderSamplesReadyEvent
-			renderAudio();
-			break;
-		default:
-			CI_ASSERT_NOT_REACHABLE();
+			case WAIT_OBJECT_0 + 0:     // mRenderShouldQuitEvent
+				running = false;
+				break;
+			case WAIT_OBJECT_0 + 1:		// mRenderSamplesReadyEvent
+				renderAudio();
+				break;
+			default:
+				CI_ASSERT_NOT_REACHABLE();
 		}
 	}
 }
@@ -245,12 +248,13 @@ void RenderImplWasapi::renderAudio()
 	CI_ASSERT( hr == S_OK );
 }
 
-// TODO: also try SetThreadPriority() with THREAD_PRIORITY_TIME_CRITICAL
+// This uses the "Multimedia Class Scheduler Service" (MMCSS) to increase the priority of the current thread.
+// The priority increase can be seen in the threads debugger, it should have Priority = "Time Critical"
 void RenderImplWasapi::increaseThreadPriority()
 {
 	DWORD taskIndex = 0;
-	HANDLE mmcssHandle = ::AvSetMmThreadCharacteristics( L"Pro Audio", &taskIndex );
-	if( ! mmcssHandle )
+	HANDLE handle = ::AvSetMmThreadCharacteristics( L"Pro Audio", &taskIndex );
+	if( ! handle )
 		CI_LOG_W( "Unable to enable MMCSS for 'Pro Audio', error: " << GetLastError() );
 }
 
@@ -388,38 +392,27 @@ void LineOutWasapi::stop()
 	mEnabled = false;
 }
 
-// TODO: reorganize
-// - methinks all render() should to is pull, called back from Impl that is running the thread
-// - run function initiates capture into buffer, then calls render to do the pulling
-//void LineOutWasapi::runRenderThread()
-//{
-//}
-
-// TODO: sync with Context's mutex
 void LineOutWasapi::renderInputs()
 {
-	//// the current padding represents the number of frames queued on the audio endpoint, waiting to be sent to hardware.
-	//UINT32 numFramesPadding;
-	//HRESULT hr = mRenderImpl->mAudioClient->GetCurrentPadding( &numFramesPadding );
-	//CI_ASSERT( hr == S_OK );
+	lock_guard<mutex> lock( getContext()->getMutex() );
 
-	//size_t numWriteFramesAvailable = mBlockNumFrames - numFramesPadding;
+	// verify context still exists, since its destructor may have been holding the lock
+	auto ctx = getContext();
+	if( ! ctx )
+		return;
 
-	// If there aren't enough buffered samples, pull inputs
-	//while( mRenderImpl->mNumFramesBuffered < numWriteFramesAvailable ) {
+	mInternalBuffer.zero();
+	pullInputs( &mInternalBuffer );
+
+	if( checkNotClipping() )
 		mInternalBuffer.zero();
-		pullInputs( &mInternalBuffer );
 
-		dsp::interleaveStereoBuffer( &mInternalBuffer, &mInterleavedBuffer );
-		bool writeSuccess = mRenderImpl->mRingBuffer->write( mInterleavedBuffer.getData(), mInterleavedBuffer.getSize() );
-		CI_ASSERT( writeSuccess );
-		mRenderImpl->mNumFramesBuffered += mInterleavedBuffer.getNumFrames();
-	//}
+	dsp::interleaveStereoBuffer( &mInternalBuffer, &mInterleavedBuffer );
+	bool writeSuccess = mRenderImpl->mRingBuffer->write( mInterleavedBuffer.getData(), mInterleavedBuffer.getSize() );
+	CI_ASSERT( writeSuccess );
+	mRenderImpl->mNumFramesBuffered += mInterleavedBuffer.getNumFrames();
 
-
-	// TODO: move this stuff to Context::postProcess()
-	getContext()->processAutoPulledNodes();
-	incrementFrameCount();
+	postProcess();
 }
 
 // ----------------------------------------------------------------------------------------------------
