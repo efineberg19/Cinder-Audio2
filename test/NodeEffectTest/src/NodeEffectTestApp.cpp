@@ -64,7 +64,8 @@ void NodeEffectTestApp::setup()
 
 	makeNodes();
 	setupOne();
-//	setupFeedback();
+	//setupFeedback();
+	//setupEcho();
 
 	setupUI();
 
@@ -124,8 +125,6 @@ void NodeEffectTestApp::setupDelay()
 // sub-classed merely so printGraph prints a more descriptive name
 struct FeedbackGain : public audio2::Gain {
 	FeedbackGain( float val ) : Gain( val ) {}
-
-
 };
 
 void NodeEffectTestApp::setupFeedback()
@@ -135,13 +134,7 @@ void NodeEffectTestApp::setupFeedback()
 
 	auto feedbackGain = ctx->makeNode( new FeedbackGain( 0.5f ) );
 
-#if 1
-	mGen >> mGain >> mDelay >> feedbackGain >> mDelay >> ctx->getOutput();
-//	mGen >> mDelay >> feedbackGain >> mDelay >> ctx->getOutput();
-#else
-	auto add = ctx->makeNode( new audio2::Add( 0.1f ) );
-	add >> mDelay >> feedbackGain >> mDelay >> ctx->getOutput();
-#endif
+	mGen >> mDelay >> feedbackGain >> mDelay >> ctx->getOutput();
 }
 
 void NodeEffectTestApp::setupEcho()
@@ -155,10 +148,6 @@ void NodeEffectTestApp::setupEcho()
 
 	mGain >> audio2::master()->getOutput();										// dry
 	mGain >> mDelay >> feedbackGain >> mDelay >> audio2::master()->getOutput(); // wet
-
-//	mGen >> audio2::master()->getOutput();										// dry
-//	mGen >> mDelay >> feedbackGain >> mDelay >> audio2::master()->getOutput(); // wet
-
 }
 
 void NodeEffectTestApp::setupCycle()
