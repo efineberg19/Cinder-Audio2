@@ -447,11 +447,11 @@
 		11B34E8018B0341E00527D39 /* Gen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gen.cpp; sourceTree = "<group>"; };
 		11BC8392188BA61900F4B834 /* Target.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Target.cpp; sourceTree = "<group>"; };
 		11BC8393188BA61900F4B834 /* Target.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Target.h; sourceTree = "<group>"; };
-		11C0B5C318544734001664F7 /* LineInWasapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LineInWasapi.cpp; sourceTree = "<group>"; };
-		11C0B5C418544734001664F7 /* LineInWasapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LineInWasapi.h; sourceTree = "<group>"; };
 		11C7387518BEF199006E7917 /* MswUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MswUtil.h; sourceTree = "<group>"; };
 		11C7387618BEF199006E7917 /* MswUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MswUtil.cpp; sourceTree = "<group>"; };
 		11C7387718BEF199006E7917 /* CinderXAudio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CinderXAudio.h; sourceTree = "<group>"; };
+		11F2F9F218E0CC370013E0D7 /* ContextWasapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ContextWasapi.cpp; sourceTree = "<group>"; };
+		11F2F9F318E0CC370013E0D7 /* ContextWasapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContextWasapi.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -804,12 +804,12 @@
 				11C7387718BEF199006E7917 /* CinderXAudio.h */,
 				119CD09B184A793400853BEE /* ContextXAudio.cpp */,
 				119CD09C184A793400853BEE /* ContextXAudio.h */,
+				11F2F9F218E0CC370013E0D7 /* ContextWasapi.cpp */,
+				11F2F9F318E0CC370013E0D7 /* ContextWasapi.h */,
 				119CD09D184A793400853BEE /* DeviceManagerWasapi.cpp */,
 				119CD09E184A793400853BEE /* DeviceManagerWasapi.h */,
 				119CD09F184A793400853BEE /* FileMediaFoundation.cpp */,
 				119CD0A0184A793400853BEE /* FileMediaFoundation.h */,
-				11C0B5C318544734001664F7 /* LineInWasapi.cpp */,
-				11C0B5C418544734001664F7 /* LineInWasapi.h */,
 				11C7387618BEF199006E7917 /* MswUtil.cpp */,
 				11C7387518BEF199006E7917 /* MswUtil.h */,
 			);
