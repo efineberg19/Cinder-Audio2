@@ -51,8 +51,11 @@ class NodeAudioUnit {
 	Buffer*				mProcessBuffer;
 
 	struct RenderData {
-		Node				*node;
-		ContextAudioUnit	*context;
+		RenderData()	: node( nullptr ), context( nullptr )	{}
+		~RenderData()	{ node = nullptr; context = nullptr; }
+
+		Node*				node;
+		ContextAudioUnit*	context;
 	} mRenderData;
 };
 

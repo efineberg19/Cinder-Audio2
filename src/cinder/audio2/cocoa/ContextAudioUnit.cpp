@@ -136,12 +136,18 @@ void LineOutAudioUnit::stop()
 OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFlags *flags, const ::AudioTimeStamp *timeStamp, UInt32 busNumber, UInt32 numFrames, ::AudioBufferList *bufferList )
 {
 	RenderData *renderData = static_cast<NodeAudioUnit::RenderData *>( data );
+	if( ! renderData->context ) {
+		zeroBufferList( bufferList );
+		return noErr;
+	}
+
 	lock_guard<mutex> lock( renderData->context->getMutex() );
 
-	// verify associated context still exists proceeding, which may not be true if we blocked in ~Context()
-	// TODO: rethink this once more, that it is 100% safe at shutdown
-	if( ! renderData->node->getContext() )
+	// verify associated context still exists proceeding, which may not be true if we blocked in ~Context() and were then subsequently deallocated.
+	if( ! renderData->context ) {
+		zeroBufferList( bufferList );
 		return noErr;
+	}
 
 	LineOutAudioUnit *lineOut = static_cast<LineOutAudioUnit *>( renderData->node );
 	lineOut->mInternalBuffer.zero();
