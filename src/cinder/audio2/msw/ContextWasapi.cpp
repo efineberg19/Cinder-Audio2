@@ -417,10 +417,14 @@ void LineOutWasapi::stop()
 
 void LineOutWasapi::renderInputs()
 {
-	lock_guard<mutex> lock( getContext()->getMutex() );
+	auto ctx = getContext();
+	if( ! ctx )
+		return;
+
+	lock_guard<mutex> lock( ctx->getMutex() );
 
 	// verify context still exists, since its destructor may have been holding the lock
-	auto ctx = getContext();
+	ctx = getContext();
 	if( ! ctx )
 		return;
 
