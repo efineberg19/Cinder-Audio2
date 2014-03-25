@@ -31,8 +31,8 @@
 
 namespace cinder { namespace audio2 { namespace msw {
 
-struct RenderImplWasapi;
-struct CaptureImplWasapi;
+struct WasapiRenderClientImpl;
+struct WasapiCaptureClientImpl;
 
 class LineOutWasapi : public LineOut {
   public:
@@ -48,10 +48,10 @@ protected:
   private:
 	void renderInputs();
 
-	std::unique_ptr<RenderImplWasapi> mRenderImpl;
+	std::unique_ptr<WasapiRenderClientImpl> mRenderImpl;
 	BufferInterleaved mInterleavedBuffer;
 
-	friend RenderImplWasapi;
+	friend WasapiRenderClientImpl;
 };
 
 class LineInWasapi : public LineIn {
@@ -68,10 +68,10 @@ protected:
 	void process( Buffer *buffer )	override;
 
 private:
-	std::unique_ptr<CaptureImplWasapi> mCaptureImpl;
+	std::unique_ptr<WasapiCaptureClientImpl> mCaptureImpl;
 	BufferInterleaved mInterleavedBuffer;
 
-	size_t mBlockNumFrames;
+	friend WasapiCaptureClientImpl;
 };
 
 class ContextWasapi : public Context {
