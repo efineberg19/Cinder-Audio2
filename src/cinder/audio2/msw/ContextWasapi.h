@@ -62,9 +62,6 @@ public:
 	void start() override;
 	void stop() override;
 
-	uint64_t getLastUnderrun()		override;
-	uint64_t getLastOverrun()		override;
-
 protected:
 	void initialize()				override;
 	void uninitialize()				override;

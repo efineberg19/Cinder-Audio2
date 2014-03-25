@@ -519,18 +519,6 @@ void LineInWasapi::stop()
 	mEnabled = false;
 }
 
-uint64_t LineInWasapi::getLastUnderrun()
-{
-	return 0; // TODO
-}
-
-uint64_t LineInWasapi::getLastOverrun()
-{
-	return 0; // TODO
-}
-
-// TODO: set buffer over/under run atomic flags when they occur
-// FIXME: RingBuffer read / write returns bool now, update
 void LineInWasapi::process( Buffer *buffer )
 {
 	mCaptureImpl->captureAudio();
@@ -540,10 +528,14 @@ void LineInWasapi::process( Buffer *buffer )
 		return;
 
 	if( buffer->getNumChannels() == 2 ) {
-		size_t numRead = mCaptureImpl->mRingBuffer->read( mInterleavedBuffer.getData(), samplesNeeded );
-		dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
-	} else
-		size_t numRead = mCaptureImpl->mRingBuffer->read( buffer->getData(), samplesNeeded );
+		if( mCaptureImpl->mRingBuffer->read( mInterleavedBuffer.getData(), samplesNeeded ) )
+			dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
+		else
+			markUnderrun();
+	}
+	else
+		if( ! mCaptureImpl->mRingBuffer->read( buffer->getData(), samplesNeeded ) )
+			markUnderrun();
 
 	mCaptureImpl->mNumSamplesBuffered -= samplesNeeded;
 }

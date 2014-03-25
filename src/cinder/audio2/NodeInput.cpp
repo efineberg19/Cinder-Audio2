@@ -56,7 +56,7 @@ void NodeInput::connectInput( const NodeRef &input, size_t bus )
 // ----------------------------------------------------------------------------------------------------
 
 LineIn::LineIn( const DeviceRef &device, const Format &format )
-: NodeInput( format ), mDevice( device )
+: NodeInput( format ), mDevice( device ), mLastOverrun( 0 ), mLastUnderrun( 0 )
 {
 	size_t deviceNumChannels = mDevice->getNumInputChannels();
 
@@ -73,6 +73,30 @@ LineIn::LineIn( const DeviceRef &device, const Format &format )
 
 LineIn::~LineIn()
 {
+}
+
+uint64_t LineIn::getLastUnderrun() const
+{
+	uint64_t result = mLastUnderrun;
+	mLastUnderrun = 0;
+	return result;
+}
+
+uint64_t LineIn::getLastOverrun() const
+{
+	uint64_t result = mLastOverrun;
+	mLastOverrun = 0;
+	return result;
+}
+
+void LineIn::markUnderrun()
+{
+	mLastUnderrun = getContext()->getNumProcessedFrames();
+}
+
+void LineIn::markOverrun()
+{
+	mLastOverrun = getContext()->getNumProcessedFrames();
 }
 
 // ----------------------------------------------------------------------------------------------------

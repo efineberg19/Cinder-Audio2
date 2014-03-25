@@ -53,16 +53,24 @@ class LineIn : public NodeInput {
 	virtual ~LineIn();
 
 	//! Returns the associated \a Device.
-	virtual const DeviceRef& getDevice() const		{ return mDevice; }
+	const DeviceRef& getDevice() const		{ return mDevice; }
+
 	//! Returns the frame of the last buffer underrun or 0 if none since the last time this method was called.
-	virtual uint64_t getLastUnderrun() = 0;
+	uint64_t getLastUnderrun() const;
 	//! Returns the frame of the last buffer overrun or 0 if none since the last time this method was called.
-	virtual uint64_t getLastOverrun() = 0;
+	uint64_t getLastOverrun() const;
 
   protected:
 	LineIn( const DeviceRef &device, const Format &format );
 
-	DeviceRef	mDevice;
+	//! Should be called by platform-specific implementations that detect an under-run.
+	void markUnderrun();
+	//! Should be called by platform-specific implementations that detect an over-run.
+	void markOverrun();
+
+  private:
+	DeviceRef						mDevice;
+	mutable std::atomic<uint64_t>	mLastOverrun, mLastUnderrun;
 };
 
 //! Callback used to allow simple audio processing without subclassing a Node. First parameter is the Buffer to which to write samples, second parameter is the samplerate.
