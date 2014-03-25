@@ -29,7 +29,13 @@
 
 #include "cinder/audio2/Context.h"
 
-namespace cinder { namespace audio2 { namespace msw {
+namespace cinder { namespace audio2 {
+
+namespace dsp {
+	class Converter;
+}
+	
+namespace msw {
 
 struct WasapiRenderClientImpl;
 struct WasapiCaptureClientImpl;
@@ -48,8 +54,8 @@ protected:
   private:
 	void renderInputs();
 
-	std::unique_ptr<WasapiRenderClientImpl> mRenderImpl;
-	BufferInterleaved mInterleavedBuffer;
+	std::unique_ptr<WasapiRenderClientImpl>		mRenderImpl;
+	BufferInterleaved							mInterleavedBuffer;
 
 	friend WasapiRenderClientImpl;
 };
@@ -68,8 +74,14 @@ protected:
 	void process( Buffer *buffer )	override;
 
 private:
-	std::unique_ptr<WasapiCaptureClientImpl> mCaptureImpl;
-	BufferInterleaved mInterleavedBuffer;
+	// these return the number of capture samples used.
+	size_t copyCaptured( Buffer *destBuffer );
+	size_t convertCaptured( Buffer *destBuffer );
+
+	std::unique_ptr<WasapiCaptureClientImpl>	mCaptureImpl;
+	std::unique_ptr<dsp::Converter>				mConverter;
+	BufferInterleaved							mInterleavedBuffer;
+	BufferDynamic								mConverterReadBuffer;
 
 	friend WasapiCaptureClientImpl;
 };

@@ -140,7 +140,7 @@ void WasapiAudioClientImpl::initAudioClient( const DeviceRef &device, HANDLE eve
 	::CoTaskMemFree( mixFormat );
 
 	size_t sampleRate = device->getSampleRate();
-
+	
 	auto wfx = interleavedFloatWaveFormat( sampleRate, mNumChannels );
 	::WAVEFORMATEX *closestMatch;
 	hr = mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
@@ -472,6 +472,13 @@ void LineInWasapi::initialize()
 {
 	mCaptureImpl->init();
 	mInterleavedBuffer = BufferInterleaved( mCaptureImpl->mAudioClientNumFrames, mNumChannels );
+
+	if( getDevice()->getSampleRate() != getSampleRate() ) {
+		const size_t maxFramesPerRead = mInterleavedBuffer.getNumFrames();
+		mConverter = audio2::dsp::Converter::create( getDevice()->getSampleRate(), getSampleRate(), getDevice()->getNumInputChannels(), getNumChannels(), maxFramesPerRead );
+		mConverterReadBuffer.setSize( maxFramesPerRead, getDevice()->getNumInputChannels() );
+		CI_LOG_V( "created Converter for samplerate: " << mConverter->getSourceSampleRate() << " -> " << mConverter->getDestSampleRate() << ", channels: " << mConverter->getSourceNumChannels() << " -> " << mConverter->getDestNumChannels() );
+	}
 }
 
 void LineInWasapi::uninitialize()
@@ -497,28 +504,65 @@ void LineInWasapi::stop()
 
 void LineInWasapi::process( Buffer *buffer )
 {
-	const size_t framesNeeded = buffer->getNumFrames();
-	const size_t numChannels = buffer->getNumChannels();
-
 	mCaptureImpl->captureAudio();
 
-	if( mCaptureImpl->mNumFramesBuffered < framesNeeded )
+	if( mCaptureImpl->mNumFramesBuffered < buffer->getNumFrames() ) // TODO: mark underrun here first
 		return;
+
+	size_t capturedSamplesRead = 0;
+	if( mConverter )
+		capturedSamplesRead = convertCaptured( buffer );
+	else
+		capturedSamplesRead = copyCaptured( buffer );
+
+	mCaptureImpl->mNumFramesBuffered -= capturedSamplesRead;
+}
+
+size_t LineInWasapi::copyCaptured( Buffer *destBuffer )
+{	
+	const size_t numChannels = destBuffer->getNumChannels();
+	const size_t framesNeeded = destBuffer->getNumFrames();
 
 	if( numChannels == 2 ) {
 		if( mCaptureImpl->mRingBuffer->read( mInterleavedBuffer.getData(), framesNeeded * 2 ) )
-			dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, buffer );
+			dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, destBuffer );
 		else
 			markUnderrun();
 	}
 	else if( numChannels == 1 ) {
-		if( ! mCaptureImpl->mRingBuffer->read( buffer->getData(), framesNeeded ) )
+		if( ! mCaptureImpl->mRingBuffer->read( destBuffer->getData(), framesNeeded ) )
 			markUnderrun();
 	}
 	else
 		CI_ASSERT_MSG( 0, "numChannels > 2 not yet supported" );
 
-	mCaptureImpl->mNumFramesBuffered -= framesNeeded;
+	return framesNeeded;
+}
+
+size_t LineInWasapi::convertCaptured( Buffer *destBuffer )
+{
+	const size_t numChannels = destBuffer->getNumChannels();
+	const size_t framesNeeded = destBuffer->getNumFrames();
+	const size_t convertFramesNeeded = size_t( framesNeeded * (float)getDevice()->getSampleRate() / (float)getSampleRate() );
+
+	mConverterReadBuffer.setNumFrames( convertFramesNeeded );
+
+	if( numChannels == 2 ) {
+		if( mCaptureImpl->mRingBuffer->read( mInterleavedBuffer.getData(), convertFramesNeeded * 2 ) )
+			dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, &mConverterReadBuffer );
+		else
+			markUnderrun();
+	}
+	else if( numChannels == 1 ) {
+		if( ! mCaptureImpl->mRingBuffer->read( mConverterReadBuffer.getData(), convertFramesNeeded ) )
+			markUnderrun();
+	}
+	else
+		CI_ASSERT_MSG( 0, "numChannels > 2 not yet supported" );
+
+
+	pair<size_t, size_t> count = mConverter->convert( &mConverterReadBuffer, destBuffer );
+	return count.first;
 }
 
 // ----------------------------------------------------------------------------------------------------
