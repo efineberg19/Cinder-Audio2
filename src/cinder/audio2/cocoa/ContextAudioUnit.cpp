@@ -171,7 +171,7 @@ OSStatus LineOutAudioUnit::renderCallback( void *data, ::AudioUnitRenderActionFl
 // ----------------------------------------------------------------------------------------------------
 
 LineInAudioUnit::LineInAudioUnit( const DeviceRef &device, const Format &format )
-: LineIn( device, format ), mSynchronousIO( false ), mLastUnderrun( 0 ), mLastOverrun( 0 ), mRingBufferPaddingFactor( 2 )
+: LineIn( device, format ), mSynchronousIO( false ), mRingBufferPaddingFactor( 2 )
 {
 }
 
@@ -183,12 +183,13 @@ void LineInAudioUnit::initialize()
 {
 	mRenderData.node = this;
 	mRenderData.context = dynamic_cast<ContextAudioUnit *>( getContext().get() );
+	auto device = getDevice();
 
 	// see if synchronous I/O is possible by looking at the LineOut
 	auto lineOutAu = dynamic_pointer_cast<LineOutAudioUnit>( getContext()->getOutput() );
 	CI_ASSERT( lineOutAu );
 
-	if( mDevice == lineOutAu->getDevice() && mNumChannels == lineOutAu->getNumChannels() ) {
+	if( device == lineOutAu->getDevice() && mNumChannels == lineOutAu->getNumChannels() ) {
 		mSynchronousIO = true;
 		mAudioUnit = lineOutAu->getAudioUnit();
 		mOwnsAudioUnit = false;
@@ -227,8 +228,8 @@ void LineInAudioUnit::initialize()
 
 	}
 	else {
-		if( mDevice->getSampleRate() != sampleRate || mDevice->getFramesPerBlock() != framesPerBlock )
-			mDevice->updateFormat( Device::Format().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
+		if( device->getSampleRate() != sampleRate || device->getFramesPerBlock() != framesPerBlock )
+			device->updateFormat( Device::Format().sampleRate( sampleRate ).framesPerBlock( framesPerBlock ) );
 
 		mRingBuffer.resize( framesPerBlock * getNumChannels() * mRingBufferPaddingFactor );
 		mBufferList = createNonInterleavedBufferList( framesPerBlock, getNumChannels() );
@@ -248,7 +249,7 @@ void LineInAudioUnit::initialize()
 		auto manager = dynamic_cast<DeviceManagerCoreAudio *>( Context::deviceManager() );
 		CI_ASSERT( manager );
 
-		manager->setCurrentInputDevice( mDevice, mAudioUnit );
+		manager->setCurrentInputDevice( device, mAudioUnit );
 #endif
 		initAu();
 	}
@@ -289,20 +290,6 @@ void LineInAudioUnit::stop()
 	}
 }
 
-uint64_t LineInAudioUnit::getLastUnderrun()
-{
-	uint64_t result = mLastUnderrun;
-	mLastUnderrun = 0;
-	return result;
-}
-
-uint64_t LineInAudioUnit::getLastOverrun()
-{
-	uint64_t result = mLastOverrun;
-	mLastOverrun = 0;
-	return result;
-}
-
 void LineInAudioUnit::process( Buffer *buffer )
 {
 	if( mSynchronousIO ) {
@@ -317,7 +304,7 @@ void LineInAudioUnit::process( Buffer *buffer )
 	else {
 		// copy from ringbuffer. If not possible, store the timestamp of the underrun
 		if( ! mRingBuffer.read( buffer->getData(), buffer->getSize() ) )
-		   mLastUnderrun = getContext()->getNumProcessedFrames();
+			markUnderrun();
 	}
 }
 
@@ -339,7 +326,7 @@ OSStatus LineInAudioUnit::inputCallback( void *data, ::AudioUnitRenderActionFlag
 		}
 	}
 	else
-		lineIn->mLastOverrun = renderData->context->getNumProcessedFrames();
+		lineIn->markOverrun();
 
 	return noErr;
 }

@@ -87,9 +87,6 @@ class LineInAudioUnit : public LineIn, public NodeAudioUnit {
 	void start() override;
 	void stop() override;
 
-	uint64_t getLastUnderrun()		override;
-	uint64_t getLastOverrun()		override;
-
   protected:
 	void initialize()				override;
 	void uninitialize()				override;
@@ -101,7 +98,6 @@ class LineInAudioUnit : public LineIn, public NodeAudioUnit {
 	dsp::RingBuffer						mRingBuffer;
 	size_t								mRingBufferPaddingFactor;
 	AudioBufferListPtr					mBufferList;
-	std::atomic<uint64_t>				mLastUnderrun, mLastOverrun;
 	bool								mSynchronousIO;
 
 };
