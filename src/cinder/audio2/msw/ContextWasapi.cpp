@@ -405,10 +405,8 @@ void LineOutWasapi::uninitialize()
 
 void LineOutWasapi::start()
 {
-	if( ! mInitialized ) {
-		CI_LOG_E( "not initialized" );
+	if( mEnabled || ! mInitialized )
 		return;
-	}
 
 	mEnabled = true;
 	HRESULT hr = mRenderImpl->mAudioClient->Start();
@@ -417,10 +415,8 @@ void LineOutWasapi::start()
 
 void LineOutWasapi::stop()
 {
-	if( ! mInitialized ) {
-		CI_LOG_E( "not initialized" );
+	if( ! mEnabled || ! mInitialized )
 		return;
-	}
 
 	HRESULT hr = mRenderImpl->mAudioClient->Stop();
 	CI_ASSERT( hr == S_OK );
@@ -488,14 +484,20 @@ void LineInWasapi::uninitialize()
 
 void LineInWasapi::start()
 {
+	if( mEnabled || ! mInitialized )
+		return;
+
 	HRESULT hr = mCaptureImpl->mAudioClient->Start();
 	CI_ASSERT( hr == S_OK );
-
+	
 	mEnabled = true;
 }
 
 void LineInWasapi::stop()
 {
+	if( ! mEnabled || ! mInitialized )
+		return;
+
 	HRESULT hr = mCaptureImpl->mAudioClient->Stop();
 	CI_ASSERT( hr == S_OK );
 
