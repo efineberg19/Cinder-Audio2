@@ -46,7 +46,7 @@ class DeviceTestApp : public AppNative {
 	audio2::LineOutRef		mLineOut;
 	audio2::ScopeRef		mScope;
 	audio2::GainRef			mGain;
-	audio2::NodeInputRef	mSourceNode;
+	audio2::GenRef			mGen;
 
 	vector<TestWidget *> mWidgets;
 	VSelector mTestSelector, mInputSelector, mOutputSelector;
@@ -79,9 +79,6 @@ void DeviceTestApp::setup()
 
 //	setupMultiChannelDevice( "PreSonus FIREPOD (1431)" );
 
-	// TODO: this should be set in setOutputDevice()
-	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	CI_LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
-
 	setupSine();
 //	setupIOClean();
 //	setupIOProcessed();
@@ -95,7 +92,7 @@ void DeviceTestApp::setup()
 
 void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t numChannels )
 {
-	audio2::ScopedNodeEnabledState enabled( mSourceNode );
+//	audio2::ScopedNodeEnabledState enabled( mSourceNode );
 
 	auto ctx = audio2::master();
 
@@ -106,6 +103,9 @@ void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t num
 		format.channels( numChannels );
 
 	mLineOut = ctx->createLineOut( device, format );
+
+	mLineOut->getDevice()->getSignalParamsDidChange().connect( [this] {	CI_LOG_V( "LineOut params changed:" ); printDeviceDetails( mLineOut->getDevice() ); } );
+
 
 	// TODO: if this call is moved to after the mScope->connect(), there is a chance that initialization can
 	// take place with samplerate / frames-per-block derived from the default NodeOutput (ses default Device)
@@ -167,21 +167,19 @@ void DeviceTestApp::printDeviceDetails( const audio2::DeviceRef &device )
 
 void DeviceTestApp::setupSine()
 {
-	auto sineGen = audio2::master()->makeNode( new audio2::GenSine() );
-	sineGen->setFreq( 440 );
-	mSourceNode = sineGen;
+	mGen = audio2::master()->makeNode( new audio2::GenSine() );
+	mGen->setFreq( 440 );
 
-	mSourceNode->connect( mGain );
-	mSourceNode->start();
+	mGen->connect( mGain );
+	mGen->start();
 }
 
 void DeviceTestApp::setupNoise()
 {
-	auto noiseGen = audio2::master()->makeNode( new audio2::GenNoise() );
-	mSourceNode = noiseGen;
+	mGen = audio2::master()->makeNode( new audio2::GenNoise() );
 
-	mSourceNode->connect( mGain );
-	mSourceNode->start();
+	mGen->connect( mGain );
+	mGen->start();
 }
 
 void DeviceTestApp::setupIOClean()
@@ -190,16 +188,20 @@ void DeviceTestApp::setupIOClean()
 	mLineIn->start();
 }
 
+// sub-classed merely so printGraph prints a more descriptive name
+struct RingModGain : public audio2::Gain {
+};
+
 void DeviceTestApp::setupIOProcessed()
 {
 	auto ctx = audio2::master();
 	auto mod = ctx->makeNode( new audio2::GenSine( audio2::Node::Format().autoEnable() ) );
 	mod->setFreq( 200 );
 
-	auto ringMod = audio2::master()->makeNode( new audio2::Gain );
+	auto ringMod = audio2::master()->makeNode( new RingModGain );
 	ringMod->getParam()->setProcessor( mod );
 
-	mLineIn >> ringMod >> mGain;
+	mLineIn >> ringMod >> mGain->bus( 0 );
 
 	mLineIn->start();
 }
@@ -349,6 +351,11 @@ void DeviceTestApp::processTap( Vec2i pos )
 
 void DeviceTestApp::setupTest( const string &test )
 {
+	// FIXME: Switching from 'noise' to 'i/o' on mac is causing a deadlock when initializing LineInAudioUnit.
+	//	- it shouldn't have to be stopped, need to check why.
+	//  - temp fix: stop / start context around reconfig
+	audio2::master()->stop();
+
 	if( test == "sinewave" )
 		setupSine();
 	else if( test == "noise" )
@@ -359,6 +366,9 @@ void DeviceTestApp::setupTest( const string &test )
 		setupIOProcessed();
 	else
 		setupSine();
+
+	if( mPlayButton.mEnabled )
+		audio2::master()->start();
 
 	audio2::master()->printGraph();
 }
