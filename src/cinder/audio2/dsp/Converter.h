@@ -40,6 +40,8 @@ public:
 	//! \note destBuffer must be large enough to complete the conversion, which is calculated as: \code minNumDestFrames = min( sourceBuffer->getNumFrames, getSourceMaxFramesPerBlock() ) * getDestSampleRate() * getSourceSampleRate() \endcode
 	virtual std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) = 0;
 
+	virtual void clear()	{}
+
 	size_t getSourceSampleRate()		const		{ return mSourceSampleRate; }
 	size_t getDestSampleRate()			const		{ return mDestSampleRate; }
 	size_t getSourceNumChannels()		const		{ return mSourceNumChannels; }

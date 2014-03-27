@@ -42,6 +42,8 @@ class ConverterImplR8brain : public Converter {
 
 	std::pair<size_t, size_t> convert( const Buffer *sourceBuffer, Buffer *destBuffer ) override;
 
+	void clear() override;
+
   private:
 	std::pair<size_t, size_t> convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount );
 	std::pair<size_t, size_t> convertImplUpMixing( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount );

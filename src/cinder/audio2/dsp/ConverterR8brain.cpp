@@ -57,9 +57,8 @@ ConverterImplR8brain::ConverterImplR8brain( size_t sourceSampleRate, size_t dest
 
 	mBufferd = BufferT<double>( mSourceMaxFramesPerBlock, numResamplers );
 
-	for( size_t ch = 0; ch < numResamplers; ch++ ) {
+	for( size_t ch = 0; ch < numResamplers; ch++ )
 		mResamplers.push_back( unique_ptr<r8b::CDSPResampler24>( new r8b::CDSPResampler24( (const double)mSourceSampleRate, (const double)mDestSampleRate, (const int)mSourceMaxFramesPerBlock ) ) );
-	}
 }
 
 ConverterImplR8brain::~ConverterImplR8brain()
@@ -86,6 +85,12 @@ pair<size_t, size_t> ConverterImplR8brain::convert( const Buffer *sourceBuffer, 
 		return convertImplDownMixing( sourceBuffer, destBuffer, readCount );
 
 	return convertImplUpMixing( sourceBuffer, destBuffer, readCount );
+}
+
+void ConverterImplR8brain::clear()
+{
+	for( auto &resampler : mResamplers )
+		resampler->clear();
 }
 
 pair<size_t, size_t> ConverterImplR8brain::convertImpl( const Buffer *sourceBuffer, Buffer *destBuffer, int readCount )
