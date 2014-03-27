@@ -125,6 +125,8 @@ class Context : public std::enable_shared_from_this<Context> {
 	void disconnectRecursive( const NodeRef &node, std::set<NodeRef> &traversedNodes );
 	void initRecursisve( const NodeRef &node, std::set<NodeRef> &traversedNodes  );
 	void uninitRecursisve( const NodeRef &node, std::set<NodeRef> &traversedNodes  );
+
+	static void registerClearStatics();
 };
 
 template<typename NodeT>

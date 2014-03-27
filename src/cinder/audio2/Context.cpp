@@ -50,6 +50,19 @@ namespace cinder { namespace audio2 {
 std::shared_ptr<Context>		Context::sMasterContext;
 std::unique_ptr<DeviceManager>	Context::sDeviceManager;
 
+bool sIsRegisteredForShutdown = false;
+
+// static
+void Context::registerClearStatics()
+{
+	sIsRegisteredForShutdown = true;
+
+	app::App::get()->getSignalShutdown().connect( [] {
+		sDeviceManager.reset();
+		sMasterContext.reset();
+	} );
+}
+
 Context* Context::master()
 {
 	if( ! sMasterContext ) {
@@ -62,6 +75,8 @@ Context* Context::master()
 		sMasterContext.reset( new msw::ContextXAudio() );
 	#endif
 #endif
+		if( ! sIsRegisteredForShutdown )
+			registerClearStatics();
 	}
 	return sMasterContext.get();
 }
@@ -80,6 +95,8 @@ DeviceManager* Context::deviceManager()
 		CI_ASSERT( 0 && "TODO: simple DeviceManagerXp" );
 	#endif
 #endif
+		if( ! sIsRegisteredForShutdown )
+			registerClearStatics();
 	}
 	return sDeviceManager.get();
 }
