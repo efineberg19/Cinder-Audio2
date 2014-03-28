@@ -26,7 +26,7 @@
 #define CI_ENABLE_XAUDIO2
 
 #if ( _WIN32_WINNT < _WIN32_WINNT_VISTA ) || defined( CI_ENABLE_XAUDIO2 )
-#define CINDER_AUDIO_XAUDIO2
+	#define CINDER_AUDIO_XAUDIO2
 
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/Buffer.h"
@@ -49,6 +49,7 @@ class NodeXAudio {
 };
 
 struct VoiceCallbackImpl;
+
 
 class NodeXAudioSourceVoice : public Node, public NodeXAudio {
   public:
@@ -84,6 +85,7 @@ class NodeXAudioSourceVoice : public Node, public NodeXAudio {
 	friend class NodeEffectXAudioXapo;
 };
 
+
 struct EngineCallbackImpl;
 
 class LineOutXAudio : public LineOut, public NodeXAudio {
@@ -94,27 +96,33 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
-	bool supportsInputNumChannels( size_t numChannels ) const override;
-
-	::IXAudio2* getXAudio() const	{ return mXAudio; }
-
   protected:
 	void initialize() override;
 	void uninitialize() override;
 
   private:
 
+	void initMasterVoice();
+	void initSourceVoice();
+
+	void submitNextBuffer();
+
+	::IXAudio2SourceVoice*						mSourceVoice;
+	::XAUDIO2_BUFFER							mXAudioBuffer;
+	//std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
+	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
+	BufferInterleaved							mBufferInterleaved;
+
 	// Because the last time we see output samples is when a NodeXAudioSourceVoice submits its buffer,
 	// NodeXAudioSourceVoice's call into this LineOut to check if its buffer is clipping.
 	bool checkNotClippingImpl( const Buffer &sourceVoiceBuffer );
 
-	::IXAudio2					*mXAudio;
-	::IXAudio2MasteringVoice	*mMasteringVoice;
+	//::IXAudio2					*mXAudio;
+	//::IXAudio2MasteringVoice	*mMasteringVoice;
 
-	std::unique_ptr<EngineCallbackImpl> mEngineCallback;
+	//std::unique_ptr<EngineCallbackImpl> mEngineCallback;
 
-	friend struct EngineCallbackImpl;
-	friend class NodeXAudioSourceVoice;
+	friend struct VoiceCallbackImpl;
 };
 
 class NodeEffectXAudioXapo : public NodeEffect, public NodeXAudio {
@@ -175,22 +183,32 @@ class ContextXAudio : public Context {
 	LineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
 
 	//! When connections change, ensure a NodeXAudioSourceVoice is in the right position to enable pulling audio samples.
-	void connectionsDidChange( const NodeRef &node ) override; 
-	//! Overridden to assert type is LineOutXAudio
+	//void connectionsDidChange( const NodeRef &node ) override; 
+	//! Overridden to assert type is LineOutXAudio. TODO: override to disable and warn
 	void setOutput( const NodeOutputRef &output ) override;
+	//! Overridden to also start XAudio2 engine.
+	void start() override;
+	//! Overridden to also stop XAudio2 engine.
+	void stop() override;
+
 	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a LineOut.
-	::IXAudio2* getXAudio() const	{ return std::dynamic_pointer_cast<LineOutXAudio>( mOutput )->getXAudio(); }
+	::IXAudio2* getXAudio() const	{ return mXAudio; }
 	//! Called from LineOutXAudio::iniialize(), creates a NodeXAudioSourceVoice if there are auto-pull Node's and no other source voices
-	void enableAutoPullSourceVoiceIfNecessary();
+	//void enableAutoPullSourceVoiceIfNecessary();
 	//! Sets whether to enable filter usage within this audio context (default = true). \see NodeEffectXAudioFilter
 	void setFilterEffectsEnabled( bool b = true )	{ mFilterEnabled = b; }
 	//! Returns whether filter usage is enabled within this audio context (default = true). \see NodeEffectXAudioFilter
 	bool isFilterEffectsEnabled() const			{ return mFilterEnabled; }
 
   private:
+	void initXAudio2();
+	void initMasterVoice();
+
 	bool	mFilterEnabled;
 
-	std::shared_ptr<NodeXAudioSourceVoice> mAutoPullSourceVoice;
+	::IXAudio2*							mXAudio;
+	::IXAudio2MasteringVoice*			mMasteringVoice;
+	std::unique_ptr<EngineCallbackImpl> mEngineCallback;
 };
 
 class DeviceManagerXAudio : public DeviceManager {

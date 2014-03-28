@@ -41,8 +41,3 @@
 	#define CINDER_XAUDIO_2_7
 	#pragma comment(lib, "XAPOFX.lib")
 #endif
-
-
-namespace cinder { namespace audio2 { namespace msw {
-
-} } } // namespace cinder::audio2::msw

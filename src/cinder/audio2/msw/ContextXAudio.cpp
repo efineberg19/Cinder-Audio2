@@ -113,20 +113,18 @@ std::shared_ptr<NodeT> findFirstUpstreamNode( const NodeRef &node )
 } // anonymous namespace
 
 struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
+	VoiceCallbackImpl( LineOutXAudio *lineOut  ) : mLineOut( lineOut ) {}
 
-	VoiceCallbackImpl( const function<void()> &callback  ) : mRenderCallback( callback ) {}
-
-	void setInputVoice( ::IXAudio2SourceVoice *sourceVoice )	{ mSourceVoice = sourceVoice; }
 	void renderIfNecessary()
 	{
 		::XAUDIO2_VOICE_STATE state;
 #if defined( CINDER_XAUDIO_2_8 )
-		mSourceVoice->GetState( &state, XAUDIO2_VOICE_NOSAMPLESPLAYED );
+		mLineOut->mSourceVoice->GetState( &state, XAUDIO2_VOICE_NOSAMPLESPLAYED );
 #else
-		mSourceVoice->GetState( &state );
+		mLineOut->mSourceVoice->GetState( &state );
 #endif
 		if( state.BuffersQueued == 0 ) // This could be increased to 1 to decrease chances of underuns
-			mRenderCallback();
+			mLineOut->submitNextBuffer();
 	}
 
 	void _stdcall OnBufferEnd( void *pBufferContext )
@@ -150,25 +148,18 @@ struct VoiceCallbackImpl : public ::IXAudio2VoiceCallback {
 		CI_LOG_E( "error: " << Error );
 	}
 
-	::IXAudio2SourceVoice	*mSourceVoice;
-	function<void()>		mRenderCallback;
+	LineOutXAudio*			mLineOut; // weak pointer to parent
 };
 
 struct EngineCallbackImpl : public IXAudio2EngineCallback {
-	EngineCallbackImpl( LineOutXAudio *lineOut ) : mLineOut( lineOut )	{}
 
 	void _stdcall OnProcessingPassStart() {}
-	void _stdcall OnProcessingPassEnd ()
-	{
-		//mLineOut->incrementFrameCount(); // done in LineOut::postProcess()
-	}
+	void _stdcall OnProcessingPassEnd ()  {}
 
 	void _stdcall OnCriticalError( HRESULT Error )
 	{
 		CI_LOG_E( "error: " << Error );
 	}
-
-	LineOutXAudio *mLineOut;
 };
 
 // ----------------------------------------------------------------------------------------------------
@@ -188,7 +179,6 @@ NodeXAudioSourceVoice::NodeXAudioSourceVoice()
 	: Node( Format() ), mSourceVoice( nullptr )
 {
 	setAutoEnabled( true );
-	mVoiceCallback = unique_ptr<VoiceCallbackImpl>( new VoiceCallbackImpl( bind( &NodeXAudioSourceVoice::submitNextBuffer, this ) ) );
 }
 
 NodeXAudioSourceVoice::~NodeXAudioSourceVoice()
@@ -244,7 +234,6 @@ void NodeXAudioSourceVoice::initSourceVoice()
 	UINT32 flags = ( context->isFilterEffectsEnabled() ? XAUDIO2_VOICE_USEFILTER : 0 );
 	HRESULT hr = xaudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get()  );
 	CI_ASSERT( hr == S_OK );
-	mVoiceCallback->setInputVoice( mSourceVoice );
 }
 
 void NodeXAudioSourceVoice::uninitSourceVoice()
@@ -294,29 +283,29 @@ bool LineOutXAudio::checkNotClippingImpl( const Buffer &sourceVoiceBuffer )
 
 void NodeXAudioSourceVoice::submitNextBuffer()
 {
-	lock_guard<mutex> lock( getContext()->getMutex() );
+	//lock_guard<mutex> lock( getContext()->getMutex() );
 
-	// verify context still exists, since its destructor may have been holding the lock
-	auto ctx = getContext();
-	if( ! ctx )
-		return;
+	//// verify context still exists, since its destructor may have been holding the lock
+	//auto ctx = getContext();
+	//if( ! ctx )
+	//	return;
 
-	mInternalBuffer.zero();
-	pullInputs( &mInternalBuffer );
+	//mInternalBuffer.zero();
+	//pullInputs( &mInternalBuffer );
 
-	auto lineOutXAudio = dynamic_pointer_cast<LineOutXAudio>( getContext()->getOutput() );
-	CI_ASSERT( lineOutXAudio );
+	////auto lineOutXAudio = dynamic_pointer_cast<LineOutXAudio>( getContext()->getOutput() );
+	////CI_ASSERT( lineOutXAudio );
 
-	if( lineOutXAudio->checkNotClipping() )
-		mInternalBuffer.zero();
+	////if( lineOutXAudio->checkNotClipping() )
+	////	mInternalBuffer.zero();
 
-	if( getNumChannels() == 2 )
-		dsp::interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
+	//if( getNumChannels() == 2 )
+	//	dsp::interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
 
-	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudioBuffer );
-	CI_ASSERT( hr == S_OK );
+	//HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudioBuffer );
+	//CI_ASSERT( hr == S_OK );
 
-	lineOutXAudio->postProcess();
+	//lineOutXAudio->postProcess();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -324,88 +313,56 @@ void NodeXAudioSourceVoice::submitNextBuffer()
 // ----------------------------------------------------------------------------------------------------
 
 LineOutXAudio::LineOutXAudio( DeviceRef device, const Format &format )
-: LineOut( device, format ), mEngineCallback( new EngineCallbackImpl( this ) )
+: LineOut( device, format ), mVoiceCallback( new VoiceCallbackImpl( this ) ), mSourceVoice( nullptr )
 {
-
-#if defined( CINDER_XAUDIO_2_7 )
-	CI_LOG_V( "CINDER_XAUDIO_2_7" );
-	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
-
-	//! CoInitializeEx is only required by XAudio2.7
-	// TODO: using the initializeCom() creates a thread-local shared object that may go down before ~Context()
-	// - so temp soln. is to not use it, long term is to have it pass back ref counted object.
-	//ci::msw::initializeCom(); 
-	::CoInitializeEx( NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE );
-
-#else
-	CI_LOG_V( "CINDER_XAUDIO_2_8" );
-	UINT32 flags = 0;
-#endif
-
-	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
-	CI_ASSERT( hr == S_OK );
-	hr = mXAudio->RegisterForCallbacks( mEngineCallback.get() );
-	CI_ASSERT( hr == S_OK );
-
-#if defined( CINDER_XAUDIO_2_8 )
-	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
-	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
-	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
-	debugConfig.LogFunctionName = true;
-	mXAudio->SetDebugConfiguration( &debugConfig );
-#endif
-
-	// mXAudio is started at creation time, so stop it here as mEnabled = false
-	mXAudio->StopEngine();
 }
 
 LineOutXAudio::~LineOutXAudio()
 {
-	mXAudio->Release();
 }
 
 void LineOutXAudio::initialize()
 {
-	auto deviceManager = dynamic_cast<DeviceManagerWasapi *>( Context::deviceManager() );
+	CI_ASSERT_MSG( getNumChannels() <= 2, "number of channels greater than 2 is not supported." );
 
-#if defined( CINDER_XAUDIO_2_8 )
-	const wstring &deviceId = deviceManager->getDeviceId( mDevice );
-	HRESULT hr = mXAudio->CreateMasteringVoice( &mMasteringVoice, getNumChannels(), getSampleRate(), 0, deviceId.c_str() );
-	CI_ASSERT( hr == S_OK );
-#else
+	setupProcessWithSumming();
+	size_t numSamples = mInternalBuffer.getSize();
 
-	// TODO: on XAudio2.7, Device::getKey() is the device Id (from WASAPI) , but this isn't obvious below.  Consider re-mapping getDeviceId() to match this.
-	UINT32 deviceCount;
-	HRESULT hr = mXAudio->GetDeviceCount( &deviceCount );
-	CI_ASSERT( hr == S_OK );
-
-	::XAUDIO2_DEVICE_DETAILS deviceDetails;
-	for( UINT32 i = 0; i < deviceCount; i++ ) {
-		hr = mXAudio->GetDeviceDetails( i, &deviceDetails );
-		CI_ASSERT( hr == S_OK );
-		if( mDevice->getKey() == ci::toUtf8( deviceDetails.DeviceID ) ) {
-			hr = mXAudio->CreateMasteringVoice( &mMasteringVoice,  getNumChannels(), getSampleRate(), 0, i );
-			CI_ASSERT( hr == S_OK );
-		}
+	memset( &mXAudioBuffer, 0, sizeof( mXAudioBuffer ) );
+	mXAudioBuffer.AudioBytes = numSamples * sizeof( float );
+	if( getNumChannels() == 2 ) {
+		// setup stereo, XAudio2 requires interleaved samples so point at interleaved buffer
+		mBufferInterleaved = BufferInterleaved( mInternalBuffer.getNumFrames(), mInternalBuffer.getNumChannels() );
+		mXAudioBuffer.pAudioData = reinterpret_cast<BYTE *>( mBufferInterleaved.getData() );
+	}
+	else {
+		// setup mono
+		mXAudioBuffer.pAudioData = reinterpret_cast<BYTE *>( mInternalBuffer.getData() );
 	}
 
-#endif
-
-	CI_ASSERT( mMasteringVoice );
-
-	//::XAUDIO2_VOICE_DETAILS voiceDetails;
-	//mMasteringVoice->GetVoiceDetails( &voiceDetails );
-
-	// normally mInitialized is handled via initializeImpl(), but SourceVoiceXaudio
-	// needs to ensure this guy is around before it can do anything and it can't call
-	// Node::initializeImpl(). So instead the flag is manually updated.
-	mInitialized = true;
+	initSourceVoice();
 }
 
 void LineOutXAudio::uninitialize()
 {
-	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
-	mMasteringVoice->DestroyVoice();
+	if( mSourceVoice ) {
+		mSourceVoice->DestroyVoice();
+		mSourceVoice = nullptr;
+	}
+}
+
+void LineOutXAudio::initSourceVoice()
+{
+	CI_ASSERT( ! mSourceVoice );
+
+	auto context = dynamic_pointer_cast<ContextXAudio>( getContext() );
+
+	auto wfx = msw::interleavedFloatWaveFormat( getSampleRate(), getNumChannels() );
+
+	IXAudio2 *xaudio = context->getXAudio();
+	UINT32 flags = ( context->isFilterEffectsEnabled() ? XAUDIO2_VOICE_USEFILTER : 0 );
+	HRESULT hr = xaudio->CreateSourceVoice( &mSourceVoice, wfx.get(), flags, XAUDIO2_DEFAULT_FREQ_RATIO, mVoiceCallback.get() );
+	CI_ASSERT( hr == S_OK );
 }
 
 void LineOutXAudio::start()
@@ -415,8 +372,11 @@ void LineOutXAudio::start()
 
 	mEnabled = true;
 
-	HRESULT hr = mXAudio->StartEngine();
+	HRESULT hr = mSourceVoice->Start();
 	CI_ASSERT( hr ==S_OK );
+
+	//hr = mXAudio->StartEngine();
+	//CI_ASSERT( hr ==S_OK );
 }
 
 void LineOutXAudio::stop()
@@ -425,12 +385,39 @@ void LineOutXAudio::stop()
 		return;
 
 	mEnabled = false;
-	mXAudio->StopEngine();
+
+	HRESULT hr = mSourceVoice->Stop();
+	CI_ASSERT( hr == S_OK );
+
+	//mXAudio->StopEngine();
 }
 
-bool LineOutXAudio::supportsInputNumChannels( size_t numChannels ) const
+void LineOutXAudio::submitNextBuffer()
 {
-	return true;
+	auto ctx = getContext();
+	if( ! ctx )
+		return;
+
+	lock_guard<mutex> lock( ctx->getMutex() );
+
+	// verify context still exists, since its destructor may have been holding the lock
+	ctx = getContext();
+	if( ! ctx )
+		return;
+
+	mInternalBuffer.zero();
+	pullInputs( &mInternalBuffer );
+
+	if( checkNotClipping() )
+		mInternalBuffer.zero();
+
+	if( getNumChannels() == 2 )
+		dsp::interleaveStereoBuffer( &mInternalBuffer, &mBufferInterleaved );
+
+	HRESULT hr = mSourceVoice->SubmitSourceBuffer( &mXAudioBuffer );
+	CI_ASSERT( hr == S_OK );
+
+	postProcess();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -561,12 +548,24 @@ void NodeEffectXAudioFilter::setParams( const ::XAUDIO2_FILTER_PARAMETERS &param
 // ----------------------------------------------------------------------------------------------------
 
 ContextXAudio::ContextXAudio()
-: mFilterEnabled( true )
+	: mFilterEnabled( true ), mXAudio( nullptr ), mMasteringVoice( nullptr ), mEngineCallback( new EngineCallbackImpl )
 {
+	initXAudio2();
+	initMasterVoice();
+
+	// mXAudio is started at creation time, so stop it here as mEnabled = false
+	mXAudio->StopEngine();
 }
 
 ContextXAudio::~ContextXAudio()
 {
+	CI_ASSERT_MSG( mMasteringVoice, "Expected to have a valid mastering voice" );
+
+	// first ensure the IXAudio2SourceVoice destroyed by uninitializing the LineOutXAudio
+	uninitializeNode( mOutput );
+
+	mMasteringVoice->DestroyVoice();
+	mXAudio->Release();
 }
 
 LineOutRef ContextXAudio::createLineOut( const DeviceRef &device, const Node::Format &format )
@@ -586,79 +585,138 @@ void ContextXAudio::setOutput( const NodeOutputRef &output )
 	Context::setOutput( output );
 }
 
+void ContextXAudio::start()
+{
+	HRESULT hr = mXAudio->StartEngine();
+	CI_ASSERT( hr == S_OK );
+
+	Context::start();
+}
+
+void ContextXAudio::stop()
+{
+	mXAudio->StopEngine();
+
+	Context::stop();
+}
+
+void ContextXAudio::initXAudio2()
+{
+#if defined( CINDER_XAUDIO_2_7 )
+	CI_LOG_V( "CINDER_XAUDIO_2_7" );
+	UINT32 flags = XAUDIO2_DEBUG_ENGINE;
+
+	//! CoInitializeEx is only required by XAudio2.7
+	// TODO: using the initializeCom() creates a thread-local shared object that may go down before ~Context()
+	// - so temp soln. is to not use it, long term is to have it pass back ref counted object.
+	//ci::msw::initializeCom(); 
+	::CoInitializeEx( NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE );
+
+#else
+	CI_LOG_V( "CINDER_XAUDIO_2_8" );
+	UINT32 flags = 0;
+#endif
+
+	HRESULT hr = ::XAudio2Create( &mXAudio, flags, XAUDIO2_DEFAULT_PROCESSOR );
+	CI_ASSERT( hr == S_OK );
+	hr = mXAudio->RegisterForCallbacks( mEngineCallback.get() );
+	CI_ASSERT( hr == S_OK );
+
+#if defined( CINDER_XAUDIO_2_8 )
+	::XAUDIO2_DEBUG_CONFIGURATION debugConfig = {0};
+	debugConfig.TraceMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.BreakMask = XAUDIO2_LOG_ERRORS;
+	debugConfig.LogFunctionName = true;
+	mXAudio->SetDebugConfiguration( &debugConfig );
+#endif
+}
+
+void ContextXAudio::initMasterVoice()
+{
+	// create the IXAudio2MasteringVoice that represents the default hardware device.
+	HRESULT hr = mXAudio->CreateMasteringVoice( &mMasteringVoice );
+	CI_ASSERT( hr == S_OK );
+	CI_ASSERT( mMasteringVoice );
+
+	::XAUDIO2_VOICE_DETAILS voiceDetails;
+	mMasteringVoice->GetVoiceDetails( &voiceDetails );
+
+	// TODO: voiceDetails is what is needed to populate num channels and samplerate
+}
+
 // Recurse through inputs (this is only called when an input is set, not output).
-void ContextXAudio::connectionsDidChange( const NodeRef &node )
-{
-	// Because node connections may change, we can't iterate on inputs. So first retrieve all bus indices and iterate over those.
-	vector<size_t> inputBusses = node->getOccupiedInputBusses();
+//void ContextXAudio::connectionsDidChange( const NodeRef &node )
+//{
+//	// Because node connections may change, we can't iterate on inputs. So first retrieve all bus indices and iterate over those.
+//	vector<size_t> inputBusses = node->getOccupiedInputBusses();
+//
+//	for( size_t bus : inputBusses ) {
+//		NodeRef input = node->getInputs()[bus];
+//
+//		// if input is generic, it needs a SourceXAudio so add one implicitly
+//		if( ! isNodeNativeXAudio( input ) ) {
+//			shared_ptr<NodeXAudioSourceVoice> sourceVoice = findFirstDownstreamNode<NodeXAudioSourceVoice>( input );
+//			if( ! sourceVoice ) {
+//				// see if there is already an upstream source voice
+//				sourceVoice = findFirstUpstreamNode<NodeXAudioSourceVoice>( node );
+//				if( sourceVoice ) {
+//					// TODO: account account for multiple inputs in both input and sourceVoice
+//					NodeRef sourceInput = sourceVoice->getInputs()[0];
+//					sourceVoice->disconnect();
+//
+//					sourceInput->connect( input );
+//					input->connect( sourceVoice );
+//					sourceVoice->connect( node, 0, bus );
+//				}
+//				else if( findFirstUpstreamNode<NodeXAudio>( input ) )
+//					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
+//				else {
+//					// if node isn't connected to a LineOutXAudio, no need to connect a SourceVoiceXAudio yet
+//					if( node != getOutput() && ! findFirstDownstreamNode<LineOutXAudio>( node ) )
+//						continue;
+//					
+//					// a SourceVoiceXAudio is needed
+//					sourceVoice = makeNode( new NodeXAudioSourceVoice );
+//
+//					//CI_LOG_V( "[before]" );
+//					//printGraph();
+//
+//					input->connect( sourceVoice, input->getFirstAvailableOutputBus(), 0 );
+//					//CI_LOG_V( "[midde]" );
+//					//printGraph();
+//
+//
+//					sourceVoice->connect( node, 0, bus );
+//
+//					//CI_LOG_V( "[before]" );
+//					//printGraph();
+//
+//					sourceVoice->start();
+//				}
+//			}
+//			continue;
+//		}
+//		
+//		shared_ptr<NodeEffectXAudioXapo> xapo = dynamic_pointer_cast<NodeEffectXAudioXapo>( input );
+//		if( xapo )
+//			xapo->notifyConnected();
+//	}
+//
+//	enableAutoPullSourceVoiceIfNecessary();
+//}
 
-	for( size_t bus : inputBusses ) {
-		NodeRef input = node->getInputs()[bus];
-
-		// if input is generic, it needs a SourceXAudio so add one implicitly
-		if( ! isNodeNativeXAudio( input ) ) {
-			shared_ptr<NodeXAudioSourceVoice> sourceVoice = findFirstDownstreamNode<NodeXAudioSourceVoice>( input );
-			if( ! sourceVoice ) {
-				// see if there is already an upstream source voice
-				sourceVoice = findFirstUpstreamNode<NodeXAudioSourceVoice>( node );
-				if( sourceVoice ) {
-					// TODO: account account for multiple inputs in both input and sourceVoice
-					NodeRef sourceInput = sourceVoice->getInputs()[0];
-					sourceVoice->disconnect();
-
-					sourceInput->connect( input );
-					input->connect( sourceVoice );
-					sourceVoice->connect( node, 0, bus );
-				}
-				else if( findFirstUpstreamNode<NodeXAudio>( input ) )
-					throw AudioContextExc( "Detected generic node after native Xapo, custom Xapo's not implemented." );
-				else {
-					// if node isn't connected to a LineOutXAudio, no need to connect a SourceVoiceXAudio yet
-					if( node != getOutput() && ! findFirstDownstreamNode<LineOutXAudio>( node ) )
-						continue;
-					
-					// a SourceVoiceXAudio is needed
-					sourceVoice = makeNode( new NodeXAudioSourceVoice );
-
-					//CI_LOG_V( "[before]" );
-					//printGraph();
-
-					input->connect( sourceVoice, input->getFirstAvailableOutputBus(), 0 );
-					//CI_LOG_V( "[midde]" );
-					//printGraph();
-
-
-					sourceVoice->connect( node, 0, bus );
-
-					//CI_LOG_V( "[before]" );
-					//printGraph();
-
-					sourceVoice->start();
-				}
-			}
-			continue;
-		}
-		
-		shared_ptr<NodeEffectXAudioXapo> xapo = dynamic_pointer_cast<NodeEffectXAudioXapo>( input );
-		if( xapo )
-			xapo->notifyConnected();
-	}
-
-	enableAutoPullSourceVoiceIfNecessary();
-}
-
-void ContextXAudio::enableAutoPullSourceVoiceIfNecessary()
-{
-	if( getOutput()->getNumConnectedInputs() == 0 && ! getAutoPulledNodes().empty() && ! mAutoPullSourceVoice ) {
-		mAutoPullSourceVoice = makeNode( new NodeXAudioSourceVoice );
-		mAutoPullSourceVoice->initializeImpl();
-		mAutoPullSourceVoice->start();
-	}
-	else if( mAutoPullSourceVoice ) {
-		mAutoPullSourceVoice->uninitializeImpl();
-		mAutoPullSourceVoice.reset();
-	}
-}
+//void ContextXAudio::enableAutoPullSourceVoiceIfNecessary()
+//{
+//	if( getOutput()->getNumConnectedInputs() == 0 && ! getAutoPulledNodes().empty() && ! mAutoPullSourceVoice ) {
+//		mAutoPullSourceVoice = makeNode( new NodeXAudioSourceVoice );
+//		mAutoPullSourceVoice->initializeImpl();
+//		mAutoPullSourceVoice->start();
+//	}
+//	else if( mAutoPullSourceVoice ) {
+//		mAutoPullSourceVoice->uninitializeImpl();
+//		mAutoPullSourceVoice.reset();
+//	}
+//}
 
 
 
@@ -676,7 +734,7 @@ DeviceRef DeviceManagerXAudio::getDefaultOutput()
 
 DeviceRef DeviceManagerXAudio::getDefaultInput()
 {
-	CI_ASSERT_NOT_REACHABLE();
+	CI_LOG_W( "XAudio2 does not support hardware audio input." );
 	return DeviceRef();
 }
 
@@ -700,12 +758,12 @@ size_t DeviceManagerXAudio::getNumInputChannels( const DeviceRef &device )
 
 size_t DeviceManagerXAudio::getNumOutputChannels( const DeviceRef &device )
 {
-	return 0;
+	return 2; // TODO: populate from default mastervoice
 }
 
 size_t DeviceManagerXAudio::getSampleRate( const DeviceRef &device )
 {
-	return 0;
+	return 44100;
 }
 
 size_t DeviceManagerXAudio::getFramesPerBlock( const DeviceRef &device )
@@ -715,10 +773,13 @@ size_t DeviceManagerXAudio::getFramesPerBlock( const DeviceRef &device )
 
 void DeviceManagerXAudio::setSampleRate( const DeviceRef &device, size_t sampleRate )
 {
+	CI_LOG_W( "setting samplerate not supported, instead use the OS control panel" );
 }
 
 void DeviceManagerXAudio::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
 {
+	// TODO: might as well let user set this, if i'm making it up above.
+	//  - it isn't the real blocksize, it is the size of the buffer submitted to XAUdio2
 }
 
 const DeviceRef& DeviceManagerXAudio::getDefaultDevice()
