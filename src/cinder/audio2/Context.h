@@ -42,10 +42,15 @@ class Context : public std::enable_shared_from_this<Context> {
 	static Context*				master();
 	//! Returns the platform-specific \a DeviceManager singleton instance, which is platform specific. If none is available, returns \a null.
 	static DeviceManager*		deviceManager();
+	//! Allows the user to set the master Context and DeviceManager, overriding the defaults.
+	static void				setMaster( Context *masterContext, DeviceManager *deviceManager );
 
+	//! Creates and returns a platform-specific LineOut, which delivers audio to the hardware output device specified by \a device. 
 	virtual LineOutRef		createLineOut( const DeviceRef &device = Device::getDefaultOutput(), const Node::Format &format = Node::Format() ) = 0;
+	//! Creates and returns a platform-specific LineIn, which captures audio from the hardware input device specified by \a device. 
 	virtual LineInRef		createLineIn( const DeviceRef &device = Device::getDefaultInput(), const Node::Format &format = Node::Format() ) = 0;
 
+	//! Interface for creating new Node's of type \a NodeT, which are thereafter owned by this Context.
 	template<typename NodeT>
 	std::shared_ptr<NodeT>		makeNode( NodeT *node );
 

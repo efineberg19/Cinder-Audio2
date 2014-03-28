@@ -21,7 +21,6 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/NodeInput.h"
 #include "cinder/audio2/dsp/Converter.h"
@@ -38,7 +37,8 @@
 	#else // CINDER_COCOA_TOUCH
 		#include "cinder/audio2/cocoa/DeviceManagerAudioSession.h"
 	#endif
-#elif defined( CINDER_MSW )
+#elif defined( CINDER_MSW ) && ( _WIN32_WINNT >= _WIN32_WINNT_VISTA )
+	#define CINDER_AUDIO_WASAPI
 	#include "cinder/audio2/msw/ContextWasapi.h"
 	#include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #endif
@@ -63,6 +63,7 @@ void Context::registerClearStatics()
 	} );
 }
 
+// static
 Context* Context::master()
 {
 	if( ! sMasterContext ) {
@@ -71,8 +72,8 @@ Context* Context::master()
 #elif defined( CINDER_MSW )
 	#if( _WIN32_WINNT >= _WIN32_WINNT_VISTA )
 		sMasterContext.reset( new msw::ContextWasapi() );
-	#else
-		sMasterContext.reset( new msw::ContextXAudio() );
+	//#else
+	//	sMasterContext.reset( new msw::ContextXAudio() );
 	#endif
 #endif
 		if( ! sIsRegisteredForShutdown )
@@ -81,6 +82,7 @@ Context* Context::master()
 	return sMasterContext.get();
 }
 
+// static
 DeviceManager* Context::deviceManager()
 {
 	if( ! sDeviceManager ) {
@@ -89,16 +91,23 @@ DeviceManager* Context::deviceManager()
 #elif defined( CINDER_COCOA_TOUCH )
 		sDeviceManager.reset( new cocoa::DeviceManagerAudioSession() );
 #elif defined( CINDER_MSW )
-	#if( _WIN32_WINNT >= _WIN32_WINNT_VISTA )
+	#if( _WIN32_WINNT > _WIN32_WINNT_VISTA )
 		sDeviceManager.reset( new msw::DeviceManagerWasapi() );
-	#else
-		CI_ASSERT( 0 && "TODO: simple DeviceManagerXp" );
+	//#else
+	//	CI_ASSERT( 0 && "TODO: simple DeviceManagerXp" );
 	#endif
 #endif
 		if( ! sIsRegisteredForShutdown )
 			registerClearStatics();
 	}
 	return sDeviceManager.get();
+}
+
+// static
+void Context::setMaster( Context *masterContext, DeviceManager *deviceManager )
+{
+	sMasterContext.reset( masterContext );
+	sDeviceManager.reset( deviceManager );
 }
 
 Context::~Context()
