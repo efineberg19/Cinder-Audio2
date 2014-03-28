@@ -23,10 +23,15 @@
 
 #pragma once
 
+#define CI_ENABLE_XAUDIO2
+
+#if ( _WIN32_WINNT < _WIN32_WINNT_VISTA ) || defined( CI_ENABLE_XAUDIO2 )
+#define CINDER_AUDIO_XAUDIO2
+
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/Buffer.h"
 #include "cinder/audio2/NodeEffect.h"
-#include "cinder/audio2/msw/CinderXaudio.h"
+#include "cinder/audio2/msw/CinderXaudio.h" // TODO: fold this into this file, move XAPO stuff to test
 #include "cinder/audio2/msw/MswUtil.h"
 
 namespace cinder { namespace audio2 { namespace msw {
@@ -188,4 +193,28 @@ class ContextXAudio : public Context {
 	std::shared_ptr<NodeXAudioSourceVoice> mAutoPullSourceVoice;
 };
 
+class DeviceManagerXAudio : public DeviceManager {
+public:
+	DeviceRef getDefaultOutput() override;
+	DeviceRef getDefaultInput() override;
+
+	const std::vector<DeviceRef>& getDevices() override;
+
+	std::string getName( const DeviceRef &device ) override;
+	size_t getNumInputChannels( const DeviceRef &device ) override;
+	size_t getNumOutputChannels( const DeviceRef &device ) override;
+	size_t getSampleRate( const DeviceRef &device ) override;
+	size_t getFramesPerBlock( const DeviceRef &device ) override;
+
+	void setSampleRate( const DeviceRef &device, size_t sampleRate ) override;
+	void setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock ) override;
+
+private:
+	const DeviceRef&	getDefaultDevice();
+		
+	DeviceRef	mDefaultDevice;
+};
+
 } } } // namespace cinder::audio2::msw
+
+#endif //  CINDER_AUDIO_XAUDIO2

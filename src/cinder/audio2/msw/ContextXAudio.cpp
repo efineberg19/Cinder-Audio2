@@ -22,6 +22,9 @@
 */
 
 #include "cinder/audio2/msw/ContextXAudio.h"
+
+#if defined( CINDER_AUDIO_XAUDIO2 )
+
 #include "cinder/audio2/msw/DeviceManagerWasapi.h"
 #include "cinder/audio2/dsp/Dsp.h"
 #include "cinder/audio2/dsp/Converter.h"
@@ -38,6 +41,8 @@ using namespace std;
 namespace cinder { namespace audio2 { namespace msw {
 
 namespace {
+
+const string DEFAULT_XAUDIO2_DEVICE_KEY = "xaudio2-default";
 
 inline bool isNodeNativeXAudio( NodeRef node )
 {
@@ -655,4 +660,75 @@ void ContextXAudio::enableAutoPullSourceVoiceIfNecessary()
 	}
 }
 
+
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - DeviceMaangerXAudio
+// ----------------------------------------------------------------------------------------------------
+
+DeviceRef DeviceManagerXAudio::getDefaultOutput()
+{
+	if( ! mDefaultDevice )
+		mDefaultDevice = addDevice( DEFAULT_XAUDIO2_DEVICE_KEY );
+
+	return mDefaultDevice;
+}
+
+DeviceRef DeviceManagerXAudio::getDefaultInput()
+{
+	CI_ASSERT_NOT_REACHABLE();
+	return DeviceRef();
+}
+
+const std::vector<DeviceRef>& DeviceManagerXAudio::getDevices()
+{
+	if( mDevices.empty() )
+		getDefaultDevice();
+
+	return mDevices;
+}
+
+std::string DeviceManagerXAudio::getName( const DeviceRef &device )
+{
+	return DEFAULT_XAUDIO2_DEVICE_KEY;
+}
+
+size_t DeviceManagerXAudio::getNumInputChannels( const DeviceRef &device )
+{
+	return 0;
+}
+
+size_t DeviceManagerXAudio::getNumOutputChannels( const DeviceRef &device )
+{
+	return 0;
+}
+
+size_t DeviceManagerXAudio::getSampleRate( const DeviceRef &device )
+{
+	return 0;
+}
+
+size_t DeviceManagerXAudio::getFramesPerBlock( const DeviceRef &device )
+{
+	return 512;
+}
+
+void DeviceManagerXAudio::setSampleRate( const DeviceRef &device, size_t sampleRate )
+{
+}
+
+void DeviceManagerXAudio::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
+{
+}
+
+const DeviceRef& DeviceManagerXAudio::getDefaultDevice()
+{
+	if( ! mDefaultDevice )
+		mDefaultDevice = addDevice( DEFAULT_XAUDIO2_DEVICE_KEY );
+
+	return mDefaultDevice;
+}
+
 } } } // namespace cinder::audio2::msw
+
+#endif // defined( CINDER_AUDIO_XAUDIO2 )

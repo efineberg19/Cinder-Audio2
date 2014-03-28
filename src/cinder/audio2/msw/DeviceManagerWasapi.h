@@ -48,8 +48,8 @@ class DeviceManagerWasapi : public DeviceManager {
 	size_t getSampleRate( const DeviceRef &device ) override;
 	size_t getFramesPerBlock( const DeviceRef &device ) override;
 
-	virtual void setSampleRate( const DeviceRef &device, size_t sampleRate ) override;
-	virtual void setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock ) override;
+	void setSampleRate( const DeviceRef &device, size_t sampleRate ) override;
+	void setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock ) override;
 
 	const std::wstring& getDeviceId( const DeviceRef &device );
 
