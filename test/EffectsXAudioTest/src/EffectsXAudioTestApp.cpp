@@ -12,9 +12,34 @@
 
 #include "../../common/AudioTestGui.h"
 
-// TODO: only two tests: Reverb Xapo and lowpass filter
-// TODO: move all xapo business out of audio2.lib, into this file.
-// TODO: pull samplerate / numChannels from the ContextXAudio's mastering voice when Device first needs it.
+#include <xaudio2.h>
+#include <xaudio2fx.h>
+
+#include "XAPOFX.h"
+
+#if( _WIN32_WINNT >= _WIN32_WINNT_WIN8 )
+	#pragma comment(lib, "xaudio2.lib")
+	#pragma comment(lib, "xapobase.lib")
+#else
+	#pragma comment(lib, "XAPOFX.lib")
+#endif
+
+// copied from xaudio2.h to I don't have to define XAUDIO2_HELPER_FUNCTIONS
+__inline float XAudio2FrequencyRatioToSemitones(float FrequencyRatio)
+{
+	// Semitones = 12 * log2(FrequencyRatio)
+	//           = 12 * log2(10) * log10(FrequencyRatio)
+	return 39.86313713864835f * log10f(FrequencyRatio);
+}
+
+__inline float XAudio2CutoffFrequencyToRadians(float CutoffFrequency, UINT32 SampleRate)
+{
+	if ((UINT32)(CutoffFrequency * 6.0f) >= SampleRate)
+	{
+		return XAUDIO2_MAX_FILTER_FREQUENCY;
+	}
+	return 2.0f * sinf((float)M_PI * CutoffFrequency / SampleRate);
+}
 
 using namespace ci;
 using namespace ci::app;
@@ -59,8 +84,8 @@ void EffectXAudioTestApp::setup()
 
 	auto ctx = audio2::master();
 
-	mGen = ctx->makeNode( new audio2::GenPulse );
-	//mGen = ctx->makeNode( new audio2::GenTriangle );
+	//mGen = ctx->makeNode( new audio2::GenPulse );
+	mGen = ctx->makeNode( new audio2::GenTriangle );
 
 	mGen->setFreq( 100 );
 	mGen->setAutoEnabled();

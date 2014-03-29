@@ -23,16 +23,21 @@
 
 #pragma once
 
-#define CI_ENABLE_XAUDIO2
+#define CI_ENABLE_XAUDIO2 // TODO: remove
 
 #if ( _WIN32_WINNT < _WIN32_WINNT_VISTA ) || defined( CI_ENABLE_XAUDIO2 )
 	#define CINDER_AUDIO_XAUDIO2
 
+#if( _WIN32_WINNT >= _WIN32_WINNT_WIN8 && defined( _USING_V110_SDK71_ ) )
+	#error "XAudio2 targeting minimum win8 cannot use v110_xp, switch to v110."
+#endif
+
 #include "cinder/audio2/Context.h"
 #include "cinder/audio2/Buffer.h"
 #include "cinder/audio2/NodeEffect.h"
-#include "cinder/audio2/msw/CinderXaudio.h" // TODO: fold this into this file, move XAPO stuff to test
 #include "cinder/audio2/msw/MswUtil.h"
+
+#include <xaudio2.h>
 
 namespace cinder { namespace audio2 { namespace msw {
 

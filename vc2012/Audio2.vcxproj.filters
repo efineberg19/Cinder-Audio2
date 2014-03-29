@@ -483,9 +483,6 @@
     <ClInclude Include="..\src\cinder\audio2\msw\MswUtil.h">
       <Filter>Source Files\cinder\audio2\msw</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cinder\audio2\msw\CinderXAudio.h">
-      <Filter>Source Files\cinder\audio2\msw</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cinder\audio2\Gen.h">
       <Filter>Source Files\cinder\audio2</Filter>
     </ClInclude>

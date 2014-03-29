@@ -94,7 +94,6 @@
     <ClInclude Include="..\src\cinder\audio2\msw\DeviceManagerWasapi.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\FileMediaFoundation.h" />
     <ClInclude Include="..\src\cinder\audio2\msw\MswUtil.h" />
-    <ClInclude Include="..\src\cinder\audio2\msw\CinderXAudio.h" />
     <ClInclude Include="..\src\cinder\audio2\Node.h" />
     <ClInclude Include="..\src\cinder\audio2\NodeEffect.h" />
     <ClInclude Include="..\src\cinder\audio2\NodeInput.h" />
