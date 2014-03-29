@@ -25,11 +25,18 @@
 
 #define CI_ENABLE_XAUDIO2 // TODO: remove
 
-#if ( _WIN32_WINNT < _WIN32_WINNT_VISTA ) || defined( CI_ENABLE_XAUDIO2 )
+#if ( _WIN32_WINNT < 0x0502 ) || defined( CI_ENABLE_XAUDIO2 )
 	#define CINDER_AUDIO_XAUDIO2
 
-#if( _WIN32_WINNT >= _WIN32_WINNT_WIN8 && defined( _USING_V110_SDK71_ ) )
-	#error "XAudio2 targeting minimum win8 cannot use v110_xp, switch to v110."
+#if( _WIN32_WINNT >= 0x0602 )
+	#if defined( _USING_V110_SDK71_ )
+		#error "XAudio2 targeting minimum win8 cannot use v110_xp, switch to v110."
+	#endif
+
+#error "how the fuck is this resolving to true"
+	#define CINDER_XAUDIO_2_8
+#else
+	#define CINDER_XAUDIO_2_7
 #endif
 
 #include "cinder/audio2/Context.h"

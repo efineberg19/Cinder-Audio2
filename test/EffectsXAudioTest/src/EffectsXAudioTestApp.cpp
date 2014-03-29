@@ -17,7 +17,7 @@
 
 #include "XAPOFX.h"
 
-#if( _WIN32_WINNT >= _WIN32_WINNT_WIN8 )
+#if( _WIN32_WINNT >= 0x0602 )
 	#pragma comment(lib, "xaudio2.lib")
 	#pragma comment(lib, "xapobase.lib")
 #else
@@ -173,7 +173,9 @@ void EffectXAudioTestApp::initReverbParams()
 	mReverbParams.DecayTime = XAUDIO2FX_REVERB_DEFAULT_DECAY_TIME;
 	mReverbParams.Density = XAUDIO2FX_REVERB_DEFAULT_DENSITY;
 	mReverbParams.RoomSize = XAUDIO2FX_REVERB_DEFAULT_ROOM_SIZE;
+#if defined( CINDER_XAUDIO_2_8 )
 	mReverbParams.DisableLateField = XAUDIO2FX_REVERB_DEFAULT_DISABLE_LATE_FIELD;
+#endif
 
 	IXAudio2SourceVoice *sourceVoice = mContextXAudio->getLineOutXAudio()->getSourceVoice();
 	HRESULT hr = sourceVoice->SetEffectParameters( 0, &mReverbParams, sizeof( mReverbParams ) );
