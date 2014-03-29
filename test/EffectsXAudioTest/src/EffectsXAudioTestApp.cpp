@@ -1,172 +1,158 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 
-// TODO: update
-// - remove using namespace audio2
+#include "cinder/audio2/Gen.h"
+#include "cinder/audio2/NodeEffect.h"
+#include "cinder/audio2/CinderAssert.h"
+#include "cinder/audio2/Debug.h"
 
-#include "audio2/CinderAssert.h"
-#include "audio2/Debug.h"
+#include "cinder/audio2/msw/ContextXAudio.h"
+#include "cinder/audio2/msw/MswUtil.h"
+#include "cinder/msw/CinderMsw.h"
 
-#include "audio2/msw/ContextXAudio.h"
+#include "../../common/AudioTestGui.h"
 
-#include "Gui.h"
+// TODO: only two tests: Reverb Xapo and lowpass filter
+// TODO: move all xapo business out of audio2.lib, into this file.
+// TODO: pull samplerate / numChannels from the ContextXAudio's mastering voice when Device first needs it.
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-
-using namespace audio2;
-using namespace audio2::msw;
 
 class EffectXAudioTestApp : public AppNative {
 public:
 	void setup();
 	void draw();
 
-	void setupOne();
-	void setupTwo();
+	void setupReverb();
 	void setupFilter();
-	void setupFilterThenDelay();
-	void setupNativeThenGeneric();
 
-	void initEQParams();
-	void initDelayParams();
-	void initFilterParams();
+	void initReverbParams();
+	void updateReverb();
+	void updateLowpass();
 
 	void setupUI();
 	void processDrag( Vec2i pos );
 	void processTap( Vec2i pos );
-	void initContext();
-	void updateLowpass();
-	void updateEcho();
 
-	ContextRef mContext;
 
-	NodeRef mSource;
-	shared_ptr<NodeEffectXAudioXapo> mEQ, mEcho;
-	FXEQ_PARAMETERS mEQParams;
-	FXECHO_PARAMETERS mEchoParams;
+	audio2::GenRef mGen;
+	audio2::GainRef	mGain;
 
-	shared_ptr<NodeEffectXAudioFilter> mFilterEffect;
-	XAUDIO2_FILTER_PARAMETERS mFilterParams;
+	audio2::msw::ContextXAudio*	mContextXAudio;
+
+	std::unique_ptr<::IUnknown, audio2::msw::ComReleaser>	mXapo;
+	XAUDIO2_EFFECT_DESCRIPTOR								mEffectDesc;
+	XAUDIO2FX_REVERB_PARAMETERS								mReverbParams;
+	XAUDIO2_FILTER_PARAMETERS								mFilterParams;
 
 	vector<TestWidget *> mWidgets;
 	Button mPlayButton;
-	VSelector mTestSelector;
-	HSlider mLowpassCutoffSlider, mDelaySlider;
+	HSlider mFreqSlider, mLowpassCutoffSlider, mReverbDecaySlider;
 };
 
 void EffectXAudioTestApp::setup()
 {
-	mContext = Context::create();
+	mContextXAudio = new audio2::msw::ContextXAudio;
+	audio2::Context::setMaster( mContextXAudio, new audio2::msw::DeviceManagerXAudio );
 
-	auto noise = mContext->makeNode( new NodeGen<NoiseGen>( Node::Format().autoEnable() ) );
-	noise->getGen().setAmp( 0.25f );
-	mSource = noise;
+	auto ctx = audio2::master();
 
-	setupOne();
-	//setupTwo();
+	mGen = ctx->makeNode( new audio2::GenPulse );
+	//mGen = ctx->makeNode( new audio2::GenTriangle );
+
+	mGen->setFreq( 100 );
+	mGen->setAutoEnabled();
+
+	mGain = ctx->makeNode( new audio2::Gain( 0.6f ) );
+	
+	mGen >> mGain >> ctx->getOutput();
+
+	audio2::master()->printGraph();
+
+	setupReverb();
+	setupFilter();
 
 	setupUI();
-	printGraph( mContext );
 }
 
-void EffectXAudioTestApp::setupOne()
+void EffectXAudioTestApp::setupReverb()
 {
-	mFilterEffect.reset();
-	mEQ =  mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEQ ) );
+	::IUnknown *reverb;
+	HRESULT hr = XAudio2CreateReverb( &reverb );
+	CI_ASSERT( hr == S_OK );
 
-	mSource->connect( mEQ )->connect( mContext->getTarget() );
+	mXapo = audio2::msw::makeComUnique( reverb );
+	mEffectDesc.InitialState = true;
+	mEffectDesc.OutputChannels = 2;
+	mEffectDesc.pEffect = mXapo.get();
+
+	::XAUDIO2_EFFECT_CHAIN effectsChain;
+	effectsChain.EffectCount = 1;
+	effectsChain.pEffectDescriptors = &mEffectDesc;
+
+	// you can only call SetEffectChain once in the lifetime of the IXAudio2SourceVoice, so re-init it first.
+	auto lineOut = mContextXAudio->getLineOutXAudio();
+
+	mContextXAudio->uninitializeNode( lineOut );
+	mContextXAudio->initializeNode( lineOut );
+
+	IXAudio2SourceVoice *sourceVoice = lineOut->getSourceVoice(); 
+	CI_ASSERT( sourceVoice );
+
+	hr = sourceVoice->SetEffectChain( &effectsChain );
+	CI_ASSERT( hr == S_OK );
 
 	// init params after connecting
-	initEQParams();
-}
-
-void EffectXAudioTestApp::setupTwo()
-{
-	mFilterEffect.reset();
-
-	Node::Format format;
-	//format.channels( 2 ); // force stereo
-
-	mEQ = mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEQ, format ) );
-	mEcho = mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEcho ) );
-
-	mSource->connect( mEQ )->connect( mEcho )->connect( mContext->getTarget() );
-
-	initEQParams();
-	initDelayParams();
+	initReverbParams();
 }
 
 void EffectXAudioTestApp::setupFilter()
 {
-	mFilterEffect = mContext->makeNode( new NodeEffectXAudioFilter() );
+	IXAudio2SourceVoice *sourceVoice = mContextXAudio->getLineOutXAudio()->getSourceVoice(); 
 
+	sourceVoice->GetFilterParameters( &mFilterParams );
 
-	mSource->connect( mFilterEffect )->connect( mContext->getTarget() );
-
-	initFilterParams();
-}
-
-void EffectXAudioTestApp::setupFilterThenDelay()
-{
-	mFilterEffect = mContext->makeNode( new NodeEffectXAudioFilter() );
-	mEcho =  mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEcho ) );
-
-	mSource->connect( mFilterEffect )->connect( mEcho )->connect( mContext->getTarget() );
-
-	initFilterParams();
-	initDelayParams();
-}
-
-void EffectXAudioTestApp::setupNativeThenGeneric()
-{
-	// TODO: catch exception
-
-	mEQ = mContext->makeNode( new NodeEffectXAudioXapo( NodeEffectXAudioXapo::XapoType::FXEQ ) );
-	auto ringMod = mContext->makeNode( new RingMod() );
-
-	mSource->connect( mEQ )->connect( ringMod )->connect( mContext->getTarget() );
-}
-
-void EffectXAudioTestApp::initEQParams()
-{
-	if( ! mEQ )
-		return;
-
-	mEQ->getParams( &mEQParams );
-
-	// reset so it's like a lowpass
-	mEQParams.Gain0 = FXEQ_MAX_GAIN;
-	mEQParams.Gain1 = FXEQ_MIN_GAIN;
-	mEQParams.Gain2 = FXEQ_MIN_GAIN;
-	mEQParams.Gain3 = FXEQ_MIN_GAIN;
-
-	mEQ->setParams( mEQParams );
-
-	mLowpassCutoffSlider.set( mEQParams.FrequencyCenter0 );
-}
-
-void EffectXAudioTestApp::initDelayParams()
-{
-	if( ! mEcho )
-		return;
-
-	mEcho->getParams( &mEchoParams );
-	mDelaySlider.set( mEchoParams.Delay );
-}
-
-void EffectXAudioTestApp::initFilterParams()
-{
-	if( ! mFilterEffect )
-		return;
-
-	mFilterEffect->getParams( &mFilterParams );
 	mFilterParams.Type = LowPassFilter;
-	mFilterEffect->setParams( mFilterParams );
-
 	float cutoff = XAudio2FrequencyRatioToSemitones( mFilterParams.Frequency );
+
+	HRESULT hr = sourceVoice->SetFilterParameters( &mFilterParams );
+	CI_ASSERT( hr == S_OK );
+
 	mLowpassCutoffSlider.set( cutoff );
+}
+
+void EffectXAudioTestApp::initReverbParams()
+{
+	// set reverb defaults
+	mReverbParams.WetDryMix = XAUDIO2FX_REVERB_DEFAULT_WET_DRY_MIX;
+	mReverbParams.ReflectionsDelay = XAUDIO2FX_REVERB_DEFAULT_REFLECTIONS_DELAY;
+	mReverbParams.ReverbDelay = XAUDIO2FX_REVERB_DEFAULT_REVERB_DELAY;
+	mReverbParams.RearDelay = XAUDIO2FX_REVERB_DEFAULT_REAR_DELAY;
+	mReverbParams.PositionLeft = XAUDIO2FX_REVERB_DEFAULT_POSITION;
+	mReverbParams.PositionRight = XAUDIO2FX_REVERB_DEFAULT_POSITION;
+	mReverbParams.PositionMatrixLeft = XAUDIO2FX_REVERB_DEFAULT_POSITION_MATRIX;
+	mReverbParams.PositionMatrixRight = XAUDIO2FX_REVERB_DEFAULT_POSITION_MATRIX;
+	mReverbParams.EarlyDiffusion = XAUDIO2FX_REVERB_DEFAULT_EARLY_DIFFUSION;
+	mReverbParams.LateDiffusion = XAUDIO2FX_REVERB_DEFAULT_LATE_DIFFUSION;
+	mReverbParams.LowEQGain = XAUDIO2FX_REVERB_DEFAULT_LOW_EQ_GAIN;
+	mReverbParams.LowEQCutoff = XAUDIO2FX_REVERB_DEFAULT_LOW_EQ_CUTOFF;
+	mReverbParams.HighEQGain = XAUDIO2FX_REVERB_DEFAULT_HIGH_EQ_GAIN;
+	mReverbParams.HighEQCutoff = XAUDIO2FX_REVERB_DEFAULT_HIGH_EQ_CUTOFF;
+	mReverbParams.RoomFilterFreq = XAUDIO2FX_REVERB_DEFAULT_ROOM_FILTER_FREQ;
+	mReverbParams.RoomFilterMain = XAUDIO2FX_REVERB_DEFAULT_ROOM_FILTER_MAIN;
+	mReverbParams.RoomFilterHF = XAUDIO2FX_REVERB_DEFAULT_ROOM_FILTER_HF;
+	mReverbParams.ReflectionsGain = XAUDIO2FX_REVERB_DEFAULT_REFLECTIONS_GAIN;
+	mReverbParams.ReverbGain = XAUDIO2FX_REVERB_DEFAULT_REVERB_GAIN;
+	mReverbParams.DecayTime = XAUDIO2FX_REVERB_DEFAULT_DECAY_TIME;
+	mReverbParams.Density = XAUDIO2FX_REVERB_DEFAULT_DENSITY;
+	mReverbParams.RoomSize = XAUDIO2FX_REVERB_DEFAULT_ROOM_SIZE;
+	mReverbParams.DisableLateField = XAUDIO2FX_REVERB_DEFAULT_DISABLE_LATE_FIELD;
+
+	IXAudio2SourceVoice *sourceVoice = mContextXAudio->getLineOutXAudio()->getSourceVoice();
+	HRESULT hr = sourceVoice->SetEffectParameters( 0, &mReverbParams, sizeof( mReverbParams ) );
+	CI_ASSERT( hr == S_OK );
 }
 
 void EffectXAudioTestApp::setupUI()
@@ -175,27 +161,29 @@ void EffectXAudioTestApp::setupUI()
 	mPlayButton.mBounds = Rectf( 0, 0, 200, 60 );
 	mWidgets.push_back( &mPlayButton );
 
-	mTestSelector.mSegments.push_back( "one" );
-	mTestSelector.mSegments.push_back( "two" );
-	mTestSelector.mSegments.push_back( "filter" );
-	mTestSelector.mSegments.push_back( "filter -> delay" );
-	mTestSelector.mSegments.push_back( "native -> generic" );
-	mTestSelector.mBounds = Rectf( (float)getWindowWidth() * 0.67f, 0.0f, (float)getWindowWidth(), 160.0f );
-	mWidgets.push_back( &mTestSelector );
-
 	float width = std::min( (float)getWindowWidth() - 20.0f,  440.0f );
 	Rectf sliderRect( getWindowCenter().x - width / 2.0f, 200, getWindowCenter().x + width / 2.0f, 250 );
+
+	mFreqSlider.mBounds = sliderRect;
+	mFreqSlider.mTitle = "Gen Freq";
+	mFreqSlider.mMax = 800.0f;
+	mFreqSlider.set( mGen->getFreq() );
+	mWidgets.push_back( &mFreqSlider);
+
+	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
 	mLowpassCutoffSlider.mBounds = sliderRect;
 	mLowpassCutoffSlider.mTitle = "Lowpass Cutoff";
 	mLowpassCutoffSlider.mMax = 1500.0f;
+	mLowpassCutoffSlider.set( mLowpassCutoffSlider.mValueScaled );
 	mWidgets.push_back( &mLowpassCutoffSlider );
 
 	sliderRect += Vec2f( 0, sliderRect.getHeight() + 10 );
-	mDelaySlider.mBounds = sliderRect;
-	mDelaySlider.mTitle = "Echo Delay";
-	mDelaySlider.mMin = 1.0f;
-	mDelaySlider.mMax = 2000.0f;
-	mWidgets.push_back( &mDelaySlider );
+	mReverbDecaySlider.mBounds = sliderRect;
+	mReverbDecaySlider.mTitle = "Reverb Decay (s)";
+	mReverbDecaySlider.mMin = XAUDIO2FX_REVERB_MIN_DECAY_TIME;
+	mReverbDecaySlider.mMax = 10;
+	mReverbDecaySlider.set( XAUDIO2FX_REVERB_DEFAULT_DECAY_TIME );
+	mWidgets.push_back( &mReverbDecaySlider );
 
 	getWindow()->getSignalMouseDown().connect( [this] ( MouseEvent &event ) { processTap( event.getPos() ); } );
 	getWindow()->getSignalMouseDrag().connect( [this] ( MouseEvent &event ) { processDrag( event.getPos() ); } );
@@ -210,60 +198,40 @@ void EffectXAudioTestApp::setupUI()
 
 void EffectXAudioTestApp::updateLowpass()
 {
-	if( mFilterEffect ) {
-		mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.mValueScaled, mContext->getSampleRate() );
-		mFilterEffect->setParams( mFilterParams );
-	}
-	else if( mEQ ) {
-		// TEMP: eq is used instead of reverb because sound source is constant
-		mEQParams.FrequencyCenter0 = mLowpassCutoffSlider.mValueScaled;
-		mEQ->setParams( mEQParams );
-	}
+	mFilterParams.Frequency = XAudio2CutoffFrequencyToRadians( mLowpassCutoffSlider.mValueScaled, audio2::master()->getSampleRate() );
+
+	IXAudio2SourceVoice *sourceVoice = mContextXAudio->getLineOutXAudio()->getSourceVoice();
+	HRESULT hr = sourceVoice->SetFilterParameters( &mFilterParams );
+	CI_ASSERT( hr == S_OK );
 }
 
-void EffectXAudioTestApp::updateEcho()
+void EffectXAudioTestApp::updateReverb()
 {
-	if( mEcho ) {
-		mEchoParams.Delay = std::max( FXECHO_MIN_DELAY, mDelaySlider.mValueScaled ); // seems like the effect shuts off if this is set to 0... probably worth protecting against it
-		mEcho->setParams( mEchoParams );
+	if( mXapo ) {
+		mReverbParams.DecayTime = mReverbDecaySlider.mValueScaled;
+
+		IXAudio2SourceVoice *sourceVoice = mContextXAudio->getLineOutXAudio()->getSourceVoice();
+		HRESULT hr = sourceVoice->SetEffectParameters( 0, &mReverbParams, sizeof( mReverbParams ) );
+		CI_ASSERT( hr == S_OK );
 	}
 }
 
 void EffectXAudioTestApp::processDrag( Vec2i pos )
 {
+	if( mFreqSlider.hitTest( pos ) )
+		mGen->setFreq( mFreqSlider.mValueScaled );
 	if( mLowpassCutoffSlider.hitTest( pos ) )
-		updateLowpass();
-	
-	if( mDelaySlider.hitTest( pos ) )
-		updateEcho();
+		updateLowpass();	
+	if( mReverbDecaySlider.hitTest( pos ) )
+		updateReverb();
 }
 
 void EffectXAudioTestApp::processTap( Vec2i pos )
 {
 	if( mPlayButton.hitTest( pos ) )
-		mContext->setEnabled( ! mContext->isEnabled() );
-
-	size_t currentIndex = mTestSelector.mCurrentSectionIndex;
-	if( mTestSelector.hitTest( pos ) && currentIndex != mTestSelector.mCurrentSectionIndex ) {
-		string currentTest = mTestSelector.currentSection();
-		LOG_V << "selected: " << currentTest << endl;
-
-		bool enabled = mContext->isEnabled();
-		mContext->disconnectAllNodes();
-
-		if( currentTest == "one" )
-			setupOne();
-		if( currentTest == "two" )
-			setupTwo();
-		if( currentTest == "filter" )
-			setupFilter();
-		if( currentTest == "filter -> delay" )
-			setupFilterThenDelay();
-		if( currentTest == "native -> generic" )
-			setupNativeThenGeneric();
-
-		mContext->setEnabled( enabled );
-	}
+		audio2::master()->setEnabled( ! audio2::master()->isEnabled() );
+	else
+		processDrag( pos );
 }
 
 void EffectXAudioTestApp::draw()

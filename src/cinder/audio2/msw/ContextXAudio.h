@@ -96,6 +96,14 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	void start() override;
 	void stop() override;
 
+	//! Returns the IXAudio2SourceVoice used to submit audio buffers to the mastering voice
+	::IXAudio2SourceVoice*	getSourceVoice() const	{ return mSourceVoice; }
+	//! Sets whether filter usage is enabled within the audio context (default = true). Disabling may increase performance.
+	//! \note must be set before this LineOutXAudio is initialized to have any effect.
+	void setFilterEffectsEnabled( bool b = true )	{ mFilterEnabled = b; }
+	//! Returns whether filter usage is enabled within this audio context (default = true). \see NodeEffectXAudioFilter
+	bool isFilterEffectsEnabled() const				{ return mFilterEnabled; }
+
   protected:
 	void initialize() override;
 	void uninitialize() override;
@@ -104,23 +112,13 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 
 	void initMasterVoice();
 	void initSourceVoice();
-
 	void submitNextBuffer();
 
-	::IXAudio2SourceVoice*						mSourceVoice;
-	::XAUDIO2_BUFFER							mXAudioBuffer;
-	//std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
-	BufferInterleaved							mBufferInterleaved;
-
-	// Because the last time we see output samples is when a NodeXAudioSourceVoice submits its buffer,
-	// NodeXAudioSourceVoice's call into this LineOut to check if its buffer is clipping.
-	bool checkNotClippingImpl( const Buffer &sourceVoiceBuffer );
-
-	//::IXAudio2					*mXAudio;
-	//::IXAudio2MasteringVoice	*mMasteringVoice;
-
-	//std::unique_ptr<EngineCallbackImpl> mEngineCallback;
+	::IXAudio2SourceVoice*					mSourceVoice;
+	::XAUDIO2_BUFFER						mXAudioBuffer;
+	std::unique_ptr<VoiceCallbackImpl>		mVoiceCallback;
+	BufferInterleaved						mBufferInterleaved;
+	bool									mFilterEnabled;
 
 	friend struct VoiceCallbackImpl;
 };
@@ -182,29 +180,24 @@ class ContextXAudio : public Context {
 	//! No LineIn is available via XAudio2 path, returns an empty \a LineInRef
 	LineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
 
-	//! When connections change, ensure a NodeXAudioSourceVoice is in the right position to enable pulling audio samples.
-	//void connectionsDidChange( const NodeRef &node ) override; 
-	//! Overridden to assert type is LineOutXAudio. TODO: override to disable and warn
-	void setOutput( const NodeOutputRef &output ) override;
 	//! Overridden to also start XAudio2 engine.
 	void start() override;
 	//! Overridden to also stop XAudio2 engine.
 	void stop() override;
 
-	//! Returns a pointer to the \a IXAudio2 instance associated with this context, owned by the associated \a LineOut.
-	::IXAudio2* getXAudio() const	{ return mXAudio; }
-	//! Called from LineOutXAudio::iniialize(), creates a NodeXAudioSourceVoice if there are auto-pull Node's and no other source voices
-	//void enableAutoPullSourceVoiceIfNecessary();
-	//! Sets whether to enable filter usage within this audio context (default = true). \see NodeEffectXAudioFilter
-	void setFilterEffectsEnabled( bool b = true )	{ mFilterEnabled = b; }
-	//! Returns whether filter usage is enabled within this audio context (default = true). \see NodeEffectXAudioFilter
-	bool isFilterEffectsEnabled() const			{ return mFilterEnabled; }
+	//! Returns the LineOutXAudio that is used for this Context's NodeOutput.
+	std::shared_ptr<LineOutXAudio>	getLineOutXAudio() const;
+	//! Returns a pointer to the \a IXAudio2 instance owned by this context
+	::IXAudio2*						getXAudio() const	{ return mXAudio; }
+	//! Returns a pointer to the \a IXAudio2 instance owned by this context
+	::IXAudio2MasteringVoice*		getMasteringVoice() const	{ return mMasteringVoice; }
 
   private:
-	void initXAudio2();
-	void initMasterVoice();
+	//! Overridden to disable setting the NodeOutput, only the default is supported, which is automatically created.
+	void setOutput( const NodeOutputRef &output ) override;
 
-	bool	mFilterEnabled;
+	void initXAudio2();
+	void initMasteringVoice();
 
 	::IXAudio2*							mXAudio;
 	::IXAudio2MasteringVoice*			mMasteringVoice;
