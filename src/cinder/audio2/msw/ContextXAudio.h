@@ -36,59 +36,10 @@
 
 namespace cinder { namespace audio2 { namespace msw {
 
-class NodeXAudioSourceVoice;
-class NodeXAudio;
-
-class NodeXAudio {
-  public:
-	NodeXAudio() {}
-	virtual ~NodeXAudio();
-
-  protected:
-	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-};
-
 struct VoiceCallbackImpl;
-
-
-class NodeXAudioSourceVoice : public Node, public NodeXAudio {
-  public:
-	virtual	~NodeXAudioSourceVoice();
-
-	void start() override;
-	void stop() override;
-
-	//! Returns the native \a IXAudio2SourceVoice maintained by the \a Node.
-	IXAudio2SourceVoice* getNative()	{ return mSourceVoice; }
-
-	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>& getEffectsDescriptors() { return mEffectsDescriptors; }
-
-  protected:
-	void initialize() override;
-	void uninitialize() override;
-
-  private:
-	NodeXAudioSourceVoice();
-
-	void initSourceVoice();
-	void uninitSourceVoice();
-
-	void submitNextBuffer();
-
-	::IXAudio2SourceVoice*						mSourceVoice;
-	::XAUDIO2_BUFFER							mXAudioBuffer;
-	std::vector<::XAUDIO2_EFFECT_DESCRIPTOR>	mEffectsDescriptors;
-	BufferInterleaved							mBufferInterleaved;
-	std::unique_ptr<VoiceCallbackImpl>			mVoiceCallback;
-
-	friend class ContextXAudio;
-	friend class NodeEffectXAudioXapo;
-};
-
-
 struct EngineCallbackImpl;
 
-class LineOutXAudio : public LineOut, public NodeXAudio {
+class LineOutXAudio : public LineOut {
   public:
 	LineOutXAudio( DeviceRef device, const Format &format = Format() );
 	virtual ~LineOutXAudio();
@@ -121,54 +72,6 @@ class LineOutXAudio : public LineOut, public NodeXAudio {
 	bool									mFilterEnabled;
 
 	friend struct VoiceCallbackImpl;
-};
-
-class NodeEffectXAudioXapo : public NodeEffect, public NodeXAudio {
-  public:
-	//! These enum names match the class uuid names in xapofx.h. TODO: consider just passing in the REFCLSID
-	enum XapoType { FXEcho, FXEQ, FXMasteringLimiter, FXReverb };
-
-	NodeEffectXAudioXapo( XapoType type, const Format &format = Format() );
-	virtual ~NodeEffectXAudioXapo();
-
-	// TODO: get/set params should throw if a bad HRESULT shows up because of this
-
-	template<typename ParamsT>
-	void getParams( ParamsT *params )			{ getParams( static_cast<void *>( params ), sizeof( *params ) ); }
-
-	template<typename ParamsT>
-	void setParams( const ParamsT &params )		{ setParams( static_cast<const void *>( &params ), sizeof( params ) ); }
-
-  protected:
-	void initialize() override;
-
-  private:
-	void getParams( void *params, size_t sizeParams );
-	void setParams( const void *params, size_t sizeParams );
-
-	void makeXapo( REFCLSID clsid );
-	void notifyConnected();
-
-	std::unique_ptr<::IUnknown, msw::ComReleaser>	mXapo;
-	XapoType										mType;
-	::XAUDIO2_EFFECT_DESCRIPTOR						mEffectDesc;
-	size_t											mChainIndex;
-
-	friend class ContextXAudio;
-};
-
-//! \note Due to XAudio2 limitations, only one EffectXAudioFilter can be attached in series. Connecting another will simply overwrite the first and you will only hear the second filter.
-class NodeEffectXAudioFilter : public NodeEffect, public NodeXAudio {
-  public:
-	NodeEffectXAudioFilter( const Format &format = Format() );
-	virtual ~NodeEffectXAudioFilter();
-
-	void getParams( ::XAUDIO2_FILTER_PARAMETERS *params );
-	void setParams( const ::XAUDIO2_FILTER_PARAMETERS &params );
-
-  protected:
-	void initialize() override;
-	void uninitialize() override;
 };
 
 class ContextXAudio : public Context {
