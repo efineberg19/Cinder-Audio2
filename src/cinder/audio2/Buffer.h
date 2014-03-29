@@ -28,6 +28,7 @@
 #include <vector>
 #include <memory>
 #include <cstdlib>
+#include <algorithm>
 
 // TODO: It'd be nice to have a 'BufferView' or similar functionality
 // - would not own the internal buffer, but would point to another one, with offset + size

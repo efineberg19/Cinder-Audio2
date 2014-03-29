@@ -23,7 +23,7 @@
 
 #include "cinder/audio2/msw/MswUtil.h"
 
-#include <xaudio2.h>
+#include <mmreg.h>
 
 namespace cinder { namespace audio2 { namespace msw {
 

@@ -23,8 +23,6 @@
 
 #pragma once
 
-#define CI_ENABLE_XAUDIO2 // TODO: remove
-
 #if ( _WIN32_WINNT < 0x0502 ) || defined( CI_ENABLE_XAUDIO2 )
 	#define CINDER_AUDIO_XAUDIO2
 
