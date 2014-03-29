@@ -109,6 +109,8 @@ class ContextXAudio : public Context {
 
 class DeviceManagerXAudio : public DeviceManager {
 public:
+	DeviceManagerXAudio();
+
 	DeviceRef getDefaultOutput() override;
 	DeviceRef getDefaultInput() override;
 
@@ -125,8 +127,11 @@ public:
 
 private:
 	const DeviceRef&	getDefaultDevice();
+	void				retrieveDeviceDetails();
 		
-	DeviceRef	mDefaultDevice;
+	DeviceRef					mDefaultDevice;
+	bool						mDeviceDetailsRetrieved;
+	::XAUDIO2_VOICE_DETAILS		mVoiceDetails;
 };
 
 } } } // namespace cinder::audio2::msw

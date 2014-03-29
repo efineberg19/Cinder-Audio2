@@ -43,6 +43,7 @@ namespace cinder { namespace audio2 { namespace msw {
 namespace {
 
 const string DEFAULT_XAUDIO2_DEVICE_KEY = "xaudio2-default";
+const size_t DEFAULT_XAUDIO2_FRAMES_PER_BLOCK = 512;
 
 } // anonymous namespace
 
@@ -308,16 +309,17 @@ void ContextXAudio::initMasteringVoice()
 	HRESULT hr = mXAudio->CreateMasteringVoice( &mMasteringVoice );
 	CI_ASSERT( hr == S_OK );
 	CI_ASSERT( mMasteringVoice );
-
-	::XAUDIO2_VOICE_DETAILS voiceDetails;
-	mMasteringVoice->GetVoiceDetails( &voiceDetails );
-
-	// TODO: voiceDetails is what is needed to populate num channels and samplerate
 }
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - DeviceMaangerXAudio
 // ----------------------------------------------------------------------------------------------------
+
+DeviceManagerXAudio::DeviceManagerXAudio()
+	: mDeviceDetailsRetrieved( false )
+{
+
+}
 
 DeviceRef DeviceManagerXAudio::getDefaultOutput()
 {
@@ -353,17 +355,23 @@ size_t DeviceManagerXAudio::getNumInputChannels( const DeviceRef &device )
 
 size_t DeviceManagerXAudio::getNumOutputChannels( const DeviceRef &device )
 {
-	return 2; // TODO: populate from default mastervoice
+	if( ! mDeviceDetailsRetrieved )
+		retrieveDeviceDetails();
+
+	return mVoiceDetails.InputSampleRate;
 }
 
 size_t DeviceManagerXAudio::getSampleRate( const DeviceRef &device )
 {
-	return 44100;
+	if( ! mDeviceDetailsRetrieved )
+		retrieveDeviceDetails();
+
+	return mVoiceDetails.InputSampleRate;
 }
 
 size_t DeviceManagerXAudio::getFramesPerBlock( const DeviceRef &device )
 {
-	return 512;
+	return DEFAULT_XAUDIO2_FRAMES_PER_BLOCK;
 }
 
 void DeviceManagerXAudio::setSampleRate( const DeviceRef &device, size_t sampleRate )
@@ -373,8 +381,7 @@ void DeviceManagerXAudio::setSampleRate( const DeviceRef &device, size_t sampleR
 
 void DeviceManagerXAudio::setFramesPerBlock( const DeviceRef &device, size_t framesPerBlock )
 {
-	// TODO: might as well let user set this, if i'm making it up above.
-	//  - it isn't the real blocksize, it is the size of the buffer submitted to XAUdio2
+	CI_LOG_W( "setting frames per block not supported" );
 }
 
 const DeviceRef& DeviceManagerXAudio::getDefaultDevice()
@@ -383,6 +390,14 @@ const DeviceRef& DeviceManagerXAudio::getDefaultDevice()
 		mDefaultDevice = addDevice( DEFAULT_XAUDIO2_DEVICE_KEY );
 
 	return mDefaultDevice;
+}
+
+void DeviceManagerXAudio::retrieveDeviceDetails()
+{
+	auto ctxXaudio = dynamic_cast<ContextXAudio *>( master() );
+	CI_ASSERT_MSG( ctxXaudio, "DeviceManagerXAudio must be used in conjunction with ContextXaudio" );
+
+	ctxXaudio->getMasteringVoice()->GetVoiceDetails( &mVoiceDetails );
 }
 
 } } } // namespace cinder::audio2::msw
