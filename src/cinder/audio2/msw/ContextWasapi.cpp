@@ -39,19 +39,25 @@
 #include <avrt.h>
 #pragma comment(lib, "avrt.lib")
 
+namespace {
+
 // TODO: should requestedDuration come from Device's frames per block?
 // - seems like this is fixed at 10ms in shared mode. (896 samples @ stereo 44100 s/r) 
-#define DEFAULT_AUDIOCLIENT_FRAMES 1024
-
-using namespace std;
-
-namespace cinder { namespace audio2 { namespace msw {
+const size_t DEFAULT_AUDIOCLIENT_FRAMES = 1024;
+//! When there are mismatched samplerates between LineOut and LineIn, the capture AudioClient's buffer needs to be larger.
+const size_t CAPTURE_CONVERSION_PADDING_FACTOR = 2;
 
 // converts to 100-nanoseconds
 inline ::REFERENCE_TIME samplesToReferenceTime( size_t samples, size_t sampleRate )
 {
 	return (::REFERENCE_TIME)( (double)samples * 10000000.0 / (double)sampleRate );
 }
+
+} // anonymous namespace
+
+using namespace std;
+
+namespace cinder { namespace audio2 { namespace msw {
 
 struct WasapiAudioClientImpl {
 	WasapiAudioClientImpl();
@@ -99,14 +105,16 @@ struct WasapiCaptureClientImpl : public WasapiAudioClientImpl {
 	unique_ptr<::IAudioCaptureClient, ComReleaser>	mCaptureClient;
 
 	vector<dsp::RingBuffer>				mRingBuffers;
+
+  private:
+	void initCapture();
+
 	std::unique_ptr<dsp::Converter>		mConverter;
 	BufferInterleaved					mInterleavedBuffer;
 	BufferDynamic						mReadBuffer, mConvertedReadBuffer;
+	size_t								mMaxReadFrames;
 
-  private:
-	  void initCapture();
-
-	  LineInWasapi*		mLineIn; // weak pointer to parent
+	LineInWasapi*		mLineIn; // weak pointer to parent
 };
 
 // ----------------------------------------------------------------------------------------------------
@@ -317,27 +325,31 @@ void WasapiRenderClientImpl::increaseThreadPriority()
 // ----------------------------------------------------------------------------------------------------
 
 WasapiCaptureClientImpl::WasapiCaptureClientImpl( LineInWasapi *lineIn )
-	: WasapiAudioClientImpl(), mLineIn( lineIn )
+	: WasapiAudioClientImpl(), mLineIn( lineIn ), mMaxReadFrames( 0 )
 {
 }
 
 void WasapiCaptureClientImpl::init()
 {
 	auto device = mLineIn->getDevice();
+	bool needsConverter = device->getSampleRate() != mLineIn->getSampleRate();
+
+	if( needsConverter )
+		mAudioClientNumFrames *= CAPTURE_CONVERSION_PADDING_FACTOR;
 
 	initAudioClient( device, nullptr );
 	initCapture();
 
-	const size_t maxNumReadFrames = mAudioClientNumFrames;
+	mMaxReadFrames = mAudioClientNumFrames;
 
 	for( size_t ch = 0; ch < mNumChannels; ch++ )
-		mRingBuffers.emplace_back( maxNumReadFrames * mNumChannels * 2 );
+		mRingBuffers.emplace_back( mMaxReadFrames * mNumChannels );
 
-	mInterleavedBuffer = BufferInterleaved( maxNumReadFrames, mNumChannels );
-	mReadBuffer.setSize( maxNumReadFrames, device->getNumInputChannels() );
+	mInterleavedBuffer = BufferInterleaved( mMaxReadFrames, mNumChannels );
+	mReadBuffer.setSize( mMaxReadFrames, device->getNumInputChannels() );
 
-	if( device->getSampleRate() != mLineIn->getSampleRate() ) {
-		mConverter = audio2::dsp::Converter::create( device->getSampleRate(), mLineIn->getSampleRate(), device->getNumInputChannels(), mLineIn->getNumChannels(), maxNumReadFrames );
+	if( needsConverter ) {
+		mConverter = audio2::dsp::Converter::create( device->getSampleRate(), mLineIn->getSampleRate(), device->getNumInputChannels(), mLineIn->getNumChannels(), mMaxReadFrames );
 		mConvertedReadBuffer.setSize( mConverter->getDestMaxFramesPerBlock(), device->getNumInputChannels() );
 		CI_LOG_V( "created Converter for samplerate: " << mConverter->getSourceSampleRate() << " -> " << mConverter->getDestSampleRate() << ", channels: " << mConverter->getSourceNumChannels() << " -> " << mConverter->getDestNumChannels() );
 	}
@@ -363,12 +375,15 @@ void WasapiCaptureClientImpl::initCapture()
 
 void WasapiCaptureClientImpl::captureAudio()
 {
-	UINT32 sizeNextPacket;
-	HRESULT hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket ); // TODO: treat this accordingly for stereo (2x)
+	UINT32 numPacketFrames;
+	HRESULT hr = mCaptureClient->GetNextPacketSize( &numPacketFrames );
 	CI_ASSERT( hr == S_OK );
 
-	while( sizeNextPacket ) {
-		if( sizeNextPacket > ( mAudioClientNumFrames - mNumFramesBuffered ) )
+	while( numPacketFrames ) {
+
+		// TODO NEXT: is this check making the process() method underrun?
+		// - should mark overrun here?
+		if( numPacketFrames > ( mMaxReadFrames - mNumFramesBuffered ) )
 			return; // not enough space, we'll read it next time
 	
 		BYTE *audioData;
@@ -414,7 +429,7 @@ void WasapiCaptureClientImpl::captureAudio()
 		hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
 		CI_ASSERT( hr == S_OK );
 
-		hr = mCaptureClient->GetNextPacketSize( &sizeNextPacket );
+		hr = mCaptureClient->GetNextPacketSize( &numPacketFrames );
 		CI_ASSERT( hr == S_OK );
 	}
 }

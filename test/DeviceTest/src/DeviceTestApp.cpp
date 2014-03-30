@@ -92,8 +92,6 @@ void DeviceTestApp::setup()
 
 void DeviceTestApp::setOutputDevice( const audio2::DeviceRef &device, size_t numChannels )
 {
-//	audio2::ScopedNodeEnabledState enabled( mSourceNode );
-
 	auto ctx = audio2::master();
 
 	ctx->uninitializeAllNodes();
@@ -445,7 +443,7 @@ void DeviceTestApp::draw()
 	gl::pushMatrices();
 	gl::translate( 0, mViewYOffset );
 
-	if( mScope && mScope->isInitialized() ) {
+	if( mScope && mScope->isEnabled() ) {
 		const audio2::Buffer &buffer = mScope->getBuffer();
 
 		float padding = 20;
@@ -474,17 +472,17 @@ void DeviceTestApp::draw()
 	drawWidgets( mWidgets );
 
 	if( mUnderrunFade > 0.0001f ) {
-		gl::color( ColorA( 1, 0.5f, 0, mUnderrunFade ) );
+		gl::color( ColorA( 0.8f, 0.2f, 0, mUnderrunFade ) );
 		gl::drawSolidRect( mUnderrunRect );
 		gl::drawStringCentered( "underrun", mUnderrunRect.getCenter(), Color::black() );
 	}
 	if( mOverrunFade > 0.0001f ) {
-		gl::color( ColorA( 1, 0.5f, 0, mOverrunFade ) );
+		gl::color( ColorA( 0.8f, 0.2f, 0, mOverrunFade ) );
 		gl::drawSolidRect( mOverrunRect );
 		gl::drawStringCentered( "overrun", mOverrunRect.getCenter(), Color::black() );
 	}
 	if( mClipFade > 0.0001f ) {
-		gl::color( ColorA( 1, 0.1f, 0, mClipFade ) );
+		gl::color( ColorA( 0.8f, 0.2f, 0, mClipFade ) );
 		gl::drawSolidRect( mClipRect );
 		gl::drawStringCentered( "clip", mClipRect.getCenter(), Color::black() );
 	}
