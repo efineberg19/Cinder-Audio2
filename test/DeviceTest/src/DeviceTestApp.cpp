@@ -70,12 +70,13 @@ void DeviceTestApp::setup()
 
 	mScope = ctx->makeNode( new audio2::Scope( audio2::Scope::Format().windowSize( 1024 ) ) );
 	mGain = ctx->makeNode( new audio2::Gain() );
-	mGain->setValue( 0.6f );
+	mGain->setValue( 0.4f );
 
 	mGain->connect( mScope );
 
 	setOutputDevice( audio2::Device::getDefaultOutput() );
 	setInputDevice( audio2::Device::getDefaultInput() );
+	//setInputDevice( audio2::Device::getDefaultInput(), 1 ); // force mono input
 
 //	setupMultiChannelDevice( "PreSonus FIREPOD (1431)" );
 
