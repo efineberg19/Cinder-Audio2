@@ -60,7 +60,7 @@ namespace cinder { namespace audio2 { namespace cocoa {
 
 namespace {
 
-const string kRemoteIOKey = "iOS-RemoteIO";
+const string REMOTE_IO_KEY = "iOS-RemoteIO";
 
 } // anonymous namespace
 
@@ -126,7 +126,7 @@ void DeviceManagerAudioSession::setInputEnabled( bool enable )
 
 string DeviceManagerAudioSession::getName( const DeviceRef &device )
 {
-	return kRemoteIOKey;
+	return REMOTE_IO_KEY;
 }
 
 size_t DeviceManagerAudioSession::getNumInputChannels( const DeviceRef &device )
@@ -212,7 +212,7 @@ void DeviceManagerAudioSession::setFramesPerBlock( const DeviceRef &device, size
 const DeviceRef& DeviceManagerAudioSession::getRemoteIODevice()
 {
 	if( ! mRemoteIODevice )
-		mRemoteIODevice = addDevice( kRemoteIOKey );
+		mRemoteIODevice = addDevice( REMOTE_IO_KEY );
 
 	return mRemoteIODevice;
 }

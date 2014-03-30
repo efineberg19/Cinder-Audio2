@@ -449,7 +449,6 @@
 		11BC8393188BA61900F4B834 /* Target.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Target.h; sourceTree = "<group>"; };
 		11C7387518BEF199006E7917 /* MswUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MswUtil.h; sourceTree = "<group>"; };
 		11C7387618BEF199006E7917 /* MswUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MswUtil.cpp; sourceTree = "<group>"; };
-		11C7387718BEF199006E7917 /* CinderXAudio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CinderXAudio.h; sourceTree = "<group>"; };
 		11F2F9F218E0CC370013E0D7 /* ContextWasapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ContextWasapi.cpp; sourceTree = "<group>"; };
 		11F2F9F318E0CC370013E0D7 /* ContextWasapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ContextWasapi.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -801,7 +800,6 @@
 		119CD09A184A793400853BEE /* msw */ = {
 			isa = PBXGroup;
 			children = (
-				11C7387718BEF199006E7917 /* CinderXAudio.h */,
 				119CD09B184A793400853BEE /* ContextXAudio.cpp */,
 				119CD09C184A793400853BEE /* ContextXAudio.h */,
 				11F2F9F218E0CC370013E0D7 /* ContextWasapi.cpp */,
