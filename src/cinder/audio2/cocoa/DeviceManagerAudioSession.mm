@@ -104,7 +104,7 @@ DeviceRef DeviceManagerAudioSession::findDeviceByKey( const string &key )
 const vector<DeviceRef>& DeviceManagerAudioSession::getDevices()
 {
 	if( mDevices.empty() )
-		mDevices.push_back( getDefaultOutput() );
+		getRemoteIODevice(); // this will call addDevice() with the default device.
 	
 	return mDevices;
 }
