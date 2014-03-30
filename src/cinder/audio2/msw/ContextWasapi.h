@@ -23,19 +23,13 @@
 
 #pragma once
 
-#if( _WIN32_WINNT < _WIN32_WINNT_VISTA )
+#if( _WIN32_WINNT < 0x0600 )
 	#error "WASAPI only available on Windows Vista or newer"
 #endif
 
 #include "cinder/audio2/Context.h"
 
-namespace cinder { namespace audio2 {
-
-namespace dsp {
-	class Converter;
-}
-	
-namespace msw {
+namespace cinder { namespace audio2 { namespace msw {
 
 struct WasapiRenderClientImpl;
 struct WasapiCaptureClientImpl;
@@ -74,14 +68,7 @@ protected:
 	void process( Buffer *buffer )	override;
 
 private:
-	// these return the number of capture samples used.
-	size_t copyCaptured( Buffer *destBuffer );
-	size_t convertCaptured( Buffer *destBuffer );
-
 	std::unique_ptr<WasapiCaptureClientImpl>	mCaptureImpl;
-	std::unique_ptr<dsp::Converter>				mConverter;
-	BufferInterleaved							mInterleavedBuffer;
-	BufferDynamic								mConverterReadBuffer;
 
 	friend WasapiCaptureClientImpl;
 };
@@ -90,7 +77,6 @@ class ContextWasapi : public Context {
   public:
 	LineOutRef	createLineOut( const DeviceRef &device, const Node::Format &format = Node::Format() ) override;
 	LineInRef	createLineIn( const DeviceRef &device, const Node::Format &format = Node::Format()  ) override;
-
 };
 
 } } } // namespace cinder::audio2::msw
