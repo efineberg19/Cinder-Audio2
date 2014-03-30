@@ -67,7 +67,7 @@ struct WasapiAudioClientImpl {
 	size_t	mNumFramesBuffered, mAudioClientNumFrames, mNumChannels;
 
   protected:
-	void initAudioClient( const DeviceRef &device, HANDLE eventHandle );
+	void initAudioClient( const DeviceRef &device, size_t numChannels, HANDLE eventHandle );
 };
 
 struct WasapiRenderClientImpl : public WasapiAudioClientImpl {
@@ -126,7 +126,7 @@ WasapiAudioClientImpl::WasapiAudioClientImpl()
 {
 }
 
-void WasapiAudioClientImpl::initAudioClient( const DeviceRef &device, HANDLE eventHandle )
+void WasapiAudioClientImpl::initAudioClient( const DeviceRef &device, size_t numChannels, HANDLE eventHandle )
 {
 	CI_ASSERT( ! mAudioClient );
 
@@ -141,21 +141,8 @@ void WasapiAudioClientImpl::initAudioClient( const DeviceRef &device, HANDLE eve
 	CI_ASSERT( hr == S_OK );
 	mAudioClient = makeComUnique( audioClient );
 
-	// set default format to match the audio client's defaults
-
-	::WAVEFORMATEX *mixFormat;
-	hr = mAudioClient->GetMixFormat( &mixFormat );
-	CI_ASSERT( hr == S_OK );
-
-	// TODO: sort out how to specify channels
-	// - count
-	// - index (ex 4, 5, 8, 9)
-	mNumChannels = mixFormat->nChannels;
-	::CoTaskMemFree( mixFormat );
-
 	size_t sampleRate = device->getSampleRate();
-	
-	auto wfx = interleavedFloatWaveFormat( sampleRate, mNumChannels );
+	auto wfx = interleavedFloatWaveFormat( sampleRate, numChannels );
 	::WAVEFORMATEX *closestMatch;
 	hr = mAudioClient->IsFormatSupported( ::AUDCLNT_SHAREMODE_SHARED, wfx.get(), &closestMatch );
 	if( hr == S_FALSE ) {
@@ -164,6 +151,8 @@ void WasapiAudioClientImpl::initAudioClient( const DeviceRef &device, HANDLE eve
 	}
 	else if( hr != S_OK )
 		throw AudioFormatExc( "Could not find a suitable format for IAudioClient" );
+
+	mNumChannels = wfx->nChannels; // in preparation for using closesMatch
 
 	::REFERENCE_TIME requestedDuration = samplesToReferenceTime( mAudioClientNumFrames, sampleRate );
 	DWORD streamFlags = eventHandle ? AUDCLNT_STREAMFLAGS_EVENTCALLBACK : 0;
@@ -219,7 +208,7 @@ void WasapiRenderClientImpl::init()
 	success = ::ResetEvent( mRenderSamplesReadyEvent );
 	CI_ASSERT( success );
 
-	initAudioClient( mLineOut->getDevice(), mRenderSamplesReadyEvent );
+	initAudioClient( mLineOut->getDevice(), mLineOut->getNumChannels(), mRenderSamplesReadyEvent );
 	initRenderClient();
 }
 
@@ -337,7 +326,7 @@ void WasapiCaptureClientImpl::init()
 	if( needsConverter )
 		mAudioClientNumFrames *= CAPTURE_CONVERSION_PADDING_FACTOR;
 
-	initAudioClient( device, nullptr );
+	initAudioClient( device, mLineIn->getNumChannels(), nullptr );
 	initCapture();
 
 	mMaxReadFrames = mAudioClientNumFrames;
@@ -346,11 +335,11 @@ void WasapiCaptureClientImpl::init()
 		mRingBuffers.emplace_back( mMaxReadFrames * mNumChannels );
 
 	mInterleavedBuffer = BufferInterleaved( mMaxReadFrames, mNumChannels );
-	mReadBuffer.setSize( mMaxReadFrames, device->getNumInputChannels() );
+	mReadBuffer.setSize( mMaxReadFrames, mNumChannels );
 
 	if( needsConverter ) {
-		mConverter = audio2::dsp::Converter::create( device->getSampleRate(), mLineIn->getSampleRate(), device->getNumInputChannels(), mLineIn->getNumChannels(), mMaxReadFrames );
-		mConvertedReadBuffer.setSize( mConverter->getDestMaxFramesPerBlock(), device->getNumInputChannels() );
+		mConverter = audio2::dsp::Converter::create( device->getSampleRate(), mLineIn->getSampleRate(), mNumChannels, mLineIn->getNumChannels(), mMaxReadFrames );
+		mConvertedReadBuffer.setSize( mConverter->getDestMaxFramesPerBlock(), mNumChannels );
 		CI_LOG_V( "created Converter for samplerate: " << mConverter->getSourceSampleRate() << " -> " << mConverter->getDestSampleRate() << ", channels: " << mConverter->getSourceNumChannels() << " -> " << mConverter->getDestNumChannels() );
 	}
 }
@@ -401,13 +390,17 @@ void WasapiCaptureClientImpl::captureAudio()
 			//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
 		}
 		else {
-			size_t numSamples = numFramesAvailable * mNumChannels;
-
-			// TODO: account for mono input
-
+			const size_t numSamples = numFramesAvailable * mNumChannels;
 			mReadBuffer.setNumFrames( numFramesAvailable );
-			memcpy( mInterleavedBuffer.getData(), audioData, numSamples * sizeof( float ) );
-			dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, &mReadBuffer );
+
+			if( mNumChannels == 1 )
+				memcpy( mReadBuffer.getData(), audioData, numSamples * sizeof( float ) );
+			else {
+				CI_ASSERT_MSG( mNumChannels <= 2, "channel count > 2 not yet supported." );
+
+				memcpy( mInterleavedBuffer.getData(), audioData, numSamples * sizeof( float ) );
+				dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, &mReadBuffer );
+			}
 
 			if( mConverter ) {
 				pair<size_t, size_t> count = mConverter->convert( &mReadBuffer, &mConvertedReadBuffer );
