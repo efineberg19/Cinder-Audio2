@@ -369,11 +369,10 @@ void WasapiCaptureClientImpl::captureAudio()
 	CI_ASSERT( hr == S_OK );
 
 	while( numPacketFrames ) {
-
-		// TODO NEXT: is this check making the process() method underrun?
-		// - should mark overrun here?
-		if( numPacketFrames > ( mMaxReadFrames - mNumFramesBuffered ) )
-			return; // not enough space, we'll read it next time
+		if( numPacketFrames > ( mMaxReadFrames - mNumFramesBuffered ) ) {
+			mLineIn->markOverrun();
+			return;
+		}
 	
 		BYTE *audioData;
 		UINT32 numFramesAvailable;
@@ -384,39 +383,32 @@ void WasapiCaptureClientImpl::captureAudio()
 		else
 			CI_ASSERT( hr == S_OK );
 
-		if ( flags & AUDCLNT_BUFFERFLAGS_SILENT ) {
-			CI_LOG_W( "silence. TODO: fill buffer with zeros." );
-			// ???: ignore this? copying the samples is just about the same as setting to 0
-			//fill( mCaptureBuffer.begin(), mCaptureBuffer.end(), 0.0f );
+		const size_t numSamples = numFramesAvailable * mNumChannels;
+		mReadBuffer.setNumFrames( numFramesAvailable );
+
+		if( mNumChannels == 1 )
+			memcpy( mReadBuffer.getData(), audioData, numSamples * sizeof( float ) );
+		else {
+			CI_ASSERT_MSG( mNumChannels <= 2, "channel count > 2 not yet supported." );
+
+			memcpy( mInterleavedBuffer.getData(), audioData, numSamples * sizeof( float ) );
+			dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, &mReadBuffer );
+		}
+
+		if( mConverter ) {
+			pair<size_t, size_t> count = mConverter->convert( &mReadBuffer, &mConvertedReadBuffer );
+			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+				if( ! mRingBuffers[ch].write( mConvertedReadBuffer.getChannel( ch ), count.second ) )
+					mLineIn->markOverrun();
+			}
+			mNumFramesBuffered += count.second;
 		}
 		else {
-			const size_t numSamples = numFramesAvailable * mNumChannels;
-			mReadBuffer.setNumFrames( numFramesAvailable );
-
-			if( mNumChannels == 1 )
-				memcpy( mReadBuffer.getData(), audioData, numSamples * sizeof( float ) );
-			else {
-				CI_ASSERT_MSG( mNumChannels <= 2, "channel count > 2 not yet supported." );
-
-				memcpy( mInterleavedBuffer.getData(), audioData, numSamples * sizeof( float ) );
-				dsp::deinterleaveStereoBuffer( &mInterleavedBuffer, &mReadBuffer );
+			for( size_t ch = 0; ch < mNumChannels; ch++ ) {
+				if( ! mRingBuffers[ch].write( mReadBuffer.getChannel( ch ), numFramesAvailable ) )
+					mLineIn->markOverrun();
 			}
-
-			if( mConverter ) {
-				pair<size_t, size_t> count = mConverter->convert( &mReadBuffer, &mConvertedReadBuffer );
-				for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-					if( ! mRingBuffers[ch].write( mConvertedReadBuffer.getChannel( ch ), count.second ) )
-						mLineIn->markOverrun();
-				}
-				mNumFramesBuffered += count.second;
-			}
-			else {
-				for( size_t ch = 0; ch < mNumChannels; ch++ ) {
-					if( ! mRingBuffers[ch].write( mReadBuffer.getChannel( ch ), numFramesAvailable ) )
-						mLineIn->markOverrun();
-				}
-				mNumFramesBuffered += numFramesAvailable;
-			}
+			mNumFramesBuffered += numFramesAvailable;
 		}
 
 		hr = mCaptureClient->ReleaseBuffer( numFramesAvailable );
